@@ -1,0 +1,77 @@
+.restaurant-select-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: var(--midnight-black, #03020D);
+}
+
+.restaurant-select-card {
+  width: 100%;
+  max-width: 500px;
+  background-color: var(--midnight-black, #03020D);
+  border: 1px solid var(--deep-lake, #1D3273);
+  color: #fff;
+
+  .card-title {
+    color: var(--dark-teal, #0E7490);
+  }
+
+  hr {
+    border-color: var(--deep-lake, #1D3273);
+  }
+}
+
+.restaurant-item {
+  background-color: var(--midnight-black, #03020D);
+  border: 1px solid var(--deep-lake, #1D3273);
+  color: #fff;
+  padding: 1rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: var(--hermes, #203B8C);
+    border-color: var(--medium-slate-blue, #7E5EF2);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.restaurant-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.restaurant-logo-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background-color: var(--medium-slate-blue, #7E5EF2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.restaurant-name {
+  color: var(--dark-teal, #0E7490);
+}
+
+.btn-outline-secondary {
+  color: #fff;
+  border-color: var(--deep-lake, #1D3273);
+
+  &:hover {
+    background-color: var(--deep-lake, #1D3273);
+    border-color: var(--deep-lake, #1D3273);
+    color: #fff;
+  }
+}

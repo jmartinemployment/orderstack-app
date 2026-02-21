@@ -1,0 +1,513 @@
+@use 'sass:color';
+
+$bg-dark: #0d0d1a;
+$bg-panel: #131328;
+$bg-card: #1a1a35;
+$bg-card-hover: #222248;
+$accent: #7c5cfc;
+$accent-dark: #5a3fd4;
+$success: #2ecc71;
+$danger: #e74c3c;
+$warning: #f39c12;
+$text-primary: #e8e8f0;
+$text-muted: #7a7a9e;
+$border: #252545;
+
+.pos-login {
+  height: 100%;
+  background: $bg-dark;
+  color: $text-primary;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+// ===== Idle / Avatar Grid =====
+.login-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+
+  .bi-people-fill {
+    font-size: 2.5rem;
+    color: $accent;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+  }
+
+  p {
+    color: $text-muted;
+    font-size: 0.875rem;
+    margin: 0;
+  }
+}
+
+.lockout-banner {
+  background: color.adjust($danger, $lightness: -25%);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.error-msg {
+  color: $danger;
+  font-size: 0.8125rem;
+  margin-bottom: 0.75rem;
+  text-align: center;
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+.avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  width: 100%;
+  max-width: 600px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+.avatar-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: 12px;
+  padding: 1rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: $bg-card-hover;
+    border-color: $accent;
+    transform: translateY(-2px);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.avatar-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.avatar-role {
+  font-size: 0.625rem;
+  color: $text-muted;
+  text-transform: capitalize;
+}
+
+.empty-grid {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 1rem;
+  color: $text-muted;
+
+  .bi-person-plus {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  p {
+    margin: 0.25rem 0;
+    font-size: 0.875rem;
+  }
+
+  .text-muted {
+    font-size: 0.75rem;
+  }
+}
+
+// ===== Passcode Screen =====
+.passcode-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.btn-back {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: transparent;
+  border: 1px solid $border;
+  color: $text-muted;
+  padding: 0.375rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  &:hover { color: $text-primary; border-color: $text-primary; }
+}
+
+.passcode-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0.75rem 0 0.25rem;
+  }
+
+  p {
+    color: $text-muted;
+    font-size: 0.8125rem;
+    margin: 0;
+  }
+}
+
+.selected-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 auto;
+
+  &.lg {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+}
+
+.passcode-dots {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid $border;
+  background: transparent;
+  transition: all 0.15s ease;
+
+  &.filled {
+    background: $accent;
+    border-color: $accent;
+  }
+}
+
+.validating-msg {
+  color: $accent;
+  font-size: 0.8125rem;
+  margin-bottom: 1rem;
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 72px);
+  gap: 0.75rem;
+}
+
+.keypad-btn {
+  width: 72px;
+  height: 56px;
+  border-radius: 12px;
+  border: 1px solid $border;
+  background: $bg-card;
+  color: $text-primary;
+  font-size: 1.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s ease;
+
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+    background: $accent;
+    border-color: $accent;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.keypad-back {
+  font-size: 1.25rem;
+  color: $text-muted;
+}
+
+.keypad-spacer {
+  width: 72px;
+  height: 56px;
+}
+
+.btn-clear {
+  margin-top: 1rem;
+  background: transparent;
+  border: none;
+  color: $text-muted;
+  font-size: 0.8125rem;
+  cursor: pointer;
+
+  &:hover { color: $text-primary; }
+}
+
+// ===== Clock-In Prompt =====
+.clockin-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.clockin-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0.75rem 0 0.25rem;
+  }
+
+  p {
+    color: $text-muted;
+    font-size: 0.875rem;
+    margin: 0;
+  }
+}
+
+.job-selector {
+  width: 100%;
+  max-width: 360px;
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    font-size: 0.8125rem;
+    color: $text-muted;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+}
+
+.job-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.job-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: $bg-card;
+  border: 2px solid $border;
+  border-radius: 10px;
+  color: $text-primary;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: color.adjust($accent, $lightness: -10%);
+  }
+
+  &.selected {
+    border-color: $accent;
+    background: color.adjust($accent, $lightness: -30%);
+  }
+}
+
+.job-title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.job-rate {
+  font-size: 0.8125rem;
+  color: $text-muted;
+}
+
+.clockin-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 360px;
+}
+
+.btn-clockin {
+  padding: 0.875rem 1.5rem;
+  background: $success;
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) { background: color.adjust($success, $lightness: -8%); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:active:not(:disabled) { transform: scale(0.97); }
+}
+
+.btn-skip {
+  background: transparent;
+  border: 1px solid $border;
+  border-radius: 10px;
+  color: $text-muted;
+  font-size: 0.8125rem;
+  padding: 0.625rem 1rem;
+  cursor: pointer;
+  text-align: center;
+
+  &:hover { color: $text-primary; border-color: $text-primary; }
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ===== Authenticated Bar =====
+.authenticated-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: $bg-panel;
+  border-bottom: 1px solid $border;
+}
+
+.auth-info {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.auth-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.auth-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.auth-status {
+  font-size: 0.6875rem;
+
+  &.clocked-in { color: $success; }
+  &.not-clocked { color: $text-muted; }
+}
+
+.btn-switch {
+  background: $bg-card;
+  border: 1px solid $border;
+  color: $text-muted;
+  padding: 0.375rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+
+  &:hover { color: $text-primary; border-color: $text-primary; }
+}

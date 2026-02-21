@@ -1,0 +1,315 @@
+.staff-management {
+  color: #fff;
+}
+
+// Nav pills
+.nav-pills .nav-link {
+  color: #ccc;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+
+  &:hover {
+    color: #fff;
+    background-color: rgba(126, 94, 242, 0.15);
+  }
+
+  &.active {
+    background-color: var(--medium-slate-blue, #7E5EF2);
+    color: #fff;
+  }
+}
+
+// Tables
+.table-dark {
+  --bs-table-bg: rgba(3, 2, 13, 0.5);
+  --bs-table-border-color: var(--deep-lake, #1D3273);
+  --bs-table-hover-bg: rgba(126, 94, 242, 0.1);
+
+  th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #aaa;
+    font-weight: 600;
+  }
+}
+
+// Role badges
+.badge-super-admin {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.badge-owner {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.badge-manager {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+.badge-staff {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+// PIN grid
+.pin-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pin-card {
+  border: 1px solid var(--deep-lake, #1D3273);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background-color: rgba(3, 2, 13, 0.5);
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: var(--medium-slate-blue, #7E5EF2);
+  }
+}
+
+// Restaurant access grid
+.restaurant-grid {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(2, 1fr);
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.restaurant-check {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--deep-lake, #1D3273);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: var(--medium-slate-blue, #7E5EF2);
+  }
+}
+
+// Modal styles
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1040;
+}
+
+.modal-dialog-centered {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1050;
+  width: 90%;
+  max-width: 480px;
+
+  &.modal-lg {
+    max-width: 640px;
+  }
+}
+
+.modal-content {
+  background-color: var(--midnight-black, #03020D);
+  border: 1px solid var(--deep-lake, #1D3273);
+  border-radius: 0.5rem;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--deep-lake, #1D3273);
+}
+
+.modal-body {
+  padding: 1rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-top: 1px solid var(--deep-lake, #1D3273);
+}
+
+// Form styles
+.form-control,
+.form-select {
+  background-color: var(--midnight-black, #03020D);
+  border-color: var(--deep-lake, #1D3273);
+  color: #fff;
+
+  &:focus {
+    border-color: var(--medium-slate-blue, #7E5EF2);
+    box-shadow: 0 0 0 0.2rem rgba(126, 94, 242, 0.25);
+    background-color: var(--midnight-black, #03020D);
+    color: #fff;
+  }
+
+  &::placeholder {
+    color: #666;
+  }
+}
+
+.form-select {
+  option {
+    background-color: var(--midnight-black, #03020D);
+    color: #fff;
+  }
+}
+
+.form-check-input {
+  background-color: var(--midnight-black, #03020D);
+  border-color: var(--deep-lake, #1D3273);
+
+  &:checked {
+    background-color: var(--medium-slate-blue, #7E5EF2);
+    border-color: var(--medium-slate-blue, #7E5EF2);
+  }
+}
+
+.form-check-label {
+  color: #fff;
+  cursor: pointer;
+}
+
+.form-label {
+  color: #ccc;
+  font-size: 0.875rem;
+}
+
+.btn-primary {
+  background-color: var(--medium-slate-blue, #7E5EF2);
+  border-color: var(--medium-slate-blue, #7E5EF2);
+
+  &:hover:not(:disabled) {
+    background-color: var(--lapis-lazuli, #3632A6);
+    border-color: var(--lapis-lazuli, #3632A6);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.btn-outline-light {
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+}
+
+.empty-state {
+  color: var(--bs-secondary-color, #6c757d);
+}
+
+// Team member avatar (small)
+.tm-avatar-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.badge-active {
+  background-color: #198754;
+  color: #fff;
+}
+
+// Job form rows
+.job-form-row {
+  padding: 0.5rem;
+  border: 1px solid var(--deep-lake, #1D3273);
+  border-radius: 0.375rem;
+  margin-bottom: 0.5rem;
+  background-color: rgba(3, 2, 13, 0.3);
+
+  .input-group-text {
+    background-color: var(--deep-lake, #1D3273);
+    border-color: var(--deep-lake, #1D3273);
+    color: #ccc;
+    font-size: 0.8rem;
+  }
+}
+
+// Permission tree
+.permission-tree {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.perm-category {
+  margin-bottom: 1rem;
+}
+
+.perm-category-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--medium-slate-blue, #7E5EF2);
+  border-bottom: 1px solid var(--deep-lake, #1D3273);
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.perm-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background-color: rgba(126, 94, 242, 0.1);
+  }
+
+  .form-check-input {
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+  }
+}
+
+.perm-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.perm-label {
+  font-size: 0.875rem;
+  color: #fff;
+}
+
+.perm-desc {
+  font-size: 0.75rem;
+  color: #888;
+}

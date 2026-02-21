@@ -1,0 +1,271 @@
+<div class="kiosk">
+  <!-- WELCOME SCREEN -->
+  @if (step() === 'welcome') {
+    <div class="welcome-screen" (click)="startOrder()">
+      <div class="welcome-content">
+        @if (restaurantName()) {
+          <h1 class="welcome-title">{{ restaurantName() }}</h1>
+        }
+        <div class="welcome-icon">
+          <i class="bi bi-hand-index-thumb"></i>
+        </div>
+        <h2 class="welcome-cta">Tap to Start Ordering</h2>
+        <p class="welcome-subtitle">Browse our menu and place your order</p>
+      </div>
+    </div>
+  }
+
+  <!-- MENU SCREEN (3-column: categories | items | cart) -->
+  @if (step() === 'menu') {
+    @if (isLoading()) {
+      <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+        <os-loading-spinner message="Loading menu..." />
+      </div>
+    } @else {
+      <div class="kiosk-layout">
+        <!-- Left: Categories -->
+        <div class="kiosk-categories">
+          <div class="category-header">
+            <h3 class="category-title">Menu</h3>
+          </div>
+          <button
+            type="button"
+            class="category-tile"
+            [class.active]="!selectedCategory()"
+            (click)="selectCategory(null)"
+          >
+            <i class="bi bi-grid-3x3-gap-fill category-icon"></i>
+            <span class="category-name">All Items</span>
+          </button>
+          @for (cat of categories(); track cat.id) {
+            <button
+              type="button"
+              class="category-tile"
+              [class.active]="selectedCategory() === cat.id"
+              (click)="selectCategory(cat.id)"
+            >
+              <i class="bi bi-tag-fill category-icon"></i>
+              <span class="category-name">{{ cat.name }}</span>
+            </button>
+          }
+        </div>
+
+        <!-- Center: Items Grid -->
+        <div class="kiosk-items">
+          <div class="items-header">
+            <h3 class="items-title">
+              @if (selectedCategory()) {
+                {{ getCategoryName(selectedCategory()!) }}
+              } @else {
+                All Items
+              }
+            </h3>
+          </div>
+          <div class="items-grid">
+            @for (item of filteredItems(); track item.id) {
+              <div class="item-card" (click)="addToCart(item)">
+                @if (item.image) {
+                  <div class="item-image" [style.background-image]="'url(' + item.image + ')'"></div>
+                } @else {
+                  <div class="item-image item-image-placeholder">
+                    <i class="bi bi-cup-hot"></i>
+                  </div>
+                }
+                <div class="item-details">
+                  <span class="item-name">{{ item.name }}</span>
+                  <span class="item-price">{{ item.price | currency }}</span>
+                </div>
+                @if (getItemQuantity(item.id) > 0) {
+                  <div class="item-qty-badge">{{ getItemQuantity(item.id) }}</div>
+                  <div class="item-qty-controls" (click)="$event.stopPropagation()">
+                    <button type="button" class="qty-btn" (click)="decrementItem(item.id)">-</button>
+                    <span>{{ getItemQuantity(item.id) }}</span>
+                    <button type="button" class="qty-btn" (click)="incrementItem(item.id)">+</button>
+                  </div>
+                }
+              </div>
+            } @empty {
+              <div class="items-empty">
+                <i class="bi bi-emoji-frown"></i>
+                <p>No items available</p>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Right: Cart -->
+        <div class="kiosk-cart">
+          <div class="cart-header">
+            <h3 class="cart-title">
+              <i class="bi bi-cart3 me-2"></i>Your Order
+            </h3>
+            <span class="cart-count-badge">{{ cartItemCount() }}</span>
+          </div>
+
+          @if (cartItemCount() === 0) {
+            <div class="cart-empty">
+              <i class="bi bi-cart-x"></i>
+              <p>Tap items to add them</p>
+            </div>
+          } @else {
+            <div class="cart-items-list">
+              @for (item of cartItems(); track item.id) {
+                <div class="cart-row">
+                  <div class="cart-row-info">
+                    <span class="cart-row-name">{{ item.menuItem.name }}</span>
+                    <span class="cart-row-price">{{ item.totalPrice | currency }}</span>
+                  </div>
+                  <div class="cart-row-actions">
+                    <button type="button" class="qty-btn-sm" (click)="decrementItem(item.menuItem.id)">-</button>
+                    <span class="cart-row-qty">{{ item.quantity }}</span>
+                    <button type="button" class="qty-btn-sm" (click)="incrementItem(item.menuItem.id)">+</button>
+                    <button type="button" class="remove-btn" (click)="removeFromCart(item.id)">
+                      <i class="bi bi-trash3"></i>
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <div class="cart-footer">
+              <div class="cart-totals">
+                <div class="total-row">
+                  <span>Subtotal</span>
+                  <span>{{ cartSubtotal() | currency }}</span>
+                </div>
+                <div class="total-row">
+                  <span>Tax</span>
+                  <span>{{ cartTax() | currency }}</span>
+                </div>
+                <div class="total-row total-final">
+                  <span>Total</span>
+                  <span>{{ cartTotal() | currency }}</span>
+                </div>
+              </div>
+              <button type="button" class="checkout-btn" (click)="goToUpsell()">
+                Review Order — {{ cartTotal() | currency }}
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+
+  <!-- UPSELL SCREEN -->
+  @if (step() === 'upsell') {
+    <div class="upsell-screen">
+      <h2 class="upsell-title">Want to add anything else?</h2>
+      <p class="upsell-subtitle">Popular additions to complete your meal</p>
+
+      <div class="upsell-grid">
+        @for (item of upsellItems(); track item.id) {
+          <div class="upsell-card" (click)="addUpsellItem(item)">
+            @if (item.image) {
+              <div class="upsell-image" [style.background-image]="'url(' + item.image + ')'"></div>
+            } @else {
+              <div class="upsell-image upsell-image-placeholder">
+                <i class="bi bi-plus-circle"></i>
+              </div>
+            }
+            <div class="upsell-details">
+              <span class="upsell-name">{{ item.name }}</span>
+              <span class="upsell-price">+ {{ item.price | currency }}</span>
+            </div>
+            @if (getItemQuantity(item.id) > 0) {
+              <div class="upsell-added">
+                <i class="bi bi-check-circle-fill"></i> Added
+              </div>
+            }
+          </div>
+        } @empty {
+          <p class="text-muted">No suggestions available</p>
+        }
+      </div>
+
+      <div class="upsell-actions">
+        <button type="button" class="btn-secondary-kiosk" (click)="skipUpsell()">
+          No Thanks
+        </button>
+        <button type="button" class="btn-primary-kiosk" (click)="goToCheckout()">
+          Continue — {{ cartTotal() | currency }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- CHECKOUT SCREEN -->
+  @if (step() === 'checkout') {
+    <div class="checkout-screen">
+      <h2 class="checkout-title">Confirm Your Order</h2>
+
+      @if (error()) {
+        <div class="kiosk-error">{{ error() }}</div>
+      }
+
+      <div class="checkout-items">
+        @for (item of cartItems(); track item.id) {
+          <div class="checkout-row">
+            <span class="checkout-item-qty">{{ item.quantity }}x</span>
+            <span class="checkout-item-name">{{ item.menuItem.name }}</span>
+            <span class="checkout-item-price">{{ item.totalPrice | currency }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="checkout-totals">
+        <div class="total-row">
+          <span>Subtotal</span>
+          <span>{{ cartSubtotal() | currency }}</span>
+        </div>
+        <div class="total-row">
+          <span>Tax</span>
+          <span>{{ cartTax() | currency }}</span>
+        </div>
+        <div class="total-row total-final">
+          <span>Total</span>
+          <span>{{ cartTotal() | currency }}</span>
+        </div>
+      </div>
+
+      <div class="checkout-actions">
+        <button type="button" class="btn-secondary-kiosk" (click)="backToMenu()">
+          <i class="bi bi-arrow-left me-2"></i>Back to Menu
+        </button>
+        <button
+          type="button"
+          class="btn-primary-kiosk"
+          [disabled]="isSubmitting() || cartItemCount() === 0"
+          (click)="submitOrder()"
+        >
+          @if (isSubmitting()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Processing...
+          } @else {
+            Place Order — {{ cartTotal() | currency }}
+          }
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- CONFIRM SCREEN -->
+  @if (step() === 'confirm') {
+    <div class="confirm-screen" (click)="resetKiosk()">
+      <div class="confirm-content">
+        <div class="confirm-checkmark">
+          <i class="bi bi-check-lg"></i>
+        </div>
+        <h1 class="confirm-title">Order Placed!</h1>
+        <div class="confirm-number">
+          <span class="confirm-number-label">Your Order Number</span>
+          <span class="confirm-number-value">#{{ orderNumber() }}</span>
+        </div>
+        <p class="confirm-message">Your order is being prepared. Please wait for your number to be called.</p>
+        <div class="confirm-reset">
+          New order starting in {{ resetCountdown() }}s
+        </div>
+      </div>
+    </div>
+  }
+</div>

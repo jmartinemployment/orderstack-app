@@ -1,0 +1,137 @@
+<div class="payment-settings">
+  <h5 class="mb-3">Payment Processor</h5>
+  <p class="text-muted small mb-3">
+    Select how your restaurant processes payments. Changes take effect immediately for new orders.
+  </p>
+
+  <div class="processor-options mb-4">
+    <div class="form-check mb-3">
+      <input
+        class="form-check-input"
+        type="radio"
+        name="processor"
+        id="processorNone"
+        value="none"
+        [checked]="processor() === 'none'"
+        (change)="onProcessorChange($event)"
+      />
+      <label class="form-check-label" for="processorNone">
+        <strong>No Payment Processing</strong>
+        <span class="d-block text-muted small">Orders are sent to the kitchen without collecting payment. Settle at the register.</span>
+      </label>
+    </div>
+
+    <div class="form-check mb-3">
+      <input
+        class="form-check-input"
+        type="radio"
+        name="processor"
+        id="processorPaypal"
+        value="paypal"
+        [checked]="processor() === 'paypal'"
+        (change)="onProcessorChange($event)"
+      />
+      <label class="form-check-label" for="processorPaypal">
+        <strong>PayPal Zettle</strong>
+        <span class="d-block text-muted small">2.29% + $0.09 per transaction. PayPal, Venmo, and card payments. $0 monthly fees.</span>
+      </label>
+    </div>
+
+    <div class="form-check mb-3">
+      <input
+        class="form-check-input"
+        type="radio"
+        name="processor"
+        id="processorStripe"
+        value="stripe"
+        [checked]="processor() === 'stripe'"
+        (change)="onProcessorChange($event)"
+      />
+      <label class="form-check-label" for="processorStripe">
+        <strong>Stripe</strong>
+        <span class="d-block text-muted small">2.7% + $0.05 per in-person transaction. Card payments via Stripe Payment Element.</span>
+      </label>
+    </div>
+  </div>
+
+  @if (processor() !== 'none') {
+    <div class="form-check mb-3">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        id="requirePayment"
+        [checked]="requirePayment()"
+        (change)="onRequirePaymentChange($event)"
+      />
+      <label class="form-check-label" for="requirePayment">
+        Require payment before sending to kitchen
+      </label>
+    </div>
+  }
+
+  <!-- Surcharge Section -->
+  <div class="surcharge-section mb-4">
+    <h6 class="mb-2">Credit Card Surcharge</h6>
+    <p class="text-muted small mb-3">
+      Pass processing fees to customers paying by card. Cash and other payment methods are not surcharged.
+    </p>
+    <div class="form-check mb-2">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        id="surchargeEnabled"
+        [checked]="surchargeEnabled()"
+        (change)="onSurchargeEnabledChange($event)"
+      />
+      <label class="form-check-label" for="surchargeEnabled">
+        Enable credit card surcharge
+      </label>
+    </div>
+    @if (surchargeEnabled()) {
+      <div class="d-flex align-items-center gap-2 ms-4">
+        <label class="form-label mb-0 small" for="surchargePercent">Rate:</label>
+        <input
+          type="number"
+          class="form-control form-control-sm surcharge-input"
+          id="surchargePercent"
+          [value]="surchargePercent()"
+          (input)="onSurchargePercentChange($event)"
+          min="0"
+          max="10"
+          step="0.1"
+        />
+        <span class="small text-muted">%</span>
+      </div>
+      <p class="text-muted small mt-1 ms-4">
+        Typical range: 2.5% – 4%. Check local regulations for surcharge limits.
+      </p>
+    }
+  </div>
+
+  <div class="d-flex gap-2">
+    <button
+      type="button"
+      class="btn btn-primary"
+      [disabled]="!isDirty() || isSaving()"
+      (click)="save()"
+    >
+      @if (isSaving()) {
+        <span class="spinner-border spinner-border-sm me-1"></span>
+        Saving...
+      } @else {
+        Save
+      }
+    </button>
+    <button
+      type="button"
+      class="btn btn-outline-light"
+      [disabled]="!isDirty()"
+      (click)="discard()"
+    >
+      Discard
+    </button>
+    @if (saved()) {
+      <span class="text-success small align-self-center ms-2">Saved</span>
+    }
+  </div>
+</div>

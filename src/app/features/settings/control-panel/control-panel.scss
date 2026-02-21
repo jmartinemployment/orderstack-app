@@ -1,0 +1,31 @@
+
+
+.control-panel {
+  h2 {
+    color: var(--dark-teal, #0E7490);
+  }
+}
+
+.nav-tabs {
+  border-bottom-color: var(--deep-lake, #1D3273);
+
+  .nav-link {
+    color: rgba(255, 255, 255, 0.6);
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    background: none;
+
+    &:hover {
+      color: #fff;
+      border-bottom-color: rgba(126, 94, 242, 0.4);
+    }
+
+    &.active {
+      color: var(--dark-teal, #0E7490);
+      border-bottom-color: var(--medium-slate-blue, #7E5EF2);
+      background: none;
+    }
+  }
+}

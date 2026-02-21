@@ -1,0 +1,306 @@
+@if (isAuthenticated()) {
+<div class="command-center">
+  <!-- Header -->
+  <div class="cc-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="h4 mb-0">AI Command Center</h2>
+      <small class="text-muted">
+        @if (lastRefresh()) {
+          Updated {{ getRefreshTimeText() }}
+        }
+      </small>
+    </div>
+    <button
+      type="button"
+      class="btn btn-sm btn-outline-info"
+      [disabled]="isLoading()"
+      (click)="refresh()"
+    >
+      @if (isLoading()) {
+        <span class="spinner-border spinner-border-sm me-1"></span>
+        Refreshing...
+      } @else {
+        Refresh All
+      }
+    </button>
+  </div>
+
+  @if (error()) {
+    <os-error-display
+      [message]="error()!"
+      [retryable]="true"
+      (dismissed)="clearError()"
+      (retry)="refresh()"
+    />
+  }
+
+  <!-- Tabs -->
+  <ul class="nav nav-pills cc-tabs mb-4">
+    <li class="nav-item">
+      <button
+        type="button"
+        class="nav-link"
+        [class.active]="activeTab() === 'overview'"
+        (click)="setTab('overview')"
+      >Overview</button>
+    </li>
+    <li class="nav-item">
+      <button
+        type="button"
+        class="nav-link"
+        [class.active]="activeTab() === 'insights'"
+        (click)="setTab('insights')"
+      >
+        AI Insights
+        @if (unifiedInsights().length > 0) {
+          <span class="badge bg-info ms-1">{{ unifiedInsights().length }}</span>
+        }
+      </button>
+    </li>
+    <li class="nav-item">
+      <button
+        type="button"
+        class="nav-link"
+        [class.active]="activeTab() === 'alerts'"
+        (click)="setTab('alerts')"
+      >
+        Alerts
+        @if (criticalAlertCount() > 0) {
+          <span class="badge bg-danger ms-1">{{ criticalAlertCount() }}</span>
+        }
+      </button>
+    </li>
+  </ul>
+
+  @if (isLoading()) {
+    <div class="d-flex justify-content-center p-5">
+      <os-loading-spinner message="Loading command center..." />
+    </div>
+  } @else {
+    <!-- OVERVIEW TAB -->
+    @if (activeTab() === 'overview') {
+      <!-- KPI Cards -->
+      <div class="kpi-grid mb-4">
+        <div class="kpi-card">
+          <span class="kpi-label">Today's Revenue</span>
+          <span class="kpi-value">{{ todayRevenue() | currency }}</span>
+          @if (revenueChange(); as change) {
+            <span class="kpi-change" [class.positive]="change > 0" [class.negative]="change < 0">
+              {{ change > 0 ? '+' : '' }}{{ change | number:'1.1-1' }}%
+            </span>
+          }
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Orders Today</span>
+          <span class="kpi-value">{{ todayOrders() }}</span>
+          <span class="kpi-sub">{{ activeOrderCount() }} active</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Avg Order Value</span>
+          <span class="kpi-value">{{ avgOrderValue() | currency }}</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Profit Margin</span>
+          <span class="kpi-value">
+            @if (avgProfitMargin() !== null) {
+              {{ avgProfitMargin() | number:'1.1-1' }}%
+            } @else {
+              --
+            }
+          </span>
+          @if (avgProfitMargin() !== null && avgProfitMargin()! < 30) {
+            <span class="kpi-change negative">Below target</span>
+          }
+        </div>
+        <div class="kpi-card" [class.kpi-alert]="criticalAlertCount() > 0">
+          <span class="kpi-label">Active Alerts</span>
+          <span class="kpi-value">{{ totalAlertCount() }}</span>
+          @if (criticalAlertCount() > 0) {
+            <span class="kpi-change negative">{{ criticalAlertCount() }} critical</span>
+          }
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Menu Health</span>
+          <span class="kpi-value">{{ menuStars() }} Stars</span>
+          @if (menuDogs() > 0) {
+            <span class="kpi-change negative">{{ menuDogs() }} underperformers</span>
+          }
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <!-- Top Insights (left column) -->
+        <div class="col-12 col-lg-7">
+          <div class="cc-panel">
+            <h5 class="panel-title">AI Recommendations</h5>
+            @if (unifiedInsights().length === 0) {
+              <p class="text-muted small">No insights available yet. Data is being analyzed.</p>
+            } @else {
+              @for (insight of unifiedInsights().slice(0, 6); track insight.id) {
+                <div class="insight-item" [class]="getInsightClass(insight.type)">
+                  <div class="d-flex align-items-start gap-2">
+                    <span class="insight-badge badge" [class]="'source-' + insight.source">
+                      {{ getSourceLabel(insight.source) }}
+                    </span>
+                    <span class="insight-text">{{ insight.text }}</span>
+                  </div>
+                  @if (insight.priority === 'high') {
+                    <span class="badge bg-danger mt-1">High Priority</span>
+                  }
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- Right column -->
+        <div class="col-12 col-lg-5">
+          <!-- Top Sellers -->
+          <div class="cc-panel mb-3">
+            <h5 class="panel-title">Top Sellers Today</h5>
+            @if (topSellers().length === 0) {
+              <p class="text-muted small">No sales data yet.</p>
+            } @else {
+              @for (item of topSellers(); track item.name; let i = $index) {
+                <div class="top-seller-item d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="rank-badge">{{ i + 1 }}</span>
+                    <span>{{ item.name }}</span>
+                  </div>
+                  <div class="text-end">
+                    <span class="fw-bold">{{ item.revenue | currency }}</span>
+                    <small class="text-muted d-block">{{ item.quantity }} sold</small>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+
+          <!-- Stock Urgency -->
+          <div class="cc-panel">
+            <h5 class="panel-title">Stock Watch</h5>
+            @if (urgentPredictions().length === 0) {
+              <p class="text-muted small">All stock levels healthy.</p>
+            } @else {
+              @for (pred of urgentPredictions(); track pred.inventoryItemId) {
+                <div class="stock-item d-flex justify-content-between align-items-center" [class]="getPredictionUrgencyClass(pred.daysUntilEmpty)">
+                  <div>
+                    <span class="fw-bold">{{ pred.itemName }}</span>
+                    <small class="text-muted d-block">{{ pred.currentStock }} {{ pred.unit }} left</small>
+                  </div>
+                  <div class="text-end">
+                    <span class="days-badge">
+                      @if (pred.daysUntilEmpty < 1) {
+                        OUT
+                      } @else {
+                        {{ pred.daysUntilEmpty }}d
+                      }
+                    </span>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- INSIGHTS TAB -->
+    @if (activeTab() === 'insights') {
+      <div class="cc-panel">
+        <h5 class="panel-title mb-3">All AI Insights</h5>
+        @if (unifiedInsights().length === 0) {
+          <div class="text-center p-4">
+            <p class="text-muted">No AI insights available. Data is still being analyzed.</p>
+          </div>
+        } @else {
+          @for (insight of unifiedInsights(); track insight.id) {
+            <div class="insight-item-full" [class]="getInsightClass(insight.type)">
+              <div class="d-flex align-items-start gap-2 mb-1">
+                <span class="insight-badge badge" [class]="'source-' + insight.source">
+                  {{ getSourceLabel(insight.source) }}
+                </span>
+                @if (insight.priority === 'high') {
+                  <span class="badge bg-danger">High</span>
+                } @else if (insight.priority === 'medium') {
+                  <span class="badge bg-warning text-dark">Med</span>
+                }
+              </div>
+              <p class="insight-text-full mb-0">{{ insight.text }}</p>
+            </div>
+          }
+        }
+      </div>
+    }
+
+    <!-- ALERTS TAB -->
+    @if (activeTab() === 'alerts') {
+      <div class="row g-3">
+        <!-- Inventory Alerts -->
+        <div class="col-12 col-lg-6">
+          <div class="cc-panel">
+            <h5 class="panel-title">Inventory Alerts</h5>
+            @if (inventoryAlerts().length === 0) {
+              <p class="text-muted small">No active inventory alerts.</p>
+            } @else {
+              @for (alert of inventoryAlerts(); track alert.itemId) {
+                <div class="alert-item" [class]="getAlertSeverityClass(alert.severity)">
+                  <div class="d-flex justify-content-between align-items-start mb-1">
+                    <strong>{{ alert.itemName }}</strong>
+                    <span class="badge" [class.bg-danger]="alert.severity === 'critical'" [class.bg-warning]="alert.severity === 'warning'" [class.text-dark]="alert.severity === 'warning'" [class.bg-info]="alert.severity === 'info'">
+                      {{ alert.severity }}
+                    </span>
+                  </div>
+                  <p class="small mb-1">{{ alert.message }}</p>
+                  <p class="small text-muted mb-0">{{ alert.suggestedAction }}</p>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- Stock Predictions -->
+        <div class="col-12 col-lg-6">
+          <div class="cc-panel">
+            <h5 class="panel-title">Stock Predictions</h5>
+            @if (inventoryPredictions().length === 0) {
+              <p class="text-muted small">No stock predictions available.</p>
+            } @else {
+              @for (pred of inventoryPredictions(); track pred.inventoryItemId) {
+                <div class="prediction-item" [class]="getPredictionUrgencyClass(pred.daysUntilEmpty)">
+                  <div class="d-flex justify-content-between align-items-start mb-1">
+                    <strong>{{ pred.itemName }}</strong>
+                    <span class="days-badge">
+                      @if (pred.daysUntilEmpty > 365) {
+                        Plenty
+                      } @else {
+                        {{ pred.daysUntilEmpty }}d left
+                      }
+                    </span>
+                  </div>
+                  <div class="d-flex gap-3 small text-muted">
+                    <span>Stock: {{ pred.currentStock }} {{ pred.unit }}</span>
+                    <span>Usage: {{ pred.avgDailyUsage | number:'1.1-1' }}/day</span>
+                  </div>
+                  @if (pred.reorderRecommended) {
+                    <div class="small mt-1">
+                      <span class="badge bg-warning text-dark">Reorder {{ pred.reorderQuantity }} {{ pred.unit }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>
+} @else {
+<div class="auth-required d-flex align-items-center justify-content-center p-5">
+  <div class="text-center">
+    <h3 class="text-warning mb-3">Authentication Required</h3>
+    <p class="text-light">Please log in to access the AI Command Center.</p>
+  </div>
+</div>
+}

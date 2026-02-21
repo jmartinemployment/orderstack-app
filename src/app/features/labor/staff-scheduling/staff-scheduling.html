@@ -1,0 +1,575 @@
+@if (isAuthenticated()) {
+  <div class="staff-scheduling">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="mb-0 text-white">
+        <i class="bi bi-calendar3"></i> Staff Scheduling
+      </h4>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab() === 'schedule'"
+          (click)="setTab('schedule')">
+          <i class="bi bi-calendar-week"></i> Schedule
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab() === 'time-clock'"
+          (click)="setTab('time-clock')">
+          <i class="bi bi-clock-history"></i> Time Clock
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab() === 'labor-report'"
+          (click)="setTab('labor-report')">
+          <i class="bi bi-graph-up"></i> Labor Report
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab() === 'ai-insights'"
+          (click)="setTab('ai-insights')">
+          <i class="bi bi-stars"></i> AI Insights
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab() === 'edits'"
+          (click)="setTab('edits')">
+          <i class="bi bi-pencil-square"></i> Edits
+          @if (pendingEditsCount() > 0) {
+            <span class="badge bg-warning text-dark ms-1">{{ pendingEditsCount() }}</span>
+          }
+        </button>
+      </li>
+    </ul>
+
+    <!-- Loading / Error -->
+    @if (isLoading()) {
+      <os-loading-spinner></os-loading-spinner>
+    }
+
+    @if (error()) {
+      <os-error-display [message]="error()!"></os-error-display>
+    }
+
+    <!-- ==================== SCHEDULE TAB ==================== -->
+    @if (activeTab() === 'schedule') {
+      <!-- Week Nav -->
+      <div class="week-nav d-flex align-items-center justify-content-between mb-3">
+        <button class="btn btn-sm btn-outline-light" (click)="prevWeek()">
+          <i class="bi bi-chevron-left"></i> Prev
+        </button>
+        <div class="text-center">
+          <button class="btn btn-sm btn-outline-secondary me-2" (click)="thisWeek()">This Week</button>
+          <span class="text-white fw-bold">{{ weekStartStr() }} &mdash; {{ weekEndStr() }}</span>
+        </div>
+        <button class="btn btn-sm btn-outline-light" (click)="nextWeek()">
+          Next <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+
+      <!-- KPI Strip -->
+      <div class="row g-2 mb-3">
+        <div class="col-4">
+          <div class="kpi-card text-center">
+            <div class="kpi-value">{{ totalScheduledHours() | number:'1.1-1' }}h</div>
+            <div class="kpi-label">Scheduled Hours</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="kpi-card text-center">
+            <div class="kpi-value">{{ staffOnSchedule() }}</div>
+            <div class="kpi-label">Staff Scheduled</div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="kpi-card text-center">
+            <div class="kpi-value">
+              @if (isPublished()) {
+                <span class="badge bg-success">Published</span>
+              } @else {
+                <span class="badge bg-secondary">Draft</span>
+              }
+            </div>
+            <div class="kpi-label">Status</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weekly Grid -->
+      <div class="schedule-grid-wrapper">
+        <div class="schedule-grid">
+          <!-- Header row -->
+          <div class="grid-header grid-cell-staff">Staff</div>
+          @for (day of weekDays(); track day) {
+            <div class="grid-header">{{ formatDayLabel(day) }}</div>
+          }
+
+          <!-- Staff rows -->
+          @for (staff of staffRows(); track staff.id) {
+            <div class="grid-cell-staff">
+              <div class="staff-name">{{ staff.name }}</div>
+              <small class="text-muted">{{ staff.role }}</small>
+            </div>
+            @for (day of weekDays(); track day) {
+              <div class="grid-cell" (click)="openNewShift(staff.id, day)">
+                @for (shift of getShiftsForCell(staff.id, day); track shift.id) {
+                  <div class="shift-block"
+                    [style.border-left-color]="getPositionColor(shift.position)"
+                    (click)="openEditShift(shift); $event.stopPropagation()">
+                    <div class="shift-time">{{ formatTime(shift.startTime) }}-{{ formatTime(shift.endTime) }}</div>
+                    <div class="shift-position">{{ getPositionLabel(shift.position) }}</div>
+                  </div>
+                }
+              </div>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Publish button -->
+      @if (!isPublished() && shifts().length > 0) {
+        <div class="mt-3 text-end">
+          <button class="btn btn-success" (click)="publishWeek()" [disabled]="isSaving()">
+            <i class="bi bi-send-check"></i> Publish Week
+          </button>
+        </div>
+      }
+    }
+
+    <!-- ==================== TIME CLOCK TAB ==================== -->
+    @if (activeTab() === 'time-clock') {
+      <!-- Clock In -->
+      <div class="card bg-dark border-secondary mb-3">
+        <div class="card-body">
+          <h6 class="text-white mb-3"><i class="bi bi-box-arrow-in-right"></i> Clock In</h6>
+          <div class="d-flex gap-2">
+            <select class="form-select form-select-sm bg-dark text-white border-secondary"
+              [ngModel]="clockInPin()" (ngModelChange)="setClockInPin($event)">
+              <option value="">Select staff...</option>
+              @for (member of staffMembers(); track member.id) {
+                <option [value]="member.id">{{ member.name }} ({{ member.role }})</option>
+              }
+            </select>
+            <button class="btn btn-sm btn-success" (click)="clockIn()" [disabled]="!clockInPin()">
+              <i class="bi bi-play-fill"></i> Clock In
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Clocks -->
+      <h6 class="text-white mb-2"><i class="bi bi-clock"></i> Active Clocks ({{ activeClocks().length }})</h6>
+      @if (activeClocks().length === 0) {
+        <p class="text-muted">No one is currently clocked in.</p>
+      } @else {
+        <div class="list-group">
+          @for (entry of activeClocks(); track entry.id) {
+            <div class="list-group-item bg-dark border-secondary d-flex justify-content-between align-items-center">
+              <div>
+                <strong class="text-white">{{ entry.staffName }}</strong>
+                <span class="badge bg-info ms-2">{{ entry.staffRole }}</span>
+                <div class="text-muted small">
+                  Clocked in: {{ entry.clockIn | date:'shortTime' }}
+                  &middot; Elapsed: {{ getElapsedTime(entry.clockIn) }}
+                </div>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary"
+                  style="width: 80px" placeholder="Break" min="0" max="120"
+                  [ngModel]="clockOutBreak()" (ngModelChange)="setClockOutBreak($event)">
+                <span class="text-muted small">min</span>
+                <button class="btn btn-sm btn-danger" (click)="clockOut(entry.id)">
+                  <i class="bi bi-stop-fill"></i> Out
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- ==================== LABOR REPORT TAB ==================== -->
+    @if (activeTab() === 'labor-report') {
+      <!-- Range selector -->
+      <div class="btn-group mb-3">
+        <button class="btn btn-sm" [class.btn-light]="reportRange() === 'week'"
+          [class.btn-outline-light]="reportRange() !== 'week'" (click)="setReportRange('week')">Week</button>
+        <button class="btn btn-sm" [class.btn-light]="reportRange() === 'biweek'"
+          [class.btn-outline-light]="reportRange() !== 'biweek'" (click)="setReportRange('biweek')">Bi-Weekly</button>
+        <button class="btn btn-sm" [class.btn-light]="reportRange() === 'month'"
+          [class.btn-outline-light]="reportRange() !== 'month'" (click)="setReportRange('month')">Month</button>
+      </div>
+
+      <!-- Workweek Config Info -->
+      @if (workweekConfig(); as ww) {
+        <div class="workweek-info mb-3 d-flex gap-3 align-items-center">
+          <span class="badge bg-secondary"><i class="bi bi-calendar-week"></i> Week starts: {{ weekStartDayLabel() }}</span>
+          <span class="badge bg-secondary"><i class="bi bi-clock"></i> Day starts: {{ ww.startTime }}</span>
+          <span class="badge bg-secondary"><i class="bi bi-hourglass-split"></i> OT after: {{ overtimeThresholdLabel() }}</span>
+        </div>
+      }
+
+      @if (laborReport(); as report) {
+        <!-- KPI Cards -->
+        <div class="row g-2 mb-3">
+          <div class="col-md-2 col-4">
+            <div class="kpi-card text-center">
+              <div class="kpi-value">{{ report.totalHours | number:'1.1-1' }}h</div>
+              <div class="kpi-label">Total Hours</div>
+            </div>
+          </div>
+          <div class="col-md-2 col-4">
+            <div class="kpi-card text-center">
+              <div class="kpi-value">{{ report.totalLaborCost | currency }}</div>
+              <div class="kpi-label">Labor Cost</div>
+            </div>
+          </div>
+          <div class="col-md-2 col-4">
+            <div class="kpi-card text-center">
+              <div class="kpi-value">{{ report.totalRevenue | currency }}</div>
+              <div class="kpi-label">Revenue</div>
+            </div>
+          </div>
+          <div class="col-md-2 col-4">
+            <div class="kpi-card text-center">
+              <div class="kpi-value" [class]="getLaborPercentClass(report.laborPercent)">
+                {{ report.laborPercent | number:'1.1-1' }}%
+              </div>
+              <div class="kpi-label">Labor %</div>
+            </div>
+          </div>
+          <div class="col-md-2 col-4">
+            <div class="kpi-card text-center">
+              <div class="kpi-value" [class]="totalOvertimeHours() > 0 ? 'text-danger' : ''">
+                {{ totalOvertimeHours() | number:'1.1-1' }}h
+              </div>
+              <div class="kpi-label">Overtime</div>
+            </div>
+          </div>
+          <div class="col-md-2 col-4">
+            <div class="kpi-card text-center">
+              <div class="kpi-value" [class]="getLaborPercentClass(avgDailyLaborPercent())">
+                {{ avgDailyLaborPercent() | number:'1.1-1' }}%
+              </div>
+              <div class="kpi-label">Avg Daily L%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Labor vs Sales Comparison -->
+        @if (report.dailyBreakdown.length > 0) {
+          <h6 class="text-white mb-2"><i class="bi bi-bar-chart-line"></i> Labor vs Revenue</h6>
+          <div class="labor-vs-sales mb-3">
+            @for (day of report.dailyBreakdown; track day.date) {
+              <div class="lvs-row">
+                <div class="lvs-label">{{ formatDayLabel(day.date) }}</div>
+                <div class="lvs-bars">
+                  <div class="lvs-revenue-bar" [style.width.%]="(day.revenue / (report.totalRevenue / report.dailyBreakdown.length * 2)) * 100"></div>
+                  <div class="lvs-cost-bar" [style.width.%]="(day.cost / (report.totalRevenue / report.dailyBreakdown.length * 2)) * 100"></div>
+                </div>
+                <div class="lvs-values">
+                  <span class="lvs-revenue">{{ day.revenue | currency:'USD':'symbol':'1.0-0' }}</span>
+                  <span class="lvs-separator">/</span>
+                  <span class="lvs-cost">{{ day.cost | currency:'USD':'symbol':'1.0-0' }}</span>
+                  <span class="lvs-pct" [class]="getLaborPercentClass(day.laborPercent)">{{ day.laborPercent | number:'1.0-0' }}%</span>
+                </div>
+              </div>
+            }
+            <div class="lvs-legend d-flex gap-3 mt-1">
+              <small class="text-muted"><span class="lvs-legend-dot lvs-legend-revenue"></span> Revenue</small>
+              <small class="text-muted"><span class="lvs-legend-dot lvs-legend-cost"></span> Labor Cost</small>
+            </div>
+          </div>
+        }
+
+        <!-- Staff summary table -->
+        <div class="table-responsive mb-3">
+          <table class="table table-dark table-sm table-hover">
+            <thead>
+              <tr>
+                <th class="sortable" (click)="sortReport('name')">Name</th>
+                <th>Role</th>
+                <th class="sortable" (click)="sortReport('hours')">Reg Hours</th>
+                <th>OT Hours</th>
+                <th class="sortable" (click)="sortReport('hours')">Total</th>
+                <th class="sortable" (click)="sortReport('cost')">Cost</th>
+                <th>Shifts</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (staff of sortedStaffSummaries(); track staff.staffPinId) {
+                <tr [class.overtime-row]="staff.overtimeHours > 0">
+                  <td>{{ staff.staffName }}</td>
+                  <td><span class="badge bg-secondary">{{ staff.staffRole }}</span></td>
+                  <td>{{ staff.regularHours | number:'1.1-1' }}</td>
+                  <td>
+                    @if (staff.overtimeHours > 0) {
+                      <span class="text-danger fw-bold">{{ staff.overtimeHours | number:'1.1-1' }}</span>
+                    } @else {
+                      0
+                    }
+                  </td>
+                  <td>{{ staff.totalHours | number:'1.1-1' }}</td>
+                  <td>{{ staff.laborCost | currency }}</td>
+                  <td>{{ staff.shiftsWorked }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Overtime flags -->
+        @if (report.overtimeFlags.length > 0) {
+          <div class="alert alert-danger">
+            <strong><i class="bi bi-exclamation-triangle"></i> Overtime Alerts:</strong>
+            <ul class="mb-0 mt-1">
+              @for (flag of report.overtimeFlags; track flag.staffPinId) {
+                <li>{{ flag.staffName }}: {{ flag.weeklyHours | number:'1.1-1' }}h total ({{ flag.overtimeHours | number:'1.1-1' }}h overtime)</li>
+              }
+            </ul>
+          </div>
+        }
+
+        <!-- Daily breakdown bars -->
+        @if (report.dailyBreakdown.length > 0) {
+          <h6 class="text-white mb-2">Daily Breakdown</h6>
+          @for (day of report.dailyBreakdown; track day.date) {
+            <div class="daily-bar-row d-flex align-items-center mb-1">
+              <div class="daily-bar-label">{{ formatDayLabel(day.date) }}</div>
+              <div class="daily-bar-track flex-grow-1">
+                <div class="daily-bar-fill" [style.width.%]="(day.hours / 80) * 100"></div>
+                @if (day.targetPercent !== null) {
+                  <div class="daily-bar-target" [style.left.%]="(day.targetPercent / 100) * 100"></div>
+                }
+              </div>
+              <div class="daily-bar-value text-muted small">{{ day.hours | number:'1.1-1' }}h</div>
+            </div>
+          }
+        }
+
+        <!-- Export -->
+        <div class="mt-3 text-end">
+          <button class="btn btn-sm btn-outline-light" (click)="exportCSV()">
+            <i class="bi bi-download"></i> Export CSV
+          </button>
+        </div>
+      } @else {
+        @if (!isLoading()) {
+          <p class="text-muted">No labor data for this period.</p>
+        }
+      }
+    }
+
+    <!-- ==================== AI INSIGHTS TAB ==================== -->
+    @if (activeTab() === 'ai-insights') {
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="text-white mb-0"><i class="bi bi-stars"></i> AI Staffing Recommendations</h6>
+        <button class="btn btn-sm btn-outline-light" (click)="refreshRecommendations()" [disabled]="isLoading()">
+          <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+      </div>
+
+      @if (recommendations().length === 0 && !isLoading()) {
+        <p class="text-muted">Click "Refresh" to generate AI staffing recommendations based on your schedule and sales data.</p>
+      }
+
+      @for (rec of recommendations(); track $index) {
+        <div class="recommendation-card mb-2" [style.border-left-color]="getPriorityColor(rec.priority)">
+          <div class="d-flex align-items-start">
+            <i class="bi {{ getRecommendationIcon(rec.type) }} rec-icon me-2"
+              [style.color]="getPriorityColor(rec.priority)"></i>
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between align-items-center">
+                <strong class="text-white">{{ rec.title }}</strong>
+                @if (rec.potentialSavings) {
+                  <span class="badge bg-success">Save {{ rec.potentialSavings | currency }}/wk</span>
+                }
+              </div>
+              <p class="text-muted mb-0 small">{{ rec.message }}</p>
+            </div>
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ==================== EDITS TAB ==================== -->
+    @if (activeTab() === 'edits') {
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="text-white mb-0"><i class="bi bi-pencil-square"></i> Timecard Edit Requests</h6>
+        <div class="btn-group btn-group-sm">
+          <button class="btn" [class.btn-light]="editsFilter() === 'pending'"
+            [class.btn-outline-light]="editsFilter() !== 'pending'" (click)="setEditsFilter('pending')">
+            Pending
+          </button>
+          <button class="btn" [class.btn-light]="editsFilter() === 'approved'"
+            [class.btn-outline-light]="editsFilter() !== 'approved'" (click)="setEditsFilter('approved')">
+            Approved
+          </button>
+          <button class="btn" [class.btn-light]="editsFilter() === 'denied'"
+            [class.btn-outline-light]="editsFilter() !== 'denied'" (click)="setEditsFilter('denied')">
+            Denied
+          </button>
+          <button class="btn" [class.btn-light]="editsFilter() === 'all'"
+            [class.btn-outline-light]="editsFilter() !== 'all'" (click)="setEditsFilter('all')">
+            All
+          </button>
+        </div>
+      </div>
+
+      @if (filteredEdits().length === 0 && !isLoading()) {
+        <div class="text-center py-4">
+          <i class="bi bi-check-circle text-muted" style="font-size: 2rem;"></i>
+          <p class="text-muted mt-2 mb-0">
+            @if (editsFilter() === 'pending') {
+              No pending edit requests.
+            } @else {
+              No edit requests matching this filter.
+            }
+          </p>
+        </div>
+      }
+
+      @for (edit of filteredEdits(); track edit.id) {
+        <div class="edit-request-card mb-2">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <strong class="text-white">{{ edit.requestedByName }}</strong>
+                <span class="badge bg-info">{{ getEditTypeLabel(edit.editType) }}</span>
+                <span [class]="getEditStatusClass(edit.status)">{{ edit.status }}</span>
+              </div>
+              <div class="text-muted small mb-1">
+                <i class="bi bi-calendar3"></i> Requested: {{ edit.createdAt | date:'short' }}
+                @if (edit.expiresAt) {
+                  &middot; Expires: {{ edit.expiresAt | date:'short' }}
+                }
+              </div>
+              <div class="edit-values d-flex gap-3 mb-1">
+                <div>
+                  <span class="text-muted small">Original:</span>
+                  <span class="text-white small ms-1">{{ edit.originalValue }}</span>
+                </div>
+                <div>
+                  <span class="text-muted small">Requested:</span>
+                  <span class="text-white small ms-1 fw-bold">{{ edit.newValue }}</span>
+                </div>
+              </div>
+              <div class="text-muted small">
+                <i class="bi bi-chat-left-text"></i> {{ edit.reason }}
+              </div>
+              @if (edit.approvedByName) {
+                <div class="text-muted small mt-1">
+                  <i class="bi bi-person-check"></i> {{ edit.status === 'approved' ? 'Approved' : 'Denied' }} by {{ edit.approvedByName }}
+                  @if (edit.resolvedAt) {
+                    on {{ edit.resolvedAt | date:'short' }}
+                  }
+                </div>
+              }
+            </div>
+            @if (edit.status === 'pending') {
+              <div class="d-flex gap-2 ms-3">
+                <button class="btn btn-sm btn-success" (click)="approveEdit(edit.id)"
+                  [disabled]="isResolvingEdit()" title="Approve">
+                  <i class="bi bi-check-lg"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" (click)="denyEdit(edit.id)"
+                  [disabled]="isResolvingEdit()" title="Deny">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ==================== SHIFT MODAL ==================== -->
+    @if (showShiftModal()) {
+      <div class="modal-backdrop" (click)="closeShiftModal()"></div>
+      <div class="modal-dialog">
+        <div class="modal-content bg-dark text-white border-secondary">
+          <div class="modal-header border-secondary">
+            <h5 class="modal-title">
+              @if (editingShift()) {
+                Edit Shift
+              } @else {
+                New Shift
+              }
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="closeShiftModal()"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Staff</label>
+              <select class="form-select bg-dark text-white border-secondary"
+                [ngModel]="shiftForm().staffPinId" (ngModelChange)="updateShiftForm('staffPinId', $event)">
+                <option value="">Select staff...</option>
+                @for (member of staffMembers(); track member.id) {
+                  <option [value]="member.id">{{ member.name }} ({{ member.role }})</option>
+                }
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Date</label>
+              <input type="date" class="form-control bg-dark text-white border-secondary"
+                [ngModel]="shiftForm().date" (ngModelChange)="updateShiftForm('date', $event)">
+            </div>
+            <div class="row mb-3">
+              <div class="col-6">
+                <label class="form-label">Start Time</label>
+                <input type="time" class="form-control bg-dark text-white border-secondary"
+                  [ngModel]="shiftForm().startTime" (ngModelChange)="updateShiftForm('startTime', $event)">
+              </div>
+              <div class="col-6">
+                <label class="form-label">End Time</label>
+                <input type="time" class="form-control bg-dark text-white border-secondary"
+                  [ngModel]="shiftForm().endTime" (ngModelChange)="updateShiftForm('endTime', $event)">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Position</label>
+              <select class="form-select bg-dark text-white border-secondary"
+                [ngModel]="shiftForm().position" (ngModelChange)="updateShiftForm('position', $event)">
+                <option value="server">&#x1F535; Server</option>
+                <option value="cook">&#x1F534; Cook</option>
+                <option value="bartender">&#x1F7E3; Bartender</option>
+                <option value="host">&#x1F7E2; Host</option>
+                <option value="manager">&#x1F7E0; Manager</option>
+                <option value="expo">&#x1F7E0; Expo</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Break (minutes)</label>
+              <input type="number" class="form-control bg-dark text-white border-secondary"
+                min="0" max="120"
+                [ngModel]="shiftForm().breakMinutes" (ngModelChange)="updateShiftForm('breakMinutes', +$event)">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Notes</label>
+              <textarea class="form-control bg-dark text-white border-secondary" rows="2"
+                [ngModel]="shiftForm().notes" (ngModelChange)="updateShiftForm('notes', $event)"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer border-secondary">
+            @if (editingShift()) {
+              <button class="btn btn-danger me-auto" (click)="deleteShift()" [disabled]="isSaving()">
+                <i class="bi bi-trash"></i> Delete
+              </button>
+            }
+            <button class="btn btn-secondary" (click)="closeShiftModal()">Cancel</button>
+            <button class="btn btn-primary" (click)="saveShift()"
+              [disabled]="isSaving() || !shiftForm().staffPinId || !shiftForm().date">
+              @if (isSaving()) {
+                <span class="spinner-border spinner-border-sm"></span>
+              } @else {
+                Save
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}

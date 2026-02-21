@@ -1,0 +1,591 @@
+<div class="setup-wizard">
+  <!-- Success Screen -->
+  @if (_submitSuccess()) {
+    <div class="success-screen">
+      <div class="success-icon">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <h2>You're all set!</h2>
+      <p>Your business has been created. You can now start using OrderStack.</p>
+    </div>
+  } @else {
+    <!-- Brand + Progress -->
+    <div class="wizard-brand">
+      <i class="bi bi-stack"></i> OrderStack
+    </div>
+    <div class="wizard-header">
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" [style.width.%]="progressPercent()"></div>
+      </div>
+      <div class="step-label">
+        <span>Step {{ currentStep() }} of {{ totalSteps }}</span>
+        <span>{{ progressPercent() }}% complete</span>
+      </div>
+    </div>
+
+    <div class="wizard-body">
+      <!-- ============ STEP 1: Business Info ============ -->
+      @if (currentStep() === 1) {
+        <div class="step-content">
+          <h2>Tell us about your business</h2>
+          <p class="step-subtitle">We'll use this to set up your account.</p>
+
+          <div class="form-group">
+            <label for="businessName">Business Name</label>
+            <input
+              id="businessName"
+              type="text"
+              class="form-control"
+              placeholder="e.g. Taipa Kitchen"
+              [ngModel]="_businessName()"
+              (ngModelChange)="_businessName.set($event)" />
+          </div>
+
+          <div class="form-group">
+            <label for="street">Street Address</label>
+            <input
+              id="street"
+              type="text"
+              class="form-control"
+              placeholder="123 Main St"
+              [ngModel]="_address().street"
+              (ngModelChange)="updateAddress('street', $event)" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-2">
+              <label for="city">City</label>
+              <input
+                id="city"
+                type="text"
+                class="form-control"
+                placeholder="City"
+                [ngModel]="_address().city"
+                (ngModelChange)="updateAddress('city', $event)" />
+            </div>
+            <div class="form-group flex-1">
+              <label for="state">State</label>
+              <select
+                id="state"
+                class="form-control"
+                [ngModel]="_address().state"
+                (ngModelChange)="updateAddress('state', $event)">
+                <option value="">Select</option>
+                @for (s of usStates; track s.code) {
+                  <option [value]="s.code">{{ s.code }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label for="zip">ZIP</label>
+              <input
+                id="zip"
+                type="text"
+                class="form-control"
+                placeholder="33301"
+                maxlength="10"
+                [ngModel]="_address().zip"
+                (ngModelChange)="updateAddress('zip', $event)" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone (optional)</label>
+            <input
+              id="phone"
+              type="tel"
+              class="form-control"
+              placeholder="(954) 555-0123"
+              [ngModel]="_phone()"
+              (ngModelChange)="_phone.set($event)" />
+          </div>
+        </div>
+      }
+
+      <!-- ============ STEP 2: Verticals ============ -->
+      @if (currentStep() === 2) {
+        <div class="step-content">
+          <h2>What does your business do?</h2>
+          <p class="step-subtitle">Select all that apply. This determines which features are available.</p>
+
+          <div class="vertical-grid">
+            @for (v of verticalCatalog; track v.vertical) {
+              <button
+                class="vertical-pill"
+                [class.selected]="isVerticalSelected(v.vertical)"
+                (click)="toggleVertical(v.vertical)">
+                <i class="{{ v.icon }} vertical-icon"></i>
+                <span class="vertical-label">{{ v.label }}</span>
+                <span class="vertical-desc">{{ v.description }}</span>
+                @if (isVerticalSelected(v.vertical)) {
+                  <i class="bi bi-check-circle-fill check-icon"></i>
+                }
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ============ STEP 3: Primary Vertical ============ -->
+      @if (currentStep() === 3) {
+        <div class="step-content">
+          <h2>What's your primary focus?</h2>
+          <p class="step-subtitle">This helps us prioritize the right features for you.</p>
+
+          <div class="primary-vertical-list">
+            @for (v of _selectedVerticals(); track v) {
+              <button
+                class="primary-option"
+                [class.selected]="_primaryVertical() === v"
+                (click)="_primaryVertical.set(v)">
+                <i class="{{ getVerticalConfig(v)?.icon }} option-icon"></i>
+                <span>{{ getVerticalConfig(v)?.label }}</span>
+                @if (_primaryVertical() === v) {
+                  <i class="bi bi-check-circle-fill"></i>
+                }
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ============ STEP 4: Complexity ============ -->
+      @if (currentStep() === 4) {
+        <div class="step-content">
+          <h2>How much do you need?</h2>
+          <p class="step-subtitle">You can always upgrade later.</p>
+
+          <div class="complexity-cards">
+            <button
+              class="complexity-card"
+              [class.selected]="_complexity() === 'full'"
+              (click)="_complexity.set('full')">
+              <div class="card-icon"><i class="bi bi-box-seam"></i></div>
+              <h3>Full</h3>
+              <p>Payments, catalog, and inventory management. Everything you need to run your business.</p>
+              <span class="tag">Recommended</span>
+            </button>
+
+            <button
+              class="complexity-card"
+              [class.selected]="_complexity() === 'catalog'"
+              (click)="_complexity.set('catalog')">
+              <div class="card-icon"><i class="bi bi-list-ul"></i></div>
+              <h3>Catalog</h3>
+              <p>Payments and a product/service catalog. No inventory tracking.</p>
+            </button>
+
+            <button
+              class="complexity-card"
+              [class.selected]="_complexity() === 'payments_only'"
+              (click)="_complexity.set('payments_only')">
+              <div class="card-icon"><i class="bi bi-credit-card"></i></div>
+              <h3>Payments Only</h3>
+              <p>Just accept payments. No catalog or menu needed.</p>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- ============ STEP 5: Tax & Locale ============ -->
+      @if (currentStep() === 5) {
+        <div class="step-content">
+          <h2>Tax & locale settings</h2>
+          <p class="step-subtitle">We'll calculate tax automatically on every transaction.</p>
+
+          <div class="form-group">
+            <label>Tax Rate (%)</label>
+            <div class="tax-row">
+              <input
+                type="number"
+                class="form-control tax-input"
+                step="0.01"
+                min="0"
+                max="20"
+                [ngModel]="_taxLocale().taxRate"
+                (ngModelChange)="updateTaxLocale('taxRate', $event)" />
+              <button class="btn btn-outline auto-detect-btn" (click)="autoDetectTax()" [disabled]="_isAutoDetecting()">
+                @if (_isAutoDetecting()) {
+                  <i class="bi bi-arrow-repeat spin"></i> Detecting...
+                } @else {
+                  <i class="bi bi-geo-alt"></i> Auto-detect
+                }
+              </button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Currency</label>
+              <select
+                class="form-control"
+                [ngModel]="_taxLocale().currency"
+                (ngModelChange)="updateTaxLocale('currency', $event)">
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="CAD">CAD (C$)</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label>Language</label>
+              <select
+                class="form-control"
+                [ngModel]="_taxLocale().defaultLanguage"
+                (ngModelChange)="updateTaxLocale('defaultLanguage', $event)">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-check">
+            <input
+              type="checkbox"
+              id="taxInclusive"
+              class="form-check-input"
+              [ngModel]="_taxLocale().taxInclusive"
+              (ngModelChange)="updateTaxLocale('taxInclusive', $event)" />
+            <label for="taxInclusive" class="form-check-label">
+              Tax included in listed prices
+            </label>
+          </div>
+        </div>
+      }
+
+      <!-- ============ STEP 6: Business Hours ============ -->
+      @if (currentStep() === 6) {
+        <div class="step-content">
+          <h2>When are you open?</h2>
+          <p class="step-subtitle">Set your regular business hours.</p>
+
+          <div class="presets">
+            <button class="btn btn-sm btn-outline" (click)="applyHoursPreset('11:00', '22:00')">Restaurant (11am–10pm)</button>
+            <button class="btn btn-sm btn-outline" (click)="applyHoursPreset('09:00', '21:00')">Retail (9am–9pm)</button>
+            <button class="btn btn-sm btn-outline" (click)="applyHoursPreset('06:00', '18:00')">Early (6am–6pm)</button>
+          </div>
+
+          <div class="hours-grid">
+            @for (day of _businessHours(); track day.day; let i = $index) {
+              <div class="hours-row" [class.closed]="day.closed">
+                <span class="day-label">{{ capitalizeDay(day.day) }}</span>
+                <select
+                  class="form-control time-select"
+                  [ngModel]="day.open"
+                  (ngModelChange)="updateHoursField(i, 'open', $event)"
+                  [disabled]="day.closed">
+                  @for (t of timeOptions; track t) {
+                    <option [value]="t">{{ formatTime(t) }}</option>
+                  }
+                </select>
+                <span class="time-sep">to</span>
+                <select
+                  class="form-control time-select"
+                  [ngModel]="day.close"
+                  (ngModelChange)="updateHoursField(i, 'close', $event)"
+                  [disabled]="day.closed">
+                  @for (t of timeOptions; track t) {
+                    <option [value]="t">{{ formatTime(t) }}</option>
+                  }
+                </select>
+                <button class="btn btn-sm btn-icon" [class.active]="day.closed" (click)="toggleClosed(i)" title="Toggle closed">
+                  <i class="bi" [class.bi-toggle-off]="!day.closed" [class.bi-toggle-on]="day.closed"></i>
+                </button>
+                <button class="btn btn-sm btn-icon" (click)="copyToAll(i)" title="Copy to all days">
+                  <i class="bi bi-copy"></i>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ============ STEP 7: Device Mode ============ -->
+      @if (currentStep() === 7) {
+        <div class="step-content">
+          <h2>Choose your POS mode</h2>
+          <p class="step-subtitle">This controls how your point-of-sale works. You can change it per device later.</p>
+
+          <div class="mode-grid">
+            @for (m of availableModes(); track m.mode) {
+              <button
+                class="mode-card"
+                [class.selected]="_selectedMode() === m.mode"
+                (click)="selectMode(m.mode)">
+                <i class="{{ m.icon }} mode-icon"></i>
+                <h3>{{ m.label }}</h3>
+                <p>{{ m.description }}</p>
+                @if (_selectedMode() === m.mode) {
+                  <i class="bi bi-check-circle-fill check-icon"></i>
+                }
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ============ STEP 8: Payment ============ -->
+      @if (currentStep() === 8) {
+        <div class="step-content">
+          <h2>How will you accept payments?</h2>
+          <p class="step-subtitle">You can always change this later in Settings.</p>
+
+          <div class="payment-options">
+            <button
+              class="payment-card"
+              [class.selected]="_paymentProcessor() === 'paypal'"
+              (click)="_paymentProcessor.set('paypal')">
+              <div class="card-icon"><i class="bi bi-paypal"></i></div>
+              <h3>PayPal Zettle</h3>
+              <p>Tap, chip, and contactless payments. Recommended for most businesses.</p>
+              <span class="tag">Recommended</span>
+            </button>
+
+            <button
+              class="payment-card"
+              [class.selected]="_paymentProcessor() === 'stripe'"
+              (click)="_paymentProcessor.set('stripe')">
+              <div class="card-icon"><i class="bi bi-stripe"></i></div>
+              <h3>Stripe</h3>
+              <p>Full payment platform with online and in-person support.</p>
+            </button>
+
+            <button
+              class="payment-card"
+              [class.selected]="_paymentProcessor() === 'none'"
+              (click)="_paymentProcessor.set('none')">
+              <div class="card-icon"><i class="bi bi-cash-stack"></i></div>
+              <h3>Cash Only / Later</h3>
+              <p>Skip payment setup for now. Accept cash or set up card payments later.</p>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- ============ STEP 9: Menu Setup ============ -->
+      @if (currentStep() === 9) {
+        <div class="step-content">
+          @if (_complexity() === 'payments_only') {
+            <h2>No menu needed</h2>
+            <p class="step-subtitle">You selected Payments Only mode. You can add items later if needed.</p>
+          } @else {
+            <h2>Set up your menu</h2>
+            <p class="step-subtitle">Start with a template or build from scratch.</p>
+
+            <div class="template-grid">
+              <button
+                class="template-card"
+                [class.selected]="_selectedTemplateId() === null"
+                (click)="selectTemplate(null)">
+                <i class="bi bi-plus-lg template-icon"></i>
+                <h4>Start from Scratch</h4>
+                <p>Build your menu manually</p>
+              </button>
+
+              @for (tmpl of _menuTemplates(); track tmpl.id) {
+                <button
+                  class="template-card"
+                  [class.selected]="_selectedTemplateId() === tmpl.id"
+                  (click)="selectTemplate(tmpl.id)">
+                  <i class="bi bi-file-earmark-text template-icon"></i>
+                  <h4>{{ tmpl.name }}</h4>
+                  <p>{{ tmpl.itemCount }} items &middot; {{ tmpl.categories.length }} categories</p>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ============ STEP 10: Owner PIN ============ -->
+      @if (currentStep() === 10) {
+        <div class="step-content">
+          <h2>Create your owner account</h2>
+          <p class="step-subtitle">This is how you'll log in and manage your business.</p>
+
+          <div class="form-group">
+            <label for="ownerName">Display Name</label>
+            <input
+              id="ownerName"
+              type="text"
+              class="form-control"
+              placeholder="Your name"
+              [ngModel]="_ownerName()"
+              (ngModelChange)="_ownerName.set($event)" />
+          </div>
+
+          <div class="form-group">
+            <label for="ownerEmail">Email</label>
+            <input
+              id="ownerEmail"
+              type="email"
+              class="form-control"
+              placeholder="owner@yourbusiness.com"
+              [ngModel]="_ownerEmail()"
+              (ngModelChange)="_ownerEmail.set($event)" />
+          </div>
+
+          <div class="form-group">
+            <label for="ownerPassword">Password</label>
+            <input
+              id="ownerPassword"
+              type="password"
+              class="form-control"
+              placeholder="Minimum 6 characters"
+              [ngModel]="_ownerPassword()"
+              (ngModelChange)="_ownerPassword.set($event)" />
+          </div>
+
+          <div class="pin-section">
+            <label>Staff PIN (4-6 digits)</label>
+            <p class="pin-hint">This PIN is used for quick staff operations like clock-in and POS access.</p>
+
+            <div class="pin-display">
+              @for (d of [0,1,2,3,4,5]; track d) {
+                <span class="pin-dot" [class.filled]="d < _ownerPin().length"></span>
+              }
+            </div>
+            <div class="pin-keypad">
+              @for (d of ['1','2','3','4','5','6','7','8','9','','0','⌫']; track d) {
+                @if (d === '') {
+                  <span class="keypad-spacer"></span>
+                } @else if (d === '⌫') {
+                  <button class="keypad-btn" (click)="clearPin()">
+                    <i class="bi bi-backspace"></i>
+                  </button>
+                } @else {
+                  <button class="keypad-btn" (click)="appendPinDigit(d)">{{ d }}</button>
+                }
+              }
+            </div>
+
+            @if (_ownerPin().length >= 4) {
+              <label class="mt-3">Confirm PIN</label>
+              <div class="pin-display">
+                @for (d of [0,1,2,3,4,5]; track d) {
+                  <span class="pin-dot" [class.filled]="d < _ownerPinConfirm().length"></span>
+                }
+              </div>
+              <div class="pin-keypad">
+                @for (d of ['1','2','3','4','5','6','7','8','9','','0','⌫']; track d) {
+                  @if (d === '') {
+                    <span class="keypad-spacer"></span>
+                  } @else if (d === '⌫') {
+                    <button class="keypad-btn" (click)="clearConfirmPin()">
+                      <i class="bi bi-backspace"></i>
+                    </button>
+                  } @else {
+                    <button class="keypad-btn" (click)="appendConfirmDigit(d)">{{ d }}</button>
+                  }
+                }
+              </div>
+
+              @if (_ownerPinConfirm().length >= 4) {
+                @if (pinMatch()) {
+                  <div class="pin-match success"><i class="bi bi-check-circle"></i> PINs match</div>
+                } @else {
+                  <div class="pin-match error"><i class="bi bi-x-circle"></i> PINs don't match</div>
+                }
+              }
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ============ STEP 11: Confirmation ============ -->
+      @if (currentStep() === 11) {
+        <div class="step-content">
+          <h2>Review & confirm</h2>
+          <p class="step-subtitle">Everything look right? You can edit any section by clicking it.</p>
+
+          <div class="review-sections">
+            <div class="review-section" (click)="goToStep(1)">
+              <div class="review-label">Business</div>
+              <div class="review-value">{{ _businessName() }}</div>
+              <div class="review-detail">{{ _address().city }}{{ _address().state ? ', ' + _address().state : '' }} {{ _address().zip }}</div>
+              <i class="bi bi-pencil edit-icon"></i>
+            </div>
+
+            <div class="review-section" (click)="goToStep(2)">
+              <div class="review-label">Industry</div>
+              <div class="review-value">{{ getVerticalLabels() }}</div>
+              <i class="bi bi-pencil edit-icon"></i>
+            </div>
+
+            <div class="review-section" (click)="goToStep(4)">
+              <div class="review-label">Setup Level</div>
+              <div class="review-value">{{ getComplexityLabel() }}</div>
+              <i class="bi bi-pencil edit-icon"></i>
+            </div>
+
+            <div class="review-section" (click)="goToStep(5)">
+              <div class="review-label">Tax</div>
+              <div class="review-value">{{ _taxLocale().taxRate }}% &middot; {{ _taxLocale().currency }}</div>
+              <i class="bi bi-pencil edit-icon"></i>
+            </div>
+
+            <div class="review-section" (click)="goToStep(7)">
+              <div class="review-label">POS Mode</div>
+              <div class="review-value">{{ getModeLabel() }}</div>
+              <i class="bi bi-pencil edit-icon"></i>
+            </div>
+
+            <div class="review-section" (click)="goToStep(8)">
+              <div class="review-label">Payments</div>
+              <div class="review-value">{{ getPaymentLabel() }}</div>
+              <i class="bi bi-pencil edit-icon"></i>
+            </div>
+
+            <div class="review-section" (click)="goToStep(9)">
+              <div class="review-label">Menu</div>
+              <div class="review-value">{{ getTemplateName() }}</div>
+              <i class="bi bi-pencil edit-icon"></i>
+            </div>
+
+            <div class="review-section" (click)="goToStep(10)">
+              <div class="review-label">Owner</div>
+              <div class="review-value">{{ _ownerName() }}</div>
+              <div class="review-detail">{{ _ownerEmail() }}</div>
+              <i class="bi bi-pencil edit-icon"></i>
+            </div>
+          </div>
+
+          @if (_submitError()) {
+            <div class="alert alert-danger">{{ _submitError() }}</div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Navigation Footer -->
+    <div class="wizard-footer">
+      @if (currentStep() > 1) {
+        <button class="btn btn-outline" (click)="prev()">
+          <i class="bi bi-arrow-left"></i> Back
+        </button>
+      } @else {
+        <span></span>
+      }
+
+      @if (currentStep() < totalSteps) {
+        <button
+          class="btn btn-primary"
+          [disabled]="!canProceed()"
+          (click)="next()">
+          Continue <i class="bi bi-arrow-right"></i>
+        </button>
+      } @else {
+        <button
+          class="btn btn-primary btn-lg"
+          [disabled]="!canProceed() || _isSubmitting()"
+          (click)="submit()">
+          @if (_isSubmitting()) {
+            <i class="bi bi-arrow-repeat spin"></i> Creating...
+          } @else {
+            <i class="bi bi-rocket-takeoff"></i> Get Started
+          }
+        </button>
+      }
+    </div>
+  }
+</div>

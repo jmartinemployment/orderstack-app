@@ -1,0 +1,125 @@
+@if (isAuthenticated()) {
+<div class="menu-engineering">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0">Menu Engineering</h2>
+    <div class="d-flex gap-2">
+      @for (d of [7, 14, 30, 90]; track d) {
+        <button
+          type="button"
+          class="btn btn-sm"
+          [class.btn-primary]="days() === d"
+          [class.btn-outline-light]="days() !== d"
+          (click)="setDays(d)"
+        >
+          {{ d }}d
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (error()) {
+    <os-error-display
+      [message]="error()!"
+      [retryable]="true"
+      (retry)="retry()"
+    />
+  }
+
+  @if (isLoading()) {
+    <div class="d-flex justify-content-center p-5">
+      <os-loading-spinner message="Analyzing menu performance..." />
+    </div>
+  } @else if (data(); as engineering) {
+    <!-- Summary Cards -->
+    <div class="summary-cards d-flex flex-wrap gap-3 mb-4">
+      <div class="summary-card" (click)="setFilter('all')" [class.active]="filterQuadrant() === 'all'">
+        <span class="count">{{ engineering.summary.totalItems }}</span>
+        <span class="label">Total Items</span>
+      </div>
+      <div class="summary-card quadrant-star" (click)="setFilter('star')" [class.active]="filterQuadrant() === 'star'">
+        <span class="count">{{ engineering.summary.stars }}</span>
+        <span class="label">Stars</span>
+      </div>
+      <div class="summary-card quadrant-cash-cow" (click)="setFilter('cash-cow')" [class.active]="filterQuadrant() === 'cash-cow'">
+        <span class="count">{{ engineering.summary.cashCows }}</span>
+        <span class="label">Cash Cows</span>
+      </div>
+      <div class="summary-card quadrant-puzzle" (click)="setFilter('puzzle')" [class.active]="filterQuadrant() === 'puzzle'">
+        <span class="count">{{ engineering.summary.puzzles }}</span>
+        <span class="label">Puzzles</span>
+      </div>
+      <div class="summary-card quadrant-dog" (click)="setFilter('dog')" [class.active]="filterQuadrant() === 'dog'">
+        <span class="count">{{ engineering.summary.dogs }}</span>
+        <span class="label">Dogs</span>
+      </div>
+      <div class="summary-card">
+        <span class="count">{{ engineering.summary.averageMargin }}%</span>
+        <span class="label">Avg Margin</span>
+      </div>
+    </div>
+
+    <!-- AI Insights -->
+    @if (engineering.insights.length > 0) {
+      <div class="insights-panel mb-4">
+        <h5 class="insights-title mb-3">AI Recommendations</h5>
+        @for (insight of engineering.insights; track $index) {
+          <div class="insight-card" [class]="'priority-' + insight.priority">
+            <span class="insight-icon" [class]="'type-' + insight.type">
+              {{ getInsightIcon(insight.type) }}
+            </span>
+            <span class="insight-text">{{ insight.text }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Items Table -->
+    <div class="items-table">
+      <div class="table-header d-flex py-2 px-3">
+        <button type="button" class="col-name flex-grow-1 table-sort" (click)="setSort('name')">
+          Item {{ sortField() === 'name' ? (sortAsc() ? '&#9650;' : '&#9660;') : '' }}
+        </button>
+        <span class="col-category">Category</span>
+        <span class="col-price">Price</span>
+        <span class="col-cost">Cost</span>
+        <button type="button" class="col-margin table-sort" (click)="setSort('profitMargin')">
+          Margin {{ sortField() === 'profitMargin' ? (sortAsc() ? '&#9650;' : '&#9660;') : '' }}
+        </button>
+        <button type="button" class="col-popularity table-sort" (click)="setSort('popularity')">
+          Popularity {{ sortField() === 'popularity' ? (sortAsc() ? '&#9650;' : '&#9660;') : '' }}
+        </button>
+        <span class="col-quadrant">Quadrant</span>
+      </div>
+
+      @for (item of filteredItems(); track item.id) {
+        <div class="table-row d-flex align-items-center py-2 px-3">
+          <span class="col-name flex-grow-1 fw-semibold">{{ item.name }}</span>
+          <span class="col-category text-muted small">{{ item.categoryName }}</span>
+          <span class="col-price">{{ item.price | currency }}</span>
+          <span class="col-cost text-muted">{{ item.cost | currency }}</span>
+          <span class="col-margin" [class.text-success]="item.profitMargin >= 60" [class.text-warning]="item.profitMargin >= 40 && item.profitMargin < 60" [class.text-danger]="item.profitMargin < 40">
+            {{ item.profitMargin }}%
+          </span>
+          <span class="col-popularity">{{ item.popularity }}</span>
+          <span class="col-quadrant">
+            <span class="badge" [class]="getQuadrantClass(item.classification)">
+              {{ getQuadrantLabel(item.classification) }}
+            </span>
+          </span>
+        </div>
+      } @empty {
+        <div class="text-center text-muted p-4">
+          No items match the selected filter
+        </div>
+      }
+    </div>
+  }
+</div>
+} @else {
+  <div class="auth-required d-flex align-items-center justify-content-center p-5">
+    <div class="text-center">
+      <h3 class="text-warning mb-3">Authentication Required</h3>
+      <p class="text-light">Please log in to view menu engineering data.</p>
+    </div>
+  </div>
+}

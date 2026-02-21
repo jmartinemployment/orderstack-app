@@ -1,0 +1,389 @@
+<div class="campaign-builder">
+  @if (!isAuthenticated()) {
+    <div class="text-center text-muted py-5">
+      <p>Please log in to access marketing campaigns.</p>
+    </div>
+  } @else {
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="mb-0">Marketing Campaigns</h2>
+      <button type="button" class="btn btn-primary btn-sm" (click)="openNewCampaign()">
+        <i class="bi bi-plus-lg me-1"></i>New Campaign
+      </button>
+    </div>
+
+    @if (error()) {
+      <div class="alert alert-danger mb-3">{{ error() }}</div>
+    }
+
+    <!-- KPI Strip -->
+    <div class="kpi-strip mb-3">
+      <div class="kpi-card">
+        <div class="kpi-value">{{ campaigns().length }}</div>
+        <div class="kpi-label">Total Campaigns</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">{{ totalSent() | number }}</div>
+        <div class="kpi-label">Emails Sent</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">{{ avgOpenRate() }}%</div>
+        <div class="kpi-label">Avg Open Rate</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value">{{ totalRevenue() | currency }}</div>
+        <div class="kpi-label">Revenue Attributed</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab() === 'campaigns'" (click)="setTab('campaigns')">Campaigns</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab() === 'templates'" (click)="setTab('templates')">Templates</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab() === 'performance'" (click)="setTab('performance')">Performance</button>
+      </li>
+    </ul>
+
+    <!-- CAMPAIGNS TAB -->
+    @if (activeTab() === 'campaigns') {
+      <!-- Status Filter -->
+      <div class="d-flex gap-2 mb-3 flex-wrap">
+        @for (status of ['all', 'draft', 'scheduled', 'sent', 'failed']; track status) {
+          <button
+            type="button"
+            class="btn btn-sm"
+            [class.btn-primary]="statusFilter() === status"
+            [class.btn-outline-light]="statusFilter() !== status"
+            (click)="setStatusFilter($any(status))"
+          >{{ status === 'all' ? 'All' : (status | titlecase) }}</button>
+        }
+      </div>
+
+      @if (isLoading()) {
+        <os-loading-spinner message="Loading campaigns..." />
+      } @else if (filteredCampaigns().length === 0) {
+        <div class="empty-state text-center py-5">
+          <div class="empty-icon mb-3"><i class="bi bi-megaphone"></i></div>
+          <h5>No campaigns yet</h5>
+          <p class="text-muted">Create your first marketing campaign to reach your customers.</p>
+          <button type="button" class="btn btn-primary btn-sm" (click)="openNewCampaign()">Create Campaign</button>
+        </div>
+      } @else {
+        <div class="campaign-list">
+          @for (campaign of filteredCampaigns(); track campaign.id) {
+            <div class="campaign-card" (click)="selectCampaign(campaign)">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <div class="campaign-name">{{ campaign.name }}</div>
+                  <div class="campaign-meta">
+                    <span class="badge" [class]="getStatusClass(campaign.status)">{{ campaign.status }}</span>
+                    <span class="badge bg-outline">{{ getTypeLabel(campaign.type) }}</span>
+                    <span class="channel-icon">
+                      @if (campaign.channel === 'email' || campaign.channel === 'both') {
+                        <i class="bi bi-envelope"></i>
+                      }
+                      @if (campaign.channel === 'sms' || campaign.channel === 'both') {
+                        <i class="bi bi-chat-dots"></i>
+                      }
+                    </span>
+                  </div>
+                </div>
+                <div class="campaign-actions d-flex gap-1">
+                  @if (campaign.status === 'draft') {
+                    <button type="button" class="btn btn-sm btn-outline-light" (click)="openEditCampaign(campaign); $event.stopPropagation()">
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary" [disabled]="isSending()" (click)="sendNow(campaign); $event.stopPropagation()">
+                      Send
+                    </button>
+                  }
+                </div>
+              </div>
+              @if (campaign.status === 'sent') {
+                <div class="campaign-stats d-flex gap-3">
+                  <div class="stat">
+                    <span class="stat-value">{{ campaign.performance.sent }}</span>
+                    <span class="stat-label">Sent</span>
+                  </div>
+                  <div class="stat">
+                    <span class="stat-value">{{ getOpenRate(campaign) }}%</span>
+                    <span class="stat-label">Opened</span>
+                  </div>
+                  <div class="stat">
+                    <span class="stat-value">{{ getClickRate(campaign) }}%</span>
+                    <span class="stat-label">Clicked</span>
+                  </div>
+                  <div class="stat">
+                    <span class="stat-value">{{ campaign.performance.revenueAttributed | currency }}</span>
+                    <span class="stat-label">Revenue</span>
+                  </div>
+                </div>
+              }
+              @if (campaign.scheduledAt) {
+                <div class="campaign-schedule small text-muted mt-1">
+                  <i class="bi bi-clock me-1"></i>Scheduled: {{ campaign.scheduledAt | date:'medium' }}
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- TEMPLATES TAB -->
+    @if (activeTab() === 'templates') {
+      <div class="template-grid">
+        @for (template of templates; track template.id) {
+          <div class="template-card">
+            <div class="template-type badge bg-outline mb-2">{{ getTypeLabel(template.type) }}</div>
+            <h6 class="template-name">{{ template.name }}</h6>
+            <div class="template-subject small mb-2">{{ template.subject }}</div>
+            <div class="template-preview small text-muted mb-3">{{ template.body | slice:0:100 }}...</div>
+            <button type="button" class="btn btn-sm btn-outline-light w-100" (click)="applyTemplate(template); openNewCampaign()">
+              Use Template
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- PERFORMANCE TAB -->
+    @if (activeTab() === 'performance') {
+      @if (sentCampaigns().length === 0) {
+        <div class="empty-state text-center py-5">
+          <p class="text-muted">Send your first campaign to see performance data.</p>
+        </div>
+      } @else {
+        <div class="performance-table">
+          <table class="table table-dark table-hover">
+            <thead>
+              <tr>
+                <th>Campaign</th>
+                <th class="text-end">Sent</th>
+                <th class="text-end">Delivered</th>
+                <th class="text-end">Open Rate</th>
+                <th class="text-end">Click Rate</th>
+                <th class="text-end">Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (campaign of sentCampaigns(); track campaign.id) {
+                <tr>
+                  <td>{{ campaign.name }}</td>
+                  <td class="text-end">{{ campaign.performance.sent }}</td>
+                  <td class="text-end">{{ campaign.performance.delivered }}</td>
+                  <td class="text-end">{{ getOpenRate(campaign) }}%</td>
+                  <td class="text-end">{{ getClickRate(campaign) }}%</td>
+                  <td class="text-end">{{ campaign.performance.revenueAttributed | currency }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+
+    <!-- CAMPAIGN DETAIL MODAL -->
+    @if (selectedCampaign(); as detail) {
+      <div class="modal-backdrop" (click)="closeDetail()"></div>
+      <div class="detail-modal" (click)="$event.stopPropagation()">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h4 class="mb-1">{{ detail.name }}</h4>
+            <div class="d-flex gap-2 align-items-center">
+              <span class="badge" [class]="getStatusClass(detail.status)">{{ detail.status }}</span>
+              <span class="badge bg-outline">{{ getTypeLabel(detail.type) }}</span>
+            </div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" (click)="closeDetail()"></button>
+        </div>
+
+        <div class="detail-section">
+          <label class="detail-label">Channel</label>
+          <div>{{ detail.channel | titlecase }}</div>
+        </div>
+
+        <div class="detail-section">
+          <label class="detail-label">Subject</label>
+          <div>{{ detail.subject }}</div>
+        </div>
+
+        <div class="detail-section">
+          <label class="detail-label">Body</label>
+          <div class="detail-body">{{ detail.body }}</div>
+        </div>
+
+        @if (detail.smsBody) {
+          <div class="detail-section">
+            <label class="detail-label">SMS</label>
+            <div>{{ detail.smsBody }}</div>
+          </div>
+        }
+
+        <div class="detail-section">
+          <label class="detail-label">Audience</label>
+          <div class="d-flex gap-1 flex-wrap">
+            @for (seg of detail.audience.segments; track seg) {
+              <span class="badge bg-outline">{{ seg }}</span>
+            }
+            @for (tier of detail.audience.loyaltyTiers; track tier) {
+              <span class="badge bg-outline">{{ tier }}</span>
+            }
+            @if (detail.audience.segments.length === 0 && detail.audience.loyaltyTiers.length === 0) {
+              <span class="text-muted">All customers</span>
+            }
+          </div>
+          <div class="small text-muted mt-1">~{{ detail.audience.estimatedRecipients }} recipients</div>
+        </div>
+
+        @if (detail.status === 'sent') {
+          <div class="detail-section">
+            <label class="detail-label">Performance</label>
+            <div class="perf-grid">
+              <div class="perf-item">
+                <div class="perf-value">{{ detail.performance.sent }}</div>
+                <div class="perf-label">Sent</div>
+              </div>
+              <div class="perf-item">
+                <div class="perf-value">{{ detail.performance.delivered }}</div>
+                <div class="perf-label">Delivered</div>
+              </div>
+              <div class="perf-item">
+                <div class="perf-value">{{ getOpenRate(detail) }}%</div>
+                <div class="perf-label">Opened</div>
+              </div>
+              <div class="perf-item">
+                <div class="perf-value">{{ getClickRate(detail) }}%</div>
+                <div class="perf-label">Clicked</div>
+              </div>
+              <div class="perf-item">
+                <div class="perf-value">{{ detail.performance.unsubscribed }}</div>
+                <div class="perf-label">Unsubscribed</div>
+              </div>
+              <div class="perf-item">
+                <div class="perf-value">{{ detail.performance.revenueAttributed | currency }}</div>
+                <div class="perf-label">Revenue</div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="d-flex gap-2 mt-3">
+          @if (detail.status === 'draft') {
+            <button type="button" class="btn btn-primary btn-sm" (click)="sendNow(detail)">Send Now</button>
+            <button type="button" class="btn btn-outline-light btn-sm" (click)="closeDetail(); openEditCampaign(detail)">Edit</button>
+          }
+          <button type="button" class="btn btn-outline-danger btn-sm ms-auto" (click)="deleteCampaign(detail)">Delete</button>
+        </div>
+      </div>
+    }
+
+    <!-- CREATE/EDIT FORM MODAL -->
+    @if (showForm()) {
+      <div class="modal-backdrop" (click)="closeForm()"></div>
+      <div class="form-modal" (click)="$event.stopPropagation()">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="mb-0">{{ editingCampaign() ? 'Edit Campaign' : 'New Campaign' }}</h4>
+          <button type="button" class="btn-close btn-close-white" (click)="closeForm()"></button>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Campaign Name *</label>
+          <input type="text" class="form-control" [value]="formName()" (input)="onFormField('name', $event)" placeholder="e.g., Weekend Special Offer" />
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-6">
+            <label class="form-label">Type</label>
+            <select class="form-select" [value]="formType()" (change)="onFormField('type', $event)">
+              @for (t of campaignTypes; track t.key) {
+                <option [value]="t.key">{{ t.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Channel</label>
+            <select class="form-select" [value]="formChannel()" (change)="onFormField('channel', $event)">
+              <option value="email">Email</option>
+              <option value="sms">SMS</option>
+              <option value="both">Email + SMS</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Audience -->
+        <div class="mb-3">
+          <label class="form-label">Target Segments</label>
+          <div class="d-flex gap-2 flex-wrap">
+            @for (seg of allSegments; track seg.key) {
+              <button
+                type="button"
+                class="btn btn-sm"
+                [class.btn-primary]="isSegmentSelected(seg.key)"
+                [class.btn-outline-light]="!isSegmentSelected(seg.key)"
+                (click)="toggleSegment(seg.key)"
+              >{{ seg.label }}</button>
+            }
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Target Loyalty Tiers</label>
+          <div class="d-flex gap-2 flex-wrap">
+            @for (tier of allTiers; track tier.key) {
+              <button
+                type="button"
+                class="btn btn-sm"
+                [class.btn-primary]="isTierSelected(tier.key)"
+                [class.btn-outline-light]="!isTierSelected(tier.key)"
+                (click)="toggleTier(tier.key)"
+              >{{ tier.label }}</button>
+            }
+          </div>
+          @if (estimatedRecipients() > 0) {
+            <div class="small text-muted mt-1">~{{ estimatedRecipients() }} estimated recipients</div>
+          }
+        </div>
+
+        @if (formChannel() === 'email' || formChannel() === 'both') {
+          <div class="mb-3">
+            <label class="form-label">Email Subject *</label>
+            <input type="text" class="form-control" [value]="formSubject()" (input)="onFormField('subject', $event)" placeholder="Subject line" />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email Body *</label>
+            <textarea class="form-control" rows="6" [value]="formBody()" (input)="onFormField('body', $event)" [placeholder]="'Email content... Use {' + '{firstName}' + '}, {' + '{restaurant}' + '} for personalization.'"></textarea>
+          </div>
+        }
+
+        @if (formChannel() === 'sms' || formChannel() === 'both') {
+          <div class="mb-3">
+            <label class="form-label">SMS Body *</label>
+            <textarea class="form-control" rows="3" [value]="formSmsBody()" (input)="onFormField('smsBody', $event)" placeholder="SMS message (160 char recommended)"></textarea>
+            <small class="form-text text-muted">{{ formSmsBody().length }} / 160 characters</small>
+          </div>
+        }
+
+        <div class="mb-3">
+          <label class="form-label">Schedule (optional)</label>
+          <input type="datetime-local" class="form-control" [value]="formScheduledAt()" (input)="onFormField('scheduledAt', $event)" />
+          <small class="form-text text-muted">Leave empty to save as draft</small>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-primary" [disabled]="!canSave() || isSaving()" (click)="saveCampaign()">
+            @if (isSaving()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            {{ editingCampaign() ? 'Update' : 'Save as Draft' }}
+          </button>
+          <button type="button" class="btn btn-outline-light" (click)="closeForm()">Cancel</button>
+        </div>
+      </div>
+    }
+  }
+</div>

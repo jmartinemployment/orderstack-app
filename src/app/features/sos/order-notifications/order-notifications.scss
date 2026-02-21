@@ -1,0 +1,125 @@
+.notifications-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 380px;
+  width: 100%;
+}
+
+.notification-controls {
+  background-color: rgba(3, 2, 13, 0.9);
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.5rem;
+
+  .control-btn {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+  }
+}
+
+.notification {
+  background-color: var(--midnight-black, #03020D);
+  border: 1px solid var(--deep-lake, #1D3273);
+  border-radius: 0.5rem;
+  animation: slideIn 0.3s ease-out;
+  border-left: 4px solid var(--deep-lake, #1D3273);
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .toast-header {
+    background-color: var(--midnight-black, #03020D);
+    border-bottom: 1px solid var(--deep-lake, #1D3273);
+    color: #fff;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .toast-body {
+    color: #fff;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .elapsed-text {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.7rem;
+  }
+
+  .notification-message {
+    line-height: 1.3;
+  }
+
+  .order-type-badge {
+    background-color: var(--hermes, #203B8C);
+    font-size: 0.65rem;
+    text-transform: capitalize;
+  }
+
+  .status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: bold;
+    margin-right: 0.375rem;
+  }
+
+  .status-success {
+    background-color: #28a745;
+    color: #fff;
+  }
+
+  .status-info {
+    background-color: var(--cerulean-periwinkle, #5CB9F2);
+    color: #fff;
+  }
+
+  .status-warning {
+    background-color: #ffc107;
+    color: #000;
+  }
+
+  .status-urgent {
+    background-color: #dc3545;
+    color: #fff;
+    font-size: 0.6rem;
+  }
+
+  // Type-specific border colors
+  &.notification-success {
+    border-left-color: #28a745;
+  }
+
+  &.notification-info {
+    border-left-color: var(--cerulean-periwinkle, #5CB9F2);
+  }
+
+  &.notification-warning {
+    border-left-color: #ffc107;
+  }
+
+  &.notification-urgent {
+    border-left-color: #dc3545;
+    animation: slideIn 0.3s ease-out, pulseUrgent 2s ease-in-out 3;
+
+    @keyframes pulseUrgent {
+      0%, 100% { box-shadow: none; }
+      50% { box-shadow: 0 0 12px rgba(220, 53, 69, 0.5); }
+    }
+  }
+}

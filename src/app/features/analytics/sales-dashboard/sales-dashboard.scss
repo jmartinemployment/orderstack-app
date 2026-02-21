@@ -1,0 +1,139 @@
+.sales-dashboard {
+  h2 {
+    color: var(--dark-teal, #0E7490);
+  }
+}
+
+.kpi-cards {
+  .kpi-card {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
+    background-color: var(--midnight-black, #03020D);
+    border: 1px solid var(--deep-lake, #1D3273);
+    min-width: 140px;
+    flex: 1;
+
+    .kpi-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 0.25rem;
+    }
+
+    .kpi-value {
+      font-size: 1.75rem;
+      font-weight: bold;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .kpi-change {
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+      font-weight: 600;
+    }
+  }
+}
+
+.panel {
+  background-color: var(--midnight-black, #03020D);
+  border: 1px solid var(--deep-lake, #1D3273);
+  border-radius: 0.5rem;
+  padding: 1rem;
+
+  .panel-title {
+    color: var(--dark-teal, #0E7490);
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+}
+
+.top-item {
+  border-bottom: 1px solid var(--deep-lake, #1D3273);
+  color: #fff;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.peak-hours {
+  .hour-label {
+    width: 45px;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: right;
+  }
+
+  .hour-bar {
+    height: 16px;
+    background-color: rgba(29, 50, 115, 0.3);
+    border-radius: 2px;
+    overflow: hidden;
+
+    .hour-fill {
+      height: 100%;
+      background-color: var(--medium-slate-blue, #7E5EF2);
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+  }
+
+  .hour-count {
+    width: 30px;
+    text-align: right;
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+.insights-list {
+  .insight-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.375rem;
+    color: #fff;
+
+    .insight-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 0.4rem;
+      flex-shrink: 0;
+    }
+
+    &.insight-positive {
+      background-color: rgba(40, 167, 69, 0.1);
+      .insight-dot { background-color: #28a745; }
+    }
+
+    &.insight-negative {
+      background-color: rgba(220, 53, 69, 0.1);
+      .insight-dot { background-color: #dc3545; }
+    }
+
+    &.insight-neutral {
+      background-color: rgba(23, 162, 184, 0.1);
+      .insight-dot { background-color: #17a2b8; }
+    }
+
+    .insight-content {
+      font-size: 0.875rem;
+      line-height: 1.4;
+    }
+  }
+}
+
+.btn-primary {
+  background-color: var(--medium-slate-blue, #7E5EF2);
+  border-color: var(--medium-slate-blue, #7E5EF2);
+
+  &:hover:not(:disabled) {
+    background-color: var(--lapis-lazuli, #3632A6);
+    border-color: var(--lapis-lazuli, #3632A6);
+  }
+}

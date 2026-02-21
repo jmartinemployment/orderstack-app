@@ -1,0 +1,187 @@
+.kds-display {
+  min-height: 100vh;
+  background-color: var(--midnight-black, #03020D);
+  color: #fff;
+}
+
+.kds-header {
+  background-color: var(--midnight-black, #03020D);
+  border-bottom: 1px solid var(--deep-lake, #1D3273);
+
+  h1 {
+    color: var(--dark-teal, #0E7490);
+  }
+}
+
+.kds-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+  height: calc(100vh - 130px);
+
+  @media (max-width: 992px) {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+.kds-source-filter {
+  border-bottom: 1px solid rgba(29, 50, 115, 0.35);
+}
+
+.kds-columns-4 {
+  grid-template-columns: repeat(4, 1fr);
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kds-columns-5 {
+  grid-template-columns: repeat(5, 1fr);
+
+  @media (max-width: 1400px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kds-column {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--midnight-black, #03020D);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  &.new {
+    background-color: #0d6efd;
+  }
+
+  &.cooking {
+    background-color: #fd7e14;
+  }
+
+  &.expo {
+    background-color: #e35d00;
+  }
+
+  &.ready {
+    background-color: #198754;
+  }
+
+  &.throttled {
+    background-color: #6f42c1;
+  }
+}
+
+.column-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--midnight-black, #03020D);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--deep-lake, #1D3273);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: var(--hermes, #203B8C);
+  }
+}
+
+// KDS stats
+.kds-stats {
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.1;
+  }
+
+  .stat-value {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #fff;
+  }
+
+  .stat-label {
+    font-size: 0.6rem;
+    color: #999;
+    text-transform: uppercase;
+  }
+}
+
+.empty-state {
+  color: var(--bs-secondary-color, #6c757d);
+}
+
+// Station selector
+.station-select {
+  max-width: 160px;
+  background-color: var(--midnight-black, #03020D);
+  border-color: var(--deep-lake, #1D3273);
+  color: #fff;
+  font-size: 0.8rem;
+
+  option {
+    background-color: var(--midnight-black, #03020D);
+  }
+}
+
+// Pacing mode selector
+.pacing-select {
+  max-width: 150px;
+  background-color: var(--midnight-black, #03020D);
+  border-color: var(--deep-lake, #1D3273);
+  color: #fff;
+  font-size: 0.8rem;
+
+  option {
+    background-color: var(--midnight-black, #03020D);
+  }
+}
+
+.throttle-indicator {
+  .badge {
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+  }
+}
+
+.delivery-dispatch-indicator {
+  .badge {
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+  }
+}

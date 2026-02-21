@@ -1,0 +1,40 @@
+@if (!isEmpty()) {
+  <div class="upsell-bar">
+    <h6 class="upsell-title mb-2">
+      {{ title() }}
+      @if (isLoading()) {
+        <span class="spinner-border spinner-border-sm ms-2"></span>
+      }
+    </h6>
+    <div class="upsell-items d-flex gap-2 overflow-auto pb-2">
+      @if (suggestions().length > 0) {
+        @for (suggestion of suggestions(); track suggestion.item.id) {
+          <div class="upsell-item card" (click)="addItem(suggestion.item)">
+            @if (suggestion.item.image) {
+              <img [src]="suggestion.item.image" [alt]="suggestion.item.name" width="80" height="60" class="card-img-top" />
+            }
+            <div class="card-body p-2">
+              <p class="card-title small mb-1">{{ suggestion.item.name }}</p>
+              <span class="price small">{{ suggestion.item.price | currency }}</span>
+              <p class="reason small mb-0">{{ suggestion.reason }}</p>
+            </div>
+            <button type="button" class="add-btn">+</button>
+          </div>
+        }
+      } @else if (fallbackItems().length > 0) {
+        @for (item of fallbackItems(); track item.id) {
+          <div class="upsell-item card" (click)="addItem(item)">
+            @if (item.image) {
+              <img [src]="item.image" [alt]="item.name" width="80" height="60" class="card-img-top" />
+            }
+            <div class="card-body p-2">
+              <p class="card-title small mb-1">{{ item.name }}</p>
+              <span class="price small">{{ item.price | currency }}</span>
+            </div>
+            <button type="button" class="add-btn">+</button>
+          </div>
+        }
+      }
+    </div>
+  </div>
+}

@@ -1,0 +1,131 @@
+@if (itemValue) {
+  <div class="menu-item-card card" [class.eighty-sixed]="isEightySixed()" (click)="isEightySixed() ? null : toggleDetails()">
+    <div class="d-flex">
+      @if (itemValue.image) {
+        <div class="card-image-wrapper flex-shrink-0">
+          <img [src]="itemValue.image" [alt]="localizedName()" class="card-image" />
+        </div>
+      }
+      <div class="card-body flex-grow-1">
+        <div class="d-flex justify-content-between align-items-start mb-1">
+          <h3 class="card-title h6 mb-0">{{ localizedName() }}</h3>
+          @if (isEightySixed()) {
+            <span class="badge badge-86 ms-2">86'd</span>
+          } @else if (badge(); as b) {
+            <span class="badge ms-2" [class]="b.cssClass">{{ b.label }}</span>
+          }
+        </div>
+
+        @if (isEightySixed() && itemValue.eightySixReason) {
+          <p class="card-text small mb-2 text-danger">{{ itemValue.eightySixReason }}</p>
+        } @else if (localizedDescription()) {
+          <p class="card-text small mb-2" style="color: #FFFFFF;">{{ localizedDescription() }}</p>
+        }
+
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="price fw-bold">{{ itemValue.price | currency }}</span>
+          @if (itemValue.dietary && itemValue.dietary.length > 0) {
+            <div class="dietary-badges">
+              @for (diet of itemValue.dietary; track diet) {
+                <span class="badge bg-secondary me-1">{{ diet }}</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Item Detail Modal -->
+  @if (showDetails()) {
+    <div class="item-modal-overlay" (click)="closeDetails()">
+      <div class="item-modal card" (click)="$event.stopPropagation()">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">{{ localizedName() }}</h4>
+          <button type="button" class="btn-close btn-close-white" (click)="closeDetails()"></button>
+        </div>
+
+        <div class="card-body">
+          <div class="row g-0 mb-3">
+            @if (itemValue.image) {
+              <div class="col-4">
+                <img [src]="itemValue.image" [alt]="localizedName()" width="120" height="120" style="aspect-ratio: 1/1; object-fit: cover;" />
+              </div>
+            }
+
+            <div [class]="itemValue.image ? 'col-8 ps-3' : 'col-12'">
+              @if (localizedDescription()) {
+                <p class="mb-3" style="color: #FFFFFF;">{{ localizedDescription() }}</p>
+              }
+
+              @if (itemValue.modifierGroups) {
+                @for (group of itemValue.modifierGroups; track group.id) {
+                  <div class="modifier-group mb-3">
+                    <h5 class="h6 mb-2">
+                      {{ group.name }}
+                      @if (group.required) {
+                        <span class="text-danger">*</span>
+                      }
+                    </h5>
+                    <small class="text-muted d-block mb-2">
+                      @if (group.multiSelect) {
+                        Select {{ group.minSelections }} to {{ group.maxSelections }}
+                      } @else {
+                        Select one
+                      }
+                    </small>
+                    <div class="modifier-options">
+                      @for (modifier of group.modifiers; track modifier.id) {
+                        <button
+                          type="button"
+                          class="btn modifier-btn w-100 text-start mb-1"
+                          [class.active]="isModifierSelected(group.id, modifier.id)"
+                          (click)="toggleModifier(group, modifier)"
+                        >
+                          <span>{{ modifier.name }}</span>
+                          @if (modifier.priceAdjustment !== 0) {
+                            <span class="ms-auto">
+                              {{ modifier.priceAdjustment > 0 ? '+' : '' }}{{ modifier.priceAdjustment | currency }}
+                            </span>
+                          }
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          <div class="special-instructions mb-3">
+            <label class="form-label small" style="color: #FFFFFF;">Special Instructions (optional)</label>
+            <textarea
+              class="form-control w-100"
+              rows="2"
+              placeholder="e.g., no onions, extra sauce..."
+              [value]="specialInstructions()"
+              (input)="onSpecialInstructionsInput($event)"
+            ></textarea>
+          </div>
+
+          <div class="quantity-selector d-flex align-items-center justify-content-center gap-3 my-3">
+            <button type="button" class="btn btn-outline-light" (click)="decrementQuantity()">-</button>
+            <span class="quantity-display">{{ quantity() }}</span>
+            <button type="button" class="btn btn-outline-light" (click)="incrementQuantity()">+</button>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button
+            type="button"
+            class="btn btn-primary w-100"
+            [disabled]="!canAddToCart()"
+            (click)="onAddToCart()"
+          >
+            Add to Cart - {{ totalPrice() | currency }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+}

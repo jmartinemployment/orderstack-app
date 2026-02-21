@@ -1,0 +1,151 @@
+<div class="sos-terminal">
+  <!-- Header -->
+  <header class="terminal-header d-flex align-items-center px-3 py-2">
+    <!-- Left: Hamburger Menu -->
+    <div class="header-left">
+      <button type="button" class="btn btn-menu" (click)="toggleDrawer()">
+        <span class="hamburger-icon"></span>
+      </button>
+    </div>
+
+    <!-- Center: Restaurant Logo -->
+    <div class="header-center">
+      @if (restaurantLogo()) {
+        <img [src]="restaurantLogo()" [alt]="restaurantName()" width="60" height="60" class="restaurant-logo" />
+      } @else {
+        <span class="restaurant-name">{{ restaurantName() || 'POS Terminal' }}</span>
+      }
+    </div>
+
+    <!-- Right: Buttons -->
+    <div class="header-right d-flex align-items-center gap-2">
+      <!-- Language Toggle -->
+      <button type="button" class="btn btn-lang" (click)="toggleLanguage()">
+        @if (currentLanguage() === 'es') {
+          ES | EN
+        } @else {
+          EN | ES
+        }
+      </button>
+      <!-- Cart Button for small screens only (hidden on md+) -->
+      @if (currentView() === 'menu') {
+        <button
+          type="button"
+          class="btn btn-cart d-md-none position-relative"
+          (click)="toggleCart()"
+        >
+          🛒
+          @if (cartItemCount() > 0) {
+            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+              {{ cartItemCount() }}
+            </span>
+          }
+        </button>
+      }
+      <!-- Logout Button (hidden but kept for testing) -->
+      <button type="button" class="btn btn-outline-danger btn-sm" style="display: none;" (click)="logout()">Logout</button>
+    </div>
+  </header>
+
+  <!-- Navigation Drawer -->
+  @if (drawerOpen()) {
+    <div class="drawer-overlay" (click)="closeDrawer()"></div>
+    <nav class="drawer">
+      <div class="drawer-header">
+        <span class="drawer-title">Navigation</span>
+        <button type="button" class="btn-close btn-close-white" (click)="closeDrawer()"></button>
+      </div>
+      <div class="drawer-content">
+        <button
+          type="button"
+          class="drawer-item"
+          [class.active]="currentView() === 'menu'"
+          (click)="setView('menu')"
+        >
+          Order Entry
+        </button>
+        <button
+          type="button"
+          class="drawer-item"
+          [class.active]="currentView() === 'orders'"
+          (click)="setView('orders')"
+        >
+          Orders
+        </button>
+        <button
+          type="button"
+          class="drawer-item"
+          [class.active]="currentView() === 'menu-mgmt'"
+          (click)="setView('menu-mgmt')"
+        >
+          Menu Management
+        </button>
+      </div>
+    </nav>
+  }
+
+  <!-- Main Content -->
+  <main class="terminal-main">
+    @switch (currentView()) {
+      @case ('menu') {
+        <os-menu-display />
+      }
+      @case ('orders') {
+        <div class="view-container p-3">
+          <div class="row g-3">
+            <div class="col-12 col-lg-6">
+              <os-pending-orders />
+            </div>
+            <div class="col-12 col-lg-6">
+              <os-order-history />
+            </div>
+          </div>
+        </div>
+      }
+      @case ('menu-mgmt') {
+        <div class="view-container p-3">
+          <div class="row g-3">
+            <div class="col-12 col-lg-6">
+              <os-category-management />
+            </div>
+            <div class="col-12 col-lg-6">
+              <os-item-management />
+            </div>
+          </div>
+        </div>
+      }
+    }
+  </main>
+
+  <!-- Upsell Bar (only on menu view) -->
+  @if (currentView() === 'menu' && cartItemCount() > 0) {
+    <div class="upsell-container p-3">
+      <os-upsell-bar
+        [suggestions]="upsellSuggestions()"
+        [fallbackItems]="fallbackUpsellItems()"
+        [isLoading]="isLoadingUpsell()"
+      />
+    </div>
+  }
+
+  <!-- Floating Cart Button (hidden on small screens) -->
+  @if (currentView() === 'menu') {
+    <button
+      type="button"
+      class="btn btn-cart-floating d-none d-md-flex"
+      (click)="toggleCart()"
+    >
+      <span class="cart-icon">🛒</span>
+      <span class="cart-text">Cart</span>
+      @if (cartItemCount() > 0) {
+        <span class="cart-badge">{{ cartItemCount() }}</span>
+      }
+    </button>
+  }
+
+  <!-- Cart / Checkout Modal -->
+  <os-checkout-modal (orderPlaced)="onOrderPlaced($event)" />
+
+  <!-- Order Notifications -->
+  <os-order-notifications />
+</div>

@@ -1,0 +1,126 @@
+.cart-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
+}
+
+.cart-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--midnight-black, #03020D);
+  border-left: 1px solid var(--deep-lake, #1D3273);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  z-index: 1050;
+  animation: slideIn 0.2s ease-out;
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+}
+
+.cart-header {
+  background-color: var(--midnight-black, #03020D);
+  border-bottom: 1px solid var(--deep-lake, #1D3273);
+
+  h4 {
+    color: var(--dark-teal, #0E7490);
+  }
+}
+
+.cart-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.empty-cart {
+  .empty-icon {
+    font-size: 3rem;
+    opacity: 0.5;
+  }
+}
+
+.cart-items {
+  .cart-item {
+    border-bottom: 1px solid var(--deep-lake, #1D3273);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    h6 {
+      color: var(--dark-teal, #0E7490);
+    }
+  }
+}
+
+.modifiers {
+  .modifier-tag {
+    display: inline-block;
+    background-color: var(--midnight-black, #03020D);
+    padding: 0.125rem 0.5rem;
+    border-radius: 0.25rem;
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+  }
+}
+
+.quantity-controls {
+  .btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .quantity-display {
+    min-width: 2rem;
+    text-align: center;
+    font-weight: bold;
+  }
+}
+
+.item-price {
+  color: var(--cerulean-periwinkle, #5CB9F2);
+}
+
+.cart-actions {
+  border-top: 1px solid var(--deep-lake, #1D3273);
+}
+
+.cart-footer {
+  background-color: var(--midnight-black, #03020D);
+  border-top: 1px solid var(--deep-lake, #1D3273);
+
+  hr {
+    border-color: var(--deep-lake, #1D3273);
+  }
+
+  .total-price {
+    color: var(--dark-teal, #0E7490);
+    font-size: 1.25rem;
+  }
+}
+
+.btn-primary {
+  background-color: var(--medium-slate-blue, #7E5EF2);
+  border-color: var(--medium-slate-blue, #7E5EF2);
+
+  &:hover {
+    background-color: var(--lapis-lazuli, #3632A6);
+    border-color: var(--lapis-lazuli, #3632A6);
+  }
+}

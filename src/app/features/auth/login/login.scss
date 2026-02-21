@@ -1,0 +1,61 @@
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: var(--midnight-black, #03020D);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--midnight-black, #03020D);
+  border: 1px solid var(--deep-lake, #1D3273);
+  color: #fff;
+
+  .card-title {
+    color: var(--dark-teal, #0E7490);
+  }
+
+  .form-label {
+    color: #fff;
+  }
+
+  .form-control {
+    background-color: var(--midnight-black, #03020D);
+    border-color: var(--deep-lake, #1D3273);
+    color: #fff;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    &:focus {
+      background-color: var(--midnight-black, #03020D);
+      border-color: var(--medium-slate-blue, #7E5EF2);
+      color: #fff;
+      box-shadow: 0 0 0 0.25rem rgba(126, 94, 242, 0.25);
+    }
+  }
+
+  .btn-primary {
+    background-color: var(--medium-slate-blue, #7E5EF2);
+    border-color: var(--medium-slate-blue, #7E5EF2);
+
+    &:hover {
+      background-color: var(--lapis-lazuli, #3632A6);
+      border-color: var(--lapis-lazuli, #3632A6);
+    }
+  }
+
+  .btn-outline-secondary {
+    color: #fff;
+    border-color: var(--deep-lake, #1D3273);
+
+    &:hover {
+      background-color: var(--deep-lake, #1D3273);
+      color: #fff;
+    }
+  }
+}

@@ -1,0 +1,449 @@
+@if (isAuthenticated()) {
+<div class="reservation-manager">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0">Reservations</h2>
+    <button type="button" class="btn btn-primary" (click)="openForm()">
+      + New Reservation
+    </button>
+  </div>
+
+  @if (localError()) {
+    <os-error-display
+      [message]="localError()!"
+      [retryable]="true"
+      (dismissed)="clearLocalError()"
+      (retry)="retry()"
+    />
+  }
+
+  <!-- KPI Strip -->
+  <div class="kpi-strip d-flex flex-wrap gap-3 mb-4">
+    <div class="kpi-chip">
+      <span class="kpi-chip-label">Today</span>
+      <span class="kpi-chip-value">{{ todayCount() }}</span>
+    </div>
+    <div class="kpi-chip">
+      <span class="kpi-chip-label">Upcoming</span>
+      <span class="kpi-chip-value">{{ upcomingCount() }}</span>
+    </div>
+    <div class="kpi-chip">
+      <span class="kpi-chip-label">Covers Today</span>
+      <span class="kpi-chip-value">{{ totalSeats() }}</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-pills res-tabs mb-4">
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab() === 'today'" (click)="setTab('today')">
+        Today
+        @if (todayCount() > 0) {
+          <span class="badge bg-info ms-1">{{ todayCount() }}</span>
+        }
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab() === 'upcoming'" (click)="setTab('upcoming')">
+        Upcoming
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab() === 'past'" (click)="setTab('past')">
+        Past
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab() === 'waitlist'" (click)="setTab('waitlist')">
+        Waitlist
+        @if (waitlistCount() > 0) {
+          <span class="badge bg-warning ms-1">{{ waitlistCount() }}</span>
+        }
+      </button>
+    </li>
+  </ul>
+
+  @if (isLoading()) {
+    <div class="d-flex justify-content-center p-5">
+      <os-loading-spinner message="Loading reservations..." />
+    </div>
+  } @else {
+    <!-- TODAY TAB -->
+    @if (activeTab() === 'today') {
+      <div class="reservation-list">
+        @for (res of todayReservations(); track res.id) {
+          <div class="res-card" (click)="selectReservation(res)">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <span class="res-time">{{ formatTime(res.reservationTime) }}</span>
+                <span class="res-name ms-2">{{ res.customerName }}</span>
+              </div>
+              <span class="badge" [class]="getStatusClass(res.status)">{{ res.status }}</span>
+            </div>
+            <div class="d-flex gap-3 small text-muted mb-2">
+              <span>Party of {{ res.partySize }}</span>
+              @if (res.tableNumber) {
+                <span>Table {{ res.tableNumber }}</span>
+              }
+              <span>{{ res.customerPhone }}</span>
+            </div>
+            @if (res.specialRequests) {
+              <p class="small text-muted mb-2">{{ res.specialRequests }}</p>
+            }
+            <div class="d-flex gap-2">
+              @if (res.status === 'pending') {
+                <button type="button" class="btn btn-sm btn-outline-success" (click)="updateStatus(res, 'confirmed'); $event.stopPropagation()">Confirm</button>
+              }
+              @if (res.status === 'confirmed') {
+                <button type="button" class="btn btn-sm btn-outline-info" (click)="updateStatus(res, 'seated'); $event.stopPropagation()">Seat</button>
+              }
+              @if (res.status === 'seated') {
+                <button type="button" class="btn btn-sm btn-outline-success" (click)="updateStatus(res, 'completed'); $event.stopPropagation()">Complete</button>
+              }
+              @if (res.status !== 'cancelled' && res.status !== 'completed' && res.status !== 'no-show') {
+                <button type="button" class="btn btn-sm btn-outline-danger" (click)="updateStatus(res, 'cancelled'); $event.stopPropagation()">Cancel</button>
+                <button type="button" class="btn btn-sm btn-outline-warning" (click)="updateStatus(res, 'no-show'); $event.stopPropagation()">No-Show</button>
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state text-center p-4">
+            <p class="text-muted">No reservations for today</p>
+            <button type="button" class="btn btn-primary btn-sm" (click)="openForm()">Create one</button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- UPCOMING TAB -->
+    @if (activeTab() === 'upcoming') {
+      <div class="reservation-list">
+        @for (res of upcomingReservations(); track res.id) {
+          <div class="res-card" (click)="selectReservation(res)">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <span class="res-date">{{ res.reservationTime | date:'EEE, MMM d' }}</span>
+                <span class="res-time ms-2">{{ formatTime(res.reservationTime) }}</span>
+                <span class="res-name ms-2">{{ res.customerName }}</span>
+              </div>
+              <span class="badge" [class]="getStatusClass(res.status)">{{ res.status }}</span>
+            </div>
+            <div class="d-flex gap-3 small text-muted">
+              <span>Party of {{ res.partySize }}</span>
+              @if (res.tableNumber) {
+                <span>Table {{ res.tableNumber }}</span>
+              }
+              <span>{{ res.customerPhone }}</span>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state text-center p-4">
+            <p class="text-muted">No upcoming reservations</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- PAST TAB -->
+    @if (activeTab() === 'past') {
+      <div class="reservation-list">
+        @for (res of pastReservations(); track res.id) {
+          <div class="res-card res-past">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <div>
+                <span class="res-date">{{ res.reservationTime | date:'MMM d, y' }}</span>
+                <span class="res-time ms-2">{{ formatTime(res.reservationTime) }}</span>
+                <span class="res-name ms-2">{{ res.customerName }}</span>
+              </div>
+              <span class="badge" [class]="getStatusClass(res.status)">{{ res.status }}</span>
+            </div>
+            <div class="d-flex gap-3 small text-muted">
+              <span>Party of {{ res.partySize }}</span>
+              @if (res.tableNumber) {
+                <span>Table {{ res.tableNumber }}</span>
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state text-center p-4">
+            <p class="text-muted">No past reservations</p>
+          </div>
+        }
+      </div>
+    }
+    <!-- WAITLIST TAB -->
+    @if (activeTab() === 'waitlist') {
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0 text-white">Walk-In Waitlist</h5>
+        <button type="button" class="btn btn-warning btn-sm" (click)="openWaitlistForm()">
+          + Add to Waitlist
+        </button>
+      </div>
+
+      <div class="waitlist-queue">
+        @for (entry of activeWaitlist(); track entry.id) {
+          <div class="waitlist-card" [class.waitlist-notified]="entry.status === 'notified'">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="d-flex align-items-center gap-2">
+                <span class="waitlist-position">{{ entry.position }}</span>
+                <div>
+                  <strong class="text-white">{{ entry.partyName }}</strong>
+                  <span class="badge bg-secondary ms-2">{{ entry.partySize }} guests</span>
+                  @if (entry.status === 'notified') {
+                    <span class="badge bg-success ms-1">Notified</span>
+                  }
+                </div>
+              </div>
+              <div class="text-end">
+                <div class="waitlist-wait-time">~{{ getEstimatedWait(entry) }}m wait</div>
+                <div class="text-muted small">Waiting: {{ getElapsedWait(entry.createdAt) }}</div>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 small text-muted mb-2">
+              @if (entry.phone) {
+                <span><i class="bi bi-telephone"></i> {{ entry.phone }}</span>
+              }
+              @if (entry.notes) {
+                <span><i class="bi bi-chat-text"></i> {{ entry.notes }}</span>
+              }
+            </div>
+
+            <div class="d-flex gap-2 align-items-center">
+              @if (entry.status === 'waiting') {
+                <button type="button" class="btn btn-sm btn-outline-success" (click)="notifyGuest(entry); $event.stopPropagation()">
+                  <i class="bi bi-bell"></i> Notify
+                </button>
+              }
+              @if (entry.status === 'waiting' || entry.status === 'notified') {
+                <button type="button" class="btn btn-sm btn-outline-info" (click)="seatGuest(entry); $event.stopPropagation()">
+                  <i class="bi bi-box-arrow-in-right"></i> Seat Now
+                </button>
+              }
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeGuest(entry); $event.stopPropagation()">
+                <i class="bi bi-x-lg"></i>
+              </button>
+              <div class="ms-auto d-flex gap-1">
+                <button type="button" class="btn btn-sm btn-outline-light" (click)="moveUp(entry)" [disabled]="entry.position <= 1">
+                  <i class="bi bi-arrow-up"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-light" (click)="moveDown(entry)">
+                  <i class="bi bi-arrow-down"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state text-center p-4">
+            <p class="text-muted mb-2">No one on the waitlist</p>
+            <button type="button" class="btn btn-warning btn-sm" (click)="openWaitlistForm()">Add Walk-In</button>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- Waitlist Form Modal -->
+  @if (showWaitlistForm()) {
+    <div class="modal-overlay" (click)="closeWaitlistForm()">
+      <div class="modal-content card" (click)="$event.stopPropagation()">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">Add to Waitlist</h4>
+          <button type="button" class="btn-close btn-close-white" (click)="closeWaitlistForm()"></button>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Party Name *</label>
+            <input type="text" class="form-control" placeholder="Smith"
+              [value]="waitlistName()" (input)="onWaitlistField('name', $event)" />
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label">Party Size *</label>
+              <input type="number" class="form-control" min="1" max="20"
+                [value]="waitlistSize()" (input)="onWaitlistField('size', $event)" />
+            </div>
+            <div class="col-6">
+              <label class="form-label">Phone</label>
+              <input type="tel" class="form-control" placeholder="(555) 123-4567"
+                [value]="waitlistPhone()" (input)="onWaitlistField('phone', $event)" />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control" rows="2" placeholder="High chair, outdoor seating..."
+              [value]="waitlistNotes()" (input)="onWaitlistField('notes', $event)"></textarea>
+          </div>
+        </div>
+        <div class="card-footer d-flex gap-2 justify-content-end">
+          <button type="button" class="btn btn-outline-light" (click)="closeWaitlistForm()" [disabled]="waitlistSaving()">Cancel</button>
+          <button type="button" class="btn btn-warning" (click)="saveWaitlistEntry()"
+            [disabled]="!waitlistName().trim() || waitlistSaving()">
+            @if (waitlistSaving()) {
+              <span class="spinner-border spinner-border-sm me-1"></span> Saving...
+            } @else {
+              Add to Waitlist
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- New Reservation Modal -->
+  @if (showForm()) {
+    <div class="modal-overlay" (click)="closeForm()">
+      <div class="modal-content card" (click)="$event.stopPropagation()">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">New Reservation</h4>
+          <button type="button" class="btn-close btn-close-white" (click)="closeForm()"></button>
+        </div>
+        <form [formGroup]="reservationForm" (ngSubmit)="saveReservation()">
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label">Guest Name *</label>
+                <input type="text" class="form-control" formControlName="customerName" placeholder="John Smith" />
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Phone *</label>
+                <input type="tel" class="form-control" formControlName="customerPhone" placeholder="(555) 123-4567" />
+              </div>
+            </div>
+
+            <div class="mb-3 mt-3">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" formControlName="customerEmail" placeholder="guest@email.com" />
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-4">
+                <label class="form-label">Party Size *</label>
+                <input type="number" class="form-control" formControlName="partySize" min="1" max="20" />
+              </div>
+              <div class="col-4">
+                <label class="form-label">Date *</label>
+                <input type="date" class="form-control" formControlName="reservationDate" />
+              </div>
+              <div class="col-4">
+                <label class="form-label">Time *</label>
+                <input type="time" class="form-control" formControlName="reservationTime" />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Table</label>
+              <select class="form-select" formControlName="tableNumber">
+                <option value="">Auto-assign</option>
+                @for (table of availableTables(); track table.id) {
+                  <option [value]="table.tableNumber">
+                    {{ table.tableName || 'Table ' + table.tableNumber }} ({{ table.capacity }} seats)
+                  </option>
+                }
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Special Requests</label>
+              <textarea class="form-control" rows="2" formControlName="specialRequests" placeholder="High chair, birthday, dietary needs..."></textarea>
+            </div>
+          </div>
+
+          <div class="card-footer d-flex gap-2 justify-content-end">
+            <button type="button" class="btn btn-outline-light" (click)="closeForm()" [disabled]="isSaving()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="reservationForm.invalid || isSaving()">
+              @if (isSaving()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Saving...
+              } @else {
+                Create Reservation
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Reservation Detail -->
+  @if (selectedReservation(); as res) {
+    <div class="modal-overlay" (click)="closeDetail()">
+      <div class="modal-content card" (click)="$event.stopPropagation()">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">Reservation Details</h4>
+          <button type="button" class="btn-close btn-close-white" (click)="closeDetail()"></button>
+        </div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">{{ res.customerName }}</h5>
+            <span class="badge" [class]="getStatusClass(res.status)">{{ res.status }}</span>
+          </div>
+
+          <div class="detail-grid mb-3">
+            <div class="detail-item">
+              <span class="detail-label">Date & Time</span>
+              <span>{{ res.reservationTime | date:'EEE, MMM d, y' }} at {{ formatTime(res.reservationTime) }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Party Size</span>
+              <span>{{ res.partySize }} guests</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Phone</span>
+              <span>{{ res.customerPhone }}</span>
+            </div>
+            @if (res.customerEmail) {
+              <div class="detail-item">
+                <span class="detail-label">Email</span>
+                <span>{{ res.customerEmail }}</span>
+              </div>
+            }
+            @if (res.tableNumber) {
+              <div class="detail-item">
+                <span class="detail-label">Table</span>
+                <span>{{ res.tableNumber }}</span>
+              </div>
+            }
+          </div>
+
+          @if (res.specialRequests) {
+            <div class="mb-3">
+              <span class="detail-label d-block mb-1">Special Requests</span>
+              <p class="small mb-0">{{ res.specialRequests }}</p>
+            </div>
+          }
+
+          <div class="d-flex gap-2 flex-wrap">
+            @if (res.status === 'pending') {
+              <button type="button" class="btn btn-sm btn-success" (click)="updateStatus(res, 'confirmed')">Confirm</button>
+            }
+            @if (res.status === 'confirmed') {
+              <button type="button" class="btn btn-sm btn-info" (click)="updateStatus(res, 'seated')">Seat Guest</button>
+            }
+            @if (res.status === 'seated') {
+              <button type="button" class="btn btn-sm btn-success" (click)="updateStatus(res, 'completed')">Complete</button>
+            }
+            @if (res.status !== 'cancelled' && res.status !== 'completed' && res.status !== 'no-show') {
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="updateStatus(res, 'cancelled')">Cancel</button>
+              <button type="button" class="btn btn-sm btn-outline-warning" (click)="updateStatus(res, 'no-show')">No-Show</button>
+            }
+          </div>
+
+          <div class="mt-3 small text-muted">
+            <div>Created: {{ res.createdAt | date:'medium' }}</div>
+            @if (res.confirmationSent) {
+              <div>Confirmation sent</div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+} @else {
+<div class="auth-required d-flex align-items-center justify-content-center p-5">
+  <div class="text-center">
+    <h3 class="text-warning mb-3">Authentication Required</h3>
+    <p class="text-light">Please log in to manage reservations.</p>
+  </div>
+</div>
+}

@@ -1,0 +1,454 @@
+@if (isAuthenticated()) {
+<div class="inventory-dashboard">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0">Inventory Management</h2>
+    <button type="button" class="btn btn-sm btn-primary" (click)="retry()">
+      Refresh
+    </button>
+  </div>
+
+  @if (error()) {
+    <os-error-display
+      [message]="error()!"
+      [retryable]="true"
+      (retry)="retry()"
+    />
+  }
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-4">
+    @for (tab of ['overview', 'items', 'predictions']; track tab) {
+      <li class="nav-item">
+        <button
+          type="button"
+          class="nav-link"
+          [class.active]="activeTab() === tab"
+          (click)="setTab($any(tab))"
+        >
+          @switch (tab) {
+            @case ('overview') { Overview }
+            @case ('items') { Items }
+            @case ('predictions') { Predictions }
+          }
+        </button>
+      </li>
+    }
+  </ul>
+
+  @if (isLoading()) {
+    <div class="d-flex justify-content-center p-5">
+      <os-loading-spinner message="Loading inventory data..." />
+    </div>
+  } @else {
+    <!-- OVERVIEW TAB -->
+    @if (activeTab() === 'overview') {
+      @if (report(); as rpt) {
+        <!-- KPI Cards -->
+        <div class="kpi-cards d-flex flex-wrap gap-3 mb-4">
+          <div class="kpi-card">
+            <span class="kpi-label">Total Items</span>
+            <span class="kpi-value">{{ rpt.totalItems }}</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Total Value</span>
+            <span class="kpi-value">{{ rpt.totalValue | currency }}</span>
+          </div>
+          <div class="kpi-card" [class.kpi-alert]="rpt.alerts.length > 0">
+            <span class="kpi-label">Active Alerts</span>
+            <span class="kpi-value">{{ rpt.alerts.length }}</span>
+          </div>
+          <div class="kpi-card" [class.kpi-warning]="rpt.lowStockItems.length > 0">
+            <span class="kpi-label">Low Stock</span>
+            <span class="kpi-value">{{ rpt.lowStockItems.length }}</span>
+          </div>
+        </div>
+
+        <!-- Alerts Panel -->
+        @if (alerts().length > 0) {
+          <div class="panel mb-4">
+            <h5 class="panel-title">Alerts</h5>
+            @for (alert of alerts(); track alert.itemId + alert.type) {
+              <div class="alert-card" [class]="getAlertSeverityClass(alert.severity)">
+                <span class="alert-icon">{{ getAlertIcon(alert.type) }}</span>
+                <div class="alert-body">
+                  <div class="alert-header">
+                    <strong>{{ alert.itemName }}</strong>
+                    <span class="badge" [class]="'severity-' + alert.severity">{{ alert.severity }}</span>
+                  </div>
+                  <p class="alert-message mb-1">{{ alert.message }}</p>
+                  <small class="alert-action">{{ alert.suggestedAction }}</small>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Reorder List -->
+        @if (rpt.reorderList.length > 0) {
+          <div class="panel">
+            <h5 class="panel-title">Reorder Recommendations</h5>
+            <div class="reorder-table">
+              <div class="reorder-header d-flex py-2 px-3">
+                <span class="col-reorder-name flex-grow-1">Item</span>
+                <span class="col-reorder-qty">Suggested Qty</span>
+                <span class="col-reorder-cost">Est. Cost</span>
+              </div>
+              @for (reorder of rpt.reorderList; track reorder.item.id) {
+                <div class="reorder-row d-flex align-items-center py-2 px-3">
+                  <span class="col-reorder-name flex-grow-1">
+                    <span class="fw-semibold">{{ reorder.item.name }}</span>
+                    <span class="text-muted small ms-2">{{ reorder.item.currentStock }} {{ reorder.item.unit }} left</span>
+                  </span>
+                  <span class="col-reorder-qty">{{ reorder.suggestedQuantity }} {{ reorder.item.unit }}</span>
+                  <span class="col-reorder-cost fw-bold">{{ reorder.estimatedCost | currency }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="text-center text-muted p-4">
+          No inventory report available. Make sure inventory is set up for this restaurant.
+        </div>
+      }
+    }
+
+    <!-- ITEMS TAB -->
+    @if (activeTab() === 'items') {
+      <!-- Toolbar -->
+      <div class="items-toolbar d-flex flex-wrap gap-2 mb-3">
+        <input
+          type="text"
+          class="form-control form-control-sm search-input"
+          placeholder="Search items..."
+          [ngModel]="searchTerm()"
+          (ngModelChange)="setSearchTerm($event)"
+        />
+        <select
+          class="form-select form-select-sm filter-select"
+          [ngModel]="categoryFilter()"
+          (ngModelChange)="setCategoryFilter($event)"
+        >
+          @for (cat of categories(); track cat) {
+            <option [value]="cat">{{ cat === 'all' ? 'All Categories' : cat }}</option>
+          }
+        </select>
+        <select
+          class="form-select form-select-sm filter-select"
+          [ngModel]="stockFilter()"
+          (ngModelChange)="setStockFilter($event)"
+        >
+          <option value="all">All Stock</option>
+          <option value="low">Low Stock</option>
+          <option value="out">Out of Stock</option>
+          <option value="overstock">Overstock</option>
+          <option value="ok">OK</option>
+        </select>
+        <button type="button" class="btn btn-sm btn-primary ms-auto" (click)="toggleAddForm()">
+          {{ showAddForm() ? 'Cancel' : '+ Add Item' }}
+        </button>
+      </div>
+
+      <!-- Add Item Form -->
+      @if (showAddForm()) {
+        <div class="add-form panel mb-3">
+          <h6 class="panel-title">Add Inventory Item</h6>
+          <div class="row g-2">
+            <div class="col-12 col-md-4">
+              <label class="form-label small">Name</label>
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Item name"
+                [ngModel]="newItemName()"
+                (ngModelChange)="setNewItemName($event)"
+              />
+            </div>
+            <div class="col-6 col-md-2">
+              <label class="form-label small">Unit</label>
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                [ngModel]="newItemUnit()"
+                (ngModelChange)="setNewItemUnit($event)"
+              />
+            </div>
+            <div class="col-6 col-md-2">
+              <label class="form-label small">Category</label>
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="e.g. Produce"
+                [ngModel]="newItemCategory()"
+                (ngModelChange)="setNewItemCategory($event)"
+              />
+            </div>
+            <div class="col-4 col-md-1">
+              <label class="form-label small">Min</label>
+              <input
+                type="number"
+                class="form-control form-control-sm"
+                [ngModel]="newItemMinStock()"
+                (ngModelChange)="setNewItemMinStock($event)"
+              />
+            </div>
+            <div class="col-4 col-md-1">
+              <label class="form-label small">Max</label>
+              <input
+                type="number"
+                class="form-control form-control-sm"
+                [ngModel]="newItemMaxStock()"
+                (ngModelChange)="setNewItemMaxStock($event)"
+              />
+            </div>
+            <div class="col-4 col-md-2">
+              <label class="form-label small">Cost/Unit</label>
+              <input
+                type="number"
+                class="form-control form-control-sm"
+                step="0.01"
+                [ngModel]="newItemCostPerUnit()"
+                (ngModelChange)="setNewItemCostPerUnit($event)"
+              />
+            </div>
+          </div>
+          <div class="row g-2 mt-1">
+            <div class="col-12 col-md-4">
+              <label class="form-label small">Supplier (optional)</label>
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Supplier name"
+                [ngModel]="newItemSupplier()"
+                (ngModelChange)="setNewItemSupplier($event)"
+              />
+            </div>
+            <div class="col-12 col-md-8 d-flex align-items-end">
+              <button
+                type="button"
+                class="btn btn-sm btn-primary"
+                [disabled]="isSubmitting() || !newItemName()"
+                (click)="addItem()"
+              >
+                {{ isSubmitting() ? 'Adding...' : 'Add Item' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Items Table -->
+      <div class="items-table">
+        <div class="table-header d-flex py-2 px-3">
+          <button type="button" class="col-item-name flex-grow-1 table-sort" (click)="setSort('name')">
+            Name {{ sortField() === 'name' ? (sortAsc() ? '&#9650;' : '&#9660;') : '' }}
+          </button>
+          <button type="button" class="col-item-category table-sort" (click)="setSort('category')">
+            Category {{ sortField() === 'category' ? (sortAsc() ? '&#9650;' : '&#9660;') : '' }}
+          </button>
+          <button type="button" class="col-item-stock table-sort" (click)="setSort('currentStock')">
+            Stock {{ sortField() === 'currentStock' ? (sortAsc() ? '&#9650;' : '&#9660;') : '' }}
+          </button>
+          <span class="col-item-range">Min / Max</span>
+          <button type="button" class="col-item-cost table-sort" (click)="setSort('costPerUnit')">
+            Cost/Unit {{ sortField() === 'costPerUnit' ? (sortAsc() ? '&#9650;' : '&#9660;') : '' }}
+          </button>
+          <span class="col-item-supplier">Supplier</span>
+          <span class="col-item-actions">Actions</span>
+        </div>
+
+        @for (item of filteredItems(); track item.id) {
+          <div class="table-row d-flex align-items-center py-2 px-3">
+            <div class="col-item-name flex-grow-1">
+              <span class="fw-semibold">{{ item.name }}</span>
+              @if (item.nameEn) {
+                <span class="text-muted small ms-1">({{ item.nameEn }})</span>
+              }
+            </div>
+            <span class="col-item-category text-muted small">{{ item.category }}</span>
+            <div class="col-item-stock">
+              <div class="d-flex align-items-center gap-2">
+                <div class="stock-bar">
+                  <div
+                    class="stock-fill"
+                    [class]="getStockBarClass(item)"
+                    [style.width.%]="getStockPercent(item)"
+                  ></div>
+                </div>
+                <span class="stock-label">{{ item.currentStock }} {{ item.unit }}</span>
+              </div>
+            </div>
+            <span class="col-item-range text-muted small">{{ item.minStock }} / {{ item.maxStock }}</span>
+            <span class="col-item-cost">{{ item.costPerUnit | currency }}</span>
+            <span class="col-item-supplier text-muted small">{{ item.supplier ?? '-' }}</span>
+            <div class="col-item-actions d-flex gap-1">
+              <button
+                type="button"
+                class="btn btn-xs btn-outline-success"
+                title="Restock"
+                (click)="openStockAction(item, 'restock')"
+              >+</button>
+              <button
+                type="button"
+                class="btn btn-xs btn-outline-warning"
+                title="Record Usage"
+                (click)="openStockAction(item, 'usage')"
+              >-</button>
+              <button
+                type="button"
+                class="btn btn-xs btn-outline-info"
+                title="Adjust"
+                (click)="openStockAction(item, 'adjustment')"
+              >=</button>
+              <button
+                type="button"
+                class="btn btn-xs btn-outline-light"
+                title="AI Predict"
+                (click)="predictItem(item)"
+              >AI</button>
+            </div>
+          </div>
+        } @empty {
+          <div class="text-center text-muted p-4">
+            No items match your filters
+          </div>
+        }
+      </div>
+    }
+
+    <!-- PREDICTIONS TAB -->
+    @if (activeTab() === 'predictions') {
+      @if (sortedPredictions().length > 0) {
+        <div class="predictions-list">
+          @for (pred of sortedPredictions(); track pred.inventoryItemId) {
+            <div class="prediction-card" [class]="getPredictionUrgencyClass(pred.daysUntilEmpty)">
+              <div class="pred-header d-flex justify-content-between align-items-start">
+                <div>
+                  <h6 class="mb-1">{{ pred.itemName }}</h6>
+                  <span class="text-muted small">{{ pred.currentStock }} {{ pred.unit }} remaining</span>
+                </div>
+                <span class="badge" [class]="getConfidenceClass(pred.confidence)">
+                  {{ pred.confidence }}
+                </span>
+              </div>
+              <div class="pred-body d-flex flex-wrap gap-3 mt-2">
+                <div class="pred-stat">
+                  <span class="pred-stat-label">Avg Daily Use</span>
+                  <span class="pred-stat-value">{{ pred.avgDailyUsage | number:'1.1-1' }} {{ pred.unit }}</span>
+                </div>
+                <div class="pred-stat">
+                  <span class="pred-stat-label">Days Until Empty</span>
+                  <span class="pred-stat-value days-value">
+                    @if (pred.daysUntilEmpty >= 999) {
+                      Plenty
+                    } @else {
+                      {{ pred.daysUntilEmpty }}
+                    }
+                  </span>
+                </div>
+                <div class="pred-stat">
+                  <span class="pred-stat-label">Predicted Empty</span>
+                  <span class="pred-stat-value">
+                    @if (pred.daysUntilEmpty >= 999) {
+                      N/A
+                    } @else {
+                      {{ pred.predictedEmptyDate }}
+                    }
+                  </span>
+                </div>
+                @if (pred.reorderRecommended) {
+                  <div class="pred-stat">
+                    <span class="pred-stat-label">Reorder Qty</span>
+                    <span class="pred-stat-value reorder-value">{{ pred.reorderQuantity }} {{ pred.unit }}</span>
+                  </div>
+                }
+              </div>
+              @if (pred.reorderRecommended) {
+                <div class="pred-reorder mt-2">
+                  <small class="text-warning">Reorder recommended</small>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="text-center text-muted p-4">
+          No predictions available. Use the AI Predict button on individual items to generate forecasts.
+        </div>
+      }
+    }
+  }
+</div>
+
+<!-- Stock Action Modal -->
+@if (showStockModal() && selectedItem(); as item) {
+  <div class="modal-backdrop" (click)="closeStockModal()"></div>
+  <div class="stock-modal">
+    <div class="modal-header-custom d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">{{ getStockActionLabel() }}: {{ item.name }}</h5>
+      <button type="button" class="btn-close btn-close-white" (click)="closeStockModal()"></button>
+    </div>
+    <div class="modal-body-custom">
+      <div class="mb-3">
+        <label class="form-label small">
+          @switch (stockActionType()) {
+            @case ('restock') { Quantity to add }
+            @case ('usage') { Quantity used }
+            @case ('adjustment') { New stock level }
+          }
+        </label>
+        <input
+          type="number"
+          class="form-control"
+          min="0"
+          [ngModel]="stockQuantity()"
+          (ngModelChange)="setStockQuantity($event)"
+        />
+        <small class="text-muted">
+          Current: {{ item.currentStock }} {{ item.unit }}
+        </small>
+      </div>
+      @if (stockActionType() === 'restock') {
+        <div class="mb-3">
+          <label class="form-label small">Invoice # (optional)</label>
+          <input
+            type="text"
+            class="form-control"
+            [ngModel]="invoiceNumber()"
+            (ngModelChange)="setInvoiceNumber($event)"
+          />
+        </div>
+      } @else {
+        <div class="mb-3">
+          <label class="form-label small">Reason</label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="e.g. Dinner service, Inventory count"
+            [ngModel]="stockReason()"
+            (ngModelChange)="setStockReason($event)"
+          />
+        </div>
+      }
+    </div>
+    <div class="modal-footer-custom d-flex justify-content-end gap-2">
+      <button type="button" class="btn btn-sm btn-outline-light" (click)="closeStockModal()">Cancel</button>
+      <button
+        type="button"
+        class="btn btn-sm btn-primary"
+        [disabled]="isSubmitting() || stockQuantity() <= 0"
+        (click)="submitStockAction()"
+      >
+        {{ isSubmitting() ? 'Saving...' : getStockActionLabel() }}
+      </button>
+    </div>
+  </div>
+}
+} @else {
+  <div class="auth-required d-flex align-items-center justify-content-center p-5">
+    <div class="text-center">
+      <h3 class="text-warning mb-3">Authentication Required</h3>
+      <p class="text-light">Please log in to manage inventory.</p>
+    </div>
+  </div>
+}

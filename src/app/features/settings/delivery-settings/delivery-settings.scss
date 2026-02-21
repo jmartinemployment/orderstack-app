@@ -1,0 +1,136 @@
+.delivery-settings {
+  color: #fff;
+}
+
+.provider-options {
+  .form-check {
+    padding: 0.75rem;
+    padding-left: 2rem;
+    border: 1px solid var(--deep-lake, #1D3273);
+    border-radius: 0.375rem;
+
+    &:has(.form-check-input:checked) {
+      border-color: var(--medium-slate-blue, #7E5EF2);
+      background-color: rgba(126, 94, 242, 0.08);
+    }
+  }
+}
+
+.form-check-input {
+  background-color: var(--midnight-black, #03020D);
+  border-color: var(--deep-lake, #1D3273);
+
+  &:checked {
+    background-color: var(--medium-slate-blue, #7E5EF2);
+    border-color: var(--medium-slate-blue, #7E5EF2);
+  }
+}
+
+.form-check-label {
+  color: #fff;
+  cursor: pointer;
+}
+
+.form-control {
+  background-color: var(--midnight-black, #03020D);
+  border-color: var(--deep-lake, #1D3273);
+  color: #fff;
+
+  &:focus {
+    border-color: var(--medium-slate-blue, #7E5EF2);
+    box-shadow: 0 0 0 0.2rem rgba(126, 94, 242, 0.25);
+  }
+}
+
+.delivery-options .form-control {
+  max-width: 120px;
+}
+
+.credential-card .form-control,
+.credential-card .form-select {
+  max-width: none;
+}
+
+.form-label {
+  color: #ccc;
+  font-size: 0.875rem;
+}
+
+.config-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #dc3545;
+  margin-left: 0.5rem;
+
+  &.configured {
+    background-color: #198754;
+  }
+}
+
+.btn-primary {
+  background-color: var(--medium-slate-blue, #7E5EF2);
+  border-color: var(--medium-slate-blue, #7E5EF2);
+
+  &:hover:not(:disabled) {
+    background-color: var(--lapis-lazuli, #3632A6);
+    border-color: var(--lapis-lazuli, #3632A6);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.credential-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  @media (max-width: 992px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.marketplace-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 992px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mapping-table-wrap {
+  overflow-x: auto;
+}
+
+.mapping-table {
+  min-width: 720px;
+
+  th,
+  td {
+    white-space: nowrap;
+  }
+
+  code {
+    color: #9cc7ff;
+  }
+}
+
+.credential-card {
+  border: 1px solid var(--deep-lake, #1D3273);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background-color: rgba(3, 2, 13, 0.5);
+
+  h6 {
+    margin-bottom: 0.75rem;
+  }
+}

@@ -1,0 +1,383 @@
+@if (isAuthenticated()) {
+<div class="customer-dashboard">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0">Customer Intelligence</h2>
+  </div>
+
+  @if (error()) {
+    <os-error-display
+      [message]="error()!"
+      [retryable]="true"
+      (dismissed)="clearError()"
+      (retry)="retry()"
+    />
+  }
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid mb-4">
+    <div class="kpi-card">
+      <span class="kpi-label">Total Customers</span>
+      <span class="kpi-value">{{ totalCustomers() }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Total Revenue</span>
+      <span class="kpi-value">{{ totalRevenue() | currency }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Avg Lifetime Value</span>
+      <span class="kpi-value">{{ avgLifetimeValue() | currency }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Loyalty Points</span>
+      <span class="kpi-value">{{ totalLoyaltyPoints() | number }}</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-pills crm-tabs mb-4">
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab() === 'customers'" (click)="setTab('customers')">
+        Customers
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab() === 'segments'" (click)="setTab('segments')">
+        Segments
+      </button>
+    </li>
+  </ul>
+
+  @if (isLoading()) {
+    <div class="d-flex justify-content-center p-5">
+      <os-loading-spinner message="Loading customers..." />
+    </div>
+  } @else {
+    <!-- CUSTOMERS TAB -->
+    @if (activeTab() === 'customers') {
+      <!-- Search + Filters -->
+      <div class="filters-bar d-flex flex-wrap gap-2 mb-3">
+        <input
+          type="text"
+          class="form-control form-control-sm search-input"
+          placeholder="Search name, email, phone..."
+          [value]="searchTerm()"
+          (input)="onSearch($event)"
+        />
+        <div class="d-flex flex-wrap gap-1">
+          <button
+            type="button"
+            class="btn btn-sm"
+            [class.btn-primary]="!segmentFilter()"
+            [class.btn-outline-light]="segmentFilter()"
+            (click)="setSegmentFilter(null)"
+          >All</button>
+          <button type="button" class="btn btn-sm" [class.btn-vip]="segmentFilter() === 'vip'" [class.btn-outline-light]="segmentFilter() !== 'vip'" (click)="setSegmentFilter('vip')">
+            VIP ({{ segmentCounts().vip }})
+          </button>
+          <button type="button" class="btn btn-sm" [class.btn-regular]="segmentFilter() === 'regular'" [class.btn-outline-light]="segmentFilter() !== 'regular'" (click)="setSegmentFilter('regular')">
+            Regular ({{ segmentCounts().regular }})
+          </button>
+          <button type="button" class="btn btn-sm" [class.btn-new]="segmentFilter() === 'new'" [class.btn-outline-light]="segmentFilter() !== 'new'" (click)="setSegmentFilter('new')">
+            New ({{ segmentCounts().new }})
+          </button>
+          <button type="button" class="btn btn-sm" [class.btn-at-risk]="segmentFilter() === 'at-risk'" [class.btn-outline-light]="segmentFilter() !== 'at-risk'" (click)="setSegmentFilter('at-risk')">
+            At Risk ({{ segmentCounts()['at-risk'] }})
+          </button>
+          <button type="button" class="btn btn-sm" [class.btn-dormant]="segmentFilter() === 'dormant'" [class.btn-outline-light]="segmentFilter() !== 'dormant'" (click)="setSegmentFilter('dormant')">
+            Dormant ({{ segmentCounts().dormant }})
+          </button>
+        </div>
+      </div>
+
+      <!-- Customer Table -->
+      <div class="table-responsive">
+        <table class="table crm-table">
+          <thead>
+            <tr>
+              <th (click)="toggleSort('name')" class="sortable">
+                Name
+                @if (getSortIcon('name') === 'asc') { <span class="sort-arrow">^</span> }
+                @if (getSortIcon('name') === 'desc') { <span class="sort-arrow">v</span> }
+              </th>
+              <th>Contact</th>
+              <th>Segment</th>
+              <th (click)="toggleSort('totalOrders')" class="sortable text-end">
+                Orders
+                @if (getSortIcon('totalOrders') === 'asc') { <span class="sort-arrow">^</span> }
+                @if (getSortIcon('totalOrders') === 'desc') { <span class="sort-arrow">v</span> }
+              </th>
+              <th (click)="toggleSort('totalSpent')" class="sortable text-end">
+                Spent
+                @if (getSortIcon('totalSpent') === 'asc') { <span class="sort-arrow">^</span> }
+                @if (getSortIcon('totalSpent') === 'desc') { <span class="sort-arrow">v</span> }
+              </th>
+              <th (click)="toggleSort('lastOrderDate')" class="sortable text-end">
+                Last Order
+                @if (getSortIcon('lastOrderDate') === 'asc') { <span class="sort-arrow">^</span> }
+                @if (getSortIcon('lastOrderDate') === 'desc') { <span class="sort-arrow">v</span> }
+              </th>
+              <th (click)="toggleSort('loyaltyPoints')" class="sortable text-end">
+                Points
+                @if (getSortIcon('loyaltyPoints') === 'asc') { <span class="sort-arrow">^</span> }
+                @if (getSortIcon('loyaltyPoints') === 'desc') { <span class="sort-arrow">v</span> }
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (customer of filteredCustomers(); track customer.id) {
+              <tr class="customer-row" (click)="selectCustomer(customer)">
+                <td>
+                  <span class="customer-name">{{ getCustomerName(customer) }}</span>
+                  @if (customer.tags.length > 0) {
+                    <div class="customer-tags mt-1">
+                      @for (tag of customer.tags.slice(0, 3); track tag) {
+                        <span class="badge bg-secondary me-1">{{ tag }}</span>
+                      }
+                    </div>
+                  }
+                </td>
+                <td>
+                  <div class="small">
+                    @if (customer.email) { <div>{{ customer.email }}</div> }
+                    @if (customer.phone) { <div>{{ customer.phone }}</div> }
+                  </div>
+                </td>
+                <td>
+                  <span class="badge" [class]="getSegment(customer).cssClass">
+                    {{ getSegment(customer).label }}
+                  </span>
+                </td>
+                <td class="text-end">{{ customer.totalOrders }}</td>
+                <td class="text-end">{{ customer.totalSpent | currency }}</td>
+                <td class="text-end">
+                  @if (customer.lastOrderDate) {
+                    {{ customer.lastOrderDate | date:'shortDate' }}
+                    <div class="small text-muted">
+                      {{ getDaysSinceOrder(customer) }}d ago
+                    </div>
+                  } @else {
+                    --
+                  }
+                </td>
+                <td class="text-end">
+                  <span class="loyalty-tier-badge" [style.background-color]="getLoyaltyTierColor(customer)">
+                    {{ getLoyaltyTierLabel(customer) }}
+                  </span>
+                  <div class="small">{{ customer.loyaltyPoints | number }}</div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="text-center text-muted p-4">
+                  @if (searchTerm() || segmentFilter()) {
+                    No customers match your filters
+                  } @else {
+                    No customer data yet. Customers are created when orders are placed.
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- SEGMENTS TAB -->
+    @if (activeTab() === 'segments') {
+      <div class="segments-grid">
+        <div class="segment-card segment-vip" (click)="setSegmentFilter('vip'); setTab('customers')">
+          <h5>VIP</h5>
+          <span class="segment-count">{{ segmentCounts().vip }}</span>
+          <p class="small text-muted mb-0">$500+ spent or 20+ orders</p>
+        </div>
+        <div class="segment-card segment-regular" (click)="setSegmentFilter('regular'); setTab('customers')">
+          <h5>Regular</h5>
+          <span class="segment-count">{{ segmentCounts().regular }}</span>
+          <p class="small text-muted mb-0">Active, 3+ orders within 30 days</p>
+        </div>
+        <div class="segment-card segment-new" (click)="setSegmentFilter('new'); setTab('customers')">
+          <h5>New</h5>
+          <span class="segment-count">{{ segmentCounts().new }}</span>
+          <p class="small text-muted mb-0">1-2 orders, recent customer</p>
+        </div>
+        <div class="segment-card segment-at-risk" (click)="setSegmentFilter('at-risk'); setTab('customers')">
+          <h5>At Risk</h5>
+          <span class="segment-count">{{ segmentCounts()['at-risk'] }}</span>
+          <p class="small text-muted mb-0">Previously active, no order in 30+ days</p>
+        </div>
+        <div class="segment-card segment-dormant" (click)="setSegmentFilter('dormant'); setTab('customers')">
+          <h5>Dormant</h5>
+          <span class="segment-count">{{ segmentCounts().dormant }}</span>
+          <p class="small text-muted mb-0">No orders in 90+ days</p>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Customer Detail Side Panel -->
+  @if (selectedCustomer(); as customer) {
+    <div class="detail-overlay" (click)="closeDetail()">
+      <div class="detail-panel" (click)="$event.stopPropagation()">
+        <div class="detail-header d-flex justify-content-between align-items-center mb-3">
+          <h4 class="mb-0">{{ getCustomerName(customer) }}</h4>
+          <button type="button" class="btn-close btn-close-white" (click)="closeDetail()"></button>
+        </div>
+
+        <div class="mb-3">
+          <span class="badge" [class]="getSegment(customer).cssClass">
+            {{ getSegment(customer).label }}
+          </span>
+          <small class="text-muted ms-2">{{ getSegment(customer).description }}</small>
+        </div>
+
+        <div class="detail-grid mb-3">
+          <div class="detail-stat">
+            <span class="detail-label">Total Spent</span>
+            <span class="detail-value">{{ customer.totalSpent | currency }}</span>
+          </div>
+          <div class="detail-stat">
+            <span class="detail-label">Orders</span>
+            <span class="detail-value">{{ customer.totalOrders }}</span>
+          </div>
+          <div class="detail-stat">
+            <span class="detail-label">Avg Order</span>
+            <span class="detail-value">{{ customer.avgOrderValue | currency }}</span>
+          </div>
+          <div class="detail-stat">
+            <span class="detail-label">Loyalty Points</span>
+            <span class="detail-value">{{ customer.loyaltyPoints | number }}</span>
+          </div>
+        </div>
+
+        <!-- Loyalty Section -->
+        <div class="loyalty-detail mb-3">
+          <h6 class="detail-section-title">Loyalty</h6>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="loyalty-tier-badge" [style.background-color]="getLoyaltyTierColor(customer)">
+              {{ getLoyaltyTierLabel(customer) }}
+            </span>
+            <span class="fw-semibold">{{ customer.loyaltyPoints | number }} pts</span>
+          </div>
+          @if (getNextTierLabel(customer)) {
+            <div class="tier-progress mb-2">
+              <div class="d-flex justify-content-between small text-muted mb-1">
+                <span>Progress to {{ getNextTierLabel(customer) }}</span>
+                <span>{{ getTierProgress(customer) }}%</span>
+              </div>
+              <div class="progress" style="height: 6px;">
+                <div class="progress-bar" [style.width.%]="getTierProgress(customer)"></div>
+              </div>
+            </div>
+          }
+          <div class="small text-muted mb-2">
+            Lifetime: {{ customer.totalPointsEarned | number }} earned, {{ customer.totalPointsRedeemed | number }} redeemed
+          </div>
+
+          <!-- Points History -->
+          @if (isLoadingLoyalty()) {
+            <div class="small text-muted">Loading history...</div>
+          } @else if (loyaltyHistory().length > 0) {
+            <div class="points-history mb-2">
+              <div class="small fw-semibold mb-1">Recent Activity</div>
+              @for (tx of loyaltyHistory().slice(0, 5); track tx.id) {
+                <div class="history-row d-flex justify-content-between small">
+                  <span>
+                    <span class="text-uppercase" [class.text-success]="tx.type === 'earn'" [class.text-danger]="tx.type === 'redeem' || tx.type === 'reversal'" [class.text-warning]="tx.type === 'adjustment'">
+                      {{ tx.type }}
+                    </span>
+                    @if (tx.description) {
+                      <span class="text-muted ms-1">{{ tx.description }}</span>
+                    }
+                  </span>
+                  <span [class.text-success]="tx.points > 0" [class.text-danger]="tx.points < 0">
+                    {{ tx.points > 0 ? '+' : '' }}{{ tx.points }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Adjust Points -->
+          <div class="adjust-section">
+            <div class="small fw-semibold mb-1">Adjust Points</div>
+            <div class="d-flex gap-2 mb-1">
+              <input
+                type="number"
+                class="form-control form-control-sm"
+                style="max-width: 100px;"
+                placeholder="Points"
+                [value]="adjustPoints()"
+                (input)="onAdjustPointsInput($event)"
+              />
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="Reason"
+                [value]="adjustReason()"
+                (input)="onAdjustReasonInput($event)"
+              />
+              <button
+                type="button"
+                class="btn btn-sm btn-primary"
+                [disabled]="isAdjusting() || adjustPoints() === 0 || !adjustReason()"
+                (click)="submitAdjustment()"
+              >
+                @if (isAdjusting()) {
+                  <span class="spinner-border spinner-border-sm"></span>
+                } @else {
+                  Apply
+                }
+              </button>
+            </div>
+            <div class="small text-muted">Use negative for deductions</div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <h6 class="detail-section-title">Contact</h6>
+          @if (customer.email) {
+            <div class="small mb-1">{{ customer.email }}</div>
+          }
+          @if (customer.phone) {
+            <div class="small mb-1">{{ customer.phone }}</div>
+          }
+          @if (!customer.email && !customer.phone) {
+            <div class="small text-muted">No contact information</div>
+          }
+        </div>
+
+        @if (customer.lastOrderDate) {
+          <div class="mb-3">
+            <h6 class="detail-section-title">Last Order</h6>
+            <div class="small">{{ customer.lastOrderDate | date:'medium' }}</div>
+            <div class="small text-muted">{{ getDaysSinceOrder(customer) }} days ago</div>
+          </div>
+        }
+
+        @if (customer.tags.length > 0) {
+          <div class="mb-3">
+            <h6 class="detail-section-title">Tags</h6>
+            <div class="d-flex flex-wrap gap-1">
+              @for (tag of customer.tags; track tag) {
+                <span class="badge bg-secondary">{{ tag }}</span>
+              }
+            </div>
+          </div>
+        }
+
+        <div class="mb-3">
+          <h6 class="detail-section-title">Member Since</h6>
+          <div class="small">{{ customer.createdAt | date:'mediumDate' }}</div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+} @else {
+<div class="auth-required d-flex align-items-center justify-content-center p-5">
+  <div class="text-center">
+    <h3 class="text-warning mb-3">Authentication Required</h3>
+    <p class="text-light">Please log in to access customer intelligence.</p>
+  </div>
+</div>
+}

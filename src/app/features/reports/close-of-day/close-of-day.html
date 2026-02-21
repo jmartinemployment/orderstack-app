@@ -1,0 +1,313 @@
+<div class="cod-report">
+  <!-- Header -->
+  <div class="cod-header">
+    <div class="cod-title">
+      <h4><i class="bi bi-clipboard2-data"></i> Close of Day Report</h4>
+      <div class="cod-date-picker">
+        <input
+          type="date"
+          class="form-control form-control-sm"
+          [value]="getReportDateString()"
+          (change)="setReportDate($any($event.target).value)">
+      </div>
+    </div>
+    <div class="cod-actions">
+      <button type="button" class="btn btn-sm btn-outline-light" (click)="exportCSV()">
+        <i class="bi bi-download me-1"></i> Export CSV
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-light" (click)="printReport()">
+        <i class="bi bi-printer me-1"></i> Print
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="cod-kpis">
+    <div class="kpi-card">
+      <span class="kpi-value">{{ totalRevenue() | currency }}</span>
+      <span class="kpi-label">Total Revenue</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-value">{{ totalOrders() }}</span>
+      <span class="kpi-label">Orders</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-value">{{ averageCheck() | currency }}</span>
+      <span class="kpi-label">Avg Check</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-value">{{ totalGuests() }}</span>
+      <span class="kpi-label">Covers</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-value">{{ totalTips() | currency }}</span>
+      <span class="kpi-label">Total Tips</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-value">{{ totalTax() | currency }}</span>
+      <span class="kpi-label">Tax Collected</span>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="cod-tabs">
+    <button type="button" class="cod-tab" [class.active]="activeTab() === 'summary'" (click)="setTab('summary')">Summary</button>
+    <button type="button" class="cod-tab" [class.active]="activeTab() === 'payments'" (click)="setTab('payments')">Payments</button>
+    <button type="button" class="cod-tab" [class.active]="activeTab() === 'tips'" (click)="setTab('tips')">Tips</button>
+    <button type="button" class="cod-tab" [class.active]="activeTab() === 'voids'" (click)="setTab('voids')">Voids & Comps</button>
+    <button type="button" class="cod-tab" [class.active]="activeTab() === 'items'" (click)="setTab('items')">Top Sellers</button>
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="cod-loading">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p>Loading report data...</p>
+    </div>
+  } @else {
+
+    <!-- SUMMARY TAB -->
+    @if (activeTab() === 'summary') {
+      <div class="cod-section">
+        <!-- Order source breakdown -->
+        <div class="section-card">
+          <h6>Order Sources</h6>
+          @for (src of orderSourceBreakdown(); track src.source) {
+            <div class="breakdown-row">
+              <span class="breakdown-label">{{ src.source }}</span>
+              <span class="breakdown-value">{{ src.count }} order{{ src.count !== 1 ? 's' : '' }}</span>
+            </div>
+          } @empty {
+            <p class="text-muted-custom">No orders today</p>
+          }
+        </div>
+
+        <!-- Quick payment summary -->
+        <div class="section-card">
+          <h6>Payment Summary</h6>
+          @for (pm of paymentBreakdown(); track pm.method) {
+            <div class="breakdown-row">
+              <span class="breakdown-label">{{ pm.method }}</span>
+              <span class="breakdown-value">{{ pm.total | currency }} <small>({{ pm.count }})</small></span>
+            </div>
+          } @empty {
+            <p class="text-muted-custom">No payments recorded</p>
+          }
+        </div>
+
+        <!-- Quick void/comp/discount summary -->
+        <div class="section-card">
+          <h6>Adjustments</h6>
+          <div class="breakdown-row">
+            <span class="breakdown-label">Voided Items</span>
+            <span class="breakdown-value void-text">{{ voidSummary().count }} ({{ voidSummary().totalValue | currency }})</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="breakdown-label">Comped Items</span>
+            <span class="breakdown-value comp-text">{{ compSummary().count }} ({{ compSummary().totalValue | currency }})</span>
+          </div>
+          <div class="breakdown-row">
+            <span class="breakdown-label">Discounts</span>
+            <span class="breakdown-value disc-text">{{ discountSummary().count }} ({{ discountSummary().totalValue | currency }})</span>
+          </div>
+        </div>
+
+        <!-- Voided orders -->
+        @if (voidedOrders().length > 0) {
+          <div class="section-card">
+            <h6>Voided Orders</h6>
+            <p class="text-muted-custom">{{ voidedOrders().length }} order{{ voidedOrders().length !== 1 ? 's' : '' }} voided today</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- PAYMENTS TAB -->
+    @if (activeTab() === 'payments') {
+      <div class="cod-section">
+        <div class="section-card full-width">
+          <h6>Payment Method Breakdown</h6>
+          <table class="cod-table">
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th class="text-end">Transactions</th>
+                <th class="text-end">Total</th>
+                <th class="text-end">% of Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (pm of paymentBreakdown(); track pm.method) {
+                <tr>
+                  <td>
+                    <span class="payment-dot" [class]="'dot-' + pm.method.toLowerCase().split(' ')[0]"></span>
+                    {{ pm.method }}
+                  </td>
+                  <td class="text-end">{{ pm.count }}</td>
+                  <td class="text-end fw-semibold">{{ pm.total | currency }}</td>
+                  <td class="text-end">
+                    @if (totalRevenue() > 0) {
+                      {{ pm.total / totalRevenue() | percent:'1.1-1' }}
+                    } @else {
+                      0%
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="4" class="text-muted-custom text-center py-4">No payments recorded</td></tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td>Total</td>
+                <td class="text-end">{{ paymentTransactionCount() }}</td>
+                <td class="text-end fw-bold">{{ totalRevenue() | currency }}</td>
+                <td class="text-end">100%</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- TIPS TAB -->
+    @if (activeTab() === 'tips') {
+      <div class="cod-section">
+        <div class="section-card full-width">
+          <h6>Tips by Server</h6>
+          @if (tipReport(); as report) {
+            <table class="cod-table">
+              <thead>
+                <tr>
+                  <th>Server</th>
+                  <th class="text-end">Orders</th>
+                  <th class="text-end">Sales</th>
+                  <th class="text-end">Tips</th>
+                  <th class="text-end">Net Tips</th>
+                  <th class="text-end">Tip %</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (srv of report.serverSummaries; track srv.serverGuid) {
+                  <tr>
+                    <td>{{ srv.serverName }}</td>
+                    <td class="text-end">{{ srv.orderCount }}</td>
+                    <td class="text-end">{{ srv.totalSales | currency }}</td>
+                    <td class="text-end">{{ srv.totalTips | currency }}</td>
+                    <td class="text-end fw-semibold">{{ srv.netTips | currency }}</td>
+                    <td class="text-end">
+                      @if (srv.totalSales > 0) {
+                        {{ srv.totalTips / srv.totalSales | percent:'1.1-1' }}
+                      } @else {
+                        0%
+                      }
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="6" class="text-muted-custom text-center py-4">No tips recorded today</td></tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr class="total-row">
+                  <td>Total</td>
+                  <td class="text-end">{{ report.entries.length }}</td>
+                  <td class="text-end">{{ report.totalSales | currency }}</td>
+                  <td class="text-end fw-bold">{{ report.totalTips | currency }}</td>
+                  <td></td>
+                  <td class="text-end">{{ report.averageTipPercent }}%</td>
+                </tr>
+              </tfoot>
+            </table>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- VOIDS & COMPS TAB -->
+    @if (activeTab() === 'voids') {
+      <div class="cod-section">
+        <!-- Voids -->
+        <div class="section-card">
+          <h6><span class="badge-void">VOID</span> Voided Items</h6>
+          <div class="adj-summary">
+            <span class="adj-count">{{ voidSummary().count }} item{{ voidSummary().count !== 1 ? 's' : '' }}</span>
+            <span class="adj-total void-text">{{ voidSummary().totalValue | currency }}</span>
+          </div>
+          @for (r of voidSummary().reasons; track r.reason) {
+            <div class="reason-row">
+              <span>{{ r.reason }}</span>
+              <span class="reason-count">{{ r.count }}</span>
+            </div>
+          } @empty {
+            <p class="text-muted-custom">No voids today</p>
+          }
+        </div>
+
+        <!-- Comps -->
+        <div class="section-card">
+          <h6><span class="badge-comp">COMP</span> Comped Items</h6>
+          <div class="adj-summary">
+            <span class="adj-count">{{ compSummary().count }} item{{ compSummary().count !== 1 ? 's' : '' }}</span>
+            <span class="adj-total comp-text">{{ compSummary().totalValue | currency }}</span>
+          </div>
+          @for (r of compSummary().reasons; track r.reason) {
+            <div class="reason-row">
+              <span>{{ r.reason }}</span>
+              <span class="reason-count">{{ r.count }}</span>
+            </div>
+          } @empty {
+            <p class="text-muted-custom">No comps today</p>
+          }
+        </div>
+
+        <!-- Discounts -->
+        <div class="section-card">
+          <h6><span class="badge-disc">DISC</span> Discounts</h6>
+          <div class="adj-summary">
+            <span class="adj-count">{{ discountSummary().count }} applied</span>
+            <span class="adj-total disc-text">{{ discountSummary().totalValue | currency }}</span>
+          </div>
+          @for (r of discountSummary().reasons; track r.reason) {
+            <div class="reason-row">
+              <span>{{ r.reason }}</span>
+              <span class="reason-count">{{ r.count }}</span>
+            </div>
+          } @empty {
+            <p class="text-muted-custom">No discounts today</p>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- TOP SELLERS TAB -->
+    @if (activeTab() === 'items') {
+      <div class="cod-section">
+        <div class="section-card full-width">
+          <h6>Top Selling Items</h6>
+          <table class="cod-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Item</th>
+                <th class="text-end">Qty Sold</th>
+                <th class="text-end">Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of topSellers(); track item.name; let i = $index) {
+                <tr>
+                  <td class="rank-cell">{{ i + 1 }}</td>
+                  <td>{{ item.name }}</td>
+                  <td class="text-end">{{ item.quantity }}</td>
+                  <td class="text-end fw-semibold">{{ item.revenue | currency }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="4" class="text-muted-custom text-center py-4">No items sold today</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  }
+</div>

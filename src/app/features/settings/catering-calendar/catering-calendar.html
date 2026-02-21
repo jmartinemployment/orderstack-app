@@ -1,0 +1,228 @@
+<div class="catering-calendar">
+  @if (showCapacitySaveSuccess()) {
+    <div class="alert alert-success d-flex align-items-center mb-3">
+      <span>Catering capacity settings saved successfully.</span>
+    </div>
+  }
+
+  @if (!isManagerOrAbove()) {
+    <div class="text-muted small mb-3">Only managers and owners can modify catering settings.</div>
+  }
+
+  <!-- KPI Strip -->
+  <div class="d-flex flex-wrap gap-3 mb-3">
+    <div class="kpi-card">
+      <span class="kpi-label">Upcoming Events</span>
+      <span class="kpi-value">{{ upcomingEventsCount() }}</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Total Headcount</span>
+      <span class="kpi-value">{{ totalUpcomingHeadcount() }}</span>
+    </div>
+    <div class="kpi-card" [class.kpi-warn]="conflictDaysCount() > 0">
+      <span class="kpi-label">Conflict Days</span>
+      <span class="kpi-value">{{ conflictDaysCount() }}</span>
+    </div>
+    <div class="kpi-card" [class.kpi-warn]="pendingApprovalsCount() > 0">
+      <span class="kpi-label">Pending Approvals</span>
+      <span class="kpi-value">{{ pendingApprovalsCount() }}</span>
+    </div>
+  </div>
+
+  <!-- Capacity Settings -->
+  <div class="panel mb-3">
+    <div class="panel-title">Capacity Settings</div>
+    <div class="row g-3 mb-2">
+      <div class="col-md-4">
+        <label class="form-label" for="maxEvents">Max Events / Day</label>
+        <input
+          type="number"
+          class="form-control"
+          id="maxEvents"
+          [value]="maxEventsPerDay()"
+          (input)="onMaxEvents($event)"
+          min="1"
+          step="1"
+          [disabled]="!isManagerOrAbove()">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="maxHeadcount">Max Headcount / Day</label>
+        <input
+          type="number"
+          class="form-control"
+          id="maxHeadcount"
+          [value]="maxHeadcountPerDay()"
+          (input)="onMaxHeadcount($event)"
+          min="1"
+          step="10"
+          [disabled]="!isManagerOrAbove()">
+      </div>
+      <div class="col-md-4 d-flex align-items-end">
+        <div class="form-check form-switch">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="conflictAlerts"
+            [checked]="conflictAlertsEnabled()"
+            (change)="onConflictAlerts($event)"
+            [disabled]="!isManagerOrAbove()">
+          <label class="form-check-label" for="conflictAlerts">Conflict Alerts</label>
+        </div>
+      </div>
+    </div>
+    @if (hasCapacityChanges() && isManagerOrAbove()) {
+      <div class="d-flex gap-2 mt-2">
+        <button class="btn btn-primary btn-sm" (click)="saveCapacity()" [disabled]="isSaving()">
+          @if (isSaving()) { Saving... } @else { Save }
+        </button>
+        <button class="btn btn-outline-light btn-sm" (click)="discardCapacity()" [disabled]="isSaving()">Discard</button>
+      </div>
+    }
+  </div>
+
+  <!-- Calendar Grid -->
+  <div class="panel mb-3">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <button class="btn btn-outline-light btn-sm" (click)="prevMonth()">&laquo; Prev</button>
+      <h5 class="mb-0 calendar-month-label">{{ monthLabel() }}</h5>
+      <button class="btn btn-outline-light btn-sm" (click)="nextMonth()">Next &raquo;</button>
+    </div>
+
+    <div class="calendar-grid">
+      @for (header of weekdayHeaders; track header) {
+        <div class="calendar-header">{{ header }}</div>
+      }
+
+      @for (week of calendarWeeks(); track $index) {
+        @for (day of week; track day.date) {
+          <div
+            class="calendar-cell"
+            [class.today]="day.isToday"
+            [class.past]="day.isPast"
+            [class.other-month]="!day.isCurrentMonth"
+            [class.over-capacity]="day.isOverCapacityEvents || day.isOverCapacityHeadcount"
+            [class.has-block]="hasBlock(day.date)"
+            [class.selected]="selectedDate() === day.date"
+            (click)="selectDate(day.date)">
+            <span class="day-number">{{ day.dayOfMonth }}</span>
+            @if (day.events.length > 0) {
+              <span class="event-count-badge">{{ day.events.length }}</span>
+            }
+            @if (day.totalHeadcount > 0) {
+              <span class="headcount-label">{{ day.totalHeadcount }} ppl</span>
+            }
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- Day Detail Panel -->
+  @if (selectedDate()) {
+    <div class="panel mb-3">
+      <div class="panel-title">{{ selectedDate() }}</div>
+
+      @if (selectedDayEvents().length === 0 && selectedDayBlocks().length === 0) {
+        <p class="text-muted small mb-0">No events or blocks for this date.</p>
+      }
+
+      <!-- Catering events -->
+      @for (event of selectedDayEvents(); track event.orderId) {
+        <div class="event-card mb-2">
+          <div class="d-flex justify-content-between align-items-start mb-1">
+            <div>
+              <strong>{{ event.customerName }}</strong>
+              <span class="text-muted ms-2 small">#{{ event.orderNumber }}</span>
+            </div>
+            <span class="approval-badge" [class]="getApprovalClass(event.approvalStatus)">
+              {{ getApprovalLabel(event.approvalStatus) }}
+            </span>
+          </div>
+          <div class="event-meta small">
+            <span>{{ event.eventTime }}</span>
+            <span class="mx-1">&middot;</span>
+            <span>{{ event.headcount }} guests</span>
+            @if (event.eventType) {
+              <span class="mx-1">&middot;</span>
+              <span class="event-type-badge">{{ event.eventType }}</span>
+            }
+          </div>
+          <div class="event-meta small mt-1">
+            <span>Deposit: ${{ event.depositAmount.toFixed(2) }}
+              @if (event.depositPaid) {
+                <span class="text-success">(Paid)</span>
+              } @else {
+                <span class="text-warning">(Unpaid)</span>
+              }
+            </span>
+            <span class="mx-1">&middot;</span>
+            <span>Total: ${{ event.totalAmount.toFixed(2) }}</span>
+          </div>
+          @if (event.specialInstructions) {
+            <div class="text-muted small mt-1 fst-italic">{{ event.specialInstructions }}</div>
+          }
+        </div>
+      }
+
+      <!-- Capacity blocks -->
+      @for (block of selectedDayBlocks(); track block.id) {
+        <div class="block-card mb-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <strong class="text-warning">Blocked:</strong>
+              <span class="ms-1">{{ block.reason }}</span>
+              <span class="text-muted ms-2 small">{{ getBlockTimeLabel(block) }}</span>
+            </div>
+            @if (isManagerOrAbove()) {
+              <button class="btn btn-outline-danger btn-xs" (click)="removeBlock(block.id)">Remove</button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Add block button -->
+      @if (isManagerOrAbove()) {
+        @if (!showBlockForm()) {
+          <button class="btn btn-outline-warning btn-sm mt-2" (click)="toggleBlockForm()">Add Capacity Block</button>
+        } @else {
+          <div class="block-form mt-2">
+            <div class="row g-2 mb-2">
+              <div class="col-md-4">
+                <label class="form-label" for="blockStart">Start Time (optional)</label>
+                <input
+                  type="time"
+                  class="form-control"
+                  id="blockStart"
+                  [value]="blockStartTime()"
+                  (input)="onBlockStartTime($event)">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="blockEnd">End Time (optional)</label>
+                <input
+                  type="time"
+                  class="form-control"
+                  id="blockEnd"
+                  [value]="blockEndTime()"
+                  (input)="onBlockEndTime($event)">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="blockReason">Reason</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="blockReason"
+                  placeholder="e.g. Private event"
+                  [value]="blockReason()"
+                  (input)="onBlockReason($event)">
+              </div>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-warning btn-sm" (click)="addBlock()" [disabled]="!blockReason()">Add Block</button>
+              <button class="btn btn-outline-light btn-sm" (click)="toggleBlockForm()">Cancel</button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

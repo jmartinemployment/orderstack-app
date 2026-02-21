@@ -1,0 +1,411 @@
+:host {
+  --midnight-black: #03020D;
+  --deep-lake: #1D3273;
+  --dark-teal: #0E7490;
+  --medium-slate-blue: #7E5EF2;
+  --cerulean-periwinkle: #5CB9F2;
+  --hermes: #203B8C;
+}
+
+.sentiment-dashboard {
+  background: var(--midnight-black);
+  color: #e0e0e0;
+  min-height: 100vh;
+}
+
+.auth-required {
+  background: var(--midnight-black);
+  color: #e0e0e0;
+  min-height: 60vh;
+}
+
+// Header
+.dashboard-header {
+  background: linear-gradient(135deg, var(--deep-lake) 0%, #1a2d5e 100%);
+  padding: 1.25rem;
+}
+
+.header-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-icon {
+  font-size: 1.3rem;
+}
+
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.kpi-card {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 0.5rem;
+  padding: 0.6rem;
+  text-align: center;
+
+  &.kpi-positive .kpi-value { color: #28a745; }
+  &.kpi-negative .kpi-value { color: #dc3545; }
+}
+
+.kpi-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--dark-teal);
+}
+
+.kpi-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.score-display {
+  &.positive { color: #28a745; }
+  &.negative { color: #dc3545; }
+}
+
+// Tabs
+.dashboard-tabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+
+  &.active {
+    color: var(--dark-teal);
+    border-bottom-color: var(--dark-teal);
+  }
+}
+
+.tab-badge-danger {
+  background: #dc3545;
+  color: #fff;
+  font-size: 0.6rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 1rem;
+}
+
+// Section Titles
+.section-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 0.5rem;
+}
+
+// Sentiment Bars
+.sentiment-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bar-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  min-width: 4.5rem;
+}
+
+.bar-track {
+  flex: 1;
+  height: 1.25rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 0.25rem;
+  transition: width 0.5s ease;
+  min-width: 2px;
+
+  &.bar-positive { background: #28a745; }
+  &.bar-neutral { background: #6c757d; }
+  &.bar-negative { background: #dc3545; }
+}
+
+.bar-count {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  min-width: 2rem;
+  text-align: right;
+}
+
+// Sentiment classes
+.sentiment-positive { color: #28a745; }
+.sentiment-neutral { color: #6c757d; }
+.sentiment-negative { color: #dc3545; }
+
+// Keyword Cloud
+.keyword-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.keyword-tag {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+}
+
+.keyword-count {
+  color: var(--dark-teal);
+  font-weight: 700;
+  margin-left: 0.2rem;
+}
+
+// Flag Grid
+.flag-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding-bottom: 1rem;
+}
+
+.flag-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  text-align: center;
+  border-top: 2px solid rgba(255, 255, 255, 0.1);
+
+  &.flag-complaint { border-top-color: #dc3545; }
+  &.flag-allergy { border-top-color: #ffc107; }
+  &.flag-rush { border-top-color: #fd7e14; }
+  &.flag-compliment { border-top-color: #28a745; }
+  &.flag-dietary { border-top-color: var(--cerulean-periwinkle); }
+  &.flag-modification { border-top-color: var(--medium-slate-blue); }
+}
+
+.flag-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.flag-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+// Flag Badges
+.flag-badge {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.2rem;
+  font-weight: 600;
+
+  &.flag-complaint { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
+  &.flag-allergy { background: rgba(255, 193, 7, 0.15); color: #ffc107; }
+  &.flag-rush { background: rgba(253, 126, 20, 0.15); color: #fd7e14; }
+  &.flag-compliment { background: rgba(40, 167, 69, 0.15); color: #28a745; }
+  &.flag-dietary { background: rgba(92, 185, 242, 0.15); color: var(--cerulean-periwinkle); }
+  &.flag-modification { background: rgba(126, 94, 242, 0.15); color: var(--medium-slate-blue); }
+}
+
+// Filter Bar
+.filter-bar {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.filter-pill {
+  background: rgba(255, 255, 255, 0.06);
+  color: #aaa;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.7rem;
+  cursor: pointer;
+
+  &.active {
+    background: var(--medium-slate-blue);
+    color: #fff;
+    border-color: var(--medium-slate-blue);
+  }
+
+  &.filter-positive.active { background: #28a745; border-color: #28a745; }
+  &.filter-neutral.active { background: #6c757d; border-color: #6c757d; }
+  &.filter-negative.active { background: #dc3545; border-color: #dc3545; }
+}
+
+// Entries List
+.entries-list {
+  padding-bottom: 1rem;
+}
+
+.entry-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  border-left: 3px solid #6c757d;
+
+  &.sentiment-positive { border-left-color: #28a745; }
+  &.sentiment-neutral { border-left-color: #6c757d; }
+  &.sentiment-negative { border-left-color: #dc3545; }
+}
+
+.entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.sentiment-indicator {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+
+  &.sentiment-positive { background: rgba(40, 167, 69, 0.15); color: #28a745; }
+  &.sentiment-neutral { background: rgba(108, 117, 125, 0.15); color: #6c757d; }
+  &.sentiment-negative { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
+}
+
+.entry-order {
+  font-weight: 600;
+  color: #fff;
+  font-size: 0.85rem;
+}
+
+.entry-score {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.entry-text {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  margin-bottom: 0.35rem;
+}
+
+.entry-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.mini-keyword {
+  font-size: 0.65rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.2rem;
+}
+
+.entry-flags {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+// Flag Details
+.flag-detail {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.flag-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.flag-detail-count {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.flag-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.flag-entry-item {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.flag-entry-order {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+  min-width: 3rem;
+}
+
+.flag-entry-text {
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
+// Empty State
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+
+  p { color: rgba(255, 255, 255, 0.5); }
+}
+
+// Bootstrap overrides
+.alert-danger {
+  background: rgba(220, 53, 69, 0.15);
+  border-color: rgba(220, 53, 69, 0.3);
+  color: #f5a5ad;
+}
+
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+}

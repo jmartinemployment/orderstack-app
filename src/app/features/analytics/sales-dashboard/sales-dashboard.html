@@ -1,0 +1,144 @@
+@if (isAuthenticated()) {
+<div class="sales-dashboard">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0">Sales Insights</h2>
+    <div class="d-flex gap-2">
+      <button
+        type="button"
+        class="btn btn-sm"
+        [class.btn-primary]="period() === 'daily'"
+        [class.btn-outline-light]="period() !== 'daily'"
+        (click)="setPeriod('daily')"
+      >
+        Daily
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm"
+        [class.btn-primary]="period() === 'weekly'"
+        [class.btn-outline-light]="period() !== 'weekly'"
+        (click)="setPeriod('weekly')"
+      >
+        Weekly
+      </button>
+    </div>
+  </div>
+
+  @if (error()) {
+    <os-error-display
+      [message]="error()!"
+      [retryable]="true"
+      (retry)="retry()"
+    />
+  }
+
+  @if (isLoading()) {
+    <div class="d-flex justify-content-center p-5">
+      <os-loading-spinner message="Loading sales data..." />
+    </div>
+  } @else if (report(); as salesReport) {
+    <!-- KPI Cards -->
+    <div class="kpi-cards d-flex flex-wrap gap-3 mb-4">
+      <div class="kpi-card">
+        <span class="kpi-label">Revenue</span>
+        <span class="kpi-value">{{ salesReport.summary.totalRevenue | currency }}</span>
+        @if (salesReport.comparison?.revenueChange !== undefined) {
+          <span class="kpi-change" [class]="getChangeClass(salesReport.comparison?.revenueChange)">
+            {{ getChangeIcon(salesReport.comparison?.revenueChange) }}{{ salesReport.comparison?.revenueChange }}%
+          </span>
+        }
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Orders</span>
+        <span class="kpi-value">{{ salesReport.summary.totalOrders }}</span>
+        @if (salesReport.comparison?.orderChange !== undefined) {
+          <span class="kpi-change" [class]="getChangeClass(salesReport.comparison?.orderChange)">
+            {{ getChangeIcon(salesReport.comparison?.orderChange) }}{{ salesReport.comparison?.orderChange }}%
+          </span>
+        }
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Avg Order</span>
+        <span class="kpi-value">{{ salesReport.summary.averageOrderValue | currency }}</span>
+        @if (salesReport.comparison?.aovChange !== undefined) {
+          <span class="kpi-change" [class]="getChangeClass(salesReport.comparison?.aovChange)">
+            {{ getChangeIcon(salesReport.comparison?.aovChange) }}{{ salesReport.comparison?.aovChange }}%
+          </span>
+        }
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <!-- Top Sellers -->
+      <div class="col-12 col-md-6">
+        <div class="panel">
+          <h5 class="panel-title">Top Sellers</h5>
+          @for (item of salesReport.summary.topSellingItems; track item.name) {
+            <div class="top-item d-flex justify-content-between align-items-center py-2">
+              <div>
+                <span class="fw-semibold">{{ item.name }}</span>
+                <span class="text-muted small ms-2">{{ item.quantity }} sold</span>
+              </div>
+              <span class="fw-bold">{{ item.revenue | currency }}</span>
+            </div>
+          } @empty {
+            <p class="text-muted small mb-0">No sales data available</p>
+          }
+        </div>
+      </div>
+
+      <!-- Peak Hours -->
+      <div class="col-12 col-md-6">
+        <div class="panel">
+          <h5 class="panel-title">Peak Hours</h5>
+          <div class="peak-hours">
+            @for (hour of salesReport.summary.peakHours; track hour.hour) {
+              <div class="peak-hour d-flex align-items-center gap-2 py-1">
+                <span class="hour-label">{{ formatHour(hour.hour) }}</span>
+                <div class="hour-bar flex-grow-1">
+                  <div
+                    class="hour-fill"
+                    [style.width.%]="(hour.orders / (salesReport.summary.peakHours[0]?.orders || 1)) * 100"
+                  ></div>
+                </div>
+                <span class="hour-count small">{{ hour.orders }}</span>
+              </div>
+            } @empty {
+              <p class="text-muted small mb-0">No peak hours data available</p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Insights -->
+    @if (salesReport.insights.length > 0) {
+      <div class="panel">
+        <h5 class="panel-title">AI Insights</h5>
+        <div class="insights-list">
+          @for (insight of salesReport.insights; track $index) {
+            <div class="insight-item" [class]="getInsightClass(insight.type)">
+              <span class="insight-dot"></span>
+              <div class="insight-content">
+                <p class="mb-0">{{ insight.text }}</p>
+                @if (insight.metric && insight.change !== undefined) {
+                  <small class="text-muted">
+                    {{ insight.metric }}: <span [class]="getChangeClass(insight.change)">{{ getChangeIcon(insight.change) }}{{ insight.change }}%</span>
+                  </small>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>
+} @else {
+  <div class="auth-required d-flex align-items-center justify-content-center p-5">
+    <div class="text-center">
+      <h3 class="text-warning mb-3">Authentication Required</h3>
+      <p class="text-light">Please log in to view sales insights.</p>
+    </div>
+  </div>
+}

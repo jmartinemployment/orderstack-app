@@ -1,0 +1,205 @@
+.order-history {
+  h2 {
+    color: var(--dark-teal, #0E7490);
+  }
+}
+
+.search-bar {
+  .input-group-text {
+    background-color: var(--hermes, #203B8C);
+    border-color: var(--deep-lake, #1D3273);
+    color: #aaa;
+  }
+
+  .form-control {
+    background-color: var(--midnight-black, #03020D);
+    border-color: var(--deep-lake, #1D3273);
+    color: #fff;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    &:focus {
+      background-color: var(--midnight-black, #03020D);
+      border-color: var(--medium-slate-blue, #7E5EF2);
+      color: #fff;
+      box-shadow: 0 0 0 0.25rem rgba(126, 94, 242, 0.25);
+    }
+  }
+}
+
+.status-filter {
+  background-color: var(--midnight-black, #03020D);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--deep-lake, #1D3273);
+}
+
+.source-filter {
+  background-color: var(--midnight-black, #03020D);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--deep-lake, #1D3273);
+}
+
+.order-card {
+  background-color: var(--midnight-black, #03020D);
+  border: 1px solid var(--deep-lake, #1D3273);
+  color: #fff;
+  cursor: pointer;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: var(--medium-slate-blue, #7E5EF2);
+  }
+
+  h5 {
+    color: var(--dark-teal, #0E7490);
+  }
+
+  .order-total {
+    color: var(--cerulean-periwinkle, #5CB9F2);
+    font-size: 1.1rem;
+  }
+}
+
+.empty-state {
+  background-color: var(--midnight-black, #03020D);
+  border: 1px dashed var(--deep-lake, #1D3273);
+  border-radius: 0.5rem;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
+}
+
+.modal-content {
+  background-color: var(--midnight-black, #03020D);
+  border: 1px solid var(--deep-lake, #1D3273);
+  color: #fff;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  .card-header {
+    background-color: var(--midnight-black, #03020D);
+    border-bottom: 1px solid var(--deep-lake, #1D3273);
+
+    h4 {
+      color: var(--dark-teal, #0E7490);
+    }
+  }
+}
+
+.section {
+  h6 {
+    color: var(--dark-teal, #0E7490);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+  }
+
+  hr {
+    border-color: var(--deep-lake, #1D3273);
+  }
+
+  .total {
+    color: var(--dark-teal, #0E7490);
+    font-size: 1.25rem;
+  }
+}
+
+.payment-paid { background-color: #28a745; color: #fff; }
+.payment-pending { background-color: #ffc107; color: #000; }
+.payment-failed { background-color: #dc3545; color: #fff; }
+.payment-refunded { background-color: #6c757d; color: #fff; }
+
+.marketplace-source {
+  background-color: #0b7285;
+  color: #fff;
+}
+
+.marketplace-sync {
+  color: #fff;
+}
+
+.sync-success {
+  background-color: #198754;
+}
+
+.sync-pending {
+  background-color: #6c757d;
+}
+
+.sync-retrying {
+  background-color: #fd7e14;
+}
+
+.sync-failed {
+  background-color: #dc3545;
+}
+
+.marketplace-sync-error {
+  color: #ff9da7;
+  font-size: 0.8rem;
+}
+
+.marketplace-sync-notice {
+  color: #9fd7ff;
+}
+
+.alert-success {
+  background-color: rgba(40, 167, 69, 0.2);
+  border-color: rgba(40, 167, 69, 0.5);
+  color: #28a745;
+}
+
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.2);
+  border-color: rgba(220, 53, 69, 0.5);
+  color: #ff6b6b;
+}
+
+.profit-badge {
+  font-size: 0.7rem;
+}
+
+.loyalty-earned {
+  background-color: rgba(40, 167, 69, 0.2);
+  color: #28a745;
+  font-size: 0.65rem;
+}
+
+.loyalty-redeemed {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  font-size: 0.65rem;
+}
+
+.dining-details {
+  background-color: rgba(29, 50, 115, 0.1);
+  border-radius: 0.25rem;
+  padding: 0.75rem;
+}
+
+.delivery-preparing { background-color: #6c757d; color: #fff; }
+.delivery-out { background-color: #0dcaf0; color: #000; }
+.delivery-done { background-color: #28a745; color: #fff; }
+
+.btn-primary {
+  background-color: var(--medium-slate-blue, #7E5EF2);
+  border-color: var(--medium-slate-blue, #7E5EF2);
+
+  &:hover:not(:disabled) {
+    background-color: var(--lapis-lazuli, #3632A6);
+    border-color: var(--lapis-lazuli, #3632A6);
+  }
+}

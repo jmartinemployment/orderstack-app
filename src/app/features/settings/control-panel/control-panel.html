@@ -1,0 +1,60 @@
+<div class="control-panel">
+  @if (isAuthenticated()) {
+    <h2 class="mb-3">Control Panel</h2>
+    <ul class="nav nav-tabs mb-3">
+      @for (tab of visibleTabs(); track tab.key) {
+        <li class="nav-item">
+          <button
+            class="nav-link"
+            [class.active]="activeTab() === tab.key"
+            (click)="setTab(tab.key)">
+            {{ tab.label }}
+          </button>
+        </li>
+      }
+    </ul>
+    @if (activeTab() === 'printers') {
+      <os-printer-settings />
+    }
+    @if (activeTab() === 'ai-settings') {
+      <os-ai-settings />
+    }
+    @if (activeTab() === 'online-pricing') {
+      <os-online-pricing />
+    }
+    @if (activeTab() === 'catering-calendar') {
+      <os-catering-calendar />
+    }
+    @if (activeTab() === 'payments') {
+      <os-payment-settings />
+    }
+    @if (activeTab() === 'tip-management') {
+      <os-tip-management />
+    }
+    @if (activeTab() === 'loyalty') {
+      <os-loyalty-settings />
+    }
+    @if (activeTab() === 'delivery') {
+      <os-delivery-settings />
+    }
+    @if (activeTab() === 'stations') {
+      <os-station-settings />
+    }
+    @if (activeTab() === 'gift-cards') {
+      <os-gift-card-management />
+    }
+    @if (activeTab() === 'staff') {
+      <os-staff-management />
+    }
+    @if (activeTab() === 'devices') {
+      <os-device-management />
+    }
+    @if (activeTab() === 'time-clock-config') {
+      <os-break-config />
+    }
+  } @else {
+    <div class="text-center text-muted py-5">
+      <p>Please log in and select a restaurant to access settings.</p>
+    </div>
+  }
+</div>

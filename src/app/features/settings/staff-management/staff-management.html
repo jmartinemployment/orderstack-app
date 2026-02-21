@@ -1,0 +1,743 @@
+<div class="staff-management">
+  @if (error()) {
+    <div class="alert alert-danger d-flex align-items-center justify-content-between mb-3">
+      <span>{{ error() }}</span>
+      <button class="btn btn-sm btn-outline-light" (click)="clearError()">Dismiss</button>
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="alert alert-success mb-3">{{ successMessage() }}</div>
+  }
+
+  <!-- Tabs -->
+  <ul class="nav nav-pills mb-3">
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="activeTab() === 'team-members'" (click)="setTab('team-members')">
+        Team Members
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="activeTab() === 'permissions'" (click)="setTab('permissions')">
+        Permissions
+      </button>
+    </li>
+    @if (canManageUsers()) {
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab() === 'users'" (click)="setTab('users')">
+          Users
+        </button>
+      </li>
+    }
+    @if (canManagePins()) {
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab() === 'pins'" (click)="setTab('pins')">
+          Staff PINs
+        </button>
+      </li>
+    }
+  </ul>
+
+  @if (isLoading()) {
+    <div class="text-center py-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  }
+
+  <!-- ============ Team Members Tab ============ -->
+  @if (activeTab() === 'team-members') {
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">Team Members</h5>
+      <button class="btn btn-primary btn-sm" (click)="openCreateTeamMember()">
+        <i class="bi bi-plus-lg me-1"></i> Add Member
+      </button>
+    </div>
+
+    @if (activeTeamMembers().length > 0) {
+      <div class="table-responsive mb-4">
+        <table class="table table-dark table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Jobs</th>
+              <th>Permission Set</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (member of activeTeamMembers(); track member.id) {
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="tm-avatar-sm" [style.background-color]="getPositionColor(member.displayName)">
+                      {{ member.displayName.charAt(0) }}
+                    </div>
+                    <div>
+                      <div>{{ member.displayName }}</div>
+                      @if (member.email) {
+                        <div class="text-muted small">{{ member.email }}</div>
+                      }
+                    </div>
+                  </div>
+                </td>
+                <td class="small">{{ getJobsSummary(member) }}</td>
+                <td>
+                  <span class="badge badge-staff">{{ getPermissionSetName(member.permissionSetId) }}</span>
+                </td>
+                <td>
+                  <span class="badge" [class.badge-active]="member.status === 'active'">{{ member.status }}</span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-outline-light me-1" (click)="openEditTeamMember(member)" title="Edit">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="confirmDeactivateTeamMember(member.id)" title="Deactivate">
+                    <i class="bi bi-person-dash"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      @if (!isLoading()) {
+        <div class="empty-state text-center py-4">
+          <p class="text-muted">No team members yet. Click "Add Member" to get started.</p>
+        </div>
+      }
+    }
+
+    @if (inactiveTeamMembers().length > 0) {
+      <h6 class="text-muted mb-2">Inactive Members</h6>
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle">
+          <tbody>
+            @for (member of inactiveTeamMembers(); track member.id) {
+              <tr class="opacity-50">
+                <td>{{ member.displayName }}</td>
+                <td>{{ getJobsSummary(member) }}</td>
+                <td><span class="badge">{{ member.status }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+  <!-- ============ Permission Sets Tab ============ -->
+  @if (activeTab() === 'permissions') {
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">Permission Sets</h5>
+      <button class="btn btn-primary btn-sm" (click)="openCreatePermissionSet()">
+        <i class="bi bi-plus-lg me-1"></i> Add Permission Set
+      </button>
+    </div>
+
+    @if (permissionSets().length > 0) {
+      <div class="pin-grid">
+        @for (ps of permissionSets(); track ps.id) {
+          <div class="pin-card">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h6 class="mb-0">{{ ps.name }}</h6>
+                @if (ps.isDefault) {
+                  <span class="badge badge-manager mt-1">Default</span>
+                }
+              </div>
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-light" (click)="openEditPermissionSet(ps)" title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                @if (!ps.isDefault) {
+                  <button class="btn btn-outline-danger" (click)="confirmDeletePermissionSet(ps.id)" title="Delete">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                }
+              </div>
+            </div>
+            <div class="text-muted small">
+              @let enabledCount = getEnabledPermissionCount(ps);
+              {{ enabledCount }} of {{ permissionDefinitions.length }} permissions enabled
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      @if (!isLoading()) {
+        <div class="empty-state text-center py-4">
+          <p class="text-muted">No permission sets. Click "Add Permission Set" to create one.</p>
+        </div>
+      }
+    }
+  }
+
+  <!-- ============ Team Member Form Modal ============ -->
+  @if (showTeamMemberForm()) {
+    <div class="modal-backdrop" (click)="closeTeamMemberForm()"></div>
+    <div class="modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ editingTeamMember() ? 'Edit' : 'Add' }} Team Member</h5>
+          <button class="btn-close btn-close-white" (click)="closeTeamMemberForm()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Display Name *</label>
+              <input type="text" class="form-control" [value]="tmFormName()" (input)="setTmField('name', $any($event.target).value)" placeholder="Full name">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Passcode (4 digits)</label>
+              <input type="password" class="form-control" [value]="tmFormPasscode()" (input)="setTmField('passcode', $any($event.target).value)" placeholder="4-digit code" maxlength="4" inputmode="numeric">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" [value]="tmFormEmail()" (input)="setTmField('email', $any($event.target).value)" placeholder="email@example.com">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Phone</label>
+              <input type="tel" class="form-control" [value]="tmFormPhone()" (input)="setTmField('phone', $any($event.target).value)" placeholder="(555) 555-5555">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Permission Set</label>
+              <select class="form-select" [value]="tmFormPermissionSetId() ?? ''" (change)="setTmPermissionSet($any($event.target).value)">
+                <option value="">None</option>
+                @for (ps of permissionSets(); track ps.id) {
+                  <option [value]="ps.id">{{ ps.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Hire Date</label>
+              <input type="date" class="form-control" [value]="tmFormHireDate()" (input)="setTmField('hireDate', $any($event.target).value)">
+            </div>
+          </div>
+
+          <!-- Jobs Section -->
+          <div class="mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="form-label mb-0">Jobs</label>
+              <button class="btn btn-outline-light btn-sm" (click)="addJobRow()">
+                <i class="bi bi-plus"></i> Add Job
+              </button>
+            </div>
+            @for (job of tmFormJobs(); track $index) {
+              <div class="job-form-row">
+                <div class="row g-2 align-items-end">
+                  <div class="col-md-4">
+                    <input type="text" class="form-control form-control-sm" placeholder="Job title" [value]="job.jobTitle" (input)="updateJobField($index, 'jobTitle', $any($event.target).value)">
+                  </div>
+                  <div class="col-md-3">
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text">$/hr</span>
+                      <input type="number" class="form-control" min="0" step="0.01" [value]="job.hourlyRate / 100" (input)="updateJobField($index, 'hourlyRate', $any($event.target).valueAsNumber * 100)">
+                    </div>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" [checked]="job.isTipEligible" (change)="updateJobField($index, 'isTipEligible', $any($event.target).checked)">
+                      <label class="form-check-label small">Tips</label>
+                    </div>
+                  </div>
+                  <div class="col-md-2">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" [checked]="job.isPrimary" (change)="updateJobField($index, 'isPrimary', $any($event.target).checked)">
+                      <label class="form-check-label small">Primary</label>
+                    </div>
+                  </div>
+                  <div class="col-md-1">
+                    @if (tmFormJobs().length > 1) {
+                      <button class="btn btn-outline-danger btn-sm" (click)="removeJobRow($index)">
+                        <i class="bi bi-x"></i>
+                      </button>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-light" (click)="closeTeamMemberForm()">Cancel</button>
+          <button class="btn btn-primary" (click)="saveTeamMember()" [disabled]="isSaving() || !tmFormName()">
+            @if (isSaving()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            {{ editingTeamMember() ? 'Update' : 'Create' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ============ Permission Set Form Modal ============ -->
+  @if (showPermissionForm()) {
+    <div class="modal-backdrop" (click)="closePermissionForm()"></div>
+    <div class="modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ editingPermissionSet() ? 'Edit' : 'Create' }} Permission Set</h5>
+          <button class="btn-close btn-close-white" (click)="closePermissionForm()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Name *</label>
+            <input type="text" class="form-control" [value]="psFormName()" (input)="setPsName($any($event.target).value)" placeholder="e.g., Server, Manager, Kitchen">
+          </div>
+
+          <div class="permission-tree">
+            @for (category of permissionCategories; track category) {
+              <div class="perm-category">
+                <h6 class="perm-category-label">{{ getCategoryLabel(category) }}</h6>
+                @for (perm of getPermissionsByCategory(category); track perm.key) {
+                  <div class="perm-item" (click)="togglePermission(perm.key)">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      [checked]="psFormPermissions()[perm.key]"
+                      (click)="$event.stopPropagation()">
+                    <div class="perm-info">
+                      <span class="perm-label">{{ perm.label }}</span>
+                      <span class="perm-desc">{{ perm.description }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-light" (click)="closePermissionForm()">Cancel</button>
+          <button class="btn btn-primary" (click)="savePermissionSet()" [disabled]="isSaving() || !psFormName()">
+            @if (isSaving()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            {{ editingPermissionSet() ? 'Update' : 'Create' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ============ Users Tab ============ -->
+  @if (activeTab() === 'users' && canManageUsers()) {
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">User Accounts</h5>
+      <button class="btn btn-primary btn-sm" (click)="openCreateUser()">
+        <i class="bi bi-plus-lg me-1"></i> Add User
+      </button>
+    </div>
+
+    <!-- Active Users -->
+    @if (activeUsers().length > 0) {
+      <div class="table-responsive mb-4">
+        <table class="table table-dark table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Restaurants</th>
+              <th>Last Login</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of activeUsers(); track user.id) {
+              <tr>
+                <td>{{ user.firstName }} {{ user.lastName }}</td>
+                <td class="text-muted">{{ user.email }}</td>
+                <td>
+                  <span class="badge" [class]="getRoleBadgeClass(user.role)">
+                    {{ user.role | titlecase }}
+                  </span>
+                </td>
+                <td>
+                  @if (user.restaurants.length > 0) {
+                    <span class="text-muted small">
+                      {{ user.restaurants.length }} location{{ user.restaurants.length > 1 ? 's' : '' }}
+                    </span>
+                  } @else {
+                    <span class="text-muted small">None</span>
+                  }
+                </td>
+                <td class="text-muted small">
+                  @if (user.lastLoginAt) {
+                    {{ user.lastLoginAt | date:'short' }}
+                  } @else {
+                    Never
+                  }
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-outline-light me-1" (click)="openEditUser(user)" title="Edit">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="confirmDeactivateUser(user.id)" title="Deactivate">
+                    <i class="bi bi-person-dash"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      @if (!isLoading()) {
+        <div class="empty-state text-center py-4 mb-4">
+          <p class="text-muted">No active users. Click "Add User" to create one.</p>
+        </div>
+      }
+    }
+
+    <!-- Inactive Users -->
+    @if (inactiveUsers().length > 0) {
+      <h6 class="text-muted mb-2">Inactive Users</h6>
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (user of inactiveUsers(); track user.id) {
+              <tr class="opacity-50">
+                <td>{{ user.firstName }} {{ user.lastName }}</td>
+                <td class="text-muted">{{ user.email }}</td>
+                <td>
+                  <span class="badge" [class]="getRoleBadgeClass(user.role)">
+                    {{ user.role | titlecase }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-outline-success" (click)="reactivateUser(user.id)" [disabled]="isSaving()">
+                    <i class="bi bi-person-check me-1"></i> Reactivate
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- Change Password (self-service) -->
+    <div class="mt-4 pt-3 border-top border-secondary">
+      <button class="btn btn-outline-light btn-sm" (click)="openPasswordForm()">
+        <i class="bi bi-key me-1"></i> Change My Password
+      </button>
+    </div>
+  }
+
+  <!-- ============ PINs Tab ============ -->
+  @if (activeTab() === 'pins' && canManagePins()) {
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">Staff PINs</h5>
+      <button class="btn btn-primary btn-sm" (click)="openCreatePin()">
+        <i class="bi bi-plus-lg me-1"></i> Add PIN
+      </button>
+    </div>
+
+    @if (activePins().length > 0) {
+      <div class="pin-grid">
+        @for (pin of activePins(); track pin.id) {
+          <div class="pin-card">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <h6 class="mb-0">{{ pin.name }}</h6>
+                <span class="badge mt-1" [class]="getRoleBadgeClass(pin.role)">
+                  {{ pin.role | titlecase }}
+                </span>
+              </div>
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-light" (click)="openEditPin(pin)" title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-outline-danger" (click)="confirmDeactivatePin(pin.id)" title="Delete">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+            <div class="text-muted small">
+              Created {{ pin.createdAt | date:'mediumDate' }}
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      @if (!isLoading()) {
+        <div class="empty-state text-center py-4">
+          <p class="text-muted">No staff PINs. Click "Add PIN" to create one.</p>
+        </div>
+      }
+    }
+  }
+
+  <!-- ============ Create/Edit User Modal ============ -->
+  @if (showUserForm()) {
+    <div class="modal-backdrop" (click)="closeUserForm()"></div>
+    <div class="modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ editingUser() ? 'Edit User' : 'Create User' }}</h5>
+          <button class="btn-close btn-close-white" (click)="closeUserForm()"></button>
+        </div>
+        <div class="modal-body">
+          @if (!editingUser()) {
+            <!-- Create User Form -->
+            <form [formGroup]="userForm">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">First Name</label>
+                  <input type="text" class="form-control" formControlName="firstName" placeholder="First name">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Last Name</label>
+                  <input type="text" class="form-control" formControlName="lastName" placeholder="Last name">
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control" formControlName="email" placeholder="user@example.com">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Password</label>
+                  <input type="password" class="form-control" formControlName="password" placeholder="Min 6 characters">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Role</label>
+                  <select class="form-select" formControlName="role">
+                    @for (role of roles; track role) {
+                      <option [value]="role">{{ role | titlecase }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <!-- Restaurant Access -->
+              @if (restaurants().length > 0) {
+                <div class="mt-3">
+                  <label class="form-label">Restaurant Access</label>
+                  <div class="restaurant-grid">
+                    @for (restaurant of restaurants(); track restaurant.id) {
+                      <div class="form-check restaurant-check" (click)="toggleRestaurantAccess(restaurant.id)">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          [checked]="isRestaurantSelected(restaurant.id)"
+                          (click)="$event.stopPropagation()">
+                        <label class="form-check-label">{{ restaurant.name }}</label>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </form>
+          } @else {
+            <!-- Edit User Form -->
+            <form [formGroup]="editUserForm">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">First Name</label>
+                  <input type="text" class="form-control" formControlName="firstName">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Last Name</label>
+                  <input type="text" class="form-control" formControlName="lastName">
+                </div>
+                <div class="col-12">
+                  <label class="form-label">Role</label>
+                  <select class="form-select" formControlName="role">
+                    @for (role of roles; track role) {
+                      <option [value]="role">{{ role | titlecase }}</option>
+                    }
+                  </select>
+                </div>
+              </div>
+            </form>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-light" (click)="closeUserForm()">Cancel</button>
+          <button class="btn btn-primary" (click)="saveUser()" [disabled]="isSaving()">
+            @if (isSaving()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            {{ editingUser() ? 'Update' : 'Create' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ============ Create/Edit PIN Modal ============ -->
+  @if (showPinForm()) {
+    <div class="modal-backdrop" (click)="closePinForm()"></div>
+    <div class="modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ editingPin() ? 'Edit PIN' : 'Create PIN' }}</h5>
+          <button class="btn-close btn-close-white" (click)="closePinForm()"></button>
+        </div>
+        <div class="modal-body">
+          @if (!editingPin()) {
+            <form [formGroup]="pinForm">
+              <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" formControlName="name" placeholder="Staff member name">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">PIN (4-6 digits)</label>
+                <input type="password" class="form-control" formControlName="pin"
+                  placeholder="Enter PIN" maxlength="6" inputmode="numeric">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Role</label>
+                <select class="form-select" formControlName="role">
+                  @for (role of pinRoles; track role) {
+                    <option [value]="role">{{ role | titlecase }}</option>
+                  }
+                </select>
+              </div>
+            </form>
+          } @else {
+            <form [formGroup]="editPinForm">
+              <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" formControlName="name">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Role</label>
+                <select class="form-select" formControlName="role">
+                  @for (role of pinRoles; track role) {
+                    <option [value]="role">{{ role | titlecase }}</option>
+                  }
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">New PIN (optional, 4-6 digits)</label>
+                <input type="password" class="form-control" formControlName="newPin"
+                  placeholder="Leave blank to keep current" maxlength="6" inputmode="numeric">
+              </div>
+            </form>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-light" (click)="closePinForm()">Cancel</button>
+          <button class="btn btn-primary" (click)="savePin()" [disabled]="isSaving()">
+            @if (isSaving()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            {{ editingPin() ? 'Update' : 'Create' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ============ Change Password Modal ============ -->
+  @if (showPasswordForm()) {
+    <div class="modal-backdrop" (click)="closePasswordForm()"></div>
+    <div class="modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Change Password</h5>
+          <button class="btn-close btn-close-white" (click)="closePasswordForm()"></button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="passwordForm">
+            <div class="mb-3">
+              <label class="form-label">Current Password</label>
+              <input type="password" class="form-control" formControlName="oldPassword">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">New Password</label>
+              <input type="password" class="form-control" formControlName="newPassword"
+                placeholder="Min 6 characters">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Confirm New Password</label>
+              <input type="password" class="form-control" formControlName="confirmPassword">
+              @if (passwordForm.value.confirmPassword && !passwordsMatch()) {
+                <div class="text-danger small mt-1">Passwords do not match</div>
+              }
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-light" (click)="closePasswordForm()">Cancel</button>
+          <button class="btn btn-primary" (click)="changePassword()"
+            [disabled]="isSaving() || passwordForm.invalid || !passwordsMatch()">
+            @if (isSaving()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            Change Password
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ============ Deactivation Confirmation Modal ============ -->
+  @if (showConfirmDeactivate()) {
+    <div class="modal-backdrop" (click)="cancelDeactivate()"></div>
+    <div class="modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirm Deactivation</h5>
+          <button class="btn-close btn-close-white" (click)="cancelDeactivate()"></button>
+        </div>
+        <div class="modal-body">
+          @if (activeTab() === 'team-members') {
+            <p>Are you sure you want to deactivate this team member? This action can be reversed later.</p>
+          } @else if (activeTab() === 'permissions') {
+            <p>Are you sure you want to delete this permission set? This cannot be undone.</p>
+          } @else if (activeTab() === 'users') {
+            <p>Are you sure you want to deactivate this user? This action can be reversed later.</p>
+          } @else {
+            <p>Are you sure you want to delete this PIN? This action can be reversed later.</p>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-light" (click)="cancelDeactivate()">Cancel</button>
+          @if (activeTab() === 'team-members') {
+            <button class="btn btn-danger" (click)="deactivateTeamMember(showConfirmDeactivate()!)" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+              }
+              Deactivate
+            </button>
+          } @else if (activeTab() === 'permissions') {
+            <button class="btn btn-danger" (click)="deletePermissionSet(showConfirmDeactivate()!)" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+              }
+              Delete
+            </button>
+          } @else if (activeTab() === 'users') {
+            <button class="btn btn-danger" (click)="deactivateUser(showConfirmDeactivate()!)" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+              }
+              Deactivate User
+            </button>
+          } @else {
+            <button class="btn btn-danger" (click)="deactivatePin(showConfirmDeactivate()!)" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+              }
+              Delete PIN
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

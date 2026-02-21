@@ -1,0 +1,166 @@
+<div class="order-pad">
+  <!-- Header -->
+  <header class="pad-header">
+    <div class="header-top">
+      <h1 class="pad-title">Order Pad</h1>
+      <button class="btn-refresh" (click)="refreshOrder()" [disabled]="isLoading()">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+    </div>
+
+    <div class="header-controls">
+      <!-- Table selector -->
+      <div class="table-selector">
+        <label class="control-label">Table</label>
+        <div class="table-pills">
+          @for (table of availableTables(); track table.id) {
+            <button
+              class="table-pill"
+              [class]="getTableStatusClass(table)"
+              (click)="selectTable(table.id)">
+              {{ table.tableNumber }}
+              @if (table.hasOrder) {
+                <span class="dot"></span>
+              }
+            </button>
+          } @empty {
+            <span class="no-tables">No tables</span>
+          }
+        </div>
+      </div>
+
+      <!-- Seat selector + Order number -->
+      <div class="header-meta">
+        <div class="seat-selector">
+          <label class="control-label">Seat</label>
+          <div class="seat-pills">
+            <button
+              class="seat-pill"
+              [class.active]="currentSeat() === undefined"
+              (click)="setSeat(undefined)">
+              —
+            </button>
+            @for (seat of seatOptions; track seat) {
+              <button
+                class="seat-pill"
+                [class.active]="currentSeat() === seat"
+                (click)="setSeat(seat)">
+                {{ seat }}
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (orderNumber()) {
+          <span class="order-number">#{{ orderNumber() }}</span>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- Error banner -->
+  @if (error()) {
+    <div class="error-banner" (click)="dismissError()">
+      <i class="bi bi-exclamation-triangle"></i>
+      {{ error() }}
+      <i class="bi bi-x"></i>
+    </div>
+  }
+
+  <!-- Category tabs -->
+  <nav class="category-tabs">
+    @for (cat of categories(); track cat.id) {
+      <button
+        class="category-pill"
+        [class.active]="selectedCategoryId() === cat.id"
+        (click)="selectCategory(cat.id)">
+        {{ cat.name }}
+      </button>
+    }
+  </nav>
+
+  <!-- Item grid -->
+  <div class="item-grid-container">
+    @if (isLoading()) {
+      <div class="loading-overlay">
+        <div class="spinner"></div>
+      </div>
+    }
+
+    <div class="item-grid">
+      @for (item of currentCategoryItems(); track item.id) {
+        <button class="item-card" (click)="onItemTap(item)">
+          <span class="item-name">{{ item.name }}</span>
+          <span class="item-price">{{ item.price | currency }}</span>
+          @if (item.eightySixed) {
+            <span class="item-86">86'd</span>
+          }
+        </button>
+      } @empty {
+        <div class="empty-grid">
+          <i class="bi bi-grid-3x3-gap"></i>
+          <span>No items in this category</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Order summary footer -->
+  @if (activeOrder()) {
+    <footer class="order-footer" [class.expanded]="footerExpanded()">
+      <button class="footer-toggle" (click)="toggleFooter()">
+        <div class="footer-summary">
+          <span class="item-count">{{ itemCount() }} items</span>
+          <span class="footer-total">{{ subtotal() | currency }}</span>
+        </div>
+        <i class="bi" [class.bi-chevron-up]="!footerExpanded()" [class.bi-chevron-down]="footerExpanded()"></i>
+      </button>
+
+      @if (footerExpanded()) {
+        <div class="footer-items">
+          @for (item of orderItems(); track item.guid) {
+            <div class="footer-item">
+              <div class="footer-item-info">
+                <span class="footer-item-qty">{{ item.quantity }}x</span>
+                <span class="footer-item-name">{{ item.menuItemName }}</span>
+                @if (item.seatNumber) {
+                  <span class="footer-item-seat">S{{ item.seatNumber }}</span>
+                }
+              </div>
+              <div class="footer-item-actions">
+                <span class="footer-item-price">{{ item.totalPrice | currency }}</span>
+                <button class="btn-remove" (click)="removeItem(item)">
+                  <i class="bi bi-x-circle"></i>
+                </button>
+              </div>
+            </div>
+
+            @if (item.modifiers.length > 0) {
+              <div class="footer-item-mods">
+                @for (mod of item.modifiers; track mod.guid) {
+                  <span class="mod-tag">{{ mod.name }}</span>
+                }
+              </div>
+            }
+          } @empty {
+            <div class="footer-empty">No items yet — tap to add</div>
+          }
+        </div>
+      }
+    </footer>
+  }
+
+  <!-- Modifier prompt modal -->
+  @if (showModifier() && modifierItem()) {
+    <div class="modal-backdrop" (click)="onModifierCancelled()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <os-modifier-prompt
+          [menuItem]="modifierItem()!"
+          [defaultSeatNumber]="currentSeat()"
+          (confirmed)="onModifierConfirmed($event)"
+          (cancel)="onModifierCancelled()">
+        </os-modifier-prompt>
+      </div>
+    </div>
+  }
+</div>

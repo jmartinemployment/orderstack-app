@@ -1,0 +1,408 @@
+.order-card {
+  background-color: var(--midnight-black, #03020D);
+  border: 1px solid var(--deep-lake, #1D3273);
+  color: #fff;
+  margin-bottom: 1rem;
+
+  &.urgent {
+    border-color: #dc3545;
+    animation: pulse-border 2s infinite;
+  }
+
+  &.rushed {
+    border-color: #dc3545;
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.3);
+  }
+
+  &.throttled {
+    border-color: #b084f5;
+    box-shadow: 0 0 10px rgba(176, 132, 245, 0.22);
+  }
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.2);
+  }
+}
+
+.card-header {
+  background-color: var(--midnight-black, #03020D);
+  border-bottom: 1px solid var(--deep-lake, #1D3273);
+}
+
+.order-number {
+  font-size: 1.25rem;
+  color: var(--dark-teal, #0E7490);
+}
+
+.order-type-pickup {
+  background-color: #198754;
+}
+
+.order-type-delivery {
+  background-color: #0d6efd;
+}
+
+.order-type-dinein {
+  background-color: #fd7e14;
+}
+
+.order-type-curbside {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.order-type-catering {
+  background-color: #6f42c1;
+}
+
+.marketplace-source-badge {
+  background-color: #0b7285;
+  color: #fff;
+}
+
+.marketplace-sync-badge {
+  color: #fff;
+}
+
+.sync-success {
+  background-color: #198754;
+}
+
+.sync-pending {
+  background-color: #6c757d;
+}
+
+.sync-retrying {
+  background-color: #fd7e14;
+}
+
+.sync-failed {
+  background-color: #dc3545;
+}
+
+.elapsed-time {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+// Prep time colors
+.prep-ok { color: #28a745; }
+.prep-warning { color: #ffc107; }
+.prep-overdue { color: #dc3545; font-weight: 700; }
+
+.prep-eta { font-weight: 600; }
+
+.rush-badge { animation: rush-flash 1s infinite; }
+
+@keyframes rush-flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+// Prep time progress bar
+.prep-bar-container {
+  height: 3px;
+  background-color: rgba(29, 50, 115, 0.3);
+
+  .prep-bar {
+    height: 100%;
+    transition: width 0.3s;
+
+    &.prep-ok { background-color: #28a745; }
+    &.prep-warning { background-color: #ffc107; }
+    &.prep-overdue { background-color: #dc3545; }
+  }
+}
+
+.rush-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-weight: 700;
+  font-size: 1rem;
+  align-self: center;
+}
+
+.recall-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-weight: 700;
+  font-size: 1rem;
+  align-self: center;
+}
+
+.order-items {
+  .order-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--deep-lake, #1D3273);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .item-name {
+    font-weight: 500;
+  }
+}
+
+.card-footer {
+  background-color: var(--midnight-black, #03020D);
+  border-top: 1px solid var(--deep-lake, #1D3273);
+}
+
+.bump-button {
+  background-color: var(--medium-slate-blue, #7E5EF2);
+  border-color: var(--medium-slate-blue, #7E5EF2);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  &:hover {
+    background-color: var(--lapis-lazuli, #3632A6);
+    border-color: var(--lapis-lazuli, #3632A6);
+  }
+}
+
+.btn-expo-check {
+  background-color: #e35d00;
+  border-color: #e35d00;
+  color: #fff;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  &:hover { background-color: #c44f00; border-color: #c44f00; color: #fff; }
+}
+
+.expo-badge { animation: rush-flash 1s infinite; }
+.bg-expo { background-color: #e35d00; }
+
+// Course system
+.course-group {
+  border-left: 3px solid var(--deep-lake, #1D3273);
+  padding-left: 0.5rem;
+
+  &:not(:last-child) {
+    border-bottom: 1px dashed var(--deep-lake, #1D3273);
+    padding-bottom: 0.5rem;
+  }
+}
+
+.course-header {
+  padding: 0.25rem 0;
+}
+
+.course-label {
+  font-size: 0.8rem;
+  color: var(--dark-teal, #0E7490);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.course-status-badge {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+}
+
+// Held items (HOLD / PENDING course)
+.held-item {
+  opacity: 0.45;
+  border-left: 2px dashed #6c757d;
+  padding-left: 0.5rem;
+}
+
+// Fire delay badges
+.fire-delay-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  align-self: center;
+  white-space: nowrap;
+}
+
+// Fire course button
+.fire-course-btn {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  font-weight: 600;
+}
+
+// Auto-fire countdown
+.auto-fire-countdown {
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.auto-fire-panel {
+  max-width: 18rem;
+}
+
+.auto-fire-rationale {
+  margin-top: 0.2rem;
+  font-size: 0.62rem;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.auto-fire-rationale-meta {
+  margin-top: 0.1rem;
+  font-size: 0.58rem;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.58);
+}
+
+// Item actively firing (just transitioned from held)
+.item-firing {
+  border-left: 2px solid #28a745;
+  padding-left: 0.5rem;
+}
+
+// Live countdown badge
+.item-countdown {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;  // Prevent layout shift on digit changes
+}
+
+// Fire Now button (per-item override)
+.fire-now-btn {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  font-weight: 600;
+}
+
+// Fire info container
+.item-fire-info {
+  margin-top: 0.25rem;
+}
+
+// Dining option info blocks
+.dining-info {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: rgba(29, 50, 115, 0.15);
+}
+
+.bg-purple {
+  background-color: #6f42c1;
+  color: #fff;
+}
+
+.approval-status {
+  .bg-warning {
+    color: #000;
+  }
+}
+
+.customer-info {
+  font-size: 0.85rem;
+}
+
+.print-status-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+
+  &.print-printing { background-color: #0dcaf0; color: #000; }
+  &.print-printed { background-color: #28a745; color: #fff; }
+  &.print-failed { background-color: #dc3545; color: #fff; }
+}
+
+.retry-print-btn {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+}
+
+// Delivery provider badges
+.provider-doordash {
+  background-color: #ff3008;
+  color: #fff;
+}
+
+.provider-uber {
+  background-color: #000;
+  color: #fff;
+}
+
+// Dispatch button
+.btn-dispatch {
+  background-color: #198754;
+  border-color: #198754;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &:hover:not(:disabled) {
+    background-color: #157347;
+    border-color: #157347;
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    color: #fff;
+  }
+}
+
+// Dispatch status
+.dispatch-status {
+  .badge {
+    font-size: 0.65rem;
+  }
+}
+
+.dispatch-quote {
+  .badge {
+    font-size: 0.65rem;
+  }
+}
+
+.dispatch-error {
+  font-weight: 600;
+}
+
+.marketplace-sync-alert {
+  color: #ff9da7;
+  border-left: 3px solid #dc3545;
+  background-color: rgba(220, 53, 69, 0.12);
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.throttle-info {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px dashed rgba(255, 193, 7, 0.7);
+  border-radius: 0.35rem;
+  background-color: rgba(255, 193, 7, 0.08);
+}
+
+.bg-throttle {
+  background-color: #6f42c1;
+  color: #fff;
+}
+
+.throttle-release-btn {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.throttle-hold-btn {
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+// Partial order badge (station filtering)
+.bg-partial-order {
+  background-color: #0dcaf0;
+  color: #000;
+  font-size: 0.65rem;
+  font-weight: 600;
+}

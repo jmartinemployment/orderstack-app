@@ -1,0 +1,376 @@
+.pending-orders {
+  h2 {
+    color: var(--dark-teal, #0E7490);
+  }
+}
+
+.order-counts {
+  .badge-count {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background-color: var(--midnight-black, #03020D);
+    border: 1px solid var(--deep-lake, #1D3273);
+
+    .count {
+      font-size: 1.5rem;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    &.received .count { color: #ffc107; }
+    &.in-preparation .count { color: #fd7e14; }
+    &.ready .count { color: #28a745; }
+  }
+}
+
+.search-bar {
+  .input-group-text {
+    background-color: var(--hermes, #203B8C);
+    border-color: var(--deep-lake, #1D3273);
+    color: #aaa;
+  }
+
+  .form-control {
+    background-color: var(--midnight-black, #03020D);
+    border-color: var(--deep-lake, #1D3273);
+    color: #fff;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    &:focus {
+      background-color: var(--midnight-black, #03020D);
+      border-color: var(--medium-slate-blue, #7E5EF2);
+      color: #fff;
+      box-shadow: 0 0 0 0.25rem rgba(126, 94, 242, 0.25);
+    }
+  }
+}
+
+.source-filter {
+  background-color: var(--midnight-black, #03020D);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--deep-lake, #1D3273);
+}
+
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.order-card {
+  background-color: var(--midnight-black, #03020D);
+  border: 2px solid var(--deep-lake, #1D3273);
+  color: #fff;
+  transition: border-color 0.2s;
+
+  &.status-RECEIVED { border-color: #ffc107; }
+  &.status-IN_PREPARATION { border-color: #fd7e14; }
+  &.status-READY_FOR_PICKUP { border-color: #28a745; }
+
+  .card-header {
+    background-color: var(--midnight-black, #03020D);
+    border-bottom: 1px solid var(--deep-lake, #1D3273);
+
+    h5 {
+      color: var(--dark-teal, #0E7490);
+    }
+
+    .time-ago {
+      color: var(--text-muted);
+    }
+  }
+
+  .card-footer {
+    background-color: var(--midnight-black, #03020D);
+    border-top: 1px solid var(--deep-lake, #1D3273);
+  }
+}
+
+.customer-name {
+  color: var(--dark-teal, #0E7490);
+}
+
+.order-items {
+  .order-item {
+    padding: 0.25rem 0;
+    border-bottom: 1px solid var(--deep-lake, #1D3273);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .quantity {
+      font-weight: bold;
+      color: var(--cerulean-periwinkle, #5CB9F2);
+      margin-right: 0.5rem;
+    }
+
+    .modifiers {
+      padding-left: 1.5rem;
+
+      .modifier {
+        display: block;
+        color: var(--text-muted);
+      }
+    }
+  }
+}
+
+.special-instructions {
+  background-color: rgba(255, 193, 7, 0.1);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border-left: 3px solid #ffc107;
+}
+
+.order-total {
+  color: var(--cerulean-periwinkle, #5CB9F2);
+  font-size: 1.1rem;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  background-color: var(--midnight-black, #03020D);
+  border: 1px dashed var(--deep-lake, #1D3273);
+  border-radius: 0.5rem;
+}
+
+.payment-paid { background-color: #28a745; color: #fff; }
+.payment-pending { background-color: #ffc107; color: #000; }
+.payment-failed { background-color: #dc3545; color: #fff; }
+.payment-refunded { background-color: #6c757d; color: #fff; }
+
+.marketplace-source {
+  background-color: #0b7285;
+  color: #fff;
+}
+
+.marketplace-sync {
+  color: #fff;
+}
+
+.sync-success {
+  background-color: #198754;
+}
+
+.sync-pending {
+  background-color: #6c757d;
+}
+
+.sync-retrying {
+  background-color: #fd7e14;
+}
+
+.sync-failed {
+  background-color: #dc3545;
+}
+
+.marketplace-sync-alert {
+  font-size: 0.75rem;
+  color: #ff9da7;
+  border-left: 3px solid #dc3545;
+  background-color: rgba(220, 53, 69, 0.12);
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+// Dining option detail blocks
+.delivery-detail,
+.curbside-detail,
+.catering-detail {
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: rgba(29, 50, 115, 0.15);
+  border-left: 3px solid var(--deep-lake, #1D3273);
+}
+
+.delivery-detail {
+  border-left-color: #0d6efd;
+}
+
+.curbside-detail {
+  border-left-color: #ffc107;
+}
+
+.catering-detail {
+  border-left-color: #6f42c1;
+}
+
+// Delivery state badges
+.delivery-preparing {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.delivery-out {
+  background-color: #0dcaf0;
+  color: #000;
+}
+
+.delivery-done {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.approval-section {
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  background-color: rgba(111, 66, 193, 0.1);
+  border-left: 3px solid #6f42c1;
+}
+
+.approval-countdown {
+  font-size: 0.75rem;
+  color: #ffc107;
+  margin-bottom: 0.35rem;
+
+  &.urgent {
+    color: #dc3545;
+    font-weight: 600;
+    animation: pulse-text 1s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse-text {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.approval-actions {
+  .btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+  }
+}
+
+.profit-badge {
+  font-size: 0.7rem;
+}
+
+.profit-btn {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.btn-primary {
+  background-color: var(--medium-slate-blue, #7E5EF2);
+  border-color: var(--medium-slate-blue, #7E5EF2);
+
+  &:hover:not(:disabled) {
+    background-color: var(--lapis-lazuli, #3632A6);
+    border-color: var(--lapis-lazuli, #3632A6);
+  }
+}
+
+.print-status-badge {
+  font-size: 0.75rem;
+
+  &.print-printing {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+  }
+
+  &.print-printed {
+    background-color: rgba(25, 135, 84, 0.2);
+    color: #198754;
+  }
+
+  &.print-failed {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+  }
+}
+
+// Course System — PendingOrders
+.course-group {
+  border-left: 3px solid var(--deep-lake, #1D3273);
+  padding-left: 0.75rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px dashed var(--deep-lake, #1D3273);
+
+  &:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+.course-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.course-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--dark-teal, #0E7490);
+}
+
+.course-status-badge {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+}
+
+.fire-course-btn {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+}
+
+.held-item {
+  opacity: 0.45;
+  border-left: 2px dashed var(--deep-lake, #1D3273);
+  padding-left: 0.5rem;
+}
+
+// Confirmation modals
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
+}
+
+.delete-confirm-modal {
+  background-color: var(--midnight-black, #03020D);
+  border: 1px solid var(--deep-lake, #1D3273);
+  color: #fff;
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+
+  .card-header {
+    background-color: var(--midnight-black, #03020D);
+    border-bottom: 1px solid var(--deep-lake, #1D3273);
+  }
+
+  .card-footer {
+    background-color: var(--midnight-black, #03020D);
+    border-top: 1px solid var(--deep-lake, #1D3273);
+  }
+}

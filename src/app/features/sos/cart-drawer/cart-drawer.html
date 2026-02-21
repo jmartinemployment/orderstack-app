@@ -1,0 +1,116 @@
+@if (isOpen()) {
+  <div class="cart-overlay" (click)="close()"></div>
+
+  <div class="cart-drawer">
+    <div class="cart-header d-flex justify-content-between align-items-center p-3">
+      <h4 class="mb-0">
+        Order
+        @if (itemCount() > 0) {
+          <span class="badge bg-primary ms-2">{{ itemCount() }}</span>
+        }
+      </h4>
+      <button type="button" class="btn-close btn-close-white" (click)="close()"></button>
+    </div>
+
+    <div class="cart-body">
+      @if (isEmpty()) {
+        <div class="empty-cart text-center p-5">
+          <div class="empty-icon mb-3">🛒</div>
+          <p class="text-muted mb-0">No items yet</p>
+          <p class="text-muted small">Add items from the menu</p>
+        </div>
+      } @else {
+        @if (error()) {
+          <div class="alert alert-danger m-3 mb-0">{{ error() }}</div>
+        }
+
+        <div class="cart-items">
+          @for (item of items(); track item.id) {
+            <div class="cart-item p-3">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div class="item-info flex-grow-1">
+                  <h6 class="mb-1">{{ item.menuItem.name }}</h6>
+                  @if (item.selectedModifiers.length > 0) {
+                    <div class="modifiers small text-muted">
+                      @for (mod of item.selectedModifiers; track mod.id) {
+                        <span class="modifier-tag">{{ mod.name }}</span>
+                      }
+                    </div>
+                  }
+                  @if (item.specialInstructions) {
+                    <p class="instructions small text-warning mb-0 mt-1">
+                      ⚠️ {{ item.specialInstructions }}
+                    </p>
+                  }
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-link text-danger p-0"
+                  (click)="removeItem(item.id)"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div class="quantity-controls d-flex align-items-center gap-2">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-light"
+                  (click)="decrementQuantity(item.id)"
+                >
+                  -
+                </button>
+                <span class="quantity-display">{{ item.quantity }}</span>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-light"
+                  (click)="incrementQuantity(item.id)"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="cart-actions p-3">
+          <button
+            type="button"
+            class="btn btn-outline-danger btn-sm w-100"
+            (click)="clearCart()"
+          >
+            Clear Order
+          </button>
+        </div>
+      }
+    </div>
+
+    @if (!isEmpty()) {
+      <div class="cart-footer p-3">
+        <div class="mb-3">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Table Number *"
+            [value]="tableNumber()"
+            (input)="onTableNumberInput($event)"
+            [disabled]="isSubmitting()"
+          />
+        </div>
+        <button
+          type="button"
+          class="btn btn-success btn-lg w-100"
+          [disabled]="isSubmitting() || !tableNumber()"
+          (click)="submitOrder()"
+        >
+          @if (isSubmitting()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Sending...
+          } @else {
+            Place Order
+          }
+        </button>
+      </div>
+    }
+  </div>
+}

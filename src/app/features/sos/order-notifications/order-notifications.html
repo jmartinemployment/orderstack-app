@@ -1,0 +1,79 @@
+<div class="notifications-container">
+  <!-- Controls bar (only shows when there are notifications) -->
+  @if (notificationCount() > 0) {
+    <div class="notification-controls d-flex align-items-center gap-2 mb-2">
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-light control-btn"
+        (click)="toggleSound()"
+        [title]="soundEnabled() ? 'Mute sounds' : 'Enable sounds'"
+      >
+        {{ soundEnabled() ? 'Sound ON' : 'Sound OFF' }}
+      </button>
+      @if (!desktopEnabled()) {
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-info control-btn"
+          (click)="requestDesktopPermission()"
+        >
+          Enable Desktop Alerts
+        </button>
+      }
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-secondary control-btn ms-auto"
+        (click)="clearAll()"
+      >
+        Clear All
+      </button>
+    </div>
+  }
+
+  @for (notification of notifications(); track notification.id) {
+    <div
+      class="notification toast show"
+      [class.notification-success]="notification.type === 'success'"
+      [class.notification-info]="notification.type === 'info'"
+      [class.notification-warning]="notification.type === 'warning'"
+      [class.notification-urgent]="notification.type === 'urgent'"
+    >
+      <div class="toast-header">
+        <strong class="me-auto">
+          @switch (notification.type) {
+            @case ('success') {
+              <span class="status-icon status-success">&#10003;</span>
+            }
+            @case ('warning') {
+              <span class="status-icon status-warning">!</span>
+            }
+            @case ('urgent') {
+              <span class="status-icon status-urgent">!!</span>
+            }
+            @default {
+              <span class="status-icon status-info">i</span>
+            }
+          }
+          @if (notification.eventType === 'new') {
+            New Order
+          } @else if (notification.eventType === 'cancelled') {
+            Cancelled
+          } @else {
+            Order Update
+          }
+        </strong>
+        <small class="elapsed-text">{{ getElapsedText(notification.timestamp) }}</small>
+        <button
+          type="button"
+          class="btn-close btn-close-white ms-2"
+          (click)="dismissNotification(notification.id)"
+        ></button>
+      </div>
+      <div class="toast-body">
+        <div class="notification-message">{{ notification.message }}</div>
+        @if (notification.order.diningOption) {
+          <span class="badge order-type-badge mt-1">{{ notification.order.diningOption.name }}</span>
+        }
+      </div>
+    </div>
+  }
+</div>
