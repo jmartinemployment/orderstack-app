@@ -3,28 +3,24 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="h4 mb-0">Menu Items</h2>
     <div class="d-flex gap-2">
-      <button
-        type="button"
-        class="btn btn-sm btn-outline-info ai-btn"
-        [disabled]="isEstimating() || isGenerating()"
-        (click)="estimateAllCosts()"
-      >
+      <button type="button" class="btn btn-sm btn-outline-light" (click)="exportCsv()">
+        <i class="bi bi-download"></i> Export CSV
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-light" (click)="openImportModal()">
+        <i class="bi bi-upload"></i> Import CSV
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-info ai-btn"
+        [disabled]="isEstimating() || isGenerating()" (click)="estimateAllCosts()">
         @if (isEstimating() === 'all') {
-          <span class="spinner-border spinner-border-sm me-1"></span>
-          Estimating...
+          <span class="spinner-border spinner-border-sm me-1"></span> Estimating...
         } @else {
           AI Estimate All Costs
         }
       </button>
-      <button
-        type="button"
-        class="btn btn-sm btn-outline-info ai-btn"
-        [disabled]="isEstimating() || isGenerating()"
-        (click)="generateAllDescriptions()"
-      >
+      <button type="button" class="btn btn-sm btn-outline-info ai-btn"
+        [disabled]="isEstimating() || isGenerating()" (click)="generateAllDescriptions()">
         @if (isGenerating() === 'all') {
-          <span class="spinner-border spinner-border-sm me-1"></span>
-          Generating...
+          <span class="spinner-border spinner-border-sm me-1"></span> Generating...
         } @else {
           AI Generate All Descriptions
         }
@@ -39,13 +35,9 @@
   <div class="search-bar mb-3">
     <div class="input-group">
       <span class="input-group-text"><i class="bi bi-search"></i></span>
-      <input
-        type="text"
-        class="form-control"
-        placeholder="Search items by name or description..."
-        [value]="searchQuery()"
-        (input)="setSearchQuery($any($event.target).value)"
-      />
+      <input type="text" class="form-control"
+        placeholder="Search items by name, description, or SKU..."
+        [value]="searchQuery()" (input)="setSearchQuery($any($event.target).value)" />
       @if (searchQuery()) {
         <button class="btn btn-outline-light" (click)="setSearchQuery('')">
           <i class="bi bi-x-lg"></i>
@@ -57,25 +49,15 @@
   <!-- Category Filter -->
   <div class="category-filter mb-3">
     <div class="d-flex flex-wrap gap-2">
-      <button
-        type="button"
-        class="btn btn-sm"
+      <button type="button" class="btn btn-sm"
         [class.btn-primary]="!selectedCategoryId()"
         [class.btn-outline-light]="selectedCategoryId()"
-        (click)="selectCategory(null)"
-      >
-        All Items
-      </button>
+        (click)="selectCategory(null)">All Items</button>
       @for (category of categories(); track category.id) {
-        <button
-          type="button"
-          class="btn btn-sm"
+        <button type="button" class="btn btn-sm"
           [class.btn-primary]="selectedCategoryId() === category.id"
           [class.btn-outline-light]="selectedCategoryId() !== category.id"
-          (click)="selectCategory(category.id)"
-        >
-          {{ category.name }}
-        </button>
+          (click)="selectCategory(category.id)">{{ category.name }}</button>
       }
     </div>
   </div>
@@ -101,12 +83,8 @@
   </div>
 
   @if (localError()) {
-    <os-error-display
-      [message]="localError()!"
-      [retryable]="true"
-      (dismissed)="clearLocalError()"
-      (retry)="retry()"
-    />
+    <os-error-display [message]="localError()!" [retryable]="true"
+      (dismissed)="clearLocalError()" (retry)="retry()" />
   }
 
   @if (!crudSupported()) {
@@ -120,11 +98,7 @@
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-2">
           <h6 class="mb-0">AI Cost Estimation Result</h6>
-          <button
-            type="button"
-            class="btn-close btn-close-white btn-sm"
-            (click)="dismissEstimation()"
-          ></button>
+          <button type="button" class="btn-close btn-close-white btn-sm" (click)="dismissEstimation()"></button>
         </div>
         <div class="d-flex flex-wrap gap-3 mb-2">
           <div>
@@ -175,9 +149,10 @@
                     <span class="badge bg-warning text-dark ms-1">Popular</span>
                   }
                 </h5>
-                <span class="category-badge badge bg-secondary">
-                  {{ getCategoryName(item.categoryId || '') }}
-                </span>
+                <span class="category-badge badge bg-secondary">{{ getCategoryName(item.categoryId || '') }}</span>
+                @if (item.sku) {
+                  <span class="badge bg-dark ms-1">SKU: {{ item.sku }}</span>
+                }
                 @if (item.prepTimeMinutes) {
                   <span class="badge bg-info ms-1">{{ item.prepTimeMinutes }}m prep</span>
                 }
@@ -187,6 +162,29 @@
               </div>
               <span class="price fw-bold">{{ item.price | currency }}</span>
             </div>
+
+            <!-- Allergen badges -->
+            @if (item.allergens && item.allergens.length > 0) {
+              <div class="allergen-badges mb-2">
+                @for (allergen of item.allergens; track allergen.type) {
+                  <span class="badge allergen-badge me-1" [class.contains]="allergen.severity === 'contains'"
+                    [class.may-contain]="allergen.severity === 'may_contain'"
+                    [class.facility]="allergen.severity === 'facility'">
+                    {{ getAllergenLabel(allergen.type) }}
+                  </span>
+                }
+              </div>
+            }
+
+            <!-- Channel visibility -->
+            @if (item.channelVisibility) {
+              <div class="channel-badges mb-2">
+                @if (item.channelVisibility.pos) { <span class="badge channel-badge">POS</span> }
+                @if (item.channelVisibility.onlineOrdering) { <span class="badge channel-badge">Online</span> }
+                @if (item.channelVisibility.kiosk) { <span class="badge channel-badge">Kiosk</span> }
+                @if (item.channelVisibility.deliveryApps) { <span class="badge channel-badge">Delivery</span> }
+              </div>
+            }
 
             @if (item.modifierGroups && item.modifierGroups.length > 0) {
               <div class="modifier-tags mb-2">
@@ -198,15 +196,9 @@
 
             @if (item.aiEstimatedCost) {
               <div class="ai-data d-flex flex-wrap gap-2 align-items-center mb-2">
-                <span class="small">
-                  Est. Cost: <strong>{{ item.aiEstimatedCost | currency }}</strong>
-                </span>
-                <span class="small">
-                  Suggested: <strong>{{ item.aiSuggestedPrice | currency }}</strong>
-                </span>
-                <span class="small">
-                  Margin: <strong>{{ item.aiProfitMargin }}%</strong>
-                </span>
+                <span class="small">Est. Cost: <strong>{{ item.aiEstimatedCost | currency }}</strong></span>
+                <span class="small">Suggested: <strong>{{ item.aiSuggestedPrice | currency }}</strong></span>
+                <span class="small">Margin: <strong>{{ item.aiProfitMargin }}%</strong></span>
                 @if (item.aiConfidence) {
                   <span class="badge confidence-badge" [class]="getConfidenceBadgeClass(item.aiConfidence)">
                     {{ item.aiConfidence }}
@@ -232,207 +224,385 @@
                 86'd{{ item.eightySixReason ? ': ' + item.eightySixReason : '' }}
               </div>
             } @else if (item.isActive === false) {
-              <div class="alert alert-warning py-1 px-2 small mb-2">
-                Currently unavailable
-              </div>
+              <div class="alert alert-warning py-1 px-2 small mb-2">Currently unavailable</div>
             }
 
             <div class="item-actions d-flex flex-wrap gap-2 mt-auto">
-              <button
-                type="button"
-                class="btn btn-sm"
+              <button type="button" class="btn btn-sm"
                 [class.btn-danger]="!item.eightySixed"
                 [class.btn-outline-success]="item.eightySixed"
-                (click)="toggleEightySix(item)"
-              >
+                (click)="toggleEightySix(item)">
                 {{ item.eightySixed ? 'Un-86' : '86 Item' }}
               </button>
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-info ai-btn"
-                [disabled]="isEstimating() || isGenerating()"
-                (click)="estimateCost(item)"
-              >
+              <button type="button" class="btn btn-sm btn-outline-info ai-btn"
+                [disabled]="isEstimating() || isGenerating()" (click)="estimateCost(item)">
                 @if (isEstimating() === item.id) {
                   <span class="spinner-border spinner-border-sm me-1"></span>
-                } @else {
-                  AI Cost
-                }
+                } @else { AI Cost }
               </button>
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-info ai-btn"
-                [disabled]="isEstimating() || isGenerating()"
-                (click)="generateDescription(item)"
-              >
+              <button type="button" class="btn btn-sm btn-outline-info ai-btn"
+                [disabled]="isEstimating() || isGenerating()" (click)="generateDescription(item)">
                 @if (isGenerating() === item.id) {
                   <span class="spinner-border spinner-border-sm me-1"></span>
-                } @else {
-                  AI Describe
-                }
+                } @else { AI Describe }
               </button>
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-light"
-                [disabled]="!crudSupported()"
-                (click)="duplicateItem(item)"
-                title="Duplicate"
-              >
-                <i class="bi bi-copy"></i>
-              </button>
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-light flex-fill"
-                [disabled]="!crudSupported()"
-                (click)="toggleActive(item)"
-              >
+              <button type="button" class="btn btn-sm btn-outline-light" [disabled]="!crudSupported()"
+                (click)="duplicateItem(item)" title="Duplicate"><i class="bi bi-copy"></i></button>
+              <button type="button" class="btn btn-sm btn-outline-light flex-fill" [disabled]="!crudSupported()"
+                (click)="toggleActive(item)">
                 {{ item.isActive !== false ? 'Mark Unavailable' : 'Mark Available' }}
               </button>
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-primary"
-                [disabled]="!crudSupported()"
-                (click)="openEditForm(item)"
-              >
-                Edit
-              </button>
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-danger"
-                [disabled]="!crudSupported()"
-                (click)="confirmDelete(item)"
-              >
-                Delete
-              </button>
+              <button type="button" class="btn btn-sm btn-outline-primary" [disabled]="!crudSupported()"
+                (click)="openEditForm(item)">Edit</button>
+              <button type="button" class="btn btn-sm btn-outline-danger" [disabled]="!crudSupported()"
+                (click)="confirmDelete(item)">Delete</button>
             </div>
           </div>
         </div>
       } @empty {
         <div class="empty-state text-center p-5">
           <p class="text-muted mb-3">
-            @if (searchQuery()) {
-              No items match "{{ searchQuery() }}"
-            } @else if (selectedCategoryId()) {
-              No items in this category
-            } @else {
-              No menu items yet
-            }
+            @if (searchQuery()) { No items match "{{ searchQuery() }}" }
+            @else if (selectedCategoryId()) { No items in this category }
+            @else { No menu items yet }
           </p>
           @if (!searchQuery()) {
-            <button type="button" class="btn btn-primary" (click)="openCreateForm()">
-              Add your first item
-            </button>
+            <button type="button" class="btn btn-primary" (click)="openCreateForm()">Add your first item</button>
           }
         </div>
       }
     </div>
   }
 
-  <!-- Item Form Modal -->
+  <!-- ==================== ITEM FORM MODAL ==================== -->
   @if (showForm()) {
     <div class="modal-overlay" (click)="closeForm()">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <h4 class="mb-0">
-            {{ editingItem() ? 'Edit Item' : 'New Item' }}
-          </h4>
+          <h4 class="mb-0">{{ editingItem() ? 'Edit Item' : 'New Item' }}</h4>
           <button type="button" class="btn-close btn-close-white" (click)="closeForm()"></button>
         </div>
         <form [formGroup]="itemForm" (ngSubmit)="saveItem()">
-          <div class="card-body">
+          <div class="card-body form-scrollable">
+            <!-- Basic Info -->
             <div class="row g-3">
               <div class="col-12 col-md-8">
                 <label class="form-label">Item Name *</label>
-                <input
-                  type="text"
-                  class="form-control"
-                  formControlName="name"
-                  placeholder="e.g., Chicken Tacos"
-                />
+                <input type="text" class="form-control" formControlName="name" placeholder="e.g., Chicken Tacos" />
               </div>
               <div class="col-12 col-md-4">
                 <label class="form-label">Price *</label>
                 <div class="input-group">
                   <span class="input-group-text">$</span>
-                  <input
-                    type="number"
-                    class="form-control"
-                    formControlName="price"
-                    min="0"
-                    step="0.01"
-                  />
+                  <input type="number" class="form-control" formControlName="price" min="0" step="0.01" />
                 </div>
               </div>
             </div>
 
             <div class="row g-3 mt-1">
-              <div class="col-12 col-md-4">
+              <div class="col-12 col-md-3">
                 <label class="form-label">Category *</label>
                 <select class="form-select" formControlName="categoryId">
-                  <option value="">Select a category...</option>
+                  <option value="">Select...</option>
                   @for (category of categories(); track category.id) {
                     <option [value]="category.id">{{ category.name }}</option>
                   }
                 </select>
               </div>
-              <div class="col-6 col-md-3">
+              <div class="col-6 col-md-2">
                 <label class="form-label">Cost ($)</label>
                 <input type="number" class="form-control" formControlName="cost" min="0" step="0.01" placeholder="0.00">
               </div>
-              <div class="col-6 col-md-3">
-                <label class="form-label">Prep Time (min)</label>
+              <div class="col-6 col-md-2">
+                <label class="form-label">Prep (min)</label>
                 <input type="number" class="form-control" formControlName="prepTimeMinutes" min="0" placeholder="0">
               </div>
               <div class="col-6 col-md-2">
                 <label class="form-label">Sort Order</label>
                 <input type="number" class="form-control" formControlName="displayOrder" min="0" placeholder="Auto">
               </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label">Reporting Category</label>
+                <select class="form-select" formControlName="reportingCategoryId">
+                  <option value="">None</option>
+                  @for (rc of reportingCategories(); track rc.id) {
+                    <option [value]="rc.id">{{ rc.name }}</option>
+                  }
+                </select>
+              </div>
             </div>
 
             <div class="mb-3 mt-3">
               <label class="form-label">Description</label>
-              <textarea
-                class="form-control"
-                rows="2"
-                formControlName="description"
-                placeholder="Brief description of the item..."
-              ></textarea>
+              <textarea class="form-control" rows="2" formControlName="description"
+                placeholder="Brief description of the item..."></textarea>
             </div>
 
             <div class="mb-3">
               <label class="form-label">Image URL</label>
-              <input
-                type="url"
-                class="form-control"
-                formControlName="image"
-                placeholder="https://..."
-              />
+              <input type="url" class="form-control" formControlName="image" placeholder="https://..." />
             </div>
 
             <div class="mb-3">
               <label class="form-label">Dietary Tags</label>
-              <input
-                type="text"
-                class="form-control"
-                formControlName="dietary"
-                placeholder="e.g., Vegetarian, Gluten-Free, Vegan"
-              />
+              <input type="text" class="form-control" formControlName="dietary"
+                placeholder="e.g., Vegetarian, Gluten-Free, Vegan" />
               <small class="text-muted">Separate with commas</small>
+            </div>
+
+            <!-- SKU / Barcode Section (collapsible) -->
+            <div class="collapsible-section">
+              <button type="button" class="section-toggle" (click)="toggleSkuSection()">
+                <i class="bi" [class.bi-chevron-right]="!showSkuSection()" [class.bi-chevron-down]="showSkuSection()"></i>
+                SKU & Barcode
+              </button>
+              @if (showSkuSection()) {
+                <div class="section-body">
+                  <div class="row g-2">
+                    <div class="col-md-4">
+                      <label class="form-label small">SKU</label>
+                      <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" formControlName="sku" placeholder="Auto or manual">
+                        @if (editingItem()) {
+                          <button type="button" class="btn btn-outline-light" (click)="generateSku()" title="Auto-generate">
+                            <i class="bi bi-magic"></i>
+                          </button>
+                        }
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label small">Barcode</label>
+                      <input type="text" class="form-control form-control-sm" formControlName="barcode" placeholder="UPC/EAN code">
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label small">Format</label>
+                      <select class="form-select form-select-sm" formControlName="barcodeFormat">
+                        <option value="">None</option>
+                        <option value="UPC-A">UPC-A</option>
+                        <option value="EAN-13">EAN-13</option>
+                        <option value="CODE-128">CODE-128</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Channel Visibility Section (collapsible) -->
+            <div class="collapsible-section">
+              <button type="button" class="section-toggle" (click)="toggleChannelSection()">
+                <i class="bi" [class.bi-chevron-right]="!showChannelSection()" [class.bi-chevron-down]="showChannelSection()"></i>
+                Channel Visibility
+              </button>
+              @if (showChannelSection()) {
+                <div class="section-body">
+                  <div class="d-flex flex-wrap gap-3">
+                    <div class="form-check">
+                      <input type="checkbox" class="form-check-input" id="ch-pos"
+                        [checked]="formChannelVisibility().pos"
+                        (change)="setChannelVisibility('pos', $any($event.target).checked)">
+                      <label class="form-check-label" for="ch-pos">POS</label>
+                    </div>
+                    <div class="form-check">
+                      <input type="checkbox" class="form-check-input" id="ch-online"
+                        [checked]="formChannelVisibility().onlineOrdering"
+                        (change)="setChannelVisibility('onlineOrdering', $any($event.target).checked)">
+                      <label class="form-check-label" for="ch-online">Online Ordering</label>
+                    </div>
+                    <div class="form-check">
+                      <input type="checkbox" class="form-check-input" id="ch-kiosk"
+                        [checked]="formChannelVisibility().kiosk"
+                        (change)="setChannelVisibility('kiosk', $any($event.target).checked)">
+                      <label class="form-check-label" for="ch-kiosk">Kiosk</label>
+                    </div>
+                    <div class="form-check">
+                      <input type="checkbox" class="form-check-input" id="ch-delivery"
+                        [checked]="formChannelVisibility().deliveryApps"
+                        (change)="setChannelVisibility('deliveryApps', $any($event.target).checked)">
+                      <label class="form-check-label" for="ch-delivery">Delivery Apps</label>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Allergens Section (collapsible) -->
+            <div class="collapsible-section">
+              <button type="button" class="section-toggle" (click)="toggleAllergenSection()">
+                <i class="bi" [class.bi-chevron-right]="!showAllergenSection()" [class.bi-chevron-down]="showAllergenSection()"></i>
+                Allergens
+                @if (formAllergens().length > 0) {
+                  <span class="badge bg-warning text-dark ms-2">{{ formAllergens().length }}</span>
+                }
+              </button>
+              @if (showAllergenSection()) {
+                <div class="section-body">
+                  <div class="allergen-grid">
+                    @for (type of allergenTypes; track type) {
+                      <div class="allergen-item">
+                        <div class="form-check">
+                          <input type="checkbox" class="form-check-input"
+                            [id]="'allergen-' + type"
+                            [checked]="hasAllergen(type)"
+                            (change)="toggleAllergen(type)">
+                          <label class="form-check-label" [for]="'allergen-' + type">
+                            {{ getAllergenLabel(type) }}
+                          </label>
+                        </div>
+                        @if (hasAllergen(type)) {
+                          <select class="form-select form-select-sm severity-select"
+                            [value]="getAllergenSeverity(type)"
+                            (change)="setAllergenSeverity(type, $any($event.target).value)">
+                            <option value="contains">Contains</option>
+                            <option value="may_contain">May contain</option>
+                            <option value="facility">Same facility</option>
+                          </select>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Availability Windows Section (collapsible) -->
+            <div class="collapsible-section">
+              <button type="button" class="section-toggle" (click)="toggleAvailabilitySection()">
+                <i class="bi" [class.bi-chevron-right]="!showAvailabilitySection()" [class.bi-chevron-down]="showAvailabilitySection()"></i>
+                Availability Windows
+                @if (formAvailabilityWindows().length > 0) {
+                  <span class="badge bg-info ms-2">{{ formAvailabilityWindows().length }}</span>
+                }
+              </button>
+              @if (showAvailabilitySection()) {
+                <div class="section-body">
+                  @for (window of formAvailabilityWindows(); track $index; let i = $index) {
+                    <div class="availability-window mb-3">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <input type="text" class="form-control form-control-sm" style="max-width: 200px;"
+                          placeholder="Label (e.g., Breakfast)" [value]="window.label"
+                          (input)="updateAvailabilityWindow(i, 'label', $any($event.target).value)">
+                        <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeAvailabilityWindow(i)">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                      <div class="d-flex flex-wrap gap-1 mb-2">
+                        @for (day of dayLabels; track $index; let d = $index) {
+                          <button type="button" class="btn btn-sm day-btn"
+                            [class.btn-primary]="isAvailabilityDaySelected(i, d)"
+                            [class.btn-outline-light]="!isAvailabilityDaySelected(i, d)"
+                            (click)="toggleAvailabilityDay(i, d)">{{ day }}</button>
+                        }
+                      </div>
+                      <div class="d-flex gap-2 align-items-center">
+                        <input type="time" class="form-control form-control-sm" style="max-width: 130px;"
+                          [value]="window.startTime"
+                          (input)="updateAvailabilityWindow(i, 'startTime', $any($event.target).value)">
+                        <span class="text-muted small">to</span>
+                        <input type="time" class="form-control form-control-sm" style="max-width: 130px;"
+                          [value]="window.endTime"
+                          (input)="updateAvailabilityWindow(i, 'endTime', $any($event.target).value)">
+                      </div>
+                    </div>
+                  }
+                  <button type="button" class="btn btn-sm btn-outline-light" (click)="addAvailabilityWindow()">
+                    <i class="bi bi-plus-lg"></i> Add Window
+                  </button>
+                </div>
+              }
+            </div>
+
+            <!-- Nutrition Facts Section (collapsible) -->
+            <div class="collapsible-section">
+              <button type="button" class="section-toggle" (click)="toggleNutritionSection()">
+                <i class="bi" [class.bi-chevron-right]="!showNutritionSection()" [class.bi-chevron-down]="showNutritionSection()"></i>
+                Nutrition Facts
+              </button>
+              @if (showNutritionSection()) {
+                <div class="section-body">
+                  <div class="row g-2">
+                    <div class="col-6 col-md-4">
+                      <label class="form-label small">Serving Size</label>
+                      <input type="text" class="form-control form-control-sm"
+                        placeholder="e.g., 1 slice (120g)"
+                        [value]="formNutrition().servingSize ?? ''"
+                        (input)="updateNutrition('servingSize', $any($event.target).value)">
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <label class="form-label small">Calories</label>
+                      <input type="number" class="form-control form-control-sm" min="0"
+                        [value]="formNutrition().calories"
+                        (input)="updateNutrition('calories', $any($event.target).value)">
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <label class="form-label small">Total Fat (g)</label>
+                      <input type="number" class="form-control form-control-sm" min="0" step="0.1"
+                        [value]="formNutrition().totalFat"
+                        (input)="updateNutrition('totalFat', $any($event.target).value)">
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <label class="form-label small">Saturated Fat (g)</label>
+                      <input type="number" class="form-control form-control-sm" min="0" step="0.1"
+                        [value]="formNutrition().saturatedFat"
+                        (input)="updateNutrition('saturatedFat', $any($event.target).value)">
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <label class="form-label small">Trans Fat (g)</label>
+                      <input type="number" class="form-control form-control-sm" min="0" step="0.1"
+                        [value]="formNutrition().transFat"
+                        (input)="updateNutrition('transFat', $any($event.target).value)">
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <label class="form-label small">Cholesterol (mg)</label>
+                      <input type="number" class="form-control form-control-sm" min="0"
+                        [value]="formNutrition().cholesterol"
+                        (input)="updateNutrition('cholesterol', $any($event.target).value)">
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <label class="form-label small">Sodium (mg)</label>
+                      <input type="number" class="form-control form-control-sm" min="0"
+                        [value]="formNutrition().sodium"
+                        (input)="updateNutrition('sodium', $any($event.target).value)">
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <label class="form-label small">Total Carbs (g)</label>
+                      <input type="number" class="form-control form-control-sm" min="0" step="0.1"
+                        [value]="formNutrition().totalCarbs"
+                        (input)="updateNutrition('totalCarbs', $any($event.target).value)">
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <label class="form-label small">Dietary Fiber (g)</label>
+                      <input type="number" class="form-control form-control-sm" min="0" step="0.1"
+                        [value]="formNutrition().dietaryFiber"
+                        (input)="updateNutrition('dietaryFiber', $any($event.target).value)">
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <label class="form-label small">Total Sugars (g)</label>
+                      <input type="number" class="form-control form-control-sm" min="0" step="0.1"
+                        [value]="formNutrition().totalSugars"
+                        (input)="updateNutrition('totalSugars', $any($event.target).value)">
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <label class="form-label small">Protein (g)</label>
+                      <input type="number" class="form-control form-control-sm" min="0" step="0.1"
+                        [value]="formNutrition().protein"
+                        (input)="updateNutrition('protein', $any($event.target).value)">
+                    </div>
+                  </div>
+                </div>
+              }
             </div>
 
             <!-- Modifier Groups -->
             @if (modifierGroups().length > 0) {
-              <div class="mb-3">
+              <div class="mb-3 mt-3">
                 <label class="form-label">Modifier Groups</label>
                 <div class="modifier-group-grid">
                   @for (group of modifierGroups(); track group.id) {
                     <div class="form-check modifier-group-check" (click)="toggleModifierGroup(group.id)">
-                      <input
-                        class="form-check-input"
-                        type="checkbox"
+                      <input class="form-check-input" type="checkbox"
                         [checked]="isModifierGroupSelected(group.id)"
-                        (click)="$event.stopPropagation()"
-                      >
+                        (click)="$event.stopPropagation()">
                       <label class="form-check-label">
                         {{ group.name }}
                         <span class="text-muted small">({{ group.modifiers.length }} options)</span>
@@ -445,43 +615,21 @@
 
             <div class="d-flex gap-4">
               <div class="form-check">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="isActive"
-                  formControlName="isActive"
-                />
+                <input type="checkbox" class="form-check-input" id="isActive" formControlName="isActive" />
                 <label class="form-check-label" for="isActive">Available</label>
               </div>
               <div class="form-check">
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  id="isPopular"
-                  formControlName="isPopular"
-                />
+                <input type="checkbox" class="form-check-input" id="isPopular" formControlName="isPopular" />
                 <label class="form-check-label" for="isPopular">Mark as Popular</label>
               </div>
             </div>
           </div>
 
           <div class="card-footer d-flex gap-2 justify-content-end">
-            <button
-              type="button"
-              class="btn btn-outline-light"
-              (click)="closeForm()"
-              [disabled]="isSaving()"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="btn btn-primary"
-              [disabled]="itemForm.invalid || isSaving()"
-            >
+            <button type="button" class="btn btn-outline-light" (click)="closeForm()" [disabled]="isSaving()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="itemForm.invalid || isSaving()">
               @if (isSaving()) {
-                <span class="spinner-border spinner-border-sm me-2"></span>
-                Saving...
+                <span class="spinner-border spinner-border-sm me-2"></span> Saving...
               } @else {
                 {{ editingItem() ? 'Update' : 'Create' }} Item
               }
@@ -492,7 +640,7 @@
     </div>
   }
 
-  <!-- Delete Confirmation Modal -->
+  <!-- ==================== DELETE CONFIRMATION MODAL ==================== -->
   @if (deleteTarget(); as target) {
     <div class="modal-overlay" (click)="cancelDelete()">
       <div class="delete-confirm-modal card" (click)="$event.stopPropagation()">
@@ -506,6 +654,53 @@
         <div class="card-footer d-flex gap-2 justify-content-end">
           <button class="btn btn-outline-light" (click)="cancelDelete()">Cancel</button>
           <button class="btn btn-danger" (click)="executeDelete()">Delete</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==================== CSV IMPORT MODAL ==================== -->
+  @if (showImportModal()) {
+    <div class="modal-overlay" (click)="closeImportModal()">
+      <div class="import-modal card" (click)="$event.stopPropagation()">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Import Menu Items</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeImportModal()"></button>
+        </div>
+        <div class="card-body">
+          @if (importResult(); as result) {
+            <div class="import-results">
+              <h6 class="text-white mb-2">Import Complete</h6>
+              <div class="d-flex gap-3 mb-2">
+                <span class="badge bg-success">{{ result.created }} created</span>
+                <span class="badge bg-info">{{ result.updated }} updated</span>
+                <span class="badge bg-secondary">{{ result.skipped }} skipped</span>
+              </div>
+              @if (result.errors.length > 0) {
+                <div class="import-errors mt-2">
+                  <strong class="text-danger small">Errors:</strong>
+                  @for (err of result.errors; track $index) {
+                    <div class="text-danger small">{{ err }}</div>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="import-dropzone text-center p-4">
+              <i class="bi bi-file-earmark-spreadsheet" style="font-size: 2rem;"></i>
+              <p class="text-muted mt-2 mb-3">Upload a CSV file with your menu items</p>
+              <input type="file" class="form-control" accept=".csv,.xlsx"
+                (change)="handleImportFile($event)" [disabled]="isImporting()">
+              @if (isImporting()) {
+                <div class="mt-3">
+                  <span class="spinner-border spinner-border-sm me-1"></span> Importing...
+                </div>
+              }
+            </div>
+          }
+        </div>
+        <div class="card-footer d-flex justify-content-end">
+          <button class="btn btn-outline-light" (click)="closeImportModal()">Close</button>
         </div>
       </div>
     </div>

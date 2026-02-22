@@ -64,6 +64,49 @@
   }
 }
 
+// Allergen badges on item cards
+.allergen-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.allergen-badge {
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 0.15rem 0.4rem;
+
+  &.contains {
+    background-color: rgba(220, 53, 69, 0.3);
+    color: #f77;
+  }
+
+  &.may-contain {
+    background-color: rgba(255, 193, 7, 0.25);
+    color: #ffc107;
+  }
+
+  &.facility {
+    background-color: rgba(108, 117, 125, 0.3);
+    color: #adb5bd;
+  }
+}
+
+// Channel visibility badges on item cards
+.channel-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.channel-badge {
+  font-size: 0.6rem;
+  font-weight: 500;
+  padding: 0.1rem 0.35rem;
+  background-color: rgba(92, 185, 242, 0.2);
+  color: var(--cerulean-periwinkle, #5CB9F2);
+}
+
 .empty-state {
   grid-column: 1 / -1;
   background-color: var(--midnight-black, #03020D);
@@ -89,7 +132,8 @@
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 
   .card-header {
     background-color: var(--midnight-black, #03020D);
@@ -104,6 +148,13 @@
     background-color: var(--midnight-black, #03020D);
     border-top: 1px solid var(--deep-lake, #1D3273);
   }
+}
+
+// Scrollable form body inside modal
+.form-scrollable {
+  max-height: calc(90vh - 140px);
+  overflow-y: auto;
+  padding-bottom: 1rem;
 }
 
 .form-label {
@@ -147,6 +198,81 @@
     background-color: var(--medium-slate-blue, #7E5EF2);
     border-color: var(--medium-slate-blue, #7E5EF2);
   }
+}
+
+// Collapsible form sections
+.collapsible-section {
+  border-top: 1px solid var(--deep-lake, #1D3273);
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+}
+
+.section-toggle {
+  background: none;
+  border: none;
+  color: var(--dark-teal, #0E7490);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  text-align: left;
+
+  &:hover {
+    color: var(--cerulean-periwinkle, #5CB9F2);
+  }
+
+  .badge {
+    font-size: 0.65rem;
+  }
+}
+
+.section-body {
+  padding: 0.75rem 0;
+}
+
+// Allergen grid in form
+.allergen-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+
+  @media (max-width: 576px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.allergen-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .form-check-label {
+    font-size: 0.85rem;
+  }
+}
+
+.severity-select {
+  font-size: 0.75rem;
+  padding: 0.15rem 0.35rem;
+  max-width: 140px;
+}
+
+// Availability windows in form
+.availability-window {
+  background-color: rgba(29, 50, 115, 0.15);
+  border: 1px solid var(--deep-lake, #1D3273);
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+}
+
+.day-btn {
+  min-width: 2.2rem;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.75rem;
 }
 
 .ai-data {
@@ -256,6 +382,47 @@
     background-color: var(--midnight-black, #03020D);
     border-top: 1px solid var(--deep-lake, #1D3273);
   }
+}
+
+// CSV Import modal
+.import-modal {
+  background-color: var(--midnight-black, #03020D);
+  border: 1px solid var(--deep-lake, #1D3273);
+  color: #fff;
+  width: 100%;
+  max-width: 500px;
+  margin: auto;
+
+  .card-header {
+    background-color: var(--midnight-black, #03020D);
+    border-bottom: 1px solid var(--deep-lake, #1D3273);
+  }
+
+  .card-footer {
+    background-color: var(--midnight-black, #03020D);
+    border-top: 1px solid var(--deep-lake, #1D3273);
+  }
+}
+
+.import-dropzone {
+  border: 2px dashed var(--deep-lake, #1D3273);
+  border-radius: 0.5rem;
+  color: #adb5bd;
+
+  i {
+    color: var(--cerulean-periwinkle, #5CB9F2);
+  }
+}
+
+.import-results {
+  .badge {
+    font-size: 0.8rem;
+  }
+}
+
+.import-errors {
+  max-height: 150px;
+  overflow-y: auto;
 }
 
 .btn-primary {

@@ -48,6 +48,19 @@ export interface MenuItem {
   aiLastUpdated?: string;
   createdAt?: string;
   updatedAt?: string;
+
+  // --- Square parity fields (GOS-SPEC-03) ---
+  sku?: string | null;
+  barcode?: string | null;
+  barcodeFormat?: BarcodeFormat | null;
+  reportingCategoryId?: string | null;
+  channelVisibility?: ChannelVisibility;
+  availabilityWindows?: AvailabilityWindow[];
+  allergens?: Allergen[];
+  nutritionFacts?: NutritionFacts | null;
+  variations?: ItemVariation[];
+  optionSetIds?: string[];
+  hasVariations?: boolean;
 }
 
 export interface ModifierGroup {
@@ -116,4 +129,90 @@ export interface AIBatchResponse {
 
 export interface GroupedMenu {
   categories: MenuCategory[];
+}
+
+// --- Square Parity: Channel Visibility ---
+
+export interface ChannelVisibility {
+  pos: boolean;
+  onlineOrdering: boolean;
+  kiosk: boolean;
+  deliveryApps: boolean;
+}
+
+// --- Square Parity: Availability Windows ---
+
+export interface AvailabilityWindow {
+  daysOfWeek: number[];    // 0=Sun, 1=Mon, ..., 6=Sat
+  startTime: string;       // 'HH:mm' (24h)
+  endTime: string;         // 'HH:mm' (24h)
+  label: string;           // e.g. 'Breakfast', 'Happy Hour'
+}
+
+// --- Square Parity: Allergens & Nutrition ---
+
+export type AllergenType = 'milk' | 'eggs' | 'fish' | 'shellfish' | 'tree_nuts' | 'peanuts' | 'wheat' | 'soy' | 'sesame';
+
+export interface Allergen {
+  type: AllergenType;
+  severity: 'contains' | 'may_contain' | 'facility';
+}
+
+export interface NutritionFacts {
+  calories: number | null;
+  totalFat: number | null;
+  saturatedFat: number | null;
+  transFat: number | null;
+  cholesterol: number | null;
+  sodium: number | null;
+  totalCarbs: number | null;
+  dietaryFiber: number | null;
+  totalSugars: number | null;
+  protein: number | null;
+  servingSize: string | null;
+}
+
+// --- Square Parity: SKU & Barcode ---
+
+export type BarcodeFormat = 'UPC-A' | 'EAN-13' | 'CODE-128';
+
+// --- Square Parity: Reporting Categories ---
+
+export interface ReportingCategory {
+  id: string;
+  restaurantId: string;
+  name: string;
+  displayOrder: number;
+}
+
+// --- Square Parity: Item Variations ---
+
+export interface ItemVariation {
+  id: string;
+  menuItemId: string;
+  name: string;
+  sku: string | null;
+  barcode: string | null;
+  price: number;
+  costPerUnit: number | null;
+  inventoryItemId: string | null;
+  isDefault: boolean;
+  isActive: boolean;
+  displayOrder: number;
+}
+
+export interface ItemOptionSet {
+  id: string;
+  restaurantId: string;
+  name: string;
+  values: string[];
+}
+
+// --- CSV Import ---
+
+export interface CsvImportResult {
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: string[];
 }

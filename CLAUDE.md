@@ -341,4 +341,14 @@ ng build --configuration=production
 - **Build: zero errors**
 - Next: Style remaining feature pages to Square light theme. End-to-end test with live backend.
 
-*Last Updated: February 22, 2026 (Session 10)*
+**[February 22, 2026] (Session 11) — GOS-SPEC-03 Phase 1 Complete (Steps 1-5):**
+- **Phase 1 COMPLETE** — Item enrichment with Square parity fields
+- **Step 1 (MenuItem model extensions):** Added `sku`, `barcode`, `barcodeFormat`, `reportingCategoryId`, `channelVisibility`, `availabilityWindows`, `allergens`, `nutritionFacts`, `variations`, `optionSetIds`, `hasVariations` to `MenuItem`. New interfaces: `ChannelVisibility`, `AvailabilityWindow`, `Allergen`, `NutritionFacts`, `ReportingCategory`, `ItemVariation`, `ItemOptionSet`, `CsvImportResult`. New types: `AllergenType` (9 values), `BarcodeFormat` (3 values).
+- **Step 2 (Item Variations model):** `ItemVariation` (with per-variation SKU, barcode, price, cost, inventory link) and `ItemOptionSet` added to `menu.model.ts`.
+- **Step 3 (Service methods):** Added to `MenuService`: `createVariation()`, `updateVariation()`, `deleteVariation()`, `loadReportingCategories()`, `createReportingCategory()`, `updateReportingCategory()`, `deleteReportingCategory()`, `loadOptionSets()`, `createOptionSet()`, `importMenuFromCsv()` (FormData multipart), `exportMenuToCsv()` (blob download), `autoGenerateSku()`. New signals: `_reportingCategories`, `_optionSets`. Fixed all `catch (err: any)` to `catch (err: unknown)`.
+- **Steps 4-5 (Item Management UI):** Fully rewritten TS, HTML, SCSS. Added: CSV export/import buttons, SKU badge on cards, allergen badges (severity-colored), channel visibility badges. Form modal: 5 collapsible sections (SKU & Barcode with auto-generate, Channel Visibility checkboxes, Allergens grid with severity selects, Availability Windows with day picker + time range, Nutrition Facts 11-field grid). CSV import modal with file upload/dropzone and results display. Reporting category dropdown.
+- **Files modified:** `models/menu.model.ts`, `services/menu.ts`, `features/menu-mgmt/item-management/item-management.ts`, `features/menu-mgmt/item-management/item-management.html`, `features/menu-mgmt/item-management/item-management.scss`
+- **Build: zero errors**
+- Next: GOS-SPEC-03 Phase 2 (Steps 6-10) — Inventory enhancements, variations UI, purchase orders.
+
+*Last Updated: February 22, 2026 (Session 11)*

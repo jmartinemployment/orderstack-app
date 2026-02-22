@@ -6,10 +6,27 @@ import { ModifierService } from '@services/modifier';
 import { AuthService } from '@services/auth';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
-import { MenuItem, DietaryInfo, AICostEstimation } from '@models/index';
+import {
+  MenuItem,
+  DietaryInfo,
+  AICostEstimation,
+  AllergenType,
+  Allergen,
+  AvailabilityWindow,
+  ChannelVisibility,
+  NutritionFacts,
+  BarcodeFormat,
+  CsvImportResult,
+} from '@models/index';
 
 export type SortField = 'name' | 'price' | 'category' | 'prepTime';
 export type SortDirection = 'asc' | 'desc';
+
+const ALL_ALLERGEN_TYPES: AllergenType[] = [
+  'milk', 'eggs', 'fish', 'shellfish', 'tree_nuts', 'peanuts', 'wheat', 'soy', 'sesame',
+];
+
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 @Component({
   selector: 'os-item-management',
@@ -25,6 +42,8 @@ export class ItemManagement {
   private readonly authService = inject(AuthService);
 
   readonly isAuthenticated = this.authService.isAuthenticated;
+  readonly allergenTypes = ALL_ALLERGEN_TYPES;
+  readonly dayLabels = DAY_LABELS;
 
   private readonly _editingItem = signal<MenuItem | null>(null);
   private readonly _showForm = signal(false);
@@ -47,6 +66,30 @@ export class ItemManagement {
   // Modifier group selection for form
   private readonly _selectedModifierGroupIds = signal<string[]>([]);
 
+  // Form sections (collapsible)
+  private readonly _showSkuSection = signal(false);
+  private readonly _showChannelSection = signal(false);
+  private readonly _showAvailabilitySection = signal(false);
+  private readonly _showAllergenSection = signal(false);
+  private readonly _showNutritionSection = signal(false);
+
+  // Form-level state for complex fields
+  private readonly _formAllergens = signal<Allergen[]>([]);
+  private readonly _formAvailabilityWindows = signal<AvailabilityWindow[]>([]);
+  private readonly _formChannelVisibility = signal<ChannelVisibility>({
+    pos: true, onlineOrdering: true, kiosk: true, deliveryApps: true,
+  });
+  private readonly _formNutrition = signal<NutritionFacts>({
+    calories: null, totalFat: null, saturatedFat: null, transFat: null,
+    cholesterol: null, sodium: null, totalCarbs: null, dietaryFiber: null,
+    totalSugars: null, protein: null, servingSize: null,
+  });
+
+  // CSV import
+  private readonly _showImportModal = signal(false);
+  private readonly _importResult = signal<CsvImportResult | null>(null);
+  private readonly _isImporting = signal(false);
+
   readonly editingItem = this._editingItem.asReadonly();
   readonly showForm = this._showForm.asReadonly();
   readonly isSaving = this._isSaving.asReadonly();
@@ -61,11 +104,25 @@ export class ItemManagement {
   readonly deleteTarget = this._deleteTarget.asReadonly();
   readonly selectedModifierGroupIds = this._selectedModifierGroupIds.asReadonly();
 
+  readonly showSkuSection = this._showSkuSection.asReadonly();
+  readonly showChannelSection = this._showChannelSection.asReadonly();
+  readonly showAvailabilitySection = this._showAvailabilitySection.asReadonly();
+  readonly showAllergenSection = this._showAllergenSection.asReadonly();
+  readonly showNutritionSection = this._showNutritionSection.asReadonly();
+  readonly formAllergens = this._formAllergens.asReadonly();
+  readonly formAvailabilityWindows = this._formAvailabilityWindows.asReadonly();
+  readonly formChannelVisibility = this._formChannelVisibility.asReadonly();
+  readonly formNutrition = this._formNutrition.asReadonly();
+  readonly showImportModal = this._showImportModal.asReadonly();
+  readonly importResult = this._importResult.asReadonly();
+  readonly isImporting = this._isImporting.asReadonly();
+
   readonly items = this.menuService.allItems;
   readonly categories = this.menuService.categories;
   readonly isLoading = this.menuService.isLoading;
   readonly crudSupported = this.menuService.crudSupported;
   readonly modifierGroups = this.modifierService.groups;
+  readonly reportingCategories = this.menuService.reportingCategories;
 
   readonly filteredItems = computed(() => {
     const catId = this._selectedCategoryId();
@@ -75,20 +132,18 @@ export class ItemManagement {
 
     let result = this.items();
 
-    // Category filter
     if (catId) {
       result = result.filter(item => item.categoryId === catId);
     }
 
-    // Search filter
     if (query) {
       result = result.filter(item =>
         item.name.toLowerCase().includes(query) ||
-        (item.description ?? '').toLowerCase().includes(query)
+        (item.description ?? '').toLowerCase().includes(query) ||
+        (item.sku ?? '').toLowerCase().includes(query)
       );
     }
 
-    // Sort
     const sorted = [...result].sort((a, b) => {
       let cmp = 0;
       switch (field) {
@@ -123,6 +178,10 @@ export class ItemManagement {
     dietary: [''],
     prepTimeMinutes: [null as number | null],
     displayOrder: [null as number | null],
+    sku: [''],
+    barcode: [''],
+    barcodeFormat: ['' as string],
+    reportingCategoryId: [''],
   });
 
   constructor() {
@@ -132,6 +191,7 @@ export class ItemManagement {
         this._menuLoaded.set(true);
         this.menuService.loadMenu();
         this.modifierService.loadGroups();
+        this.menuService.loadReportingCategories();
       }
     });
   }
@@ -162,32 +222,135 @@ export class ItemManagement {
     this._selectedCategoryId.set(categoryId);
   }
 
+  // ============ Form Sections ============
+
+  toggleSkuSection(): void { this._showSkuSection.update(v => !v); }
+  toggleChannelSection(): void { this._showChannelSection.update(v => !v); }
+  toggleAvailabilitySection(): void { this._showAvailabilitySection.update(v => !v); }
+  toggleAllergenSection(): void { this._showAllergenSection.update(v => !v); }
+  toggleNutritionSection(): void { this._showNutritionSection.update(v => !v); }
+
+  // ============ Channel Visibility ============
+
+  setChannelVisibility(channel: keyof ChannelVisibility, value: boolean): void {
+    this._formChannelVisibility.update(cv => ({ ...cv, [channel]: value }));
+  }
+
+  // ============ Allergens ============
+
+  hasAllergen(type: AllergenType): boolean {
+    return this._formAllergens().some(a => a.type === type);
+  }
+
+  getAllergenSeverity(type: AllergenType): string {
+    return this._formAllergens().find(a => a.type === type)?.severity ?? 'contains';
+  }
+
+  toggleAllergen(type: AllergenType): void {
+    const current = this._formAllergens();
+    if (current.some(a => a.type === type)) {
+      this._formAllergens.set(current.filter(a => a.type !== type));
+    } else {
+      this._formAllergens.set([...current, { type, severity: 'contains' }]);
+    }
+  }
+
+  setAllergenSeverity(type: AllergenType, severity: 'contains' | 'may_contain' | 'facility'): void {
+    this._formAllergens.update(allergens =>
+      allergens.map(a => a.type === type ? { ...a, severity } : a)
+    );
+  }
+
+  getAllergenLabel(type: AllergenType): string {
+    const labels: Record<AllergenType, string> = {
+      milk: 'Milk', eggs: 'Eggs', fish: 'Fish', shellfish: 'Shellfish',
+      tree_nuts: 'Tree Nuts', peanuts: 'Peanuts', wheat: 'Wheat', soy: 'Soy', sesame: 'Sesame',
+    };
+    return labels[type];
+  }
+
+  // ============ Availability Windows ============
+
+  addAvailabilityWindow(): void {
+    this._formAvailabilityWindows.update(windows => [
+      ...windows,
+      { daysOfWeek: [1, 2, 3, 4, 5], startTime: '09:00', endTime: '17:00', label: '' },
+    ]);
+  }
+
+  removeAvailabilityWindow(index: number): void {
+    this._formAvailabilityWindows.update(windows => windows.filter((_, i) => i !== index));
+  }
+
+  updateAvailabilityWindow(index: number, field: keyof AvailabilityWindow, value: unknown): void {
+    this._formAvailabilityWindows.update(windows =>
+      windows.map((w, i) => i === index ? { ...w, [field]: value } : w)
+    );
+  }
+
+  toggleAvailabilityDay(index: number, day: number): void {
+    this._formAvailabilityWindows.update(windows =>
+      windows.map((w, i) => {
+        if (i !== index) return w;
+        const days = w.daysOfWeek.includes(day)
+          ? w.daysOfWeek.filter(d => d !== day)
+          : [...w.daysOfWeek, day].sort();
+        return { ...w, daysOfWeek: days };
+      })
+    );
+  }
+
+  isAvailabilityDaySelected(index: number, day: number): boolean {
+    return this._formAvailabilityWindows()[index]?.daysOfWeek.includes(day) ?? false;
+  }
+
+  // ============ Nutrition ============
+
+  updateNutrition(field: keyof NutritionFacts, value: string): void {
+    if (field === 'servingSize') {
+      this._formNutrition.update(n => ({ ...n, servingSize: value || null }));
+    } else {
+      const num = value ? Number(value) : null;
+      this._formNutrition.update(n => ({ ...n, [field]: num }));
+    }
+  }
+
   // ============ Form (Create/Edit/Duplicate) ============
 
   openCreateForm(): void {
     this._editingItem.set(null);
     this._selectedModifierGroupIds.set([]);
+    this._formAllergens.set([]);
+    this._formAvailabilityWindows.set([]);
+    this._formChannelVisibility.set({ pos: true, onlineOrdering: true, kiosk: true, deliveryApps: true });
+    this._formNutrition.set({
+      calories: null, totalFat: null, saturatedFat: null, transFat: null,
+      cholesterol: null, sodium: null, totalCarbs: null, dietaryFiber: null,
+      totalSugars: null, protein: null, servingSize: null,
+    });
     this.itemForm.reset({
-      name: '',
-      description: '',
-      price: 0,
-      cost: null,
+      name: '', description: '', price: 0, cost: null,
       categoryId: this._selectedCategoryId() || '',
-      image: '',
-      isActive: true,
-      isPopular: false,
-      dietary: '',
-      prepTimeMinutes: null,
-      displayOrder: null,
+      image: '', isActive: true, isPopular: false, dietary: '',
+      prepTimeMinutes: null, displayOrder: null,
+      sku: '', barcode: '', barcodeFormat: '', reportingCategoryId: '',
     });
     this._showForm.set(true);
   }
 
   openEditForm(item: MenuItem): void {
     this._editingItem.set(item);
-    this._selectedModifierGroupIds.set(
-      item.modifierGroups?.map(g => g.id) ?? []
-    );
+    this._selectedModifierGroupIds.set(item.modifierGroups?.map(g => g.id) ?? []);
+    this._formAllergens.set(item.allergens ?? []);
+    this._formAvailabilityWindows.set(item.availabilityWindows ?? []);
+    this._formChannelVisibility.set(item.channelVisibility ?? {
+      pos: true, onlineOrdering: true, kiosk: true, deliveryApps: true,
+    });
+    this._formNutrition.set(item.nutritionFacts ?? {
+      calories: null, totalFat: null, saturatedFat: null, transFat: null,
+      cholesterol: null, sodium: null, totalCarbs: null, dietaryFiber: null,
+      totalSugars: null, protein: null, servingSize: null,
+    });
     this.itemForm.patchValue({
       name: item.name,
       description: item.description || '',
@@ -200,15 +363,27 @@ export class ItemManagement {
       dietary: item.dietary?.join(', ') || '',
       prepTimeMinutes: item.prepTimeMinutes ?? null,
       displayOrder: item.displayOrder ?? null,
+      sku: item.sku || '',
+      barcode: item.barcode || '',
+      barcodeFormat: item.barcodeFormat || '',
+      reportingCategoryId: item.reportingCategoryId || '',
     });
     this._showForm.set(true);
   }
 
   duplicateItem(item: MenuItem): void {
     this._editingItem.set(null);
-    this._selectedModifierGroupIds.set(
-      item.modifierGroups?.map(g => g.id) ?? []
-    );
+    this._selectedModifierGroupIds.set(item.modifierGroups?.map(g => g.id) ?? []);
+    this._formAllergens.set(item.allergens ?? []);
+    this._formAvailabilityWindows.set(item.availabilityWindows ?? []);
+    this._formChannelVisibility.set(item.channelVisibility ?? {
+      pos: true, onlineOrdering: true, kiosk: true, deliveryApps: true,
+    });
+    this._formNutrition.set(item.nutritionFacts ?? {
+      calories: null, totalFat: null, saturatedFat: null, transFat: null,
+      cholesterol: null, sodium: null, totalCarbs: null, dietaryFiber: null,
+      totalSugars: null, protein: null, servingSize: null,
+    });
     this.itemForm.patchValue({
       name: `${item.name} (Copy)`,
       description: item.description || '',
@@ -221,6 +396,10 @@ export class ItemManagement {
       dietary: item.dietary?.join(', ') || '',
       prepTimeMinutes: item.prepTimeMinutes ?? null,
       displayOrder: null,
+      sku: '',
+      barcode: '',
+      barcodeFormat: item.barcodeFormat || '',
+      reportingCategoryId: item.reportingCategoryId || '',
     });
     this._showForm.set(true);
   }
@@ -270,7 +449,21 @@ export class ItemManagement {
         isPopular: formValue.isPopular ?? false,
         dietary,
         modifierGroupIds: this._selectedModifierGroupIds(),
+        sku: formValue.sku || null,
+        barcode: formValue.barcode || null,
+        barcodeFormat: formValue.barcodeFormat || null,
+        reportingCategoryId: formValue.reportingCategoryId || null,
+        channelVisibility: this._formChannelVisibility(),
+        allergens: this._formAllergens(),
+        availabilityWindows: this._formAvailabilityWindows(),
       };
+
+      // Only include nutrition if at least one field is set
+      const nutrition = this._formNutrition();
+      const hasNutrition = Object.values(nutrition).some(v => v !== null);
+      if (hasNutrition) {
+        data['nutritionFacts'] = nutrition;
+      }
 
       if (formValue.cost !== null && formValue.cost !== undefined) {
         data['cost'] = formValue.cost;
@@ -338,10 +531,7 @@ export class ItemManagement {
   async toggleActive(item: MenuItem): Promise<void> {
     this._localError.set(null);
     try {
-      const success = await this.menuService.updateItem(
-        item.id,
-        { isActive: !item.isActive }
-      );
+      const success = await this.menuService.updateItem(item.id, { isActive: !item.isActive });
       if (!success) {
         this._localError.set(this.menuService.error() ?? 'Failed to update item');
       }
@@ -364,11 +554,69 @@ export class ItemManagement {
     }
   }
 
+  // ============ CSV Import/Export ============
+
+  openImportModal(): void {
+    this._showImportModal.set(true);
+    this._importResult.set(null);
+  }
+
+  closeImportModal(): void {
+    this._showImportModal.set(false);
+    this._importResult.set(null);
+  }
+
+  async handleImportFile(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this._isImporting.set(true);
+    this._localError.set(null);
+
+    try {
+      const result = await this.menuService.importMenuFromCsv(file);
+      if (result) {
+        this._importResult.set(result);
+      } else {
+        this._localError.set(this.menuService.error() ?? 'Failed to import CSV');
+      }
+    } catch (err: unknown) {
+      this._localError.set(err instanceof Error ? err.message : 'Failed to import CSV');
+    } finally {
+      this._isImporting.set(false);
+    }
+  }
+
+  async exportCsv(): Promise<void> {
+    this._localError.set(null);
+    await this.menuService.exportMenuToCsv();
+  }
+
+  // ============ SKU Generation ============
+
+  async generateSku(): Promise<void> {
+    const item = this._editingItem();
+    if (!item) return;
+
+    this._localError.set(null);
+    const sku = await this.menuService.autoGenerateSku(item.id);
+    if (sku) {
+      this.itemForm.patchValue({ sku });
+    }
+  }
+
   // ============ Helpers ============
 
   getCategoryName(categoryId: string): string {
     const category = this.categories().find(c => c.id === categoryId);
     return category?.name ?? 'Unknown';
+  }
+
+  getReportingCategoryName(id: string | null | undefined): string {
+    if (!id) return '';
+    const cat = this.reportingCategories().find(c => c.id === id);
+    return cat?.name ?? '';
   }
 
   clearLocalError(): void {

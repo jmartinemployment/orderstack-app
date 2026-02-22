@@ -1,5 +1,13 @@
 # GOS-SPEC-03: Inventory & Items — Square Parity Enhancements
 
+## Status
+
+| Phase | Steps | Status |
+|-------|-------|--------|
+| Phase 1 — Item Enrichment | Steps 1-5 | **COMPLETE** |
+| Phase 2 — Inventory Enhancements | Steps 6-10 | Not started |
+| Phase 3 — Purchase Orders & Integration | Steps 11-14 | Not started |
+
 ## Context
 
 Square's Item Library is a centralized hub with rich item metadata (variations with per-variation SKU/stock/cost, reporting categories distinct from organizational categories, allergen/nutrition data, time-based availability windows, barcode generation/scanning, and CSV bulk import/export). OrderStack's current menu system has strong foundations — bilingual items, modifier groups with min/max rules, AI cost estimation, 86'd tracking, and dietary tags — but lacks several features Square considers standard.
