@@ -13,6 +13,9 @@ export interface InventoryItem {
   lastRestocked: string | null;
   lastCountDate: string | null;
   active: boolean;
+  linkedVariationId?: string | null;
+  shelfLifeDays?: number | null;
+  expirationTracking?: boolean;
 }
 
 export interface InventoryAlert {
@@ -56,5 +59,51 @@ export interface InventoryReport {
   reorderList: InventoryReorderItem[];
 }
 
-export type InventoryTab = 'overview' | 'items' | 'predictions';
+export type InventoryTab = 'overview' | 'items' | 'predictions' | 'cycle-counts';
 export type StockActionType = 'restock' | 'usage' | 'adjustment';
+
+// --- Cycle Counts ---
+
+export type CycleCountStatus = 'in_progress' | 'submitted';
+
+export interface CycleCount {
+  id: string;
+  restaurantId: string;
+  status: CycleCountStatus;
+  category: string | null;
+  entries: CycleCountEntry[];
+  totalVarianceValue: number;
+  createdAt: string;
+  submittedAt: string | null;
+}
+
+export interface CycleCountEntry {
+  inventoryItemId: string;
+  itemName: string;
+  unit: string;
+  expectedQuantity: number;
+  actualQuantity: number | null;
+  varianceQuantity: number;
+  varianceValue: number;
+}
+
+// --- Expiring Items ---
+
+export interface ExpiringItem {
+  inventoryItemId: string;
+  itemName: string;
+  unit: string;
+  currentStock: number;
+  expirationDate: string;
+  daysUntilExpiration: number;
+}
+
+// --- Unit Conversions ---
+
+export interface UnitConversion {
+  id: string;
+  restaurantId: string;
+  fromUnit: string;
+  toUnit: string;
+  factor: number;
+}

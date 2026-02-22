@@ -17,7 +17,7 @@
 
   <!-- Tabs -->
   <ul class="nav nav-tabs mb-4">
-    @for (tab of ['overview', 'items', 'predictions']; track tab) {
+    @for (tab of ['overview', 'items', 'predictions', 'cycle-counts']; track tab) {
       <li class="nav-item">
         <button
           type="button"
@@ -29,6 +29,7 @@
             @case ('overview') { Overview }
             @case ('items') { Items }
             @case ('predictions') { Predictions }
+            @case ('cycle-counts') { Cycle Counts }
           }
         </button>
       </li>
@@ -61,7 +62,49 @@
             <span class="kpi-label">Low Stock</span>
             <span class="kpi-value">{{ rpt.lowStockItems.length }}</span>
           </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Linked</span>
+            <span class="kpi-value">{{ linkedItemCount() }}</span>
+          </div>
+          <div class="kpi-card" [class.kpi-warning]="unlinkedItemCount() > 0">
+            <span class="kpi-label">Unlinked</span>
+            <span class="kpi-value">{{ unlinkedItemCount() }}</span>
+          </div>
         </div>
+
+        <!-- Expiring Soon -->
+        @if (expiringItems().length > 0) {
+          <div class="panel mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="panel-title mb-0">Expiring Soon</h5>
+              <select class="form-select form-select-sm filter-select"
+                [ngModel]="expirationDays()"
+                (ngModelChange)="changeExpirationDays($event)">
+                <option [value]="3">Next 3 days</option>
+                <option [value]="7">Next 7 days</option>
+                <option [value]="14">Next 14 days</option>
+                <option [value]="30">Next 30 days</option>
+              </select>
+            </div>
+            @for (exp of expiringItems(); track exp.inventoryItemId) {
+              <div class="alert-card" [class]="getExpirationUrgencyClass(exp.daysUntilExpiration) === 'urgency-critical' ? 'alert-critical' : getExpirationUrgencyClass(exp.daysUntilExpiration) === 'urgency-warning' ? 'alert-warning-custom' : 'alert-info-custom'">
+                <span class="alert-icon">!</span>
+                <div class="alert-body">
+                  <div class="alert-header">
+                    <strong>{{ exp.itemName }}</strong>
+                    <span class="badge"
+                      [class.bg-danger]="exp.daysUntilExpiration <= 1"
+                      [class.bg-warning]="exp.daysUntilExpiration > 1 && exp.daysUntilExpiration <= 3"
+                      [class.bg-info]="exp.daysUntilExpiration > 3">
+                      {{ exp.daysUntilExpiration }} day{{ exp.daysUntilExpiration !== 1 ? 's' : '' }}
+                    </span>
+                  </div>
+                  <small class="text-muted">{{ exp.currentStock }} {{ exp.unit }} — Expires {{ exp.expirationDate | date:'shortDate' }}</small>
+                </div>
+              </div>
+            }
+          </div>
+        }
 
         <!-- Alerts Panel -->
         @if (alerts().length > 0) {
@@ -156,80 +199,44 @@
           <div class="row g-2">
             <div class="col-12 col-md-4">
               <label class="form-label small">Name</label>
-              <input
-                type="text"
-                class="form-control form-control-sm"
-                placeholder="Item name"
-                [ngModel]="newItemName()"
-                (ngModelChange)="setNewItemName($event)"
-              />
+              <input type="text" class="form-control form-control-sm" placeholder="Item name"
+                [ngModel]="newItemName()" (ngModelChange)="setNewItemName($event)" />
             </div>
             <div class="col-6 col-md-2">
               <label class="form-label small">Unit</label>
-              <input
-                type="text"
-                class="form-control form-control-sm"
-                [ngModel]="newItemUnit()"
-                (ngModelChange)="setNewItemUnit($event)"
-              />
+              <input type="text" class="form-control form-control-sm"
+                [ngModel]="newItemUnit()" (ngModelChange)="setNewItemUnit($event)" />
             </div>
             <div class="col-6 col-md-2">
               <label class="form-label small">Category</label>
-              <input
-                type="text"
-                class="form-control form-control-sm"
-                placeholder="e.g. Produce"
-                [ngModel]="newItemCategory()"
-                (ngModelChange)="setNewItemCategory($event)"
-              />
+              <input type="text" class="form-control form-control-sm" placeholder="e.g. Produce"
+                [ngModel]="newItemCategory()" (ngModelChange)="setNewItemCategory($event)" />
             </div>
             <div class="col-4 col-md-1">
               <label class="form-label small">Min</label>
-              <input
-                type="number"
-                class="form-control form-control-sm"
-                [ngModel]="newItemMinStock()"
-                (ngModelChange)="setNewItemMinStock($event)"
-              />
+              <input type="number" class="form-control form-control-sm"
+                [ngModel]="newItemMinStock()" (ngModelChange)="setNewItemMinStock($event)" />
             </div>
             <div class="col-4 col-md-1">
               <label class="form-label small">Max</label>
-              <input
-                type="number"
-                class="form-control form-control-sm"
-                [ngModel]="newItemMaxStock()"
-                (ngModelChange)="setNewItemMaxStock($event)"
-              />
+              <input type="number" class="form-control form-control-sm"
+                [ngModel]="newItemMaxStock()" (ngModelChange)="setNewItemMaxStock($event)" />
             </div>
             <div class="col-4 col-md-2">
               <label class="form-label small">Cost/Unit</label>
-              <input
-                type="number"
-                class="form-control form-control-sm"
-                step="0.01"
-                [ngModel]="newItemCostPerUnit()"
-                (ngModelChange)="setNewItemCostPerUnit($event)"
-              />
+              <input type="number" class="form-control form-control-sm" step="0.01"
+                [ngModel]="newItemCostPerUnit()" (ngModelChange)="setNewItemCostPerUnit($event)" />
             </div>
           </div>
           <div class="row g-2 mt-1">
             <div class="col-12 col-md-4">
               <label class="form-label small">Supplier (optional)</label>
-              <input
-                type="text"
-                class="form-control form-control-sm"
-                placeholder="Supplier name"
-                [ngModel]="newItemSupplier()"
-                (ngModelChange)="setNewItemSupplier($event)"
-              />
+              <input type="text" class="form-control form-control-sm" placeholder="Supplier name"
+                [ngModel]="newItemSupplier()" (ngModelChange)="setNewItemSupplier($event)" />
             </div>
             <div class="col-12 col-md-8 d-flex align-items-end">
-              <button
-                type="button"
-                class="btn btn-sm btn-primary"
-                [disabled]="isSubmitting() || !newItemName()"
-                (click)="addItem()"
-              >
+              <button type="button" class="btn btn-sm btn-primary"
+                [disabled]="isSubmitting() || !newItemName()" (click)="addItem()">
                 {{ isSubmitting() ? 'Adding...' : 'Add Item' }}
               </button>
             </div>
@@ -264,6 +271,12 @@
               @if (item.nameEn) {
                 <span class="text-muted small ms-1">({{ item.nameEn }})</span>
               }
+              @if (item.linkedVariationId) {
+                <span class="badge bg-info ms-1" style="font-size: 0.6rem;">Linked</span>
+              }
+              @if (item.expirationTracking) {
+                <span class="badge bg-warning text-dark ms-1" style="font-size: 0.6rem;">Exp</span>
+              }
             </div>
             <span class="col-item-category text-muted small">{{ item.category }}</span>
             <div class="col-item-stock">
@@ -282,30 +295,14 @@
             <span class="col-item-cost">{{ item.costPerUnit | currency }}</span>
             <span class="col-item-supplier text-muted small">{{ item.supplier ?? '-' }}</span>
             <div class="col-item-actions d-flex gap-1">
-              <button
-                type="button"
-                class="btn btn-xs btn-outline-success"
-                title="Restock"
-                (click)="openStockAction(item, 'restock')"
-              >+</button>
-              <button
-                type="button"
-                class="btn btn-xs btn-outline-warning"
-                title="Record Usage"
-                (click)="openStockAction(item, 'usage')"
-              >-</button>
-              <button
-                type="button"
-                class="btn btn-xs btn-outline-info"
-                title="Adjust"
-                (click)="openStockAction(item, 'adjustment')"
-              >=</button>
-              <button
-                type="button"
-                class="btn btn-xs btn-outline-light"
-                title="AI Predict"
-                (click)="predictItem(item)"
-              >AI</button>
+              <button type="button" class="btn btn-xs btn-outline-success" title="Restock"
+                (click)="openStockAction(item, 'restock')">+</button>
+              <button type="button" class="btn btn-xs btn-outline-warning" title="Record Usage"
+                (click)="openStockAction(item, 'usage')">-</button>
+              <button type="button" class="btn btn-xs btn-outline-info" title="Adjust"
+                (click)="openStockAction(item, 'adjustment')">=</button>
+              <button type="button" class="btn btn-xs btn-outline-light" title="AI Predict"
+                (click)="predictItem(item)">AI</button>
             </div>
           </div>
         } @empty {
@@ -376,6 +373,140 @@
           No predictions available. Use the AI Predict button on individual items to generate forecasts.
         </div>
       }
+    }
+
+    <!-- CYCLE COUNTS TAB -->
+    @if (activeTab() === 'cycle-counts') {
+      <!-- Active Count -->
+      @if (activeCycleCount(); as activeCount) {
+        <div class="panel mb-4">
+          <h5 class="panel-title">Active Cycle Count</h5>
+          <div class="cycle-count-table">
+            <div class="table-header d-flex py-2 px-3">
+              <span class="flex-grow-1">Item</span>
+              <span style="flex: 0 0 100px; text-align: right;">Expected</span>
+              <span style="flex: 0 0 120px; text-align: center;">Actual</span>
+              <span style="flex: 0 0 100px; text-align: right;">Variance</span>
+            </div>
+            @for (entry of cycleCountEntries(); track entry.inventoryItemId; let i = $index) {
+              <div class="table-row d-flex align-items-center py-2 px-3">
+                <span class="flex-grow-1 fw-semibold">{{ entry.itemName }} <span class="text-muted small">({{ entry.unit }})</span></span>
+                <span style="flex: 0 0 100px; text-align: right;">{{ entry.expectedQuantity }}</span>
+                <span style="flex: 0 0 120px; text-align: center;">
+                  <input type="number" class="form-control form-control-sm"
+                    style="width: 80px; display: inline-block;"
+                    [value]="entry.actualQuantity ?? ''"
+                    (input)="updateCycleEntry(i, $any($event.target).valueAsNumber)" min="0" />
+                </span>
+                <span style="flex: 0 0 100px; text-align: right;"
+                  [class]="getCycleCountVarianceClass(entry.varianceQuantity)">
+                  @if (entry.actualQuantity !== null) {
+                    {{ entry.varianceQuantity > 0 ? '+' : '' }}{{ entry.varianceQuantity }}
+                  } @else {
+                    -
+                  }
+                </span>
+              </div>
+            }
+          </div>
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <button type="button" class="btn btn-sm btn-primary"
+              [disabled]="isSubmitting()" (click)="submitCycleCount()">
+              {{ isSubmitting() ? 'Submitting...' : 'Submit Count' }}
+            </button>
+          </div>
+        </div>
+      } @else {
+        <!-- Start new count -->
+        <div class="panel mb-4">
+          <h5 class="panel-title">Start Cycle Count</h5>
+          <div class="d-flex gap-2 align-items-end">
+            <div>
+              <label class="form-label small">Category (optional)</label>
+              <select class="form-select form-select-sm filter-select"
+                [ngModel]="cycleCountCategory()"
+                (ngModelChange)="setCycleCountCategory($event)">
+                @for (cat of categories(); track cat) {
+                  <option [value]="cat === 'all' ? '' : cat">{{ cat === 'all' ? 'All Items' : cat }}</option>
+                }
+              </select>
+            </div>
+            <button type="button" class="btn btn-sm btn-primary"
+              [disabled]="isStartingCount()" (click)="startCycleCount()">
+              {{ isStartingCount() ? 'Starting...' : 'Start Count' }}
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Count History -->
+      @if (submittedCycleCounts().length > 0) {
+        <div class="panel mb-4">
+          <h5 class="panel-title">Count History</h5>
+          @for (count of submittedCycleCounts(); track count.id) {
+            <div class="alert-card alert-info-custom">
+              <div class="alert-body">
+                <div class="alert-header">
+                  <strong>{{ count.submittedAt | date:'short' }}</strong>
+                  @if (count.category) {
+                    <span class="badge bg-secondary">{{ count.category }}</span>
+                  }
+                  <span class="badge" [class.bg-success]="count.totalVarianceValue === 0"
+                    [class.bg-warning]="count.totalVarianceValue !== 0">
+                    Variance: {{ count.totalVarianceValue | currency }}
+                  </span>
+                </div>
+                <small class="text-muted">{{ count.entries.length }} items counted</small>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Unit Conversions -->
+      <div class="panel">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="panel-title mb-0">Unit Conversions</h5>
+          <button type="button" class="btn btn-sm btn-outline-light" (click)="toggleConversionForm()">
+            {{ showConversionForm() ? 'Cancel' : '+ Add' }}
+          </button>
+        </div>
+        @if (showConversionForm()) {
+          <div class="d-flex gap-2 align-items-end mb-3">
+            <div>
+              <label class="form-label small">From</label>
+              <input type="text" class="form-control form-control-sm" placeholder="e.g. lb"
+                [ngModel]="convFromUnit()" (ngModelChange)="setConvFromUnit($event)" />
+            </div>
+            <span class="text-muted align-self-center pb-1">=</span>
+            <div>
+              <label class="form-label small">Factor</label>
+              <input type="number" class="form-control form-control-sm" step="0.01" min="0"
+                [ngModel]="convFactor()" (ngModelChange)="setConvFactor($event)" />
+            </div>
+            <div>
+              <label class="form-label small">To</label>
+              <input type="text" class="form-control form-control-sm" placeholder="e.g. oz"
+                [ngModel]="convToUnit()" (ngModelChange)="setConvToUnit($event)" />
+            </div>
+            <button type="button" class="btn btn-sm btn-primary"
+              [disabled]="isSubmitting() || !convFromUnit() || !convToUnit()"
+              (click)="addConversion()">Add</button>
+          </div>
+        }
+        @if (unitConversions().length > 0) {
+          @for (conv of unitConversions(); track conv.id) {
+            <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-secondary">
+              <span class="text-white small">1 {{ conv.fromUnit }} = {{ conv.factor }} {{ conv.toUnit }}</span>
+              <button type="button" class="btn btn-xs btn-outline-danger" (click)="deleteConversion(conv.id)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          }
+        } @else if (!showConversionForm()) {
+          <p class="text-muted small mb-0">No unit conversions defined. Add common conversions like lb/oz, gal/qt.</p>
+        }
+      </div>
     }
   }
 </div>

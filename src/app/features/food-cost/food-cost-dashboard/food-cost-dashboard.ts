@@ -21,6 +21,8 @@ import {
   RecipeIngredient,
   FoodCostSummary,
   MenuItem,
+  PurchaseOrder,
+  PurchaseOrderFormData,
 } from '@models/index';
 
 @Component({
@@ -39,6 +41,9 @@ export class FoodCostDashboard implements OnInit {
   readonly activeTab = signal<FoodCostTab>('invoices');
   readonly vendors = this.vendorService.vendors;
   readonly activeVendors = this.vendorService.activeVendors;
+  readonly purchaseOrders = this.vendorService.purchaseOrders;
+  readonly draftPOCount = this.vendorService.draftPOCount;
+  readonly openPOCount = this.vendorService.openPOCount;
   readonly invoices = this.vendorService.invoices;
   readonly pendingInvoiceCount = this.vendorService.pendingInvoiceCount;
   readonly priceHistory = this.vendorService.priceHistory;
@@ -108,6 +113,20 @@ export class FoodCostDashboard implements OnInit {
     );
   });
 
+  // PO state
+  readonly poStatusFilter = signal<string>('all');
+  readonly selectedPo = signal<PurchaseOrder | null>(null);
+  readonly showPoForm = signal(false);
+  readonly poVendorId = signal('');
+  readonly poNotes = signal('');
+  readonly isSavingPo = signal(false);
+
+  readonly filteredPurchaseOrders = computed(() => {
+    const filter = this.poStatusFilter();
+    if (filter === 'all') return this.purchaseOrders();
+    return this.purchaseOrders().filter(po => po.status === filter);
+  });
+
   // Food cost report period
   readonly reportDays = signal(30);
 
@@ -137,6 +156,7 @@ export class FoodCostDashboard implements OnInit {
     await Promise.all([
       this.vendorService.loadVendors(),
       this.vendorService.loadInvoices(),
+      this.vendorService.loadPurchaseOrders(),
       this.recipeService.loadRecipes(),
       this.recipeService.loadFoodCostReport(this.reportDays()),
       this.menuService.loadMenu(),
@@ -499,5 +519,66 @@ export class FoodCostDashboard implements OnInit {
     if (changePercent > 5) return 'price-up';
     if (changePercent < -5) return 'price-down';
     return 'price-stable';
+  }
+
+  // ── Purchase Order Methods ──
+
+  setPoStatusFilter(filter: string): void {
+    this.poStatusFilter.set(filter);
+  }
+
+  selectPo(po: PurchaseOrder): void {
+    this.selectedPo.set(
+      this.selectedPo()?.id === po.id ? null : po
+    );
+  }
+
+  openPoForm(): void {
+    this.poVendorId.set('');
+    this.poNotes.set('');
+    this.showPoForm.set(true);
+  }
+
+  closePoForm(): void {
+    this.showPoForm.set(false);
+  }
+
+  async submitPo(poId: string): Promise<void> {
+    await this.vendorService.submitPurchaseOrder(poId);
+  }
+
+  async cancelPo(poId: string): Promise<void> {
+    await this.vendorService.cancelPurchaseOrder(poId);
+  }
+
+  openReceiveModal(po: PurchaseOrder): void {
+    // For now, auto-receive all items at ordered quantity
+    const received = po.lineItems.map(li => ({
+      inventoryItemId: li.inventoryItemId,
+      receivedQuantity: li.quantity,
+    }));
+    this.vendorService.receivePurchaseOrder(po.id, received);
+  }
+
+  getPoStatusClass(status: string): string {
+    switch (status) {
+      case 'draft': return 'status-draft';
+      case 'submitted': return 'status-submitted';
+      case 'partially_received': return 'status-partial';
+      case 'received': return 'status-received';
+      case 'cancelled': return 'status-cancelled';
+      default: return '';
+    }
+  }
+
+  getPoStatusLabel(status: string): string {
+    switch (status) {
+      case 'draft': return 'Draft';
+      case 'submitted': return 'Submitted';
+      case 'partially_received': return 'Partial';
+      case 'received': return 'Received';
+      case 'cancelled': return 'Cancelled';
+      default: return status;
+    }
   }
 }

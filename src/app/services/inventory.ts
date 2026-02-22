@@ -6,6 +6,10 @@ import {
   InventoryAlert,
   StockPrediction,
   InventoryReport,
+  CycleCount,
+  CycleCountEntry,
+  ExpiringItem,
+  UnitConversion,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -22,6 +26,10 @@ export class InventoryService {
   private readonly _items = signal<InventoryItem[]>([]);
   private readonly _alerts = signal<InventoryAlert[]>([]);
   private readonly _predictions = signal<StockPrediction[]>([]);
+  private readonly _cycleCounts = signal<CycleCount[]>([]);
+  private readonly _activeCycleCount = signal<CycleCount | null>(null);
+  private readonly _expiringItems = signal<ExpiringItem[]>([]);
+  private readonly _unitConversions = signal<UnitConversion[]>([]);
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
 
@@ -29,6 +37,10 @@ export class InventoryService {
   readonly items = this._items.asReadonly();
   readonly alerts = this._alerts.asReadonly();
   readonly predictions = this._predictions.asReadonly();
+  readonly cycleCounts = this._cycleCounts.asReadonly();
+  readonly activeCycleCount = this._activeCycleCount.asReadonly();
+  readonly expiringItems = this._expiringItems.asReadonly();
+  readonly unitConversions = this._unitConversions.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
 
@@ -221,6 +233,137 @@ export class InventoryService {
       const message = err instanceof Error ? err.message : 'Failed to predict stock';
       this._error.set(message);
       return null;
+    }
+  }
+
+  // --- Cycle Counts ---
+
+  async loadCycleCounts(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<CycleCount[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/cycle-counts`
+        )
+      );
+      this._cycleCounts.set(data);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load cycle counts';
+      this._error.set(message);
+    }
+  }
+
+  async startCycleCount(category?: string): Promise<CycleCount | null> {
+    if (!this.restaurantId) return null;
+
+    try {
+      const count = await firstValueFrom(
+        this.http.post<CycleCount>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/cycle-counts`,
+          { category: category ?? null }
+        )
+      );
+      this._activeCycleCount.set(count);
+      return count;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to start cycle count';
+      this._error.set(message);
+      return null;
+    }
+  }
+
+  async submitCycleCount(countId: string, entries: CycleCountEntry[]): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    try {
+      const result = await firstValueFrom(
+        this.http.patch<CycleCount>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/cycle-counts/${countId}`,
+          { entries }
+        )
+      );
+      this._activeCycleCount.set(null);
+      this._cycleCounts.update(counts => [result, ...counts]);
+      return true;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to submit cycle count';
+      this._error.set(message);
+      return false;
+    }
+  }
+
+  // --- Expiring Items ---
+
+  async loadExpiringItems(daysAhead: number = 7): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<ExpiringItem[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/expiring`,
+          { params: { days: daysAhead.toString() } }
+        )
+      );
+      this._expiringItems.set(data);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load expiring items';
+      this._error.set(message);
+    }
+  }
+
+  // --- Unit Conversions ---
+
+  async loadUnitConversions(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<UnitConversion[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/unit-conversions`
+        )
+      );
+      this._unitConversions.set(data);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load unit conversions';
+      this._error.set(message);
+    }
+  }
+
+  async createUnitConversion(data: Omit<UnitConversion, 'id' | 'restaurantId'>): Promise<UnitConversion | null> {
+    if (!this.restaurantId) return null;
+
+    try {
+      const conversion = await firstValueFrom(
+        this.http.post<UnitConversion>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/unit-conversions`,
+          data
+        )
+      );
+      this._unitConversions.update(list => [...list, conversion]);
+      return conversion;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to create unit conversion';
+      this._error.set(message);
+      return null;
+    }
+  }
+
+  async deleteUnitConversion(id: string): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    try {
+      await firstValueFrom(
+        this.http.delete(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/unit-conversions/${id}`
+        )
+      );
+      this._unitConversions.update(list => list.filter(c => c.id !== id));
+      return true;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to delete unit conversion';
+      this._error.set(message);
+      return false;
     }
   }
 

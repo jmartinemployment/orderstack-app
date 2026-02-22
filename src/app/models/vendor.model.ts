@@ -122,4 +122,40 @@ export interface FoodCostSummary {
   }[];
 }
 
-export type FoodCostTab = 'invoices' | 'vendors' | 'recipes';
+export type FoodCostTab = 'invoices' | 'vendors' | 'recipes' | 'purchase-orders';
+
+// --- Purchase Orders ---
+
+export type PurchaseOrderStatus = 'draft' | 'submitted' | 'partially_received' | 'received' | 'cancelled';
+
+export interface PurchaseOrder {
+  id: string;
+  restaurantId: string;
+  vendorId: string;
+  vendorName: string;
+  poNumber: string;
+  status: PurchaseOrderStatus;
+  lineItems: PurchaseOrderLineItem[];
+  subtotal: number;
+  tax: number;
+  shipping: number;
+  total: number;
+  notes: string | null;
+  submittedAt: string | null;
+  receivedAt: string | null;
+  createdAt: string;
+}
+
+export interface PurchaseOrderLineItem {
+  inventoryItemId: string;
+  itemName: string;
+  quantity: number;
+  unitCost: number;
+  receivedQuantity: number | null;
+}
+
+export interface PurchaseOrderFormData {
+  vendorId: string;
+  notes?: string;
+  lineItems: Omit<PurchaseOrderLineItem, 'receivedQuantity'>[];
+}

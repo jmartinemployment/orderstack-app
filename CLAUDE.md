@@ -351,4 +351,16 @@ ng build --configuration=production
 - **Build: zero errors**
 - Next: GOS-SPEC-03 Phase 2 (Steps 6-10) — Inventory enhancements, variations UI, purchase orders.
 
-*Last Updated: February 22, 2026 (Session 11)*
+**[February 22, 2026] (Session 12) — GOS-SPEC-03 Phase 2 Complete (Steps 6-10):**
+- **Phase 2 COMPLETE** — Inventory enhancements: cycle counts, purchase orders, expiration tracking, unit conversions, inventory-variation linking
+- **Step 6 (Inventory-Variation Linking):** Added `linkedVariationId` to `InventoryItem`. KPI cards in overview show linked vs unlinked counts. "Linked" badge on item rows.
+- **Step 7 (Purchase Orders):** Added `PurchaseOrder`, `PurchaseOrderLineItem`, `PurchaseOrderFormData`, `PurchaseOrderStatus` to `vendor.model.ts`. `VendorService` methods: `loadPurchaseOrders()`, `createPurchaseOrder()`, `submitPurchaseOrder()`, `receivePurchaseOrder()`, `cancelPurchaseOrder()`. New "Purchase Orders" tab in Food Cost Dashboard — filter pills (All/Draft/Submitted/Partial/Received), expandable PO cards with line item detail tables, submit/receive/cancel actions, draft count badge on tab.
+- **Step 8 (Cycle Counts):** Added `CycleCount`, `CycleCountEntry`, `CycleCountStatus` to `inventory.model.ts`. `InventoryService` methods: `loadCycleCounts()`, `startCycleCount()`, `submitCycleCount()`. New "Cycle Counts" tab in Inventory Dashboard — active count entry form with expected/actual/variance table, start new count form with category selector, count history list, variance color coding.
+- **Step 9 (Shelf Life/Expiration):** Added `shelfLifeDays`, `expirationTracking` to `InventoryItem`. `ExpiringItem` type. `loadExpiringItems(daysAhead)` method. "Expiring Soon" panel in inventory overview with configurable days dropdown. "Exp" badge on item rows.
+- **Step 10 (Unit Conversions):** Added `UnitConversion` type. `loadUnitConversions()`, `createUnitConversion()`, `deleteUnitConversion()` methods. Unit conversions section in Cycle Counts tab with add/delete.
+- **Fixed:** All bare `catch` blocks in `vendor.ts` updated to `catch (err: unknown)` with proper `instanceof Error` narrowing.
+- **Files modified:** `models/inventory.model.ts`, `models/vendor.model.ts`, `services/inventory.ts`, `services/vendor.ts`, `features/inventory/inventory-dashboard/` (ts, html, scss), `features/food-cost/food-cost-dashboard/` (ts, html, scss)
+- **Build: zero errors**
+- Next: GOS-SPEC-03 Phase 3 (Steps 11-14) — Reporting categories, allergen/nutrition consumer display, time-based availability, build verification.
+
+*Last Updated: February 22, 2026 (Session 12)*

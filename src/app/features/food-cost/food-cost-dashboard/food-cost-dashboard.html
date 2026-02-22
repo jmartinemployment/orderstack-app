@@ -59,6 +59,12 @@
     <button class="tab-btn" [class.active]="activeTab() === 'recipes'" (click)="setTab('recipes')">
       <i class="bi bi-journal-text"></i> Recipes
     </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'purchase-orders'" (click)="setTab('purchase-orders')">
+      <i class="bi bi-cart3"></i> Purchase Orders
+      @if (draftPOCount() > 0) {
+        <span class="badge">{{ draftPOCount() }}</span>
+      }
+    </button>
   </nav>
 
   @if (isLoading()) {
@@ -466,6 +472,95 @@
           </div>
         }
       </div>
+    </div>
+  }
+
+  <!-- ═══ PURCHASE ORDERS TAB ═══ -->
+  @if (activeTab() === 'purchase-orders') {
+    <div class="tab-content">
+      <div class="section-header">
+        <div class="section-title">
+          <h3>Purchase Orders</h3>
+          <div class="filter-pills">
+            <button class="pill" [class.active]="poStatusFilter() === 'all'" (click)="setPoStatusFilter('all')">All</button>
+            <button class="pill" [class.active]="poStatusFilter() === 'draft'" (click)="setPoStatusFilter('draft')">Draft</button>
+            <button class="pill" [class.active]="poStatusFilter() === 'submitted'" (click)="setPoStatusFilter('submitted')">Submitted</button>
+            <button class="pill" [class.active]="poStatusFilter() === 'partially_received'" (click)="setPoStatusFilter('partially_received')">Partial</button>
+            <button class="pill" [class.active]="poStatusFilter() === 'received'" (click)="setPoStatusFilter('received')">Received</button>
+          </div>
+        </div>
+        <div class="section-actions">
+          <button class="btn-add" (click)="openPoForm()">
+            <i class="bi bi-plus-lg"></i> New PO
+          </button>
+        </div>
+      </div>
+
+      @if (filteredPurchaseOrders().length > 0) {
+        <div class="data-list">
+          @for (po of filteredPurchaseOrders(); track po.id) {
+            <div class="data-card" [class.selected]="selectedPo()?.id === po.id" (click)="selectPo(po)">
+              <div class="data-card-header">
+                <div>
+                  <strong>{{ po.poNumber }}</strong>
+                  <span class="text-muted small ms-2">{{ po.vendorName }}</span>
+                </div>
+                <span class="status-pill" [class]="getPoStatusClass(po.status)">
+                  {{ getPoStatusLabel(po.status) }}
+                </span>
+              </div>
+              <div class="data-card-meta">
+                <span>{{ po.lineItems.length }} item{{ po.lineItems.length !== 1 ? 's' : '' }}</span>
+                <span class="fw-bold">{{ po.total | currency }}</span>
+                <span class="text-muted">{{ po.createdAt | date:'shortDate' }}</span>
+              </div>
+
+              @if (selectedPo()?.id === po.id) {
+                <div class="data-card-detail mt-2">
+                  <table class="detail-table">
+                    <thead>
+                      <tr>
+                        <th>Item</th>
+                        <th class="text-end">Qty</th>
+                        <th class="text-end">Unit Cost</th>
+                        <th class="text-end">Received</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (line of po.lineItems; track line.inventoryItemId) {
+                        <tr>
+                          <td>{{ line.itemName }}</td>
+                          <td class="text-end">{{ line.quantity }}</td>
+                          <td class="text-end">{{ line.unitCost | currency }}</td>
+                          <td class="text-end">{{ line.receivedQuantity ?? '-' }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                  @if (po.notes) {
+                    <p class="text-muted small mt-2 mb-1">{{ po.notes }}</p>
+                  }
+                  <div class="d-flex gap-2 mt-2">
+                    @if (po.status === 'draft') {
+                      <button class="btn-action btn-submit" (click)="submitPo(po.id); $event.stopPropagation()">Submit to Vendor</button>
+                      <button class="btn-action btn-cancel-po" (click)="cancelPo(po.id); $event.stopPropagation()">Cancel</button>
+                    }
+                    @if (po.status === 'submitted' || po.status === 'partially_received') {
+                      <button class="btn-action btn-receive" (click)="openReceiveModal(po); $event.stopPropagation()">Receive</button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <i class="bi bi-cart3"></i>
+          <p>No purchase orders</p>
+          <p class="empty-hint">Create purchase orders to track vendor fulfillment and auto-update inventory</p>
+        </div>
+      }
     </div>
   }
 

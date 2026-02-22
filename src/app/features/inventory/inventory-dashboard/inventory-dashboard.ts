@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InventoryService } from '@services/inventory';
 import { AuthService } from '@services/auth';
@@ -11,11 +11,15 @@ import {
   StockPrediction,
   InventoryTab,
   StockActionType,
+  CycleCount,
+  CycleCountEntry,
+  ExpiringItem,
+  UnitConversion,
 } from '@models/index';
 
 @Component({
   selector: 'os-inventory-dashboard',
-  imports: [CurrencyPipe, DecimalPipe, FormsModule, LoadingSpinner, ErrorDisplay],
+  imports: [CurrencyPipe, DecimalPipe, DatePipe, FormsModule, LoadingSpinner, ErrorDisplay],
   templateUrl: './inventory-dashboard.html',
   styleUrl: './inventory-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +33,10 @@ export class InventoryDashboard implements OnInit {
   readonly items = this.inventoryService.items;
   readonly alerts = this.inventoryService.alerts;
   readonly predictions = this.inventoryService.predictions;
+  readonly cycleCounts = this.inventoryService.cycleCounts;
+  readonly activeCycleCount = this.inventoryService.activeCycleCount;
+  readonly expiringItems = this.inventoryService.expiringItems;
+  readonly unitConversions = this.inventoryService.unitConversions;
   readonly isLoading = this.inventoryService.isLoading;
   readonly error = this.inventoryService.error;
 
@@ -54,6 +62,20 @@ export class InventoryDashboard implements OnInit {
   private readonly _newItemCostPerUnit = signal(0);
   private readonly _newItemSupplier = signal('');
 
+  // Cycle count state
+  private readonly _cycleCountCategory = signal('');
+  private readonly _cycleCountEntries = signal<CycleCountEntry[]>([]);
+  private readonly _isStartingCount = signal(false);
+
+  // Unit conversion form
+  private readonly _showConversionForm = signal(false);
+  private readonly _convFromUnit = signal('');
+  private readonly _convToUnit = signal('');
+  private readonly _convFactor = signal(1);
+
+  // Expiring items config
+  private readonly _expirationDays = signal(7);
+
   readonly activeTab = this._activeTab.asReadonly();
   readonly searchTerm = this._searchTerm.asReadonly();
   readonly categoryFilter = this._categoryFilter.asReadonly();
@@ -75,6 +97,14 @@ export class InventoryDashboard implements OnInit {
   readonly newItemMaxStock = this._newItemMaxStock.asReadonly();
   readonly newItemCostPerUnit = this._newItemCostPerUnit.asReadonly();
   readonly newItemSupplier = this._newItemSupplier.asReadonly();
+  readonly cycleCountCategory = this._cycleCountCategory.asReadonly();
+  readonly cycleCountEntries = this._cycleCountEntries.asReadonly();
+  readonly isStartingCount = this._isStartingCount.asReadonly();
+  readonly showConversionForm = this._showConversionForm.asReadonly();
+  readonly convFromUnit = this._convFromUnit.asReadonly();
+  readonly convToUnit = this._convToUnit.asReadonly();
+  readonly convFactor = this._convFactor.asReadonly();
+  readonly expirationDays = this._expirationDays.asReadonly();
 
   readonly categories = computed(() => {
     const cats = new Set(this.items().map(item => item.category));
@@ -141,14 +171,31 @@ export class InventoryDashboard implements OnInit {
     this.alerts().filter(a => a.severity === 'info')
   );
 
+  readonly submittedCycleCounts = computed(() =>
+    this.cycleCounts().filter(c => c.status === 'submitted')
+  );
+
+  readonly linkedItemCount = computed(() =>
+    this.items().filter(i => i.linkedVariationId).length
+  );
+
+  readonly unlinkedItemCount = computed(() =>
+    this.items().filter(i => !i.linkedVariationId).length
+  );
+
   ngOnInit(): void {
     if (this.isAuthenticated()) {
       this.inventoryService.refresh();
+      this.inventoryService.loadExpiringItems(this._expirationDays());
     }
   }
 
   setTab(tab: InventoryTab): void {
     this._activeTab.set(tab);
+    if (tab === 'cycle-counts') {
+      this.inventoryService.loadCycleCounts();
+      this.inventoryService.loadUnitConversions();
+    }
   }
 
   setSearchTerm(term: string): void {
@@ -327,6 +374,100 @@ export class InventoryDashboard implements OnInit {
 
   retry(): void {
     this.inventoryService.refresh();
+    this.inventoryService.loadExpiringItems(this._expirationDays());
+  }
+
+  // ── Cycle Counts ──
+
+  setCycleCountCategory(cat: string): void {
+    this._cycleCountCategory.set(cat);
+  }
+
+  async startCycleCount(): Promise<void> {
+    this._isStartingCount.set(true);
+    const cat = this._cycleCountCategory() || undefined;
+    const count = await this.inventoryService.startCycleCount(cat);
+    this._isStartingCount.set(false);
+    if (count) {
+      this._cycleCountEntries.set(count.entries);
+    }
+  }
+
+  updateCycleEntry(index: number, actualQuantity: number): void {
+    this._cycleCountEntries.update(entries => {
+      const updated = [...entries];
+      const entry = { ...updated[index] };
+      entry.actualQuantity = actualQuantity;
+      entry.varianceQuantity = actualQuantity - entry.expectedQuantity;
+      updated[index] = entry;
+      return updated;
+    });
+  }
+
+  async submitCycleCount(): Promise<void> {
+    const count = this.activeCycleCount();
+    if (!count) return;
+    this._isSubmitting.set(true);
+    await this.inventoryService.submitCycleCount(count.id, this._cycleCountEntries());
+    this._isSubmitting.set(false);
+    this._cycleCountEntries.set([]);
+  }
+
+  getCycleCountVarianceClass(variance: number): string {
+    if (variance === 0) return 'variance-ok';
+    if (variance > 0) return 'variance-over';
+    return 'variance-under';
+  }
+
+  // ── Expiring Items ──
+
+  async changeExpirationDays(days: number): Promise<void> {
+    this._expirationDays.set(days);
+    await this.inventoryService.loadExpiringItems(days);
+  }
+
+  getExpirationUrgencyClass(days: number): string {
+    if (days <= 1) return 'urgency-critical';
+    if (days <= 3) return 'urgency-warning';
+    return 'urgency-ok';
+  }
+
+  // ── Unit Conversions ──
+
+  toggleConversionForm(): void {
+    this._showConversionForm.update(v => !v);
+    if (!this._showConversionForm()) {
+      this._convFromUnit.set('');
+      this._convToUnit.set('');
+      this._convFactor.set(1);
+    }
+  }
+
+  setConvFromUnit(unit: string): void { this._convFromUnit.set(unit); }
+  setConvToUnit(unit: string): void { this._convToUnit.set(unit); }
+  setConvFactor(factor: number): void { this._convFactor.set(factor); }
+
+  async addConversion(): Promise<void> {
+    const from = this._convFromUnit().trim();
+    const to = this._convToUnit().trim();
+    const factor = this._convFactor();
+    if (!from || !to || factor <= 0) return;
+
+    this._isSubmitting.set(true);
+    const result = await this.inventoryService.createUnitConversion({
+      fromUnit: from,
+      toUnit: to,
+      factor,
+    });
+    this._isSubmitting.set(false);
+
+    if (result) {
+      this.toggleConversionForm();
+    }
+  }
+
+  async deleteConversion(id: string): Promise<void> {
+    await this.inventoryService.deleteUnitConversion(id);
   }
 
   private resetAddForm(): void {

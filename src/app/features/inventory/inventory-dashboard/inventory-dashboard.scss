@@ -1,5 +1,4 @@
 
-
 .inventory-dashboard h2 { color: var(--dark-teal, #0E7490); }
 
 // Nav Tabs
@@ -26,7 +25,7 @@
   border-radius: 0.5rem;
   background-color: var(--midnight-black, #03020D);
   border: 1px solid var(--deep-lake, #1D3273);
-  min-width: 140px;
+  min-width: 120px;
   flex: 1;
 
   .kpi-label { font-size: 0.75rem; text-transform: uppercase; color: rgba(255, 255, 255, 0.6); margin-bottom: 0.25rem; }
@@ -70,7 +69,7 @@
 .severity-info { background-color: #17a2b8; color: #fff; }
 
 // Reorder & Items shared header/row
-.reorder-table, .items-table {
+.reorder-table, .items-table, .cycle-count-table {
   background-color: var(--midnight-black, #03020D);
   border: 1px solid var(--deep-lake, #1D3273);
   border-radius: 0.5rem;
@@ -99,7 +98,8 @@
 .col-reorder-cost { flex: 0 0 100px; text-align: right; }
 
 // Dark input mixin
-.search-input, .filter-select, .add-form .form-control, .stock-modal .form-control {
+.search-input, .filter-select, .add-form .form-control, .stock-modal .form-control,
+.cycle-count-table .form-control {
   background-color: var(--midnight-black, #03020D);
   border-color: var(--deep-lake, #1D3273);
   color: #fff;
@@ -183,6 +183,11 @@
 .badge-confidence-high { background-color: #28a745; color: #fff; }
 .badge-confidence-medium { background-color: #ffc107; color: #000; }
 .badge-confidence-low { background-color: #6c757d; color: #fff; }
+
+// Cycle count variance
+.variance-ok { color: #28a745; }
+.variance-over { color: #17a2b8; }
+.variance-under { color: #dc3545; }
 
 // Modal
 .modal-backdrop { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.6); z-index: 1040; }

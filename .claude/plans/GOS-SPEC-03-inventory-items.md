@@ -5,7 +5,7 @@
 | Phase | Steps | Status |
 |-------|-------|--------|
 | Phase 1 — Item Enrichment | Steps 1-5 | **COMPLETE** |
-| Phase 2 — Inventory Enhancements | Steps 6-10 | Not started |
+| Phase 2 — Inventory Enhancements | Steps 6-10 | **COMPLETE** |
 | Phase 3 — Purchase Orders & Integration | Steps 11-14 | Not started |
 
 ## Context
