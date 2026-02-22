@@ -184,3 +184,21 @@ export interface DeviceRegistrationFormData {
   deviceName: string;
   locationId?: string;
 }
+
+// --- Onboarding ---
+
+export type OnboardingStep = 'personal_info' | 'tax_forms' | 'direct_deposit' | 'documents' | 'training' | 'complete';
+
+export interface OnboardingChecklist {
+  teamMemberId: string;
+  steps: OnboardingStepStatus[];
+  completedAt: string | null;
+}
+
+export interface OnboardingStepStatus {
+  step: OnboardingStep;
+  label: string;
+  isComplete: boolean;
+  completedAt: string | null;
+  notes: string | null;
+}

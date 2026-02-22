@@ -14,6 +14,9 @@ import {
   PermissionSetFormData,
   PermissionCategory,
   PERMISSION_DEFINITIONS,
+  OnboardingChecklist,
+  OnboardingStepStatus,
+  OnboardingStep,
 } from '@models/staff-management.model';
 import { UserRole } from '@models/index';
 
@@ -107,6 +110,29 @@ export class StaffManagement {
 
   readonly permissionCategories: PermissionCategory[] = ['pos', 'menu', 'timeclock', 'team', 'reporting', 'settings'];
   readonly permissionDefinitions = PERMISSION_DEFINITIONS;
+
+  // --- Onboarding ---
+  private readonly _showOnboarding = signal<string | null>(null);
+  private readonly _onboardingChecklist = signal<OnboardingChecklist | null>(null);
+  private readonly _isSendingLink = signal(false);
+
+  readonly showOnboarding = this._showOnboarding.asReadonly();
+  readonly onboardingChecklist = this._onboardingChecklist.asReadonly();
+  readonly isSendingLink = this._isSendingLink.asReadonly();
+
+  readonly onboardingProgress = computed(() => {
+    const checklist = this._onboardingChecklist();
+    if (!checklist?.steps.length) return 0;
+    const completed = checklist.steps.filter(s => s.isComplete).length;
+    return Math.round((completed / checklist.steps.length) * 100);
+  });
+
+  readonly membersNeedingOnboarding = computed(() =>
+    this.activeTeamMembers().filter(m => {
+      const checklist = this.staffService.getOnboardingChecklist(m.id);
+      return !checklist || !checklist.completedAt;
+    })
+  );
 
   readonly userForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -615,5 +641,81 @@ export class StaffManagement {
 
   confirmDeletePermissionSet(id: string): void {
     this._showConfirmDeactivate.set(id);
+  }
+
+  // ============ Onboarding ============
+
+  async openOnboarding(member: TeamMember): Promise<void> {
+    this._showOnboarding.set(member.id);
+    const checklist = await this.staffService.loadOnboardingChecklist(member.id);
+    if (checklist) {
+      this._onboardingChecklist.set(checklist);
+    } else {
+      this._onboardingChecklist.set({
+        teamMemberId: member.id,
+        steps: this.getDefaultOnboardingSteps(),
+        completedAt: null,
+      });
+    }
+  }
+
+  closeOnboarding(): void {
+    this._showOnboarding.set(null);
+    this._onboardingChecklist.set(null);
+  }
+
+  async toggleOnboardingStep(step: OnboardingStep, isComplete: boolean): Promise<void> {
+    const memberId = this._showOnboarding();
+    if (!memberId) return;
+
+    this._onboardingChecklist.update(c => {
+      if (!c) return c;
+      return {
+        ...c,
+        steps: c.steps.map(s => s.step === step ? { ...s, isComplete, completedAt: isComplete ? new Date().toISOString() : null } : s),
+      };
+    });
+
+    await this.staffService.updateOnboardingStep(memberId, step, isComplete);
+  }
+
+  async sendOnboardingLink(): Promise<void> {
+    const memberId = this._showOnboarding();
+    if (!memberId) return;
+    this._isSendingLink.set(true);
+    const success = await this.staffService.sendOnboardingLink(memberId);
+    this._isSendingLink.set(false);
+    if (success) {
+      this.showSuccess('Onboarding link sent');
+    }
+  }
+
+  getOnboardingMemberName(): string {
+    const memberId = this._showOnboarding();
+    if (!memberId) return '';
+    return this.teamMembers().find(m => m.id === memberId)?.displayName ?? '';
+  }
+
+  getStepIcon(step: OnboardingStep): string {
+    const icons: Record<OnboardingStep, string> = {
+      personal_info: 'bi-person-vcard',
+      tax_forms: 'bi-file-earmark-text',
+      direct_deposit: 'bi-bank',
+      documents: 'bi-folder2-open',
+      training: 'bi-mortarboard',
+      complete: 'bi-check-circle',
+    };
+    return icons[step];
+  }
+
+  private getDefaultOnboardingSteps(): OnboardingStepStatus[] {
+    return [
+      { step: 'personal_info', label: 'Personal Information', isComplete: false, completedAt: null, notes: null },
+      { step: 'tax_forms', label: 'Tax Forms (W-4 / W-9)', isComplete: false, completedAt: null, notes: null },
+      { step: 'direct_deposit', label: 'Direct Deposit', isComplete: false, completedAt: null, notes: null },
+      { step: 'documents', label: 'Documents & ID Verification', isComplete: false, completedAt: null, notes: null },
+      { step: 'training', label: 'Training & Acknowledgements', isComplete: false, completedAt: null, notes: null },
+      { step: 'complete', label: 'Onboarding Complete', isComplete: false, completedAt: null, notes: null },
+    ];
   }
 }

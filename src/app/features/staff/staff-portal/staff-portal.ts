@@ -21,6 +21,11 @@ import {
   BreakType,
   TimeclockTab,
   TimecardEditType,
+  StaffNotification,
+  PtoType,
+  PtoRequest,
+  PtoRequestStatus,
+  PtoBalance,
 } from '@models/index';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -288,6 +293,40 @@ export class StaffPortal {
   // --- Auto clock-out timer ---
   private autoClockOutTimer: ReturnType<typeof setTimeout> | null = null;
 
+  // --- Notifications ---
+  private readonly _showNotifications = signal(false);
+  readonly showNotifications = this._showNotifications.asReadonly();
+  readonly notifications = this.laborService.notifications;
+
+  readonly unreadCount = computed(() =>
+    this.laborService.notifications().filter(n => !n.isRead).length
+  );
+
+  // --- PTO state ---
+  private readonly _showPtoForm = signal(false);
+  private readonly _ptoType = signal<PtoType>('vacation');
+  private readonly _ptoStartDate = signal('');
+  private readonly _ptoEndDate = signal('');
+  private readonly _ptoHours = signal(8);
+  private readonly _ptoReason = signal('');
+  private readonly _isSubmittingPto = signal(false);
+  private readonly _ptoBalances = signal<PtoBalance[]>([]);
+  private readonly _myPtoRequests = signal<PtoRequest[]>([]);
+
+  readonly showPtoForm = this._showPtoForm.asReadonly();
+  readonly ptoType = this._ptoType.asReadonly();
+  readonly ptoStartDate = this._ptoStartDate.asReadonly();
+  readonly ptoEndDate = this._ptoEndDate.asReadonly();
+  readonly ptoHours = this._ptoHours.asReadonly();
+  readonly ptoReason = this._ptoReason.asReadonly();
+  readonly isSubmittingPto = this._isSubmittingPto.asReadonly();
+  readonly ptoBalances = this._ptoBalances.asReadonly();
+  readonly myPtoRequests = this._myPtoRequests.asReadonly();
+
+  readonly pendingPtoRequests = computed(() =>
+    this._myPtoRequests().filter(r => r.status === 'pending')
+  );
+
   // --- Error ---
   private readonly _error = signal<string | null>(null);
   readonly error = this._error.asReadonly();
@@ -327,6 +366,8 @@ export class StaffPortal {
       this._loggedInStaff.set(staff);
       this._pinDigits.set('');
       await this.loadScheduleData();
+      this.laborService.loadNotifications(staff.id);
+      this.loadMyPtoRequests();
     } else {
       this._pinError.set('Invalid PIN');
       this._pinDigits.set('');
@@ -351,7 +392,9 @@ export class StaffPortal {
   setTab(tab: StaffPortalTab): void {
     this._activeTab.set(tab);
 
-    if (tab === 'availability') {
+    if (tab === 'schedule') {
+      this.loadMyPtoRequests();
+    } else if (tab === 'availability') {
       this.loadAvailability();
     } else if (tab === 'swaps') {
       this.loadSwapRequests();
@@ -547,6 +590,140 @@ export class StaffPortal {
     if (success) {
       await this.loadSwapRequests();
     }
+  }
+
+  // === Notifications ===
+
+  toggleNotifications(): void {
+    this._showNotifications.update(v => !v);
+  }
+
+  closeNotifications(): void {
+    this._showNotifications.set(false);
+  }
+
+  async markAsRead(notificationId: string): Promise<void> {
+    await this.laborService.markNotificationRead(notificationId);
+  }
+
+  async markAllRead(): Promise<void> {
+    const unread = this.laborService.notifications().filter(n => !n.isRead);
+    for (const n of unread) {
+      await this.laborService.markNotificationRead(n.id);
+    }
+  }
+
+  getNotificationIcon(type: string): string {
+    switch (type) {
+      case 'schedule_published': return 'bi-calendar-check';
+      case 'shift_changed': return 'bi-calendar-event';
+      case 'swap_approved': return 'bi-check-circle';
+      case 'swap_rejected': return 'bi-x-circle';
+      case 'timecard_approved': return 'bi-clock-history';
+      case 'timecard_rejected': return 'bi-clock';
+      case 'announcement': return 'bi-megaphone';
+      default: return 'bi-bell';
+    }
+  }
+
+  // === PTO ===
+
+  openPtoForm(): void {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    this._ptoType.set('vacation');
+    this._ptoStartDate.set(this.formatDate(tomorrow));
+    this._ptoEndDate.set(this.formatDate(tomorrow));
+    this._ptoHours.set(8);
+    this._ptoReason.set('');
+    this._showPtoForm.set(true);
+    this.loadPtoBalances();
+  }
+
+  closePtoForm(): void {
+    this._showPtoForm.set(false);
+  }
+
+  setPtoType(type: string): void {
+    this._ptoType.set(type as PtoType);
+  }
+
+  setPtoStartDate(date: string): void {
+    this._ptoStartDate.set(date);
+  }
+
+  setPtoEndDate(date: string): void {
+    this._ptoEndDate.set(date);
+  }
+
+  setPtoHours(hours: number): void {
+    this._ptoHours.set(hours);
+  }
+
+  setPtoReason(reason: string): void {
+    this._ptoReason.set(reason);
+  }
+
+  private async loadPtoBalances(): Promise<void> {
+    const staff = this._loggedInStaff();
+    if (!staff) return;
+
+    await this.laborService.getPtoBalances(staff.id);
+    this._ptoBalances.set(this.laborService.ptoBalances());
+  }
+
+  private async loadMyPtoRequests(): Promise<void> {
+    const staff = this._loggedInStaff();
+    if (!staff) return;
+
+    await this.laborService.loadPtoRequests();
+    const all = this.laborService.ptoRequests();
+    this._myPtoRequests.set(all.filter(r => r.teamMemberId === staff.id));
+  }
+
+  async submitPtoRequest(): Promise<void> {
+    const staff = this._loggedInStaff();
+    const start = this._ptoStartDate();
+    const end = this._ptoEndDate();
+    const hours = this._ptoHours();
+    if (!staff || !start || !end || hours <= 0) return;
+
+    this._isSubmittingPto.set(true);
+    this._error.set(null);
+
+    const result = await this.laborService.submitPtoRequest({
+      teamMemberId: staff.id,
+      type: this._ptoType(),
+      startDate: start,
+      endDate: end,
+      hoursRequested: hours,
+      reason: this._ptoReason().trim() || undefined,
+    });
+
+    if (result) {
+      this._showPtoForm.set(false);
+      await this.loadMyPtoRequests();
+    } else {
+      this._error.set('Failed to submit time off request');
+    }
+
+    this._isSubmittingPto.set(false);
+  }
+
+  getPtoTypeLabel(type: PtoType): string {
+    const labels: Record<PtoType, string> = {
+      vacation: 'Vacation',
+      sick: 'Sick',
+      personal: 'Personal',
+      holiday: 'Holiday',
+    };
+    return labels[type] ?? type;
+  }
+
+  getPtoStatusClass(status: PtoRequestStatus): string {
+    if (status === 'approved') return 'status-approved';
+    if (status === 'denied') return 'status-rejected';
+    return 'status-pending';
   }
 
   // === Helpers ===

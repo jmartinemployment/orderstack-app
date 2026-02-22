@@ -91,6 +91,9 @@
                   <span class="badge" [class.badge-active]="member.status === 'active'">{{ member.status }}</span>
                 </td>
                 <td>
+                  <button class="btn btn-sm btn-outline-light me-1" (click)="openOnboarding(member)" title="Onboarding">
+                    <i class="bi bi-clipboard-check"></i>
+                  </button>
                   <button class="btn btn-sm btn-outline-light me-1" (click)="openEditTeamMember(member)" title="Edit">
                     <i class="bi bi-pencil"></i>
                   </button>
@@ -109,6 +112,36 @@
           <p class="text-muted">No team members yet. Click "Add Member" to get started.</p>
         </div>
       }
+    }
+
+    <!-- Onboarding Needed -->
+    @if (membersNeedingOnboarding().length > 0) {
+      <div class="onboarding-section mb-4">
+        <h6 class="mb-3">
+          <i class="bi bi-clipboard-check me-1"></i>
+          Needs Onboarding
+          <span class="badge badge-staff ms-1">{{ membersNeedingOnboarding().length }}</span>
+        </h6>
+        <div class="onboarding-card-grid">
+          @for (member of membersNeedingOnboarding(); track member.id) {
+            <div class="onboarding-card" (click)="openOnboarding(member)">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="tm-avatar-sm" [style.background-color]="getPositionColor(member.displayName)">
+                  {{ member.displayName.charAt(0) }}
+                </div>
+                <div>
+                  <div class="fw-semibold">{{ member.displayName }}</div>
+                  <div class="text-muted small">{{ getJobsSummary(member) }}</div>
+                </div>
+              </div>
+              <div class="onboarding-progress-bar">
+                <div class="onboarding-progress-fill" style="width: 0%"></div>
+              </div>
+              <div class="text-muted small mt-1">Not started</div>
+            </div>
+          }
+        </div>
+      </div>
     }
 
     @if (inactiveTeamMembers().length > 0) {
@@ -680,6 +713,69 @@
             }
             Change Password
           </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ============ Onboarding Modal ============ -->
+  @if (showOnboarding()) {
+    <div class="modal-backdrop" (click)="closeOnboarding()"></div>
+    <div class="modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-clipboard-check me-2"></i>
+            Onboarding — {{ getOnboardingMemberName() }}
+          </h5>
+          <button class="btn-close btn-close-white" (click)="closeOnboarding()"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Progress bar -->
+          <div class="onboarding-progress-section mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="small text-muted">Progress</span>
+              <span class="small fw-semibold">{{ onboardingProgress() }}%</span>
+            </div>
+            <div class="onboarding-progress-bar lg">
+              <div class="onboarding-progress-fill" [style.width.%]="onboardingProgress()"></div>
+            </div>
+          </div>
+
+          <!-- Checklist -->
+          @if (onboardingChecklist(); as checklist) {
+            <div class="onboarding-checklist">
+              @for (step of checklist.steps; track step.step) {
+                <div class="onboarding-step" [class.completed]="step.isComplete" (click)="toggleOnboardingStep(step.step, !step.isComplete)">
+                  <div class="onboarding-step-check">
+                    @if (step.isComplete) {
+                      <i class="bi bi-check-circle-fill text-success"></i>
+                    } @else {
+                      <i class="bi bi-circle"></i>
+                    }
+                  </div>
+                  <div class="onboarding-step-icon">
+                    <i class="bi" [class]="getStepIcon(step.step)"></i>
+                  </div>
+                  <div class="onboarding-step-info">
+                    <div class="onboarding-step-label" [class.text-decoration-line-through]="step.isComplete">{{ step.label }}</div>
+                    @if (step.completedAt) {
+                      <div class="text-muted small">Completed {{ step.completedAt | date:'mediumDate' }}</div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-light" (click)="sendOnboardingLink()" [disabled]="isSendingLink()">
+            @if (isSendingLink()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            <i class="bi bi-send me-1"></i> Send Onboarding Link
+          </button>
+          <button class="btn btn-primary" (click)="closeOnboarding()">Done</button>
         </div>
       </div>
     </div>

@@ -47,10 +47,53 @@
         <h2 class="staff-name">{{ loggedInStaff()!.name }}</h2>
         <span class="staff-role">{{ loggedInStaff()!.role }}</span>
       </div>
-      <button class="btn-logout" (click)="logout()">
-        <i class="bi bi-box-arrow-right"></i>
-      </button>
+      <div class="header-actions">
+        <button class="btn-notification" (click)="toggleNotifications()">
+          <i class="bi bi-bell"></i>
+          @if (unreadCount() > 0) {
+            <span class="notification-badge">{{ unreadCount() }}</span>
+          }
+        </button>
+        <button class="btn-logout" (click)="logout()">
+          <i class="bi bi-box-arrow-right"></i>
+        </button>
+      </div>
     </header>
+
+    <!-- Notification Panel -->
+    @if (showNotifications()) {
+      <div class="notification-panel">
+        <div class="notification-panel-header">
+          <h4>Notifications</h4>
+          @if (unreadCount() > 0) {
+            <button class="btn-mark-all" (click)="markAllRead()">Mark all read</button>
+          }
+          <button class="btn-close-panel" (click)="closeNotifications()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="notification-list">
+          @for (notif of notifications(); track notif.id) {
+            <div class="notification-item" [class.unread]="!notif.isRead" (click)="markAsRead(notif.id)">
+              <i class="bi {{ getNotificationIcon(notif.type) }} notification-icon"></i>
+              <div class="notification-content">
+                <div class="notification-title">{{ notif.title }}</div>
+                <div class="notification-message">{{ notif.message }}</div>
+                <div class="notification-time">{{ notif.createdAt | date:'short' }}</div>
+              </div>
+              @if (!notif.isRead) {
+                <span class="notification-dot"></span>
+              }
+            </div>
+          } @empty {
+            <div class="notification-empty">
+              <i class="bi bi-bell-slash"></i>
+              <p>No notifications</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
 
     <!-- Error banner -->
     @if (error()) {
@@ -128,6 +171,88 @@
               <div class="earning-row tips">
                 <span>Tips</span>
                 <span>{{ earnings()!.tips | currency }}</span>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Time Off Section -->
+        <div class="section-header mt-3">
+          <h3>Time Off</h3>
+          <button class="btn-edit" (click)="openPtoForm()">
+            <i class="bi bi-plus-lg"></i> Request
+          </button>
+        </div>
+
+        <!-- PTO Balances -->
+        @if (ptoBalances().length > 0) {
+          <div class="pto-balances">
+            @for (bal of ptoBalances(); track bal.type) {
+              <div class="pto-balance-card">
+                <span class="pto-balance-type">{{ getPtoTypeLabel(bal.type) }}</span>
+                <span class="pto-balance-value">{{ bal.available | number:'1.0-0' }}h</span>
+                <span class="pto-balance-detail">{{ bal.used | number:'1.0-0' }}h used / {{ bal.accrued | number:'1.0-0' }}h accrued</span>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- PTO Request Form -->
+        @if (showPtoForm()) {
+          <div class="pto-form">
+            <h4>Request Time Off</h4>
+            <div class="form-group">
+              <label>Type</label>
+              <select class="form-select" [value]="ptoType()" (change)="setPtoType($any($event.target).value)">
+                <option value="vacation">Vacation</option>
+                <option value="sick">Sick</option>
+                <option value="personal">Personal</option>
+                <option value="holiday">Holiday</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Start Date</label>
+                <input type="date" class="form-input" [value]="ptoStartDate()" (input)="setPtoStartDate($any($event.target).value)">
+              </div>
+              <div class="form-group">
+                <label>End Date</label>
+                <input type="date" class="form-input" [value]="ptoEndDate()" (input)="setPtoEndDate($any($event.target).value)">
+              </div>
+              <div class="form-group">
+                <label>Hours</label>
+                <input type="number" class="form-input" min="1" max="80" [value]="ptoHours()" (input)="setPtoHours($any($event.target).valueAsNumber)">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Reason (optional)</label>
+              <input type="text" class="form-input" placeholder="Reason for time off" [value]="ptoReason()" (input)="setPtoReason($any($event.target).value)">
+            </div>
+            <div class="pto-form-actions">
+              <button class="btn-cancel" (click)="closePtoForm()">Cancel</button>
+              <button class="btn-save" [disabled]="!ptoStartDate() || !ptoEndDate() || ptoHours() <= 0 || isSubmittingPto()" (click)="submitPtoRequest()">
+                @if (isSubmittingPto()) { Submitting... } @else { Submit Request }
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- My PTO Requests -->
+        @if (myPtoRequests().length > 0) {
+          <div class="pto-requests-list">
+            @for (req of myPtoRequests(); track req.id) {
+              <div class="pto-request-item">
+                <div class="pto-request-header">
+                  <span class="pto-request-type">{{ getPtoTypeLabel(req.type) }}</span>
+                  <span class="swap-badge {{ getPtoStatusClass(req.status) }}">{{ req.status }}</span>
+                </div>
+                <div class="pto-request-dates">
+                  {{ req.startDate | date:'mediumDate' }} – {{ req.endDate | date:'mediumDate' }}
+                  <span class="pto-request-hours">{{ req.hoursRequested }}h</span>
+                </div>
+                @if (req.reason) {
+                  <div class="pto-request-reason">{{ req.reason }}</div>
+                }
               </div>
             }
           </div>

@@ -1,5 +1,5 @@
-import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
-import { CurrencyPipe, DecimalPipe, DatePipe } from '@angular/common';
+import { Component, inject, signal, computed, effect, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
+import { CurrencyPipe, DecimalPipe, DatePipe, PercentPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LaborService } from '@services/labor';
 import { AuthService } from '@services/auth';
@@ -15,16 +15,24 @@ import {
   TimecardEdit,
   TimecardEditStatus,
   TimecardEditType,
+  ScheduleTemplate,
+  PayrollPeriod,
+  PayrollStatus,
+  PayrollTeamMemberSummary,
+  CommissionRule,
+  PtoRequest,
+  PtoRequestStatus,
+  PtoType,
 } from '@models/index';
 
 @Component({
   selector: 'os-staff-scheduling',
-  imports: [CurrencyPipe, DecimalPipe, DatePipe, FormsModule, LoadingSpinner, ErrorDisplay],
+  imports: [CurrencyPipe, DecimalPipe, DatePipe, PercentPipe, FormsModule, LoadingSpinner, ErrorDisplay],
   templateUrl: './staff-scheduling.html',
   styleUrl: './staff-scheduling.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class StaffScheduling {
+export class StaffScheduling implements OnDestroy {
   private readonly laborService = inject(LaborService);
   private readonly authService = inject(AuthService);
 
@@ -63,6 +71,39 @@ export class StaffScheduling {
   private readonly _editsFilter = signal<TimecardEditStatus | 'all'>('pending');
   private readonly _isResolvingEdit = signal(false);
 
+  // Template state
+  private readonly _showTemplateMenu = signal(false);
+  private readonly _showSaveTemplateForm = signal(false);
+  private readonly _templateName = signal('');
+  private readonly _isCopyingWeek = signal(false);
+
+  // Live labor gauge polling
+  private liveLaborInterval: ReturnType<typeof setInterval> | null = null;
+
+  // Payroll state
+  private readonly _showGeneratePayroll = signal(false);
+  private readonly _payrollStartDate = signal('');
+  private readonly _payrollEndDate = signal('');
+  private readonly _expandedPayrollId = signal<string | null>(null);
+  private readonly _expandedMemberId = signal<string | null>(null);
+  private readonly _payrollSortField = signal<'name' | 'hours' | 'gross'>('name');
+  private readonly _payrollSortAsc = signal(true);
+
+  // Commission state
+  private readonly _showCommissionForm = signal(false);
+  private readonly _editingCommission = signal<CommissionRule | null>(null);
+  private readonly _commissionForm = signal<{
+    name: string;
+    jobTitle: string;
+    type: 'percentage' | 'flat_per_order';
+    rate: number;
+    minimumSales: number;
+    isActive: boolean;
+  }>({ name: '', jobTitle: '', type: 'percentage', rate: 0, minimumSales: 0, isActive: true });
+
+  // PTO state (manager view in edits tab)
+  private readonly _ptoFilter = signal<PtoRequestStatus | 'all'>('pending');
+
   readonly activeTab = this._activeTab.asReadonly();
   readonly weekOffset = this._weekOffset.asReadonly();
   readonly showShiftModal = this._showShiftModal.asReadonly();
@@ -75,9 +116,39 @@ export class StaffScheduling {
   readonly editsFilter = this._editsFilter.asReadonly();
   readonly isResolvingEdit = this._isResolvingEdit.asReadonly();
   readonly timecardEdits = this.laborService.timecardEdits;
+  readonly showTemplateMenu = this._showTemplateMenu.asReadonly();
+  readonly showSaveTemplateForm = this._showSaveTemplateForm.asReadonly();
+  readonly templateName = this._templateName.asReadonly();
+  readonly isCopyingWeek = this._isCopyingWeek.asReadonly();
+  readonly scheduleTemplates = this.laborService.scheduleTemplates;
+  readonly liveLabor = this.laborService.liveLabor;
+
+  // Payroll readonly
+  readonly payrollPeriods = this.laborService.payrollPeriods;
+  readonly selectedPayroll = this.laborService.selectedPayroll;
+  readonly showGeneratePayroll = this._showGeneratePayroll.asReadonly();
+  readonly payrollStartDate = this._payrollStartDate.asReadonly();
+  readonly payrollEndDate = this._payrollEndDate.asReadonly();
+  readonly expandedPayrollId = this._expandedPayrollId.asReadonly();
+  readonly expandedMemberId = this._expandedMemberId.asReadonly();
+
+  // Commission readonly
+  readonly commissionRules = this.laborService.commissionRules;
+  readonly commissionCalculations = this.laborService.commissionCalculations;
+  readonly showCommissionForm = this._showCommissionForm.asReadonly();
+  readonly editingCommission = this._editingCommission.asReadonly();
+  readonly commissionForm = this._commissionForm.asReadonly();
+
+  // PTO readonly
+  readonly ptoRequests = this.laborService.ptoRequests;
+  readonly ptoFilter = this._ptoFilter.asReadonly();
 
   readonly pendingEditsCount = computed(() =>
     this.laborService.timecardEdits().filter(e => e.status === 'pending').length
+  );
+
+  readonly pendingPtoCount = computed(() =>
+    this.laborService.ptoRequests().filter(r => r.status === 'pending').length
   );
 
   readonly filteredEdits = computed(() => {
@@ -85,6 +156,13 @@ export class StaffScheduling {
     const filter = this._editsFilter();
     if (filter === 'all') return edits;
     return edits.filter(e => e.status === filter);
+  });
+
+  readonly filteredPtoRequests = computed(() => {
+    const requests = this.laborService.ptoRequests();
+    const filter = this._ptoFilter();
+    if (filter === 'all') return requests;
+    return requests.filter(r => r.status === filter);
   });
 
   // Computed: week boundaries
@@ -159,7 +237,6 @@ export class StaffScheduling {
         });
       }
     }
-    // Also add staff members not on schedule
     for (const member of this.staffMembers()) {
       if (!staffMap.has(member.id)) {
         staffMap.set(member.id, member);
@@ -183,6 +260,35 @@ export class StaffScheduling {
       return asc ? cmp : -cmp;
     });
     return summaries;
+  });
+
+  // Payroll computed: sorted member summaries
+  readonly sortedPayrollMembers = computed(() => {
+    const payroll = this.selectedPayroll();
+    if (!payroll) return [];
+    const members = [...payroll.teamMemberSummaries];
+    const field = this._payrollSortField();
+    const asc = this._payrollSortAsc();
+    members.sort((a, b) => {
+      let cmp = 0;
+      if (field === 'name') cmp = a.displayName.localeCompare(b.displayName);
+      else if (field === 'hours') cmp = (a.regularHours + a.overtimeHours) - (b.regularHours + b.overtimeHours);
+      else if (field === 'gross') cmp = a.grossPay - b.grossPay;
+      return asc ? cmp : -cmp;
+    });
+    return members;
+  });
+
+  readonly payrollTotalRegularHours = computed(() => {
+    const payroll = this.selectedPayroll();
+    if (!payroll) return 0;
+    return payroll.teamMemberSummaries.reduce((sum, m) => sum + m.regularHours, 0);
+  });
+
+  readonly payrollTotalOvertimeHours = computed(() => {
+    const payroll = this.selectedPayroll();
+    if (!payroll) return 0;
+    return payroll.teamMemberSummaries.reduce((sum, m) => sum + m.overtimeHours, 0);
   });
 
   // Workweek config
@@ -219,6 +325,15 @@ export class StaffScheduling {
     return sum / report.dailyBreakdown.length;
   });
 
+  // Live labor gauge computeds
+  readonly laborGaugeClass = computed(() => {
+    const data = this.liveLabor();
+    if (!data) return '';
+    if (data.laborPercent < 25) return 'gauge-good';
+    if (data.laborPercent <= 32) return 'gauge-warning';
+    return 'gauge-critical';
+  });
+
   constructor() {
     effect(() => {
       if (this.authService.isAuthenticated() && this.authService.selectedRestaurantId()) {
@@ -226,8 +341,30 @@ export class StaffScheduling {
         this.loadCurrentWeek();
         this.laborService.loadActiveClocks();
         this.laborService.loadWorkweekConfig();
+        this.laborService.loadTemplates();
+        this.startLiveLaborPolling();
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.stopLiveLaborPolling();
+  }
+
+  // Live labor polling
+  private startLiveLaborPolling(): void {
+    this.stopLiveLaborPolling();
+    this.laborService.getLiveLabor();
+    this.liveLaborInterval = setInterval(() => {
+      this.laborService.getLiveLabor();
+    }, 60000);
+  }
+
+  private stopLiveLaborPolling(): void {
+    if (this.liveLaborInterval !== null) {
+      clearInterval(this.liveLaborInterval);
+      this.liveLaborInterval = null;
+    }
   }
 
   // Tab navigation
@@ -239,6 +376,10 @@ export class StaffScheduling {
       this.laborService.loadRecommendations();
     } else if (tab === 'edits') {
       this.laborService.loadTimecardEdits();
+      this.laborService.loadPtoRequests();
+    } else if (tab === 'payroll') {
+      this.laborService.loadPayrollPeriods();
+      this.laborService.loadCommissionRules();
     }
   }
 
@@ -264,6 +405,58 @@ export class StaffScheduling {
 
   private loadCurrentWeek(): void {
     this.laborService.loadShifts(this.weekStartStr(), this.weekEndStr());
+  }
+
+  // === Schedule Templates ===
+
+  toggleTemplateMenu(): void {
+    this._showTemplateMenu.update(v => !v);
+  }
+
+  closeTemplateMenu(): void {
+    this._showTemplateMenu.set(false);
+  }
+
+  openSaveTemplateForm(): void {
+    this._showTemplateMenu.set(false);
+    this._templateName.set('');
+    this._showSaveTemplateForm.set(true);
+  }
+
+  closeSaveTemplateForm(): void {
+    this._showSaveTemplateForm.set(false);
+  }
+
+  setTemplateName(name: string): void {
+    this._templateName.set(name);
+  }
+
+  async saveCurrentWeekAsTemplate(): Promise<void> {
+    const name = this._templateName().trim();
+    if (!name) return;
+
+    this._isSaving.set(true);
+    await this.laborService.saveAsTemplate(name, this.weekStartStr());
+    this._isSaving.set(false);
+    this._showSaveTemplateForm.set(false);
+  }
+
+  async applyTemplate(template: ScheduleTemplate): Promise<void> {
+    this._showTemplateMenu.set(false);
+    this._isSaving.set(true);
+    await this.laborService.applyTemplate(template.id, this.weekStartStr());
+    this._isSaving.set(false);
+  }
+
+  async deleteTemplate(template: ScheduleTemplate, event: Event): Promise<void> {
+    event.stopPropagation();
+    await this.laborService.deleteTemplate(template.id);
+  }
+
+  async copyLastWeek(): Promise<void> {
+    this._isCopyingWeek.set(true);
+    await this.laborService.copyPreviousWeek(this.weekStartStr());
+    this._isCopyingWeek.set(false);
   }
 
   // Shift modal
@@ -327,6 +520,15 @@ export class StaffScheduling {
     await this.laborService.deleteShift(editing.id);
     this._isSaving.set(false);
     this.closeShiftModal();
+  }
+
+  async publishAndNotify(): Promise<void> {
+    this._isSaving.set(true);
+    const published = await this.laborService.publishWeek(this.weekStartStr());
+    if (published) {
+      await this.laborService.sendScheduleNotification(this.weekStartStr());
+    }
+    this._isSaving.set(false);
   }
 
   async publishWeek(): Promise<void> {
@@ -446,6 +648,195 @@ export class StaffScheduling {
     if (status === 'denied') return 'badge bg-danger';
     if (status === 'expired') return 'badge bg-secondary';
     return 'badge bg-warning text-dark';
+  }
+
+  // === PTO (Manager view in Edits tab) ===
+
+  setPtoFilter(filter: PtoRequestStatus | 'all'): void {
+    this._ptoFilter.set(filter);
+  }
+
+  async approvePto(id: string): Promise<void> {
+    this._isResolvingEdit.set(true);
+    await this.laborService.approvePtoRequest(id);
+    this._isResolvingEdit.set(false);
+  }
+
+  async denyPto(id: string): Promise<void> {
+    this._isResolvingEdit.set(true);
+    await this.laborService.denyPtoRequest(id);
+    this._isResolvingEdit.set(false);
+  }
+
+  getPtoTypeLabel(type: PtoType): string {
+    const labels: Record<PtoType, string> = {
+      vacation: 'Vacation',
+      sick: 'Sick',
+      personal: 'Personal',
+      holiday: 'Holiday',
+    };
+    return labels[type] ?? type;
+  }
+
+  getPtoStatusClass(status: PtoRequestStatus): string {
+    if (status === 'approved') return 'badge bg-success';
+    if (status === 'denied') return 'badge bg-danger';
+    return 'badge bg-warning text-dark';
+  }
+
+  // === Payroll ===
+
+  openGeneratePayroll(): void {
+    const now = new Date();
+    const twoWeeksAgo = new Date(now);
+    twoWeeksAgo.setDate(now.getDate() - 14);
+    this._payrollStartDate.set(this.formatDate(twoWeeksAgo));
+    this._payrollEndDate.set(this.formatDate(now));
+    this._showGeneratePayroll.set(true);
+  }
+
+  closeGeneratePayroll(): void {
+    this._showGeneratePayroll.set(false);
+  }
+
+  setPayrollStartDate(date: string): void {
+    this._payrollStartDate.set(date);
+  }
+
+  setPayrollEndDate(date: string): void {
+    this._payrollEndDate.set(date);
+  }
+
+  async generatePayroll(): Promise<void> {
+    const start = this._payrollStartDate();
+    const end = this._payrollEndDate();
+    if (!start || !end) return;
+
+    this._isSaving.set(true);
+    const result = await this.laborService.generatePayrollPeriod(start, end);
+    this._isSaving.set(false);
+
+    if (result) {
+      this._showGeneratePayroll.set(false);
+      this.laborService.clearSelectedPayroll();
+      this._expandedPayrollId.set(result.id);
+      await this.laborService.getPayrollPeriod(result.id);
+    }
+  }
+
+  async expandPayroll(period: PayrollPeriod): Promise<void> {
+    if (this._expandedPayrollId() === period.id) {
+      this._expandedPayrollId.set(null);
+      this.laborService.clearSelectedPayroll();
+      return;
+    }
+    this._expandedPayrollId.set(period.id);
+    await this.laborService.getPayrollPeriod(period.id);
+  }
+
+  toggleMemberExpand(memberId: string): void {
+    if (this._expandedMemberId() === memberId) {
+      this._expandedMemberId.set(null);
+    } else {
+      this._expandedMemberId.set(memberId);
+    }
+  }
+
+  sortPayroll(field: 'name' | 'hours' | 'gross'): void {
+    if (this._payrollSortField() === field) {
+      this._payrollSortAsc.update(a => !a);
+    } else {
+      this._payrollSortField.set(field);
+      this._payrollSortAsc.set(true);
+    }
+  }
+
+  async approvePayroll(id: string): Promise<void> {
+    this._isSaving.set(true);
+    await this.laborService.approvePayroll(id);
+    this._isSaving.set(false);
+  }
+
+  async exportPayrollCSV(id: string): Promise<void> {
+    const blob = await this.laborService.exportPayroll(id, 'csv');
+    if (!blob) return;
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `payroll-${id}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async exportPayrollPDF(id: string): Promise<void> {
+    const blob = await this.laborService.exportPayroll(id, 'pdf');
+    if (!blob) return;
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `payroll-${id}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  getPayrollStatusClass(status: PayrollStatus): string {
+    if (status === 'approved') return 'badge bg-success';
+    if (status === 'exported') return 'badge bg-info';
+    if (status === 'reviewed') return 'badge bg-primary';
+    return 'badge bg-secondary';
+  }
+
+  // === Commission Rules ===
+
+  openNewCommission(): void {
+    this._editingCommission.set(null);
+    this._commissionForm.set({ name: '', jobTitle: '', type: 'percentage', rate: 0, minimumSales: 0, isActive: true });
+    this._showCommissionForm.set(true);
+  }
+
+  openEditCommission(rule: CommissionRule): void {
+    this._editingCommission.set(rule);
+    this._commissionForm.set({
+      name: rule.name,
+      jobTitle: rule.jobTitle,
+      type: rule.type,
+      rate: rule.rate,
+      minimumSales: rule.minimumSales,
+      isActive: rule.isActive,
+    });
+    this._showCommissionForm.set(true);
+  }
+
+  closeCommissionForm(): void {
+    this._showCommissionForm.set(false);
+    this._editingCommission.set(null);
+  }
+
+  updateCommissionForm(field: string, value: string | number | boolean): void {
+    this._commissionForm.update(f => ({ ...f, [field]: value }));
+  }
+
+  async saveCommission(): Promise<void> {
+    const form = this._commissionForm();
+    if (!form.name.trim() || !form.jobTitle.trim()) return;
+
+    this._isSaving.set(true);
+    const editing = this._editingCommission();
+
+    if (editing) {
+      await this.laborService.updateCommissionRule(editing.id, form);
+    } else {
+      await this.laborService.createCommissionRule(form);
+    }
+
+    this._isSaving.set(false);
+    this.closeCommissionForm();
+  }
+
+  async deleteCommission(id: string): Promise<void> {
+    await this.laborService.deleteCommissionRule(id);
   }
 
   // Helpers

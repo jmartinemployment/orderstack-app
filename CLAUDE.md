@@ -293,4 +293,15 @@ ng build --configuration=production
 - **Build: zero errors** — both backend (`tsc --noEmit`) and frontend (`ng build --configuration=production`)
 - Next: Style remaining feature pages to Square light theme. End-to-end test with live backend.
 
-*Last Updated: February 22, 2026 (Session 7)*
+**[February 22, 2026] (Session 8) — GOS-SPEC-08 Phase 2 Complete (Steps 6-10):**
+- **Phase 2 COMPLETE** — Payroll, commissions, PTO, onboarding all implemented
+- **Step 6 (Payroll models + service):** PayrollPeriod, PayrollMemberSummary, PayrollJobBreakdown, CommissionRule, PtoPolicy, PtoRequest, PtoBalance types added to `models/labor.model.ts`. 15+ service methods in `services/labor.ts` (generatePayrollPeriod, loadPayrollPeriods, approvePayroll, exportPayroll, CRUD for commission rules, PTO policies, PTO requests, PTO balances)
+- **Step 7 (Payroll UI):** 6th "Payroll" tab in `staff-scheduling.html` — generate period form, period list with expand/collapse accordion, KPI summary cards (gross pay, OT, tips, commissions), employee summary table with expandable job breakdown rows, totals footer, approve/export buttons. Added `payrollTotalRegularHours` and `payrollTotalOvertimeHours` computed signals to TS.
+- **Step 8 (Commission tracking):** Commission rules CRUD section in Payroll tab — form (name, job title, type, rate, minimum sales), rule list cards with edit/delete
+- **Step 9 (PTO tracking):** Manager view: PTO requests in Edits tab with filter buttons (pending/approved/denied/all), request cards with approve/deny. Staff view: "Time Off" section in Staff Portal schedule tab with PTO balance cards, request form (type, dates, hours, reason), request history list with status badges
+- **Step 10 (Onboarding):** Added to `services/staff-management.ts`: `loadOnboardingChecklist()`, `updateOnboardingStep()`, `sendOnboardingLink()`, `getOnboardingChecklist()`, `_onboardingChecklists` signal. Added to `staff-management.ts` component: onboarding state signals, `openOnboarding()`, `closeOnboarding()`, `toggleOnboardingStep()`, `sendOnboardingLink()`, `getStepIcon()`, `membersNeedingOnboarding` computed, `onboardingProgress` computed. UI: "Needs Onboarding" card grid in Team Members tab (yellow left-border cards), onboarding modal with progress bar and 6-step checklist (personal info, tax forms, direct deposit, documents, training, complete), "Send Onboarding Link" button
+- **Files modified:** `models/labor.model.ts`, `models/staff-management.model.ts`, `services/labor.ts`, `services/staff-management.ts`, `features/labor/staff-scheduling/staff-scheduling.ts`, `features/labor/staff-scheduling/staff-scheduling.html`, `features/labor/staff-scheduling/staff-scheduling.scss`, `features/staff/staff-portal/staff-portal.ts`, `features/staff/staff-portal/staff-portal.html`, `features/staff/staff-portal/staff-portal.scss`, `features/settings/staff-management/staff-management.ts`, `features/settings/staff-management/staff-management.html`, `features/settings/staff-management/staff-management.scss`
+- **Build: zero errors**
+- Next: Phase 3 (Steps 11-14) — multi-location staff, labor forecasting, compliance dashboard. Style remaining feature pages to Square light theme.
+
+*Last Updated: February 22, 2026 (Session 8)*

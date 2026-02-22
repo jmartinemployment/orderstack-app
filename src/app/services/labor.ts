@@ -19,6 +19,16 @@ import {
   TimecardEditStatus,
   WorkweekConfig,
   PosSession,
+  ScheduleTemplate,
+  LiveLaborData,
+  StaffNotification,
+  PayrollPeriod,
+  CommissionRule,
+  CommissionCalculation,
+  PtoPolicy,
+  PtoRequest,
+  PtoRequestStatus,
+  PtoBalance,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -61,6 +71,38 @@ export class LaborService {
   readonly workweekConfig = this._workweekConfig.asReadonly();
   readonly posSession = this._posSession.asReadonly();
   readonly timecardEdits = this._timecardEdits.asReadonly();
+
+  // --- Schedule Template signals ---
+  private readonly _scheduleTemplates = signal<ScheduleTemplate[]>([]);
+  readonly scheduleTemplates = this._scheduleTemplates.asReadonly();
+
+  // --- Live Labor signals ---
+  private readonly _liveLabor = signal<LiveLaborData | null>(null);
+  readonly liveLabor = this._liveLabor.asReadonly();
+
+  // --- Notification signals ---
+  private readonly _notifications = signal<StaffNotification[]>([]);
+  readonly notifications = this._notifications.asReadonly();
+
+  // --- Payroll signals ---
+  private readonly _payrollPeriods = signal<PayrollPeriod[]>([]);
+  private readonly _selectedPayroll = signal<PayrollPeriod | null>(null);
+  readonly payrollPeriods = this._payrollPeriods.asReadonly();
+  readonly selectedPayroll = this._selectedPayroll.asReadonly();
+
+  // --- Commission signals ---
+  private readonly _commissionRules = signal<CommissionRule[]>([]);
+  private readonly _commissionCalculations = signal<CommissionCalculation[]>([]);
+  readonly commissionRules = this._commissionRules.asReadonly();
+  readonly commissionCalculations = this._commissionCalculations.asReadonly();
+
+  // --- PTO signals ---
+  private readonly _ptoPolicies = signal<PtoPolicy[]>([]);
+  private readonly _ptoRequests = signal<PtoRequest[]>([]);
+  private readonly _ptoBalances = signal<PtoBalance[]>([]);
+  readonly ptoPolicies = this._ptoPolicies.asReadonly();
+  readonly ptoRequests = this._ptoRequests.asReadonly();
+  readonly ptoBalances = this._ptoBalances.asReadonly();
 
   private get restaurantId(): string | null {
     return this.authService.selectedRestaurantId();
@@ -794,5 +836,549 @@ export class LaborService {
 
   clearPosSession(): void {
     this._posSession.set(null);
+  }
+
+  // ============ Schedule Templates ============
+
+  async loadTemplates(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<ScheduleTemplate[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/schedule-templates`
+        )
+      );
+      this._scheduleTemplates.set(data);
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to load templates');
+    }
+  }
+
+  async saveAsTemplate(name: string, weekStartDate: string): Promise<ScheduleTemplate | null> {
+    if (!this.restaurantId) return null;
+
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.post<ScheduleTemplate>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/schedule-templates`,
+          { name, weekStartDate }
+        )
+      );
+      this._scheduleTemplates.update(t => [...t, result]);
+      return result;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to save template');
+      return null;
+    }
+  }
+
+  async applyTemplate(templateId: string, weekStartDate: string): Promise<Shift[]> {
+    if (!this.restaurantId) return [];
+
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.post<Shift[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/schedule-templates/${templateId}/apply`,
+          { weekStartDate }
+        )
+      );
+      this._shifts.update(existing => [...existing, ...result]);
+      return result;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to apply template');
+      return [];
+    }
+  }
+
+  async deleteTemplate(id: string): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    this._error.set(null);
+
+    try {
+      await firstValueFrom(
+        this.http.delete(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/schedule-templates/${id}`
+        )
+      );
+      this._scheduleTemplates.update(t => t.filter(tpl => tpl.id !== id));
+      return true;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to delete template');
+      return false;
+    }
+  }
+
+  async copyPreviousWeek(targetWeekStart: string): Promise<Shift[]> {
+    if (!this.restaurantId) return [];
+
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.post<Shift[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/copy-week`,
+          { targetWeekStart }
+        )
+      );
+      this._shifts.update(existing => [...existing, ...result]);
+      return result;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to copy previous week');
+      return [];
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
+
+  // ============ Live Labor ============
+
+  async getLiveLabor(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<LiveLaborData>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/live`
+        )
+      );
+      this._liveLabor.set(data);
+    } catch {
+      // Silent — gauge simply won't show if API unavailable
+      this._liveLabor.set(null);
+    }
+  }
+
+  // ============ Staff Notifications ============
+
+  async sendScheduleNotification(weekStart: string): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    this._error.set(null);
+
+    try {
+      await firstValueFrom(
+        this.http.post(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/notifications/schedule-published`,
+          { weekStart }
+        )
+      );
+      return true;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to send notification');
+      return false;
+    }
+  }
+
+  async sendAnnouncement(message: string, recipientPinIds: string[]): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    this._error.set(null);
+
+    try {
+      await firstValueFrom(
+        this.http.post(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/notifications/announcement`,
+          { message, recipientPinIds }
+        )
+      );
+      return true;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to send announcement');
+      return false;
+    }
+  }
+
+  async loadNotifications(pinId: string): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<StaffNotification[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/notifications`,
+          { params: { pinId } }
+        )
+      );
+      this._notifications.set(data);
+    } catch {
+      this._notifications.set([]);
+    }
+  }
+
+  async markNotificationRead(id: string): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    try {
+      await firstValueFrom(
+        this.http.patch(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/notifications/${id}/read`,
+          {}
+        )
+      );
+      this._notifications.update(n => n.map(notif => notif.id === id ? { ...notif, isRead: true } : notif));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // ============ Payroll ============
+
+  async loadPayrollPeriods(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<PayrollPeriod[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/payroll`
+        )
+      );
+      this._payrollPeriods.set(data);
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to load payroll periods');
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
+
+  async generatePayrollPeriod(periodStart: string, periodEnd: string): Promise<PayrollPeriod | null> {
+    if (!this.restaurantId) return null;
+
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.post<PayrollPeriod>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/payroll/generate`,
+          { periodStart, periodEnd }
+        )
+      );
+      this._payrollPeriods.update(p => [result, ...p]);
+      return result;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to generate payroll period');
+      return null;
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
+
+  async getPayrollPeriod(id: string): Promise<PayrollPeriod | null> {
+    if (!this.restaurantId) return null;
+
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.get<PayrollPeriod>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/payroll/${id}`
+        )
+      );
+      this._selectedPayroll.set(result);
+      return result;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to load payroll period');
+      return null;
+    }
+  }
+
+  async approvePayroll(id: string): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.patch<PayrollPeriod>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/payroll/${id}/approve`,
+          {}
+        )
+      );
+      this._payrollPeriods.update(p => p.map(pp => pp.id === id ? result : pp));
+      this._selectedPayroll.set(result);
+      return true;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to approve payroll');
+      return false;
+    }
+  }
+
+  async exportPayroll(id: string, format: 'csv' | 'pdf'): Promise<Blob | null> {
+    if (!this.restaurantId) return null;
+
+    this._error.set(null);
+
+    try {
+      const data = await firstValueFrom(
+        this.http.post(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/payroll/${id}/export`,
+          { format },
+          { responseType: 'blob' }
+        )
+      );
+      return data;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to export payroll');
+      return null;
+    }
+  }
+
+  clearSelectedPayroll(): void {
+    this._selectedPayroll.set(null);
+  }
+
+  // ============ Commission Rules ============
+
+  async loadCommissionRules(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<CommissionRule[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/commissions/rules`
+        )
+      );
+      this._commissionRules.set(data);
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to load commission rules');
+    }
+  }
+
+  async createCommissionRule(data: Omit<CommissionRule, 'id' | 'restaurantId'>): Promise<CommissionRule | null> {
+    if (!this.restaurantId) return null;
+
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.post<CommissionRule>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/commissions/rules`,
+          data
+        )
+      );
+      this._commissionRules.update(r => [...r, result]);
+      return result;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to create commission rule');
+      return null;
+    }
+  }
+
+  async updateCommissionRule(id: string, data: Partial<CommissionRule>): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.patch<CommissionRule>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/commissions/rules/${id}`,
+          data
+        )
+      );
+      this._commissionRules.update(r => r.map(rule => rule.id === id ? result : rule));
+      return true;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to update commission rule');
+      return false;
+    }
+  }
+
+  async deleteCommissionRule(id: string): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    this._error.set(null);
+
+    try {
+      await firstValueFrom(
+        this.http.delete(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/commissions/rules/${id}`
+        )
+      );
+      this._commissionRules.update(r => r.filter(rule => rule.id !== id));
+      return true;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to delete commission rule');
+      return false;
+    }
+  }
+
+  async calculateCommissions(periodStart: string, periodEnd: string): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<CommissionCalculation[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/commissions/calculate`,
+          { params: { start: periodStart, end: periodEnd } }
+        )
+      );
+      this._commissionCalculations.set(data);
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to calculate commissions');
+    }
+  }
+
+  // ============ PTO Policies ============
+
+  async loadPtoPolicies(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<PtoPolicy[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/policies`
+        )
+      );
+      this._ptoPolicies.set(data);
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to load PTO policies');
+    }
+  }
+
+  async createPtoPolicy(data: Omit<PtoPolicy, 'id' | 'restaurantId'>): Promise<PtoPolicy | null> {
+    if (!this.restaurantId) return null;
+
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.post<PtoPolicy>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/policies`,
+          data
+        )
+      );
+      this._ptoPolicies.update(p => [...p, result]);
+      return result;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to create PTO policy');
+      return null;
+    }
+  }
+
+  async updatePtoPolicy(id: string, data: Partial<PtoPolicy>): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.patch<PtoPolicy>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/policies/${id}`,
+          data
+        )
+      );
+      this._ptoPolicies.update(p => p.map(policy => policy.id === id ? result : policy));
+      return true;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to update PTO policy');
+      return false;
+    }
+  }
+
+  // ============ PTO Requests ============
+
+  async loadPtoRequests(status?: PtoRequestStatus): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const params: Record<string, string> = {};
+      if (status) params['status'] = status;
+
+      const data = await firstValueFrom(
+        this.http.get<PtoRequest[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/requests`,
+          { params }
+        )
+      );
+      this._ptoRequests.set(data);
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to load PTO requests');
+    }
+  }
+
+  async submitPtoRequest(data: { teamMemberId: string; type: string; startDate: string; endDate: string; hoursRequested: number; reason?: string }): Promise<PtoRequest | null> {
+    if (!this.restaurantId) return null;
+
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.post<PtoRequest>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/requests`,
+          data
+        )
+      );
+      this._ptoRequests.update(r => [result, ...r]);
+      return result;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to submit PTO request');
+      return null;
+    }
+  }
+
+  async approvePtoRequest(id: string): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.patch<PtoRequest>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/requests/${id}`,
+          { status: 'approved' }
+        )
+      );
+      this._ptoRequests.update(r => r.map(req => req.id === id ? result : req));
+      return true;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to approve PTO request');
+      return false;
+    }
+  }
+
+  async denyPtoRequest(id: string): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.patch<PtoRequest>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/requests/${id}`,
+          { status: 'denied' }
+        )
+      );
+      this._ptoRequests.update(r => r.map(req => req.id === id ? result : req));
+      return true;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to deny PTO request');
+      return false;
+    }
+  }
+
+  async getPtoBalances(teamMemberId: string): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<PtoBalance[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/balances/${teamMemberId}`
+        )
+      );
+      this._ptoBalances.set(data);
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to load PTO balances');
+    }
   }
 }

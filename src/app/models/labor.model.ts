@@ -1,5 +1,5 @@
 export type ShiftPosition = 'server' | 'cook' | 'bartender' | 'host' | 'manager' | 'expo';
-export type StaffScheduleTab = 'schedule' | 'time-clock' | 'labor-report' | 'ai-insights' | 'edits';
+export type StaffScheduleTab = 'schedule' | 'time-clock' | 'labor-report' | 'ai-insights' | 'edits' | 'payroll';
 export type ReportRange = 'week' | 'biweek' | 'month';
 
 export interface StaffMember {
@@ -234,4 +234,159 @@ export interface LaborRecommendation {
   dayOfWeek?: number;
   priority: 'high' | 'medium' | 'low';
   potentialSavings?: number;
+}
+
+// --- Schedule Templates ---
+
+export interface ScheduleTemplate {
+  id: string;
+  restaurantId: string;
+  name: string;
+  shifts: TemplateShift[];
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface TemplateShift {
+  staffMemberId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  position: ShiftPosition;
+  breakMinutes: number;
+}
+
+// --- Live Labor ---
+
+export interface LiveLaborData {
+  currentHourlyCost: number;
+  clockedInCount: number;
+  todayRevenue: number;
+  laborPercent: number;
+  projectedDailyCost: number;
+}
+
+// --- Staff Notifications ---
+
+export type StaffNotificationType =
+  | 'schedule_published'
+  | 'shift_changed'
+  | 'swap_approved'
+  | 'swap_rejected'
+  | 'timecard_approved'
+  | 'timecard_rejected'
+  | 'announcement';
+
+export interface StaffNotification {
+  id: string;
+  restaurantId: string;
+  recipientPinId: string;
+  type: StaffNotificationType;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+// --- Payroll ---
+
+export type PayrollFrequency = 'weekly' | 'biweekly' | 'semimonthly' | 'monthly';
+export type PayrollStatus = 'draft' | 'reviewed' | 'approved' | 'exported';
+
+export interface PayrollPeriod {
+  id: string;
+  restaurantId: string;
+  frequency: PayrollFrequency;
+  periodStart: string;
+  periodEnd: string;
+  status: PayrollStatus;
+  teamMemberSummaries: PayrollTeamMemberSummary[];
+  totalGrossPay: number;
+  totalOvertimePay: number;
+  totalTips: number;
+  totalCommissions: number;
+  createdAt: string;
+  approvedAt: string | null;
+  approvedBy: string | null;
+}
+
+export interface PayrollTeamMemberSummary {
+  teamMemberId: string;
+  displayName: string;
+  regularHours: number;
+  overtimeHours: number;
+  regularPay: number;
+  overtimePay: number;
+  tipsDeclared: number;
+  tipsPooled: number;
+  commissions: number;
+  grossPay: number;
+  jobBreakdown: PayrollJobBreakdown[];
+}
+
+export interface PayrollJobBreakdown {
+  jobTitle: string;
+  hourlyRate: number;
+  regularHours: number;
+  overtimeHours: number;
+  pay: number;
+}
+
+// --- Commission Rules ---
+
+export interface CommissionRule {
+  id: string;
+  restaurantId: string;
+  name: string;
+  jobTitle: string;
+  type: 'percentage' | 'flat_per_order';
+  rate: number;
+  minimumSales: number;
+  isActive: boolean;
+}
+
+export interface CommissionCalculation {
+  teamMemberId: string;
+  displayName: string;
+  totalSales: number;
+  commissionEarned: number;
+  ruleName: string;
+}
+
+// --- PTO ---
+
+export type PtoType = 'vacation' | 'sick' | 'personal' | 'holiday';
+export type PtoRequestStatus = 'pending' | 'approved' | 'denied';
+
+export interface PtoPolicy {
+  id: string;
+  restaurantId: string;
+  name: string;
+  type: PtoType;
+  accrualRate: number;
+  maxBalance: number;
+  isActive: boolean;
+}
+
+export interface PtoRequest {
+  id: string;
+  teamMemberId: string;
+  displayName: string;
+  type: PtoType;
+  startDate: string;
+  endDate: string;
+  hoursRequested: number;
+  status: PtoRequestStatus;
+  reason: string | null;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+}
+
+export interface PtoBalance {
+  teamMemberId: string;
+  type: PtoType;
+  accrued: number;
+  used: number;
+  available: number;
 }

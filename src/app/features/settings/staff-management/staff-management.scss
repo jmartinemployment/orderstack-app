@@ -313,3 +313,117 @@
   font-size: 0.75rem;
   color: #888;
 }
+
+// Onboarding section
+.onboarding-section {
+  border-top: 1px solid var(--deep-lake, #1D3273);
+  padding-top: 1rem;
+}
+
+.onboarding-card-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.onboarding-card {
+  border: 1px solid var(--deep-lake, #1D3273);
+  border-left: 3px solid #ffc107;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  background-color: rgba(3, 2, 13, 0.5);
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+
+  &:hover {
+    border-color: var(--medium-slate-blue, #7E5EF2);
+    background-color: rgba(126, 94, 242, 0.05);
+  }
+}
+
+.onboarding-progress-bar {
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+
+  &.lg {
+    height: 8px;
+    border-radius: 4px;
+  }
+}
+
+.onboarding-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--medium-slate-blue, #7E5EF2), #198754);
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+// Onboarding checklist (modal)
+.onboarding-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.onboarding-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--deep-lake, #1D3273);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+
+  &:hover {
+    background-color: rgba(126, 94, 242, 0.08);
+    border-color: var(--medium-slate-blue, #7E5EF2);
+  }
+
+  &.completed {
+    opacity: 0.7;
+    border-color: rgba(25, 135, 84, 0.3);
+  }
+}
+
+.onboarding-step-check {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  color: #666;
+
+  .text-success {
+    color: #198754 !important;
+  }
+}
+
+.onboarding-step-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 0.5rem;
+  background-color: rgba(126, 94, 242, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--medium-slate-blue, #7E5EF2);
+}
+
+.onboarding-step-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.onboarding-step-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}

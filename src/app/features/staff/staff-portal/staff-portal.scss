@@ -183,6 +183,45 @@ $border: #252545;
   border-radius: 10px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-notification {
+  background: transparent;
+  border: 1px solid $border;
+  color: $text-muted;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  &:hover { color: $accent; border-color: $accent; }
+}
+
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: $danger;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
 .btn-logout {
   background: transparent;
   border: 1px solid $border;
@@ -196,6 +235,131 @@ $border: #252545;
   justify-content: center;
 
   &:hover { color: $danger; border-color: $danger; }
+}
+
+// ===== Notification Panel =====
+.notification-panel {
+  background: $bg-panel;
+  border-bottom: 1px solid $border;
+  max-height: 320px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.notification-panel-header {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid $border;
+  gap: 0.5rem;
+
+  h4 {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    flex: 1;
+  }
+}
+
+.btn-mark-all {
+  background: none;
+  border: none;
+  color: $accent;
+  font-size: 0.7rem;
+  cursor: pointer;
+  padding: 0.125rem 0.375rem;
+
+  &:hover { text-decoration: underline; }
+}
+
+.btn-close-panel {
+  background: none;
+  border: none;
+  color: $text-muted;
+  cursor: pointer;
+  padding: 0.125rem;
+
+  &:hover { color: $text-primary; }
+}
+
+.notification-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid rgba($border, 0.5);
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover { background: $bg-card; }
+
+  &.unread {
+    background: rgba($accent, 0.05);
+  }
+}
+
+.notification-icon {
+  font-size: 1rem;
+  color: $accent;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $text-primary;
+  line-height: 1.3;
+}
+
+.notification-message {
+  font-size: 0.75rem;
+  color: $text-muted;
+  line-height: 1.3;
+  margin-top: 0.125rem;
+}
+
+.notification-time {
+  font-size: 0.65rem;
+  color: rgba($text-muted, 0.6);
+  margin-top: 0.25rem;
+}
+
+.notification-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $accent;
+  flex-shrink: 0;
+  margin-top: 0.375rem;
+}
+
+.notification-empty {
+  text-align: center;
+  padding: 1.5rem;
+  color: $text-muted;
+
+  .bi-bell-slash {
+    font-size: 1.5rem;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.8rem;
+  }
 }
 
 // ===== Error Banner =====
@@ -1450,4 +1614,119 @@ $border: #252545;
   gap: 0.5rem;
   justify-content: flex-end;
   margin-top: 0.5rem;
+}
+
+// ===== PTO =====
+
+.pto-balances {
+  display: flex;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.pto-balance-card {
+  flex: 1;
+  min-width: 80px;
+  background: $bg-card;
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: 0.5rem 0.625rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.pto-balance-type {
+  font-size: 0.625rem;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.pto-balance-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: $accent;
+}
+
+.pto-balance-detail {
+  font-size: 0.5625rem;
+  color: $text-muted;
+}
+
+.pto-form {
+  background: $bg-card;
+  border: 1px solid $accent;
+  border-radius: 10px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+
+  h4 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin: 0 0 0.625rem;
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: 0.5rem;
+
+  .form-group { flex: 1; }
+}
+
+.pto-form-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.pto-requests-list {
+  margin-bottom: 0.75rem;
+}
+
+.pto-request-item {
+  background: $bg-card;
+  border: 1px solid $border;
+  border-left: 3px solid $info;
+  border-radius: 8px;
+  padding: 0.5rem 0.625rem;
+  margin-bottom: 0.375rem;
+}
+
+.pto-request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.pto-request-type {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.pto-request-dates {
+  font-size: 0.75rem;
+  color: $text-muted;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pto-request-hours {
+  font-size: 0.6875rem;
+  background: $bg-dark;
+  padding: 0.0625rem 0.375rem;
+  border-radius: 4px;
+  color: $text-primary;
+}
+
+.pto-request-reason {
+  font-size: 0.75rem;
+  color: $text-muted;
+  margin-top: 0.25rem;
 }
