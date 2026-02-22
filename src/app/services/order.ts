@@ -21,6 +21,10 @@ import {
   getOrderIdentifier,
   PrintStatus,
   QueuedOrder,
+  OrderActivityEvent,
+  OrderNote,
+  OrderNoteType,
+  OrderTemplate,
 } from '../models';
 import { getDiningOption, DiningOptionType } from '../models/dining-option.model';
 import { AuthService } from './auth';
@@ -796,12 +800,176 @@ export class OrderService implements OnDestroy {
     this._isSyncing.set(false);
   }
 
+  // --- Order Activity Log ---
+
+  private readonly _activityEvents = signal<Map<string, OrderActivityEvent[]>>(new Map());
+  readonly activityEvents = this._activityEvents.asReadonly();
+
+  async loadOrderActivity(orderId: string): Promise<OrderActivityEvent[]> {
+    if (!this.restaurantId) return [];
+
+    try {
+      const events = await firstValueFrom(
+        this.http.get<OrderActivityEvent[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/activity`
+        )
+      );
+      this._activityEvents.update(map => {
+        const updated = new Map(map);
+        updated.set(orderId, events);
+        return updated;
+      });
+      return events;
+    } catch {
+      return [];
+    }
+  }
+
+  getActivityEvents(orderId: string): OrderActivityEvent[] {
+    return this._activityEvents().get(orderId) ?? [];
+  }
+
+  // --- Bulk Status Updates ---
+
+  async bulkUpdateStatus(orderIds: string[], newStatus: GuestOrderStatus): Promise<boolean> {
+    if (!this.restaurantId || orderIds.length === 0) return false;
+    this._error.set(null);
+
+    const backendStatus = mapGuestToBackendStatus(newStatus);
+    try {
+      const results = await firstValueFrom(
+        this.http.patch<any[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/bulk-status`,
+          { orderIds, status: backendStatus }
+        )
+      );
+      const mappedOrders = (results || []).map(r => this.mapOrder(r));
+      this._orders.update(orders => {
+        const updated = [...orders];
+        for (const mapped of mappedOrders) {
+          const idx = updated.findIndex(o => o.guid === mapped.guid);
+          if (idx !== -1) updated[idx] = mapped;
+        }
+        return updated;
+      });
+      return true;
+    } catch (err: any) {
+      this._error.set(err?.error?.message ?? 'Failed to update orders');
+      return false;
+    }
+  }
+
+  // --- Order Notes ---
+
+  async addOrderNote(orderId: string, noteType: OrderNoteType, text: string, checkGuid?: string): Promise<OrderNote | null> {
+    if (!this.restaurantId) return null;
+    this._error.set(null);
+
+    try {
+      const note = await firstValueFrom(
+        this.http.post<OrderNote>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/notes`,
+          { noteType, text, checkGuid }
+        )
+      );
+      // Update the order's notes in place
+      this._orders.update(orders => orders.map(o => {
+        if (o.guid !== orderId) return o;
+        return { ...o, notes: [...(o.notes ?? []), note] };
+      }));
+      return note;
+    } catch {
+      this._error.set('Failed to add note');
+      return null;
+    }
+  }
+
+  // --- Order Templates ---
+
+  private readonly _templates = signal<OrderTemplate[]>([]);
+  readonly templates = this._templates.asReadonly();
+
+  async loadTemplates(): Promise<void> {
+    if (!this.restaurantId) return;
+    try {
+      const templates = await firstValueFrom(
+        this.http.get<OrderTemplate[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/order-templates`
+        )
+      );
+      this._templates.set(templates);
+    } catch {
+      // Templates are optional — fail silently
+    }
+  }
+
+  async saveTemplate(name: string, items: { menuItemId: string; quantity: number; modifiers: string[] }[]): Promise<boolean> {
+    if (!this.restaurantId) return false;
+    this._error.set(null);
+    try {
+      await firstValueFrom(
+        this.http.post(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/order-templates`,
+          { name, items }
+        )
+      );
+      await this.loadTemplates();
+      return true;
+    } catch {
+      this._error.set('Failed to save template');
+      return false;
+    }
+  }
+
+  async deleteTemplate(templateId: string): Promise<boolean> {
+    if (!this.restaurantId) return false;
+    try {
+      await firstValueFrom(
+        this.http.delete(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/order-templates/${templateId}`
+        )
+      );
+      this._templates.update(t => t.filter(tmpl => tmpl.id !== templateId));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   getOrderById(orderId: string): Order | undefined {
     return this._orders().find(o => o.guid === orderId);
   }
 
   clearError(): void {
     this._error.set(null);
+  }
+
+  async remakeItem(
+    orderId: string,
+    checkGuid: string,
+    selectionGuid: string,
+    reason: string
+  ): Promise<boolean> {
+    if (!this.restaurantId) return false;
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    try {
+      const raw = await firstValueFrom(
+        this.http.post<any>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/checks/${checkGuid}/items/${selectionGuid}/remake`,
+          { reason }
+        )
+      );
+      const updated = this.mapOrder(raw);
+      this._orders.update(orders => orders.map(o => o.guid === orderId ? updated : o));
+      return true;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to remake item');
+      return false;
+    } finally {
+      this._isLoading.set(false);
+    }
   }
 
   // --- Backend → Frontend mapping (the bridge) ---
@@ -851,6 +1019,8 @@ export class OrderService implements OnDestroy {
           guid: m.id ?? crypto.randomUUID(),
           name: m.modifierName || m.name || '',
           priceAdjustment: Number(m.priceAdjustment) || 0,
+          isTextModifier: m.isTextModifier ?? false,
+          textValue: m.textValue ?? undefined,
         })),
         specialInstructions: item.specialInstructions,
         course,

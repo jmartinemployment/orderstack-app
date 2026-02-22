@@ -304,4 +304,30 @@ ng build --configuration=production
 - **Build: zero errors**
 - Next: Phase 3 (Steps 11-14) — multi-location staff, labor forecasting, compliance dashboard. Style remaining feature pages to Square light theme.
 
-*Last Updated: February 22, 2026 (Session 8)*
+**[February 22, 2026] (Session 9) — GOS-SPEC-06: Orders Square Parity Enhancements (All 3 Phases Complete):**
+- **Spec:** `.claude/plans/GOS-SPEC-06-orders.md` — 14 steps across 3 phases, ALL COMPLETE
+- **Phase 1 (Steps 1-5) — Order Lifecycle Enhancements:**
+  - Step 1 (Activity Log): `OrderActivityEvent`, `OrderEventType` (20 types) added to `order.model.ts`. `loadOrderActivity()` added to `OrderService`. Activity timeline UI added to order-history detail modal.
+  - Step 2 (Bulk Actions): Multi-select checkboxes, bulk action bar (Mark In Progress/Ready/Complete/Print All), select-all toggle, confirmation modal, `bulkUpdateStatus()` in `OrderService`. All in pending-orders.
+  - Step 3 (Text Modifiers): `allowTextModifier`, `textModifierLabel`, `textModifierMaxLength` added to `ModifierGroup` in `menu.model.ts`. `isTextModifier`, `textValue` added to `Modifier`/`Selection`. Display in order-history detail. POS modifier-prompt UI deferred to POS spec.
+  - Step 4 (Guest Check): Created `features/online-ordering/guest-check/` — standalone component with tip selection, item view, payment. Public route `/guest-check` (no auth guard).
+  - Step 5 (Auto Gratuity): `AutoGratuitySettings` already existed in `settings.model.ts`. Added `_autoGratuitySettings` signal and `saveAutoGratuitySettings()` to `RestaurantSettingsService`.
+- **Phase 2 (Steps 6-10) — Order Search & Fulfillment:**
+  - Step 6 (Advanced Search): Rewrote order-history with `FormsModule`, 6 new filter signals (channel, payment, dateFrom, dateTo, employee, showAdvancedFilters), `activeFilterCount` computed, enhanced `filteredOrders` (channel + payment status + date range + employee + text search including phone). Channel tabs with icons, payment status pills, date range inputs.
+  - Step 7 (Curbside Arrival): Added `arrivedAt?: Date` to `CurbsideInfo` in `dining-option.model.ts`. `curbsideOrders` computed and `getCurbsideWaitTime()` in pending-orders. Wait time display in curbside detail section.
+  - Step 8 (Order Refire/Remake): `remakeItem()` method added to `OrderService`. Remake badge display in order-history detail. KDS remake button deferred to KDS spec.
+  - Step 9 (Multi-Channel Aggregation): Added `'kiosk' | 'qr' | 'delivery'` to `OrderSource` type. Channel filter tabs (All/POS/Online/Kiosk/QR/Delivery/Voice) with icons in both pending-orders and order-history. Channel badges on order cards.
+  - Step 10 (Order Notes): `OrderNote` type and `OrderNoteType` already in models. Interactive "Add Note" form with type selector (internal/kitchen/customer) and send button in order-history detail.
+- **Phase 3 (Steps 11-14) — Advanced Order Features:**
+  - Step 11 (Fractional Splitting): Fraction badge display (`1/3`) in order-history detail for items with `fractionNumerator`/`fractionDenominator`. `splitItemFraction()` already existed in `CheckService`.
+  - Step 12 (Order Templates): Models (`OrderTemplate`, `OrderTemplateItem`) and service methods (`loadOrderTemplates`, `saveOrderTemplate`, `deleteOrderTemplate`, `applyOrderTemplate`) complete. POS quick-order panel UI deferred to POS spec.
+  - Step 13 (Order Retry/Recovery): Offline queue system with localStorage drafts already fully implemented. Added drafts indicator badge (queued count + syncing spinner) in pending-orders header.
+  - Step 14 (Build Verification): `ng build --configuration=production` — zero errors.
+- **Errors fixed:** `_isProcessing` → `_isLoading` in `remakeItem()` (OrderService uses `_isLoading`). Added `'PARTIAL'` to `PaymentStatus` type (TS2367 no-overlap error).
+- **Deferred to other specs:** Text modifier prompt UI (POS spec), order templates panel in POS terminal (POS spec), remake button in KDS (KDS spec). These require modifying POS/KDS components outside GOS-SPEC-06 scope.
+- **Files created:** `features/online-ordering/guest-check/` (ts, html, scss)
+- **Files modified:** `models/order.model.ts`, `models/menu.model.ts`, `models/dining-option.model.ts`, `services/order.ts`, `services/restaurant-settings.ts`, `features/orders/pending-orders/` (ts, html, scss), `features/orders/order-history/` (ts, html, scss), `app.routes.ts`
+- **Build: zero errors**
+- Next: Style remaining feature pages to Square light theme. End-to-end test with live backend.
+
+*Last Updated: February 22, 2026 (Session 9)*

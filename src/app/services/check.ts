@@ -19,7 +19,7 @@ export interface AddItemRequest {
   menuItemName: string;
   quantity: number;
   unitPrice: number;
-  modifiers: { id: string; name: string; priceAdjustment: number }[];
+  modifiers: { id: string; name: string; priceAdjustment: number; isTextModifier?: boolean; textValue?: string }[];
   seatNumber?: number;
   specialInstructions?: string;
   courseGuid?: string;
@@ -391,6 +391,35 @@ export class CheckService {
     } catch (err: unknown) {
       this._error.set(err instanceof Error ? err.message : 'Failed to open tab');
       return false;
+    } finally {
+      this._isProcessing.set(false);
+    }
+  }
+
+  async splitItemFraction(
+    orderId: string,
+    sourceCheckGuid: string,
+    selectionId: string,
+    fractions: number
+  ): Promise<Order | null> {
+    if (!this.restaurantId) {
+      this._error.set('No restaurant selected');
+      return null;
+    }
+
+    this._isProcessing.set(true);
+    this._error.set(null);
+
+    try {
+      return await firstValueFrom(
+        this.http.patch<Order>(
+          `${this.baseUrl(orderId)}/checks/${sourceCheckGuid}/split`,
+          { mode: 'by_fraction', selectionId, fractions }
+        )
+      );
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to split item by fraction');
+      return null;
     } finally {
       this._isProcessing.set(false);
     }

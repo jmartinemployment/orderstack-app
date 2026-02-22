@@ -20,6 +20,8 @@ import {
   defaultTipManagementSettings,
   defaultDeliverySettings,
   defaultTimeclockSettings,
+  AutoGratuitySettings,
+  defaultAutoGratuitySettings,
 } from '../models';
 import { Order } from '../models';
 import { AuthService } from './auth';
@@ -40,6 +42,7 @@ export class RestaurantSettingsService {
   private readonly _tipManagementSettings = signal<TipManagementSettings>(defaultTipManagementSettings());
   private readonly _deliverySettings = signal<DeliverySettings>(defaultDeliverySettings());
   private readonly _timeclockSettings = signal<TimeclockSettings>(defaultTimeclockSettings());
+  private readonly _autoGratuitySettings = signal<AutoGratuitySettings>(defaultAutoGratuitySettings());
   private readonly _capacityBlocks = signal<CapacityBlock[]>([]);
   private readonly _cateringOrders = signal<Order[]>([]);
   private readonly _aiAdminConfig = signal<AIAdminConfig | null>(null);
@@ -55,6 +58,7 @@ export class RestaurantSettingsService {
   readonly tipManagementSettings = this._tipManagementSettings.asReadonly();
   readonly deliverySettings = this._deliverySettings.asReadonly();
   readonly timeclockSettings = this._timeclockSettings.asReadonly();
+  readonly autoGratuitySettings = this._autoGratuitySettings.asReadonly();
   readonly capacityBlocks = this._capacityBlocks.asReadonly();
   readonly cateringOrders = this._cateringOrders.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
@@ -108,6 +112,9 @@ export class RestaurantSettingsService {
 
       const timeclockFromServer = response['timeclockSettings'] as Partial<TimeclockSettings> | undefined;
       this._timeclockSettings.set({ ...defaultTimeclockSettings(), ...this.readLocalStorage('timeclock-settings'), ...timeclockFromServer });
+
+      const autoGratuityFromServer = response['autoGratuitySettings'] as Partial<AutoGratuitySettings> | undefined;
+      this._autoGratuitySettings.set({ ...defaultAutoGratuitySettings(), ...this.readLocalStorage('auto-gratuity-settings'), ...autoGratuityFromServer });
     } catch {
       // Backend may not have these fields yet — fall back to localStorage
       this._aiSettings.set(this.normalizeAISettings({
@@ -120,6 +127,7 @@ export class RestaurantSettingsService {
       this._tipManagementSettings.set({ ...defaultTipManagementSettings(), ...this.readLocalStorage('tip-management-settings') });
       this._deliverySettings.set({ ...defaultDeliverySettings(), ...this.readLocalStorage('delivery-settings') });
       this._timeclockSettings.set({ ...defaultTimeclockSettings(), ...this.readLocalStorage('timeclock-settings') });
+      this._autoGratuitySettings.set({ ...defaultAutoGratuitySettings(), ...this.readLocalStorage('auto-gratuity-settings') });
     } finally {
       this.loadCapacityBlocks();
       this._isLoading.set(false);
@@ -270,6 +278,27 @@ export class RestaurantSettingsService {
     } finally {
       localStorage.setItem(`${this.restaurantId}-timeclock-settings`, JSON.stringify(s));
       this._timeclockSettings.set(s);
+      this._isSaving.set(false);
+    }
+  }
+
+  async saveAutoGratuitySettings(s: AutoGratuitySettings): Promise<void> {
+    if (!this.restaurantId) return;
+    this._isSaving.set(true);
+    this._error.set(null);
+
+    try {
+      await firstValueFrom(
+        this.http.patch(
+          `${this.apiUrl}/restaurant/${this.restaurantId}`,
+          { autoGratuitySettings: s }
+        )
+      );
+    } catch {
+      this._error.set('Settings saved locally only — backend sync failed');
+    } finally {
+      localStorage.setItem(`${this.restaurantId}-auto-gratuity-settings`, JSON.stringify(s));
+      this._autoGratuitySettings.set(s);
       this._isSaving.set(false);
     }
   }

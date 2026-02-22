@@ -16,7 +16,7 @@ export type GuestOrderStatus =
   | 'CLOSED'
   | 'VOIDED';
 
-export type PaymentStatus = 'OPEN' | 'PAID' | 'CLOSED';
+export type PaymentStatus = 'OPEN' | 'PAID' | 'PARTIAL' | 'CLOSED';
 
 export type FulfillmentStatus = 'NEW' | 'HOLD' | 'SENT' | 'ON_THE_FLY';
 
@@ -36,6 +36,9 @@ export type MarketplaceSyncState = 'PENDING' | 'SUCCESS' | 'RETRYING' | 'FAILED'
 export type OrderSource =
   | 'pos'
   | 'online'
+  | 'kiosk'
+  | 'qr'
+  | 'delivery'
   | 'voice'
   | 'marketplace_doordash'
   | 'marketplace_ubereats'
@@ -123,6 +126,8 @@ export interface SelectionModifier {
   guid: string;
   name: string;
   priceAdjustment: number;
+  isTextModifier?: boolean;
+  textValue?: string;
 }
 
 export type DiscountType = 'percentage' | 'flat' | 'comp';
@@ -165,6 +170,14 @@ export interface Selection {
   isComped?: boolean;
   compReason?: string;
   compBy?: string;
+  // Remake tracking
+  isRemake?: boolean;
+  remakeReason?: string;
+  originalSelectionId?: string;
+  // Fractional splitting
+  fractionOf?: string;
+  fractionNumerator?: number;
+  fractionDenominator?: number;
 }
 
 export interface Payment {
@@ -280,6 +293,9 @@ export interface Order {
   throttle?: OrderThrottleInfo;
   marketplace?: MarketplaceOrderInfo;
 
+  // Notes
+  notes?: OrderNote[];
+
   // Client-only: true for offline-queued orders not yet synced
   _queued?: boolean;
 }
@@ -308,6 +324,71 @@ export interface RecentProfitSummary {
   averageMargin: number;
   totalRevenue: number;
   totalCost: number;
+}
+
+// --- Order Activity Log ---
+
+export type OrderEventType =
+  | 'order_created'
+  | 'item_added'
+  | 'item_removed'
+  | 'item_voided'
+  | 'item_comped'
+  | 'status_changed'
+  | 'check_split'
+  | 'check_merged'
+  | 'check_transferred'
+  | 'payment_received'
+  | 'payment_refunded'
+  | 'discount_applied'
+  | 'discount_removed'
+  | 'tab_opened'
+  | 'tab_closed'
+  | 'course_fired'
+  | 'delivery_dispatched'
+  | 'delivery_status_changed'
+  | 'manager_override'
+  | 'note_added';
+
+export interface OrderActivityEvent {
+  id: string;
+  orderId: string;
+  eventType: OrderEventType;
+  description: string;
+  performedBy: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+// --- Order Notes ---
+
+export type OrderNoteType = 'internal' | 'kitchen' | 'customer';
+
+export interface OrderNote {
+  id: string;
+  orderId: string;
+  checkGuid: string | null;
+  noteType: OrderNoteType;
+  text: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+// --- Order Templates ---
+
+export interface OrderTemplate {
+  id: string;
+  restaurantId: string;
+  name: string;
+  items: OrderTemplateItem[];
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface OrderTemplateItem {
+  menuItemId: string;
+  quantity: number;
+  modifiers: string[];
 }
 
 // --- Helper functions ---

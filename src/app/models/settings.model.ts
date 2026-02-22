@@ -210,6 +210,26 @@ export function defaultTimeclockSettings(): TimeclockSettings {
   };
 }
 
+// --- Auto Gratuity ---
+
+export interface AutoGratuitySettings {
+  enabled: boolean;
+  minPartySize: number;
+  gratuityPercent: number;
+  applyToTakeout: boolean;
+  applyToDelivery: boolean;
+}
+
+export function defaultAutoGratuitySettings(): AutoGratuitySettings {
+  return {
+    enabled: false,
+    minPartySize: 6,
+    gratuityPercent: 18,
+    applyToTakeout: false,
+    applyToDelivery: false,
+  };
+}
+
 export interface DeliverySettings {
   provider: DeliveryProviderType;
   autoDispatch: boolean;

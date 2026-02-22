@@ -64,6 +64,7 @@ export interface CurbsideInfo {
   vehicleModel?: string;
   vehicleColor?: string;
   arrivalNotified?: boolean;
+  arrivedAt?: Date;
 }
 
 /**

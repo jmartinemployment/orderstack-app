@@ -60,6 +60,9 @@ export interface ModifierGroup {
   maxSelections: number;
   displayOrder?: number;
   modifiers: Modifier[];
+  allowTextModifier?: boolean;
+  textModifierLabel?: string;
+  textModifierMaxLength?: number;
 }
 
 export interface Modifier {

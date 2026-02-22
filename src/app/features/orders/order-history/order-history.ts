@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { OrderService } from '@services/order';
 import { PaymentService } from '@services/payment';
 import { DeliveryService } from '@services/delivery';
@@ -9,8 +10,10 @@ import { ErrorDisplay } from '@shared/error-display/error-display';
 import { StatusBadge } from '../../kds/status-badge/status-badge';
 import {
   Order,
+  OrderSource,
   GuestOrderStatus,
   ProfitInsight,
+  OrderNoteType,
   getOrderIdentifier,
   getCustomerDisplayName,
   isMarketplaceOrder,
@@ -19,12 +22,17 @@ import {
   getMarketplaceSyncStateLabel,
   getMarketplaceSyncClass,
   MarketplaceSyncState,
+  OrderActivityEvent,
+  OrderEventType,
 } from '@models/index';
 import { exportToCsv } from '@shared/utils/csv-export';
 
+type PaymentStatusFilter = 'all' | 'paid' | 'unpaid' | 'partial' | 'refunded';
+type ChannelFilter = 'all' | OrderSource;
+
 @Component({
   selector: 'os-order-history',
-  imports: [CurrencyPipe, DatePipe, LoadingSpinner, ErrorDisplay, StatusBadge],
+  imports: [CurrencyPipe, DatePipe, FormsModule, LoadingSpinner, ErrorDisplay, StatusBadge],
   templateUrl: './order-history.html',
   styleUrl: './order-history.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,21 +44,31 @@ export class OrderHistory implements OnInit {
   private readonly authService = inject(AuthService);
 
   private readonly _statusFilter = signal<GuestOrderStatus | 'all'>('all');
-  private readonly _marketplaceFilter = signal<'all' | 'marketplace' | 'native'>('all');
+  private readonly _channelFilter = signal<ChannelFilter>('all');
+  private readonly _paymentFilter = signal<PaymentStatusFilter>('all');
   private readonly _searchQuery = signal('');
+  private readonly _dateFrom = signal<string | null>(null);
+  private readonly _dateTo = signal<string | null>(null);
+  private readonly _employeeFilter = signal('');
   private readonly _selectedOrder = signal<Order | null>(null);
   private readonly _isRetryingMarketplaceSync = signal(false);
   private readonly _marketplaceSyncNotice = signal<string | null>(null);
+  private readonly _showAdvancedFilters = signal(false);
 
   private readonly _profitInsights = signal<Map<string, ProfitInsight>>(new Map());
   readonly profitInsights = this._profitInsights.asReadonly();
 
   readonly statusFilter = this._statusFilter.asReadonly();
-  readonly marketplaceFilter = this._marketplaceFilter.asReadonly();
+  readonly channelFilter = this._channelFilter.asReadonly();
+  readonly paymentFilter = this._paymentFilter.asReadonly();
   readonly searchQuery = this._searchQuery.asReadonly();
+  readonly dateFrom = this._dateFrom.asReadonly();
+  readonly dateTo = this._dateTo.asReadonly();
+  readonly employeeFilter = this._employeeFilter.asReadonly();
   readonly selectedOrder = this._selectedOrder.asReadonly();
   readonly isRetryingMarketplaceSync = this._isRetryingMarketplaceSync.asReadonly();
   readonly marketplaceSyncNotice = this._marketplaceSyncNotice.asReadonly();
+  readonly showAdvancedFilters = this._showAdvancedFilters.asReadonly();
   readonly canManageMarketplaceSync = computed(() => {
     const role = this.authService.user()?.role;
     return role === 'owner' || role === 'manager' || role === 'super_admin';
@@ -60,26 +78,85 @@ export class OrderHistory implements OnInit {
   readonly isLoading = this.orderService.isLoading;
   readonly error = this.orderService.error;
 
+  readonly activeFilterCount = computed(() => {
+    let count = 0;
+    if (this._channelFilter() !== 'all') count++;
+    if (this._paymentFilter() !== 'all') count++;
+    if (this._dateFrom()) count++;
+    if (this._dateTo()) count++;
+    if (this._employeeFilter().trim()) count++;
+    return count;
+  });
+
   readonly filteredOrders = computed(() => {
     const statusFilter = this._statusFilter();
-    const sourceFilter = this._marketplaceFilter();
+    const channelFilter = this._channelFilter();
+    const paymentFilter = this._paymentFilter();
     const query = this._searchQuery().toLowerCase().trim();
+    const dateFrom = this._dateFrom();
+    const dateTo = this._dateTo();
+    const employeeQuery = this._employeeFilter().toLowerCase().trim();
+
     return this.orders().filter(order => {
-      const matchesStatus = statusFilter === 'all' || order.guestOrderStatus === statusFilter;
-      if (!matchesStatus) return false;
-      if (sourceFilter !== 'all') {
-        const marketplace = isMarketplaceOrder(order);
-        if (sourceFilter === 'marketplace' && !marketplace) return false;
-        if (sourceFilter === 'native' && marketplace) return false;
+      // Status filter
+      if (statusFilter !== 'all' && order.guestOrderStatus !== statusFilter) return false;
+
+      // Channel filter
+      if (channelFilter !== 'all') {
+        const source = order.orderSource ?? 'pos';
+        if (channelFilter === 'delivery') {
+          if (source !== 'delivery' && !source.startsWith('marketplace_')) return false;
+        } else if (source !== channelFilter) {
+          return false;
+        }
       }
+
+      // Payment status filter
+      if (paymentFilter !== 'all') {
+        const paymentStatus = order.checks[0]?.paymentStatus ?? 'OPEN';
+        if (paymentFilter === 'paid' && paymentStatus !== 'PAID') return false;
+        if (paymentFilter === 'unpaid' && paymentStatus !== 'OPEN') return false;
+        if (paymentFilter === 'partial' && paymentStatus !== 'PARTIAL') return false;
+        if (paymentFilter === 'refunded' && paymentStatus !== 'CLOSED') return false;
+      }
+
+      // Date range
+      if (dateFrom) {
+        const orderDate = order.timestamps.createdDate;
+        if (orderDate < new Date(dateFrom)) return false;
+      }
+      if (dateTo) {
+        const orderDate = order.timestamps.createdDate;
+        const toDate = new Date(dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        if (orderDate > toDate) return false;
+      }
+
+      // Employee filter
+      if (employeeQuery) {
+        const serverName = order.server?.name?.toLowerCase() ?? '';
+        if (!serverName.includes(employeeQuery)) return false;
+      }
+
+      // Text search (order #, customer name, item names, phone, receipt/payment last 4)
       if (query) {
         const orderNum = getOrderIdentifier(order).toLowerCase();
         const customerName = getCustomerDisplayName(order).toLowerCase();
         const items = order.checks.flatMap(c => c.selections).map(s => s.menuItemName.toLowerCase());
-        if (!orderNum.includes(query) && !customerName.includes(query) && !items.some(n => n.includes(query))) {
+        const phone = order.customer?.phone?.toLowerCase() ?? '';
+        const serverName = order.server?.name?.toLowerCase() ?? '';
+
+        if (
+          !orderNum.includes(query) &&
+          !customerName.includes(query) &&
+          !items.some(n => n.includes(query)) &&
+          !phone.includes(query) &&
+          !serverName.includes(query)
+        ) {
           return false;
         }
       }
+
       return true;
     });
   });
@@ -92,10 +169,23 @@ export class OrderHistory implements OnInit {
     { value: 'CLOSED', label: 'Completed' },
     { value: 'VOIDED', label: 'Cancelled' },
   ];
-  readonly marketplaceFilterOptions: Array<{ value: 'all' | 'marketplace' | 'native'; label: string }> = [
-    { value: 'all', label: 'All Sources' },
-    { value: 'marketplace', label: 'Marketplace' },
-    { value: 'native', label: 'Direct' },
+
+  readonly channelOptions: { value: ChannelFilter; label: string; icon: string }[] = [
+    { value: 'all', label: 'All', icon: 'bi-grid' },
+    { value: 'pos', label: 'POS', icon: 'bi-display' },
+    { value: 'online', label: 'Online', icon: 'bi-globe' },
+    { value: 'kiosk', label: 'Kiosk', icon: 'bi-tablet' },
+    { value: 'qr', label: 'QR', icon: 'bi-qr-code' },
+    { value: 'delivery', label: 'Delivery', icon: 'bi-truck' },
+    { value: 'voice', label: 'Voice', icon: 'bi-mic' },
+  ];
+
+  readonly paymentOptions: { value: PaymentStatusFilter; label: string }[] = [
+    { value: 'all', label: 'All' },
+    { value: 'paid', label: 'Paid' },
+    { value: 'unpaid', label: 'Unpaid' },
+    { value: 'partial', label: 'Partial' },
+    { value: 'refunded', label: 'Refunded' },
   ];
 
   ngOnInit(): void {
@@ -106,17 +196,45 @@ export class OrderHistory implements OnInit {
     this._statusFilter.set(status);
   }
 
-  setMarketplaceFilter(filter: 'all' | 'marketplace' | 'native'): void {
-    this._marketplaceFilter.set(filter);
+  setChannelFilter(channel: ChannelFilter): void {
+    this._channelFilter.set(channel);
+  }
+
+  setPaymentFilter(filter: PaymentStatusFilter): void {
+    this._paymentFilter.set(filter);
   }
 
   setSearchQuery(query: string): void {
     this._searchQuery.set(query);
   }
 
+  setDateFrom(date: string): void {
+    this._dateFrom.set(date || null);
+  }
+
+  setDateTo(date: string): void {
+    this._dateTo.set(date || null);
+  }
+
+  setEmployeeFilter(name: string): void {
+    this._employeeFilter.set(name);
+  }
+
+  toggleAdvancedFilters(): void {
+    this._showAdvancedFilters.update(v => !v);
+  }
+
+  clearAdvancedFilters(): void {
+    this._channelFilter.set('all');
+    this._paymentFilter.set('all');
+    this._dateFrom.set(null);
+    this._dateTo.set(null);
+    this._employeeFilter.set('');
+  }
+
   exportOrders(): void {
     const orders = this.filteredOrders();
-    const headers = ['Order #', 'Date', 'Status', 'Type', 'Customer', 'Items', 'Subtotal', 'Tax', 'Tip', 'Total', 'Payment'];
+    const headers = ['Order #', 'Date', 'Status', 'Channel', 'Type', 'Customer', 'Server', 'Items', 'Subtotal', 'Tax', 'Tip', 'Total', 'Payment'];
     const rows = orders.map(order => {
       const items = order.checks.flatMap(c => c.selections).map(s => `${s.quantity}x ${s.menuItemName}`).join('; ');
       const customer = getCustomerDisplayName(order);
@@ -124,8 +242,10 @@ export class OrderHistory implements OnInit {
         getOrderIdentifier(order),
         order.timestamps.createdDate.toLocaleString(),
         order.guestOrderStatus,
+        order.orderSource ?? 'pos',
         order.diningOption.name,
         customer,
+        order.server?.name ?? '',
         items,
         order.subtotal.toFixed(2),
         order.taxAmount.toFixed(2),
@@ -140,6 +260,7 @@ export class OrderHistory implements OnInit {
   selectOrder(order: Order): void {
     this._selectedOrder.set(order);
     this._marketplaceSyncNotice.set(null);
+    this._activityLoaded.set(false);
   }
 
   closeOrderDetail(): void {
@@ -149,6 +270,24 @@ export class OrderHistory implements OnInit {
 
   getOrderNumber(order: Order): string {
     return getOrderIdentifier(order);
+  }
+
+  getChannelIcon(order: Order): string {
+    const source = order.orderSource ?? 'pos';
+    const found = this.channelOptions.find(c => c.value === source);
+    if (found) return found.icon;
+    if (source.startsWith('marketplace_')) return 'bi-shop';
+    return 'bi-display';
+  }
+
+  getChannelLabel(order: Order): string {
+    const source = order.orderSource ?? 'pos';
+    const found = this.channelOptions.find(c => c.value === source);
+    if (found) return found.label;
+    if (source === 'marketplace_doordash') return 'DoorDash';
+    if (source === 'marketplace_ubereats') return 'UberEats';
+    if (source === 'marketplace_grubhub') return 'Grubhub';
+    return 'POS';
   }
 
   async fetchProfitInsight(order: Order): Promise<void> {
@@ -252,6 +391,93 @@ export class OrderHistory implements OnInit {
   dismissRefundStatus(): void {
     this._refundError.set(null);
     this._refundSuccess.set(false);
+  }
+
+  // --- Order Notes ---
+
+  private readonly _showNoteForm = signal(false);
+  private readonly _noteText = signal('');
+  private readonly _noteType = signal<OrderNoteType>('internal');
+  private readonly _isAddingNote = signal(false);
+  readonly showNoteForm = this._showNoteForm.asReadonly();
+  readonly noteText = this._noteText.asReadonly();
+  readonly noteType = this._noteType.asReadonly();
+  readonly isAddingNote = this._isAddingNote.asReadonly();
+
+  toggleNoteForm(): void {
+    this._showNoteForm.update(v => !v);
+    if (!this._showNoteForm()) {
+      this._noteText.set('');
+      this._noteType.set('internal');
+    }
+  }
+
+  setNoteText(text: string): void {
+    this._noteText.set(text);
+  }
+
+  setNoteType(type: OrderNoteType): void {
+    this._noteType.set(type);
+  }
+
+  async submitNote(): Promise<void> {
+    const order = this._selectedOrder();
+    const text = this._noteText().trim();
+    if (!order || !text) return;
+
+    this._isAddingNote.set(true);
+    await this.orderService.addOrderNote(order.guid, this._noteType(), text);
+    this._isAddingNote.set(false);
+    this._noteText.set('');
+    this._showNoteForm.set(false);
+    // Refresh order data
+    this.orderService.loadOrders();
+  }
+
+  // --- Activity Log ---
+
+  private readonly _activityLoading = signal(false);
+  private readonly _activityLoaded = signal(false);
+  readonly activityLoading = this._activityLoading.asReadonly();
+  readonly activityLoaded = this._activityLoaded.asReadonly();
+
+  async loadActivity(order: Order): Promise<void> {
+    this._activityLoading.set(true);
+    await this.orderService.loadOrderActivity(order.guid);
+    this._activityLoading.set(false);
+    this._activityLoaded.set(true);
+  }
+
+  getActivity(): OrderActivityEvent[] {
+    const order = this._selectedOrder();
+    if (!order) return [];
+    return this.orderService.getActivityEvents(order.guid);
+  }
+
+  getActivityIcon(eventType: OrderEventType): string {
+    switch (eventType) {
+      case 'order_created': return 'bi-plus-circle';
+      case 'item_added': return 'bi-cart-plus';
+      case 'item_removed': return 'bi-cart-dash';
+      case 'item_voided': return 'bi-x-circle';
+      case 'item_comped': return 'bi-gift';
+      case 'status_changed': return 'bi-arrow-repeat';
+      case 'check_split': return 'bi-scissors';
+      case 'check_merged': return 'bi-union';
+      case 'check_transferred': return 'bi-arrow-left-right';
+      case 'payment_received': return 'bi-credit-card';
+      case 'payment_refunded': return 'bi-arrow-counterclockwise';
+      case 'discount_applied': return 'bi-percent';
+      case 'discount_removed': return 'bi-x-lg';
+      case 'tab_opened': return 'bi-wallet2';
+      case 'tab_closed': return 'bi-wallet';
+      case 'course_fired': return 'bi-fire';
+      case 'delivery_dispatched': return 'bi-truck';
+      case 'delivery_status_changed': return 'bi-geo-alt';
+      case 'manager_override': return 'bi-shield-lock';
+      case 'note_added': return 'bi-chat-left-text';
+      default: return 'bi-circle';
+    }
   }
 
   retry(): void {

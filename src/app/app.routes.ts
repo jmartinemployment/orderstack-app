@@ -43,6 +43,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/staff/staff-portal/staff-portal').then(m => m.StaffPortal),
   },
   {
+    path: 'guest-check',
+    loadComponent: () => import('./features/online-ordering/guest-check/guest-check').then(m => m.GuestCheck),
+  },
+  {
     path: 'select-restaurant',
     canActivate: [authGuard],
     loadComponent: () => import('./features/auth/restaurant-select/restaurant-select').then(m => m.RestaurantSelect),

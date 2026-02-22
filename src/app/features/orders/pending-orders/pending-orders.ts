@@ -8,6 +8,8 @@ import { ErrorDisplay } from '@shared/error-display/error-display';
 import { StatusBadge } from '../../kds/status-badge/status-badge';
 import {
   Order,
+  OrderSource,
+  GuestOrderStatus,
   ProfitInsight,
   getCustomerDisplayName,
   getOrderIdentifier,
@@ -76,16 +78,58 @@ export class PendingOrders implements OnInit, OnDestroy {
     { value: 'native', label: 'Direct' },
   ];
 
+  private readonly _channelFilter = signal<'all' | OrderSource>('all');
+  readonly channelFilter = this._channelFilter.asReadonly();
+  readonly channelOptions: { value: 'all' | OrderSource; label: string; icon: string }[] = [
+    { value: 'all', label: 'All', icon: 'bi-grid' },
+    { value: 'pos', label: 'POS', icon: 'bi-display' },
+    { value: 'online', label: 'Online', icon: 'bi-globe' },
+    { value: 'kiosk', label: 'Kiosk', icon: 'bi-tablet' },
+    { value: 'qr', label: 'QR', icon: 'bi-qr-code' },
+    { value: 'delivery', label: 'Delivery', icon: 'bi-truck' },
+    { value: 'voice', label: 'Voice', icon: 'bi-mic' },
+  ];
+
+  readonly curbsideOrders = computed(() =>
+    this.orders()
+      .filter(o => ['RECEIVED', 'IN_PREPARATION', 'READY_FOR_PICKUP'].includes(o.guestOrderStatus))
+      .filter(o => o.curbsideInfo !== undefined)
+      .sort((a, b) => {
+        // Arrived customers first
+        const aArrived = a.curbsideInfo?.arrivalNotified ? 1 : 0;
+        const bArrived = b.curbsideInfo?.arrivalNotified ? 1 : 0;
+        if (bArrived !== aArrived) return bArrived - aArrived;
+        return a.timestamps.createdDate.getTime() - b.timestamps.createdDate.getTime();
+      })
+  );
+
   readonly pendingOrders = computed(() => {
     const query = this._searchQuery().toLowerCase().trim();
     return this.orders()
       .filter(order => ['RECEIVED', 'IN_PREPARATION', 'READY_FOR_PICKUP'].includes(order.guestOrderStatus))
       .filter(order => this.matchesMarketplaceFilter(order))
+      .filter(order => this.matchesChannelFilter(order))
       .filter(order => this.matchesSearch(order, query))
       .sort((a, b) => a.timestamps.createdDate.getTime() - b.timestamps.createdDate.getTime());
   });
 
   readonly approvalTimeoutHours = computed(() => this.settingsService.aiSettings().approvalTimeoutHours);
+
+  // Bulk selection
+  private readonly _selectedOrderIds = signal(new Set<string>());
+  private readonly _showBulkConfirm = signal(false);
+  private readonly _bulkAction = signal<GuestOrderStatus | null>(null);
+  private readonly _isBulkProcessing = signal(false);
+  readonly selectedOrderIds = this._selectedOrderIds.asReadonly();
+  readonly showBulkConfirm = this._showBulkConfirm.asReadonly();
+  readonly bulkAction = this._bulkAction.asReadonly();
+  readonly isBulkProcessing = this._isBulkProcessing.asReadonly();
+  readonly selectedCount = computed(() => this._selectedOrderIds().size);
+  readonly allSelected = computed(() => {
+    const pending = this.pendingOrders();
+    const selected = this._selectedOrderIds();
+    return pending.length > 0 && pending.every(o => selected.has(o.guid));
+  });
 
   // Offline queue
   readonly queuedCount = computed(() => this.orderService.queuedCount());
@@ -122,6 +166,10 @@ export class PendingOrders implements OnInit, OnDestroy {
     this._marketplaceFilter.set(filter);
   }
 
+  setChannelFilter(channel: 'all' | OrderSource): void {
+    this._channelFilter.set(channel);
+  }
+
   setSearchQuery(query: string): void {
     this._searchQuery.set(query);
   }
@@ -134,6 +182,43 @@ export class PendingOrders implements OnInit, OnDestroy {
     if (customerName.includes(query)) return true;
     const items = order.checks.flatMap(c => c.selections).map(s => s.menuItemName.toLowerCase());
     return items.some(name => name.includes(query));
+  }
+
+  private matchesChannelFilter(order: Order): boolean {
+    const filter = this._channelFilter();
+    if (filter === 'all') return true;
+    const source = order.orderSource ?? 'pos';
+    if (filter === 'delivery') {
+      return source === 'delivery' || source.startsWith('marketplace_');
+    }
+    return source === filter;
+  }
+
+  getChannelIcon(order: Order): string {
+    const source = order.orderSource ?? 'pos';
+    const found = this.channelOptions.find(c => c.value === source);
+    if (found) return found.icon;
+    if (source.startsWith('marketplace_')) return 'bi-shop';
+    return 'bi-display';
+  }
+
+  getChannelLabel(order: Order): string {
+    const source = order.orderSource ?? 'pos';
+    const found = this.channelOptions.find(c => c.value === source);
+    if (found) return found.label;
+    if (source === 'marketplace_doordash') return 'DoorDash';
+    if (source === 'marketplace_ubereats') return 'UberEats';
+    if (source === 'marketplace_grubhub') return 'Grubhub';
+    return 'POS';
+  }
+
+  getCurbsideWaitTime(order: Order): string {
+    const arrivedAt = order.curbsideInfo?.arrivedAt;
+    if (!arrivedAt) return '';
+    const minutes = Math.floor((Date.now() - arrivedAt.getTime()) / 60000);
+    if (minutes < 1) return 'Just arrived';
+    if (minutes === 1) return '1 min waiting';
+    return `${minutes} mins waiting`;
   }
 
   private matchesMarketplaceFilter(order: Order): boolean {
@@ -312,6 +397,69 @@ export class PendingOrders implements OnInit, OnDestroy {
       case 'FIRED': return 'bg-primary';
       case 'READY': return 'bg-success';
       default: return 'bg-secondary';
+    }
+  }
+
+  // --- Bulk selection methods ---
+
+  toggleOrderSelection(orderId: string): void {
+    this._selectedOrderIds.update(set => {
+      const updated = new Set(set);
+      if (updated.has(orderId)) {
+        updated.delete(orderId);
+      } else {
+        updated.add(orderId);
+      }
+      return updated;
+    });
+  }
+
+  isOrderSelected(orderId: string): boolean {
+    return this._selectedOrderIds().has(orderId);
+  }
+
+  toggleSelectAll(): void {
+    if (this.allSelected()) {
+      this._selectedOrderIds.set(new Set());
+    } else {
+      this._selectedOrderIds.set(new Set(this.pendingOrders().map(o => o.guid)));
+    }
+  }
+
+  clearSelection(): void {
+    this._selectedOrderIds.set(new Set());
+  }
+
+  requestBulkAction(status: GuestOrderStatus): void {
+    if (this.selectedCount() === 0) return;
+    this._bulkAction.set(status);
+    this._showBulkConfirm.set(true);
+  }
+
+  dismissBulkConfirm(): void {
+    this._showBulkConfirm.set(false);
+    this._bulkAction.set(null);
+  }
+
+  async executeBulkAction(): Promise<void> {
+    const action = this._bulkAction();
+    if (!action) return;
+
+    this._isBulkProcessing.set(true);
+    const ids = Array.from(this._selectedOrderIds());
+    await this.orderService.bulkUpdateStatus(ids, action);
+    this._isBulkProcessing.set(false);
+    this._showBulkConfirm.set(false);
+    this._bulkAction.set(null);
+    this._selectedOrderIds.set(new Set());
+  }
+
+  getBulkActionLabel(): string {
+    switch (this._bulkAction()) {
+      case 'IN_PREPARATION': return 'Mark In Progress';
+      case 'READY_FOR_PICKUP': return 'Mark Ready';
+      case 'CLOSED': return 'Mark Complete';
+      default: return 'Update';
     }
   }
 

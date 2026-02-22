@@ -4,6 +4,12 @@
   }
 }
 
+.draft-indicator {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #ffc107;
+  font-size: 0.75rem;
+}
+
 .order-counts {
   .badge-count {
     display: flex;
@@ -297,6 +303,75 @@
     background-color: rgba(220, 53, 69, 0.2);
     color: #dc3545;
   }
+}
+
+// Channel filter
+.channel-filter {
+  background-color: var(--midnight-black, #03020D);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--deep-lake, #1D3273);
+}
+
+.channel-btn {
+  border: 1px solid var(--deep-lake, #1D3273);
+  color: #aaa;
+  background: transparent;
+
+  &:hover {
+    border-color: var(--medium-slate-blue, #7E5EF2);
+    color: #fff;
+  }
+
+  &.active {
+    background-color: var(--medium-slate-blue, #7E5EF2);
+    border-color: var(--medium-slate-blue, #7E5EF2);
+    color: #fff;
+  }
+}
+
+.channel-badge {
+  background-color: rgba(29, 50, 115, 0.4);
+  color: #aaa;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.curbside-wait-time {
+  color: #ffc107;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+// Bulk selection
+.bulk-action-bar {
+  background-color: var(--hermes, #203B8C);
+  border: 1px solid var(--medium-slate-blue, #7E5EF2);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+
+  .selected-count {
+    font-weight: 600;
+    color: #fff;
+    font-size: 0.875rem;
+  }
+}
+
+.select-all-row {
+  padding-left: 0.25rem;
+}
+
+.bulk-check {
+  cursor: pointer;
+}
+
+.order-card.selected {
+  border-color: var(--medium-slate-blue, #7E5EF2);
+  background-color: rgba(126, 94, 242, 0.05);
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 // Course System — PendingOrders
