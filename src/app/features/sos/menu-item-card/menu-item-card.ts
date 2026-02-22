@@ -1,6 +1,6 @@
 import { Component, Input, output, signal, computed, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
-import { MenuItem, Modifier, ModifierGroup, MenuItemBadge } from '@models/index';
+import { MenuItem, Modifier, ModifierGroup, MenuItemBadge, Allergen, AllergenType, isItemAvailable, getItemAvailabilityLabel, getAllergenLabel } from '@models/index';
 import { MenuService } from '@services/menu';
 import { AnalyticsService } from '@services/analytics';
 
@@ -36,6 +36,10 @@ export class MenuItemCard {
   readonly currentLanguage = this.menuService.currentLanguage;
 
   readonly isEightySixed = computed(() => this.itemValue?.eightySixed === true);
+  readonly isUnavailable = computed(() => this.itemValue ? !isItemAvailable(this.itemValue) : false);
+  readonly availabilityLabel = computed(() => this.itemValue ? getItemAvailabilityLabel(this.itemValue) : '');
+  readonly itemAllergens = computed<Allergen[]>(() => this.itemValue?.allergens ?? []);
+  readonly hasNutrition = computed(() => this.itemValue?.nutritionFacts !== null && this.itemValue?.nutritionFacts !== undefined);
 
   readonly badge = computed<MenuItemBadge | null>(() => {
     const item = this.itemValue;
@@ -177,6 +181,10 @@ export class MenuItemCard {
     });
 
     this.closeDetails();
+  }
+
+  getAllergenLabel(type: AllergenType): string {
+    return getAllergenLabel(type);
   }
 
   quickAdd(): void {

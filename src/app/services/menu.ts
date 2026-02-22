@@ -10,6 +10,7 @@ import {
   ReportingCategory,
   ItemOptionSet,
   CsvImportResult,
+  isItemAvailable,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -65,6 +66,10 @@ export class MenuService {
     collectItems(this._categories());
     return items;
   });
+
+  readonly availableItems = computed(() =>
+    this.allItems().filter(item => isItemAvailable(item))
+  );
 
   readonly popularItems = computed(() =>
     this.allItems().filter(item => item.popular || item.isPopular)

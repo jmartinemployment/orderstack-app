@@ -63,7 +63,7 @@
           </div>
           <div class="items-grid">
             @for (item of filteredItems(); track item.id) {
-              <div class="item-card" (click)="addToCart(item)">
+              <div class="item-card" [class.unavailable]="!isItemAvailable(item)" (click)="isItemAvailable(item) ? addToCart(item) : null">
                 @if (item.image) {
                   <div class="item-image" [style.background-image]="'url(' + item.image + ')'"></div>
                 } @else {
@@ -74,6 +74,18 @@
                 <div class="item-details">
                   <span class="item-name">{{ item.name }}</span>
                   <span class="item-price">{{ item.price | currency }}</span>
+                  @if (!isItemAvailable(item)) {
+                    <span class="item-unavailable-msg">Available during {{ getAvailabilityLabel(item) }}</span>
+                  }
+                  @if (getItemAllergens(item).length > 0) {
+                    <div class="item-allergen-icons">
+                      @for (a of getItemAllergens(item); track a.type) {
+                        <span class="kiosk-allergen" [class]="'severity-' + a.severity" [title]="getAllergenLabel(a.type)">
+                          {{ getAllergenLabel(a.type) }}
+                        </span>
+                      }
+                    </div>
+                  }
                 </div>
                 @if (getItemQuantity(item.id) > 0) {
                   <div class="item-qty-badge">{{ getItemQuantity(item.id) }}</div>

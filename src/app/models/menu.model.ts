@@ -216,3 +216,60 @@ export interface CsvImportResult {
   skipped: number;
   errors: string[];
 }
+
+// --- Utility Functions ---
+
+export function isItemAvailable(item: MenuItem, now: Date = new Date()): boolean {
+  const windows = item.availabilityWindows;
+  if (!windows || windows.length === 0) return true;
+
+  const dayOfWeek = now.getDay();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  return windows.some(w => {
+    if (!w.daysOfWeek.includes(dayOfWeek)) return false;
+    const [startH, startM] = w.startTime.split(':').map(Number);
+    const [endH, endM] = w.endTime.split(':').map(Number);
+    const start = startH * 60 + startM;
+    const end = endH * 60 + endM;
+    return currentMinutes >= start && currentMinutes <= end;
+  });
+}
+
+export function getItemAvailabilityLabel(item: MenuItem): string {
+  const windows = item.availabilityWindows;
+  if (!windows || windows.length === 0) return '';
+  return windows.map(w => w.label).filter(Boolean).join(', ');
+}
+
+const ALLERGEN_LABELS: Record<AllergenType, string> = {
+  milk: 'Milk',
+  eggs: 'Eggs',
+  fish: 'Fish',
+  shellfish: 'Shellfish',
+  tree_nuts: 'Tree Nuts',
+  peanuts: 'Peanuts',
+  wheat: 'Wheat',
+  soy: 'Soy',
+  sesame: 'Sesame',
+};
+
+const ALLERGEN_ICONS: Record<AllergenType, string> = {
+  milk: 'bi-droplet-fill',
+  eggs: 'bi-egg-fill',
+  fish: 'bi-water',
+  shellfish: 'bi-shell',
+  tree_nuts: 'bi-tree-fill',
+  peanuts: 'bi-nut-fill',
+  wheat: 'bi-grain',
+  soy: 'bi-flower1',
+  sesame: 'bi-circle-fill',
+};
+
+export function getAllergenLabel(type: AllergenType): string {
+  return ALLERGEN_LABELS[type] ?? type;
+}
+
+export function getAllergenIcon(type: AllergenType): string {
+  return ALLERGEN_ICONS[type] ?? 'bi-exclamation-triangle-fill';
+}

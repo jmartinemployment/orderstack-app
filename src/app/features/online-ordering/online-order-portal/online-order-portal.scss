@@ -206,6 +206,118 @@
   letter-spacing: 0.03em;
 }
 
+// Allergen filter
+.allergen-filter {
+  .filter-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 0.35rem;
+    letter-spacing: 0.03em;
+  }
+}
+
+.allergen-pills {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.allergen-pill {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.65rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { background: rgba(255, 255, 255, 0.1); }
+  &.active {
+    background: rgba(220, 53, 69, 0.2);
+    border-color: rgba(220, 53, 69, 0.4);
+    color: #f5a5ad;
+  }
+}
+
+// Allergen icons on items
+.item-allergens {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.allergen-icon {
+  font-size: 0.6rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+
+  &.severity-contains { background: rgba(220, 53, 69, 0.2); color: #f5a5ad; }
+  &.severity-may_contain { background: rgba(255, 193, 7, 0.15); color: #ffc107; }
+  &.severity-facility { background: rgba(255, 255, 255, 0.06); color: rgba(255, 255, 255, 0.4); }
+}
+
+// Availability
+.item-availability {
+  font-size: 0.7rem;
+  color: #ffc107;
+  margin-top: 0.15rem;
+  font-style: italic;
+}
+
+.menu-item.unavailable {
+  opacity: 0.5;
+}
+
+.unavailable-label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+// Nutrition panel
+.nutrition-panel {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.nutrition-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 0.25rem;
+}
+
+.nutrition-serving {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 0.35rem;
+}
+
+.nutrition-grid {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.nutrition-item {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.6);
+
+  strong {
+    color: #fff;
+  }
+}
+
 .item-action {
   margin-left: 0.75rem;
   flex-shrink: 0;

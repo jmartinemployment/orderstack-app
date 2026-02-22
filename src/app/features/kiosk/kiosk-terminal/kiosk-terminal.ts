@@ -16,7 +16,7 @@ import { AuthService } from '@services/auth';
 import { AnalyticsService } from '@services/analytics';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
-import { MenuItem, getOrderIdentifier } from '@models/index';
+import { MenuItem, getOrderIdentifier, Allergen, isItemAvailable, getItemAvailabilityLabel, getAllergenLabel, AllergenType } from '@models/index';
 
 type KioskStep = 'welcome' | 'menu' | 'upsell' | 'checkout' | 'confirm';
 
@@ -230,6 +230,22 @@ export class KioskTerminal implements OnDestroy {
 
   getCategoryName(categoryId: string): string {
     return this.categories().find(c => c.id === categoryId)?.name ?? '';
+  }
+
+  getItemAllergens(item: MenuItem): Allergen[] {
+    return item.allergens ?? [];
+  }
+
+  getAllergenLabel(type: AllergenType): string {
+    return getAllergenLabel(type);
+  }
+
+  isItemAvailable(item: MenuItem): boolean {
+    return isItemAvailable(item);
+  }
+
+  getAvailabilityLabel(item: MenuItem): string {
+    return getItemAvailabilityLabel(item);
   }
 
   private startResetTimer(): void {

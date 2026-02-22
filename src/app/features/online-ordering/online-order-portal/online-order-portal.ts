@@ -9,7 +9,7 @@ import { DeliveryService } from '@services/delivery';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { GiftCardService } from '@services/gift-card';
-import { MenuItem, Order, OrderType, DeliveryQuote, getOrderIdentifier, LoyaltyProfile, LoyaltyReward, GiftCardBalanceCheck, getTierLabel, getTierColor, tierMeetsMinimum } from '@models/index';
+import { MenuItem, Order, OrderType, DeliveryQuote, getOrderIdentifier, LoyaltyProfile, LoyaltyReward, GiftCardBalanceCheck, getTierLabel, getTierColor, tierMeetsMinimum, AllergenType, Allergen, NutritionFacts, isItemAvailable, getItemAvailabilityLabel, getAllergenLabel } from '@models/index';
 
 type OnlineStep = 'menu' | 'cart' | 'info' | 'confirm';
 type TipPreset = { label: string; percent: number };
@@ -198,10 +198,19 @@ export class OnlineOrderPortal implements OnDestroy {
     Math.max(0, this.cartTotal() - this.giftCardDiscount())
   );
 
+  // Allergen filter
+  private readonly _excludeAllergens = signal<Set<AllergenType>>(new Set());
+  readonly excludeAllergens = this._excludeAllergens.asReadonly();
+  private readonly _expandedItemId = signal<string | null>(null);
+  readonly expandedItemId = this._expandedItemId.asReadonly();
+
+  readonly allAllergenTypes: AllergenType[] = ['milk', 'eggs', 'fish', 'shellfish', 'tree_nuts', 'peanuts', 'wheat', 'soy', 'sesame'];
+
   readonly filteredItems = computed(() => {
     let items = this.menuService.allItems().filter(i => i.isActive !== false && !i.eightySixed);
     const catId = this._selectedCategory();
     const search = this._searchTerm().toLowerCase();
+    const excluded = this._excludeAllergens();
 
     if (catId) {
       items = items.filter(i => i.categoryId === catId);
@@ -211,6 +220,13 @@ export class OnlineOrderPortal implements OnDestroy {
         i.name.toLowerCase().includes(search) ||
         (i.description ?? '').toLowerCase().includes(search)
       );
+    }
+    // Filter out items containing excluded allergens
+    if (excluded.size > 0) {
+      items = items.filter(i => {
+        const allergens = i.allergens ?? [];
+        return !allergens.some(a => a.severity === 'contains' && excluded.has(a.type));
+      });
     }
     return items;
   });
@@ -713,5 +729,47 @@ export class OnlineOrderPortal implements OnDestroy {
       clearInterval(this._trackingInterval);
       this._trackingInterval = null;
     }
+  }
+
+  // --- Allergen & Availability methods ---
+
+  toggleAllergenFilter(type: AllergenType): void {
+    this._excludeAllergens.update(set => {
+      const next = new Set(set);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  }
+
+  isAllergenExcluded(type: AllergenType): boolean {
+    return this._excludeAllergens().has(type);
+  }
+
+  getAllergenLabel(type: AllergenType): string {
+    return getAllergenLabel(type);
+  }
+
+  getItemAllergens(item: MenuItem): Allergen[] {
+    return item.allergens ?? [];
+  }
+
+  isItemAvailable(item: MenuItem): boolean {
+    return isItemAvailable(item);
+  }
+
+  getAvailabilityLabel(item: MenuItem): string {
+    return getItemAvailabilityLabel(item);
+  }
+
+  toggleItemExpanded(itemId: string): void {
+    this._expandedItemId.update(id => id === itemId ? null : itemId);
+  }
+
+  isItemExpanded(itemId: string): boolean {
+    return this._expandedItemId() === itemId;
   }
 }

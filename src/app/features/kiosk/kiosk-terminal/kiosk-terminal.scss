@@ -214,6 +214,36 @@ $touch-min: 44px;
   color: $accent;
 }
 
+.item-unavailable-msg {
+  font-size: 0.65rem;
+  color: #ffc107;
+  font-style: italic;
+}
+
+.item-card.unavailable {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.item-allergen-icons {
+  display: flex;
+  gap: 0.2rem;
+  flex-wrap: wrap;
+  margin-top: 0.15rem;
+}
+
+.kiosk-allergen {
+  font-size: 0.55rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.2rem;
+  text-transform: uppercase;
+  font-weight: 600;
+
+  &.severity-contains { background: rgba(220, 53, 69, 0.2); color: #f5a5ad; }
+  &.severity-may_contain { background: rgba(255, 193, 7, 0.15); color: #ffc107; }
+  &.severity-facility { background: rgba(255, 255, 255, 0.06); color: rgba(255, 255, 255, 0.4); }
+}
+
 .item-qty-badge {
   position: absolute;
   top: 8px;

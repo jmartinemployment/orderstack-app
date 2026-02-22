@@ -74,16 +74,34 @@
         }
       </div>
 
+      <!-- Allergen Filter -->
+      <div class="allergen-filter px-3 pb-2">
+        <div class="filter-label">Exclude allergens:</div>
+        <div class="allergen-pills">
+          @for (type of allAllergenTypes; track type) {
+            <button
+              type="button"
+              class="allergen-pill"
+              [class.active]="isAllergenExcluded(type)"
+              (click)="toggleAllergenFilter(type)"
+            >{{ getAllergenLabel(type) }}</button>
+          }
+        </div>
+      </div>
+
       <!-- Menu Items -->
       <div class="menu-list">
         @for (item of filteredItems(); track item.id) {
-          <div class="menu-item">
-            <div class="item-info">
+          <div class="menu-item" [class.unavailable]="!isItemAvailable(item)">
+            <div class="item-info" (click)="toggleItemExpanded(item.id)">
               <div class="item-name">{{ item.name }}</div>
               @if (item.description) {
                 <div class="item-desc">{{ item.description }}</div>
               }
               <div class="item-price">{{ item.price | currency }}</div>
+              @if (!isItemAvailable(item)) {
+                <div class="item-availability">Available during {{ getAvailabilityLabel(item) }}</div>
+              }
               @if (item.dietary && item.dietary.length > 0) {
                 <div class="item-dietary">
                   @for (d of item.dietary; track d) {
@@ -91,9 +109,46 @@
                   }
                 </div>
               }
+              @if (getItemAllergens(item).length > 0) {
+                <div class="item-allergens">
+                  @for (a of getItemAllergens(item); track a.type) {
+                    <span class="allergen-icon" [class]="'severity-' + a.severity" [title]="getAllergenLabel(a.type) + ' (' + a.severity + ')'">
+                      {{ getAllergenLabel(a.type) }}
+                    </span>
+                  }
+                </div>
+              }
+              <!-- Expandable nutrition panel -->
+              @if (isItemExpanded(item.id) && item.nutritionFacts) {
+                <div class="nutrition-panel">
+                  <div class="nutrition-title">Nutrition Facts</div>
+                  @if (item.nutritionFacts.servingSize) {
+                    <div class="nutrition-serving">Serving: {{ item.nutritionFacts.servingSize }}</div>
+                  }
+                  <div class="nutrition-grid">
+                    @if (item.nutritionFacts.calories !== null) {
+                      <span class="nutrition-item"><strong>{{ item.nutritionFacts.calories }}</strong> cal</span>
+                    }
+                    @if (item.nutritionFacts.totalFat !== null) {
+                      <span class="nutrition-item">Fat {{ item.nutritionFacts.totalFat }}g</span>
+                    }
+                    @if (item.nutritionFacts.protein !== null) {
+                      <span class="nutrition-item">Protein {{ item.nutritionFacts.protein }}g</span>
+                    }
+                    @if (item.nutritionFacts.totalCarbs !== null) {
+                      <span class="nutrition-item">Carbs {{ item.nutritionFacts.totalCarbs }}g</span>
+                    }
+                    @if (item.nutritionFacts.sodium !== null) {
+                      <span class="nutrition-item">Sodium {{ item.nutritionFacts.sodium }}mg</span>
+                    }
+                  </div>
+                </div>
+              }
             </div>
             <div class="item-action">
-              @if (getItemQuantity(item.id) > 0) {
+              @if (!isItemAvailable(item)) {
+                <span class="unavailable-label">Unavailable</span>
+              } @else if (getItemQuantity(item.id) > 0) {
                 <div class="qty-control">
                   <button type="button" class="qty-btn" (click)="decrementItem(item.id)">-</button>
                   <span class="qty-value">{{ getItemQuantity(item.id) }}</span>
