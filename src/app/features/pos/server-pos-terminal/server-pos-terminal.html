@@ -1,68 +1,103 @@
 <div class="pos-terminal">
   <!-- ==================== LEFT PANEL: Table List ==================== -->
-  <aside class="pos-left">
-    <div class="panel-header">
-      <h6>Tables</h6>
-    </div>
+  @if (canUseFloorPlan()) {
+    <aside class="pos-left">
+      <div class="panel-header">
+        <h6>Tables</h6>
+      </div>
 
-    <div class="table-list-scroll">
-      @for (table of tableList(); track table.id) {
-        <button
-          type="button"
-          class="table-row"
-          [class.active]="selectedTableId() === table.id"
-          [class]="getStatusClass(table.status)"
-          (click)="selectTable(table.id)">
-          <div class="table-row-top">
-            <span class="table-num">#{{ table.tableNumber }}</span>
-            @if (table.orderCount > 0) {
-              <span class="table-total">{{ table.total | currency:'USD':'symbol':'1.0-0' }}</span>
-            }
-          </div>
-          @if (table.orderCount > 0) {
-            <div class="table-row-bottom">
-              <span class="table-elapsed">{{ table.elapsed }}m</span>
-              <span class="table-orders">{{ table.orderCount }} order{{ table.orderCount > 1 ? 's' : '' }}</span>
-            </div>
-          } @else {
-            <div class="table-row-bottom">
-              <span class="table-seats">{{ table.capacity }} seats</span>
-              <span class="table-status-label">{{ table.status }}</span>
-            </div>
-          }
-        </button>
-      }
-    </div>
-
-    <!-- Open Tabs -->
-    @if (openTabs().length > 0) {
-      <div class="tabs-section">
-        <h6 class="section-title">Open Tabs</h6>
-        @for (tab of openTabs(); track tab.guid) {
+      <div class="table-list-scroll">
+        @for (table of tableList(); track table.id) {
           <button
             type="button"
-            class="tab-row"
-            [class.active]="activeOrderId() === tab.guid"
-            (click)="selectOrder(tab.guid)">
-            <span class="tab-name">
-              {{ tab.checks[0]?.tabName ?? 'Tab' }}
-              @if (tab.checks[0]?.preauthId) {
-                <i class="bi bi-credit-card-2-front tab-preauth-icon" title="Pre-authorized"></i>
+            class="table-row"
+            [class.active]="selectedTableId() === table.id"
+            [class]="getStatusClass(table.status)"
+            (click)="selectTable(table.id)">
+            <div class="table-row-top">
+              <span class="table-num">#{{ table.tableNumber }}</span>
+              @if (table.orderCount > 0) {
+                <span class="table-total">{{ table.total | currency:'USD':'symbol':'1.0-0' }}</span>
               }
-            </span>
-            <span class="tab-total">{{ tab.totalAmount | currency }}</span>
+            </div>
+            @if (table.orderCount > 0) {
+              <div class="table-row-bottom">
+                <span class="table-elapsed">{{ table.elapsed }}m</span>
+                <span class="table-orders">{{ table.orderCount }} order{{ table.orderCount > 1 ? 's' : '' }}</span>
+              </div>
+            } @else {
+              <div class="table-row-bottom">
+                <span class="table-seats">{{ table.capacity }} seats</span>
+                <span class="table-status-label">{{ table.status }}</span>
+              </div>
+            }
           </button>
         }
       </div>
-    }
 
-    <!-- New Order Button -->
-    @if (selectedTable() && selectedTable()!.status === 'available') {
+      <!-- Open Tabs -->
+      @if (canUseOpenChecks() && openTabs().length > 0) {
+        <div class="tabs-section">
+          <h6 class="section-title">Open Tabs</h6>
+          @for (tab of openTabs(); track tab.guid) {
+            <button
+              type="button"
+              class="tab-row"
+              [class.active]="activeOrderId() === tab.guid"
+              (click)="selectOrder(tab.guid)">
+              <span class="tab-name">
+                {{ tab.checks[0]?.tabName ?? 'Tab' }}
+                @if (tab.checks[0]?.preauthId) {
+                  <i class="bi bi-credit-card-2-front tab-preauth-icon" title="Pre-authorized"></i>
+                }
+              </span>
+              <span class="tab-total">{{ tab.totalAmount | currency }}</span>
+            </button>
+          }
+        </div>
+      }
+
+      <!-- New Order Button -->
+      @if (selectedTable() && selectedTable()!.status === 'available') {
+        <button type="button" class="btn-new-order" (click)="createNewOrder()">
+          <i class="bi bi-plus-circle"></i> New Order
+        </button>
+      }
+    </aside>
+  } @else {
+    <!-- Tableless left panel (Bar / Quick Service) -->
+    <aside class="pos-left">
+      <div class="panel-header">
+        <h6>Orders</h6>
+      </div>
+
+      <!-- Open Tabs (Bar mode) -->
+      @if (canUseOpenChecks() && openTabs().length > 0) {
+        <div class="tabs-section">
+          <h6 class="section-title">Open Tabs</h6>
+          @for (tab of openTabs(); track tab.guid) {
+            <button
+              type="button"
+              class="tab-row"
+              [class.active]="activeOrderId() === tab.guid"
+              (click)="selectOrder(tab.guid)">
+              <span class="tab-name">
+                {{ tab.checks[0]?.tabName ?? 'Tab' }}
+                @if (tab.checks[0]?.preauthId) {
+                  <i class="bi bi-credit-card-2-front tab-preauth-icon" title="Pre-authorized"></i>
+                }
+              </span>
+              <span class="tab-total">{{ tab.totalAmount | currency }}</span>
+            </button>
+          }
+        </div>
+      }
+
       <button type="button" class="btn-new-order" (click)="createNewOrder()">
         <i class="bi bi-plus-circle"></i> New Order
       </button>
-    }
-  </aside>
+    </aside>
+  }
 
   <!-- ==================== CENTER PANEL: Category + Item Grid ==================== -->
   <main class="pos-center">
@@ -118,25 +153,27 @@
     </div>
 
     <!-- Seat selector strip -->
-    <div class="seat-bar">
-      <span class="seat-label">Seat:</span>
-      <button
-        type="button"
-        class="seat-btn"
-        [class.active]="!currentSeat()"
-        (click)="setCurrentSeat(undefined)">
-        —
-      </button>
-      @for (s of [1,2,3,4,5,6,7,8]; track s) {
+    @if (canUseSeatAssignment()) {
+      <div class="seat-bar">
+        <span class="seat-label">Seat:</span>
         <button
           type="button"
           class="seat-btn"
-          [class.active]="currentSeat() === s"
-          (click)="setCurrentSeat(s)">
-          {{ s }}
+          [class.active]="!currentSeat()"
+          (click)="setCurrentSeat(undefined)">
+          —
         </button>
-      }
-    </div>
+        @for (s of [1,2,3,4,5,6,7,8]; track s) {
+          <button
+            type="button"
+            class="seat-btn"
+            [class.active]="currentSeat() === s"
+            (click)="setCurrentSeat(s)">
+            {{ s }}
+          </button>
+        }
+      </div>
+    }
   </main>
 
   <!-- ==================== RIGHT PANEL: Active Check ==================== -->
@@ -160,7 +197,9 @@
             }
           </button>
         }
-        <button type="button" class="check-tab check-tab-add" (click)="addNewCheck()">+</button>
+        @if (canUseOpenChecks()) {
+          <button type="button" class="check-tab check-tab-add" (click)="addNewCheck()">+</button>
+        }
       </div>
 
       <!-- Check items -->
@@ -281,28 +320,36 @@
         <!-- Action bar -->
         <div class="action-bar">
           <div class="action-row">
-            <button type="button" class="action-btn action-send" (click)="sendToKitchen()" title="Send to Kitchen">
-              <i class="bi bi-fire"></i> Send
-            </button>
-            <button type="button" class="action-btn action-split" (click)="openSplitModal()" title="Split Check">
-              <i class="bi bi-scissors"></i> Split
-            </button>
-            <button type="button" class="action-btn action-transfer" (click)="openTransferModal()" title="Transfer">
-              <i class="bi bi-arrow-left-right"></i> Move
-            </button>
+            @if (canUseKds()) {
+              <button type="button" class="action-btn action-send" (click)="sendToKitchen()" title="Send to Kitchen">
+                <i class="bi bi-fire"></i> Send
+              </button>
+            }
+            @if (canUseSplitting()) {
+              <button type="button" class="action-btn action-split" (click)="openSplitModal()" title="Split Check">
+                <i class="bi bi-scissors"></i> Split
+              </button>
+            }
+            @if (canUseTransfer()) {
+              <button type="button" class="action-btn action-transfer" (click)="openTransferModal()" title="Transfer">
+                <i class="bi bi-arrow-left-right"></i> Move
+              </button>
+            }
             <button type="button" class="action-btn action-discount" (click)="openDiscountModal()" title="Discount">
               <i class="bi bi-tag"></i> Disc
             </button>
           </div>
           <div class="action-row">
-            @if (isTabOpen()) {
-              <button type="button" class="action-btn action-tab tab-open" (click)="closeActiveTab()" [disabled]="isTabProcessing()" title="Close Tab">
-                <i class="bi bi-wallet2"></i> Close Tab
-              </button>
-            } @else {
-              <button type="button" class="action-btn action-tab" (click)="openTabModal()" title="Open Tab">
-                <i class="bi bi-wallet2"></i> Tab
-              </button>
+            @if (canUsePreAuthTabs()) {
+              @if (isTabOpen()) {
+                <button type="button" class="action-btn action-tab tab-open" (click)="closeActiveTab()" [disabled]="isTabProcessing()" title="Close Tab">
+                  <i class="bi bi-wallet2"></i> Close Tab
+                </button>
+              } @else {
+                <button type="button" class="action-btn action-tab" (click)="openTabModal()" title="Open Tab">
+                  <i class="bi bi-wallet2"></i> Tab
+                </button>
+              }
             }
             <button type="button" class="action-btn action-print" (click)="printCheck()" title="Print">
               <i class="bi bi-printer"></i> Print
@@ -316,13 +363,17 @@
     } @else {
       <!-- No order selected -->
       <div class="no-order">
-        @if (selectedTable()) {
-          <p>No active order</p>
-          <button type="button" class="btn btn-primary btn-sm" (click)="createNewOrder()">
-            <i class="bi bi-plus-circle me-1"></i> New Order
-          </button>
+        @if (canUseFloorPlan()) {
+          @if (selectedTable()) {
+            <p>No active order</p>
+            <button type="button" class="btn btn-primary btn-sm" (click)="createNewOrder()">
+              <i class="bi bi-plus-circle me-1"></i> New Order
+            </button>
+          } @else {
+            <p>Select a table to begin</p>
+          }
         } @else {
-          <p>Select a table to begin</p>
+          <p>Tap New Order to begin</p>
         }
       </div>
     }

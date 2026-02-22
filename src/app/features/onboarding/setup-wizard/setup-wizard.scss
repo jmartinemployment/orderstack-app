@@ -109,6 +109,19 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
   }
 }
 
+.welcome-step {
+  h2 {
+    font-size: 1.875rem;
+  }
+}
+
+.field-hint {
+  font-size: 0.8125rem;
+  color: $text-secondary;
+  margin-top: 0.5rem;
+  line-height: 1.5;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
@@ -335,7 +348,100 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
   @extend %selection-card;
 }
 
-// --- Tax Auto-Detect (Step 5) ---
+// --- Recommended Mode (Step 5) ---
+
+.recommended-mode-card {
+  padding: 1.5rem;
+  background: $bg-page;
+  border: 1.5px solid $blue;
+  border-radius: $radius-md;
+  box-shadow: 0 0 0 3px rgba($blue, 0.1);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-bottom: 1.5rem;
+
+  .rec-mode-hero {
+    width: 100%;
+    height: 140px;
+    background: linear-gradient(135deg, rgba($blue, 0.08), rgba($blue, 0.02));
+    border-radius: $radius-sm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+
+    i {
+      font-size: 3rem;
+      color: $blue;
+    }
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.375rem;
+    color: $text-primary;
+  }
+
+  .rec-mode-desc {
+    font-size: 0.875rem;
+    color: $text-secondary;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+
+  .rec-mode-features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+
+    @media (max-width: 400px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .rec-feature {
+    font-size: 0.8125rem;
+    color: $text-primary;
+    font-weight: 500;
+
+    i {
+      color: $blue;
+      margin-right: 0.375rem;
+    }
+  }
+}
+
+.select-another-mode {
+  text-align: center;
+  padding-top: 1rem;
+  border-top: 1px solid $border-color;
+
+  .another-mode-label {
+    display: block;
+    font-size: 0.8125rem;
+    color: $text-tertiary;
+    margin-bottom: 0.375rem;
+  }
+
+  .another-mode-link {
+    background: none;
+    border: none;
+    color: $blue;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: $font-family;
+    padding: 0.5rem;
+    transition: opacity 0.15s;
+
+    &:hover { opacity: 0.8; }
+
+    i { font-size: 0.75rem; margin-left: 0.25rem; }
+  }
+}
+
+// --- Tax Auto-Detect (Step 7) ---
 
 .tax-row {
   display: flex;
@@ -413,7 +519,20 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
   &.active { color: $danger; }
 }
 
-// --- Mode Grid (Step 7) ---
+// --- Mode Grid & Group Labels (Step 5) ---
+
+.mode-group-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $text-secondary;
+  margin: 1.5rem 0 0.625rem;
+
+  &:first-of-type {
+    margin-top: 0;
+  }
+}
 
 .mode-grid {
   display: grid;
@@ -461,6 +580,346 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
     font-weight: 600;
     margin-bottom: 0.125rem;
   }
+}
+
+// --- Quick-Add Menu (Step 10: Build Your Menu) ---
+
+.type-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.type-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  background: #fff;
+  color: #000;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: color.adjust($border-color, $lightness: -10%);
+    color: #000;
+  }
+
+  &.active {
+    border-color: $blue;
+    background: $blue-light;
+    color: $blue;
+  }
+
+  i {
+    font-size: 0.9375rem;
+  }
+}
+
+// --- Suggestion Chips ---
+
+.suggestion-panel {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 0.75rem;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  background: #fff;
+  margin-bottom: 1rem;
+}
+
+.suggestion-group {
+  & + & {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid $border-color;
+  }
+}
+
+.suggestion-group-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #000;
+  margin-bottom: 0.375rem;
+}
+
+.suggestion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.suggestion-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3125rem 0.625rem;
+  border: 1px solid $border-color;
+  border-radius: $radius-pill;
+  background: #f0f0f0;
+  font-size: 0.8125rem;
+  color: #000;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+
+  i {
+    font-size: 0.75rem;
+    color: $text-secondary;
+  }
+
+  &:hover {
+    border-color: color.adjust($border-color, $lightness: -10%);
+    background: #e5e5e5;
+  }
+
+  &.added {
+    border-color: $blue;
+    background: $blue-light;
+    color: $blue;
+
+    i {
+      color: $blue;
+    }
+  }
+}
+
+.suggestion-price {
+  font-size: 0.6875rem;
+  color: $text-secondary;
+  margin-left: 0.125rem;
+}
+
+.quick-add-custom {
+  margin-bottom: 0.5rem;
+
+  h5 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #000;
+    margin: 0;
+  }
+}
+
+.quick-add-group {
+  margin-top: 1.25rem;
+
+  h5 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $text-secondary;
+    margin-bottom: 0.375rem;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+
+    i {
+      font-size: 0.8125rem;
+    }
+  }
+}
+
+.quick-add-unit {
+  max-width: 120px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: $text-secondary;
+  border: 1px dashed $border-color;
+  border-radius: $radius-sm;
+  margin-bottom: 1rem;
+
+  i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+}
+
+.quick-add-list {
+  margin-bottom: 1rem;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  overflow: hidden;
+}
+
+.quick-add-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+
+  &.combo-item {
+    align-items: flex-start;
+    padding: 0.75rem;
+  }
+
+  & + & {
+    border-top: 1px solid $border-color;
+  }
+
+  &-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &-name {
+    font-weight: 500;
+    font-size: 0.875rem;
+    display: block;
+  }
+
+  &-category {
+    font-size: 0.75rem;
+    color: $text-secondary;
+  }
+
+  &-detail {
+    font-size: 0.75rem;
+    color: $text-secondary;
+
+    strong {
+      font-weight: 600;
+      color: $text-primary;
+    }
+  }
+
+  &-upgrades {
+    font-size: 0.6875rem;
+    color: color.adjust($text-secondary, $lightness: 10%);
+
+    i {
+      font-size: 0.625rem;
+    }
+  }
+
+  &-price {
+    font-weight: 600;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+}
+
+.btn-icon-sm {
+  background: none;
+  border: none;
+  color: $text-secondary;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+
+  &:hover {
+    color: #dc3545;
+    background: rgba(#dc3545, 0.08);
+  }
+}
+
+.quick-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.quick-add-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  .form-control {
+    flex: 1;
+  }
+
+  .quick-add-price {
+    max-width: 100px;
+  }
+
+  .btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
+// --- Template Preview (Step 9: Selected Template) ---
+
+.template-preview {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $border-color;
+
+  h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+}
+
+.template-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.template-category {
+  h5 {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: $text-secondary;
+    margin-bottom: 0.375rem;
+  }
+}
+
+.template-items {
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  overflow: hidden;
+}
+
+.template-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+
+  & + & {
+    border-top: 1px solid $border-color;
+  }
+
+  span:first-child {
+    font-weight: 500;
+  }
+}
+
+.template-item-price {
+  color: $text-secondary;
+  font-weight: 500;
 }
 
 // --- PIN Section (Step 10) ---

@@ -15,6 +15,7 @@ import { AuthService } from '@services/auth';
 import { PaymentService } from '@services/payment';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { CheckService, AddItemRequest } from '@services/check';
+import { PlatformService } from '@services/platform';
 import { ModifierPrompt, ModifierPromptResult } from '../modifier-prompt';
 import { DiscountModal, DiscountResult } from '../discount-modal';
 import { VoidModal, VoidResult, CompResult } from '../void-modal';
@@ -50,10 +51,20 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   private readonly paymentService = inject(PaymentService);
   private readonly settingsService = inject(RestaurantSettingsService);
   private readonly checkService = inject(CheckService);
+  private readonly platformService = inject(PlatformService);
 
   readonly tables = this.tableService.tables;
   readonly orders = this.orderService.orders;
   readonly isLoading = computed(() => this.menuService.isLoading() || this.orderService.isLoading());
+
+  // Mode-aware feature flags
+  readonly canUseFloorPlan = this.platformService.canUseFloorPlan;
+  readonly canUseOpenChecks = this.platformService.canUseOpenChecks;
+  readonly canUseSeatAssignment = this.platformService.canUseSeatAssignment;
+  readonly canUseKds = this.platformService.canUseKds;
+  readonly canUseSplitting = this.platformService.canUseSplitting;
+  readonly canUseTransfer = this.platformService.canUseTransfer;
+  readonly canUsePreAuthTabs = this.platformService.canUsePreAuthTabs;
 
   // Menu state
   private readonly _categories = signal<MenuCategory[]>([]);
@@ -182,7 +193,9 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.menuService.loadMenu();
-    this.tableService.loadTables();
+    if (this.canUseFloorPlan()) {
+      this.tableService.loadTables();
+    }
     this.orderService.loadOrders();
 
     // Subscribe to menu loaded
@@ -306,19 +319,20 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
 
   async createNewOrder(): Promise<void> {
     const table = this.selectedTable();
-    if (!table) return;
 
     const order = await this.orderService.createOrder({
-      orderType: 'dine-in',
-      tableId: table.id,
-      tableNumber: table.tableNumber,
+      orderType: table ? 'dine-in' : 'takeout',
+      tableId: table?.id ?? null,
+      tableNumber: table?.tableNumber ?? null,
       items: [],
     });
 
     if (order) {
       this._activeOrderId.set(order.guid);
       this._activeCheckIndex.set(0);
-      await this.tableService.updateStatus(table.id, 'occupied');
+      if (table) {
+        await this.tableService.updateStatus(table.id, 'occupied');
+      }
     }
   }
 

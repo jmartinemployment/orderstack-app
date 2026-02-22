@@ -3,58 +3,68 @@
   <header class="pad-header">
     <div class="header-top">
       <h1 class="pad-title">Order Pad</h1>
+      @if (canUseOrderNumbers() && orderNumber()) {
+        <span class="order-number">#{{ orderNumber() }}</span>
+      }
       <button class="btn-refresh" (click)="refreshOrder()" [disabled]="isLoading()">
         <i class="bi bi-arrow-clockwise"></i>
       </button>
     </div>
 
     <div class="header-controls">
-      <!-- Table selector -->
-      <div class="table-selector">
-        <label class="control-label">Table</label>
-        <div class="table-pills">
-          @for (table of availableTables(); track table.id) {
-            <button
-              class="table-pill"
-              [class]="getTableStatusClass(table)"
-              (click)="selectTable(table.id)">
-              {{ table.tableNumber }}
-              @if (table.hasOrder) {
-                <span class="dot"></span>
-              }
-            </button>
-          } @empty {
-            <span class="no-tables">No tables</span>
-          }
-        </div>
-      </div>
-
-      <!-- Seat selector + Order number -->
-      <div class="header-meta">
-        <div class="seat-selector">
-          <label class="control-label">Seat</label>
-          <div class="seat-pills">
-            <button
-              class="seat-pill"
-              [class.active]="currentSeat() === undefined"
-              (click)="setSeat(undefined)">
-              —
-            </button>
-            @for (seat of seatOptions; track seat) {
+      <!-- Gate 1: Table selector — only when floor plan is enabled -->
+      @if (canUseFloorPlan()) {
+        <div class="table-selector">
+          <label class="control-label">Table</label>
+          <div class="table-pills">
+            @for (table of availableTables(); track table.id) {
               <button
-                class="seat-pill"
-                [class.active]="currentSeat() === seat"
-                (click)="setSeat(seat)">
-                {{ seat }}
+                class="table-pill"
+                [class]="getTableStatusClass(table)"
+                (click)="selectTable(table.id)">
+                {{ table.tableNumber }}
+                @if (table.hasOrder) {
+                  <span class="dot"></span>
+                }
               </button>
+            } @empty {
+              <span class="no-tables">No tables</span>
             }
           </div>
         </div>
+      } @else {
+        <!-- Tableless mode: New Order button -->
+        <div class="tableless-controls">
+          <button class="btn btn-primary btn-new-order" (click)="createNewOrder()" [disabled]="isLoading()">
+            <i class="bi bi-plus-lg"></i> New Order
+          </button>
+        </div>
+      }
 
-        @if (orderNumber()) {
-          <span class="order-number">#{{ orderNumber() }}</span>
-        }
-      </div>
+      <!-- Gate 2: Seat selector — only when seat assignment is enabled -->
+      @if (canUseSeatAssignment()) {
+        <div class="header-meta">
+          <div class="seat-selector">
+            <label class="control-label">Seat</label>
+            <div class="seat-pills">
+              <button
+                class="seat-pill"
+                [class.active]="currentSeat() === undefined"
+                (click)="setSeat(undefined)">
+                —
+              </button>
+              @for (seat of seatOptions; track seat) {
+                <button
+                  class="seat-pill"
+                  [class.active]="currentSeat() === seat"
+                  (click)="setSeat(seat)">
+                  {{ seat }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      }
     </div>
   </header>
 

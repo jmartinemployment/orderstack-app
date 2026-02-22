@@ -1,0 +1,297 @@
+$primary: #006aff;
+$border-color: #e8e8e8;
+$text-primary: #1a1a2e;
+$text-secondary: #6b7280;
+
+.device-hub {
+  padding: 0;
+}
+
+// Sub-tab pills
+.hub-tabs {
+  gap: 4px;
+  border-bottom: 1px solid $border-color;
+  padding-bottom: 12px;
+
+  .nav-link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $text-secondary;
+    border-radius: 8px;
+    padding: 6px 14px;
+
+    &.active {
+      background: $primary;
+      color: #fff;
+    }
+
+    &:not(.active):hover {
+      background: #f5f7fa;
+      color: $text-primary;
+    }
+  }
+}
+
+// Generated code display
+.generated-code {
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  letter-spacing: 0.25em;
+  color: $primary;
+}
+
+// Device list
+.device-list,
+.mode-list,
+.profile-list,
+.kiosk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.device-card,
+.mode-card,
+.profile-card,
+.peripheral-card,
+.kiosk-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid $border-color;
+  border-radius: 10px;
+  transition: box-shadow 0.15s ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  &.pending {
+    opacity: 0.75;
+    border-style: dashed;
+  }
+}
+
+.device-icon,
+.peripheral-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #f0f5ff;
+  color: $primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  flex-shrink: 0;
+}
+
+.device-info,
+.mode-info,
+.profile-info,
+.peripheral-info,
+.kiosk-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.device-name,
+.mode-name,
+.profile-name,
+.peripheral-name,
+.kiosk-name {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: $text-primary;
+}
+
+.device-meta,
+.mode-meta,
+.profile-meta,
+.peripheral-meta,
+.kiosk-meta {
+  margin-top: 2px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.device-hw {
+  margin-top: 2px;
+}
+
+.code-badge {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  background: #f0f5ff;
+  color: $primary;
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.1em;
+}
+
+// Status indicator
+.device-status,
+.peripheral-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d1d5db;
+
+  &.active {
+    background: #22c55e;
+  }
+
+  &.pending {
+    background: #f59e0b;
+    animation: pulse 2s infinite;
+  }
+
+  &.error {
+    background: #ef4444;
+  }
+}
+
+.status-label {
+  font-size: 0.75rem;
+  color: $text-secondary;
+  text-transform: capitalize;
+}
+
+.device-actions,
+.mode-actions,
+.profile-actions,
+.kiosk-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+// Settings sections (mode editor)
+.settings-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-group {
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  overflow: hidden;
+
+  summary {
+    padding: 10px 16px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    background: #fafafa;
+    border-bottom: 1px solid transparent;
+
+    &:hover {
+      background: #f5f7fa;
+    }
+  }
+
+  &[open] summary {
+    border-bottom-color: $border-color;
+  }
+}
+
+.settings-body {
+  padding: 16px;
+}
+
+// Routing table
+.routing-table {
+  th {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $text-secondary;
+  }
+
+  td {
+    vertical-align: middle;
+  }
+}
+
+.copies-input {
+  width: 64px;
+}
+
+// Peripheral groups
+.peripheral-group {
+  h6 {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .peripheral-card + .peripheral-card {
+    margin-top: 6px;
+  }
+}
+
+// Empty states
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: $text-secondary;
+
+  i {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    display: block;
+    opacity: 0.4;
+  }
+
+  p {
+    margin-bottom: 16px;
+    font-size: 0.9375rem;
+  }
+}
+
+// Animation
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}
+
+// Responsive
+@media (max-width: 767.98px) {
+  .device-card,
+  .mode-card,
+  .profile-card,
+  .peripheral-card,
+  .kiosk-card {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .device-actions,
+  .mode-actions,
+  .profile-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

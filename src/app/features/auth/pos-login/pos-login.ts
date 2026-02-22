@@ -7,9 +7,12 @@ import {
   output,
   OnDestroy,
 } from '@angular/core';
+import { Router } from '@angular/router';
 import { LaborService } from '@services/labor';
 import { StaffManagementService } from '@services/staff-management';
 import { AuthService } from '@services/auth';
+import { DeviceService } from '@services/device';
+import { PlatformService } from '@services/platform';
 import { TeamMember, PosSession, Timecard } from '@models/index';
 
 export interface PosLoginEvent {
@@ -21,14 +24,19 @@ type PosLoginState = 'idle' | 'entering-passcode' | 'clock-in-prompt' | 'authent
 
 @Component({
   selector: 'os-pos-login',
+  standalone: true,
+  imports: [],
   templateUrl: './pos-login.html',
   styleUrl: './pos-login.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PosLogin implements OnDestroy {
+  private readonly router = inject(Router);
   private readonly laborService = inject(LaborService);
   private readonly staffService = inject(StaffManagementService);
   private readonly authService = inject(AuthService);
+  private readonly deviceService = inject(DeviceService);
+  private readonly platformService = inject(PlatformService);
 
   readonly teamMemberAuthenticated = output<PosLoginEvent>();
 
@@ -72,9 +80,14 @@ export class PosLogin implements OnDestroy {
     return Math.max(0, Math.ceil((until - Date.now()) / 1000));
   });
 
+  readonly passcodeLength = computed(() => {
+    const member = this._selectedMember();
+    return member?.passcode?.length ?? 6;
+  });
+
   readonly passcodeDots = computed(() => {
     const len = this._passcodeDigits().length;
-    return Array.from({ length: 4 }, (_, i) => i < len);
+    return Array.from({ length: this.passcodeLength() }, (_, i) => i < len);
   });
 
   readonly activeTeamMembers = computed(() =>
@@ -98,7 +111,49 @@ export class PosLogin implements OnDestroy {
 
   private async loadTeamMembers(): Promise<void> {
     await this.staffService.loadTeamMembers();
-    this._teamMembers.set(this.staffService.teamMembers());
+    const members = this.staffService.teamMembers();
+
+    if (members.length > 0) {
+      this._teamMembers.set(members);
+      return;
+    }
+
+    // No team members from API — seed owner from onboarding data
+    const raw = localStorage.getItem('onboarding-payload');
+    if (raw) {
+      try {
+        const payload = JSON.parse(raw) as { ownerPin?: { displayName: string; pin: string; role: string }; ownerEmail?: string };
+        if (payload.ownerPin) {
+          const ownerMember: TeamMember = {
+            id: 'owner-local',
+            restaurantId: this.authService.selectedRestaurantId() ?? '',
+            displayName: payload.ownerPin.displayName,
+            email: payload.ownerEmail ?? null,
+            phone: null,
+            passcode: payload.ownerPin.pin,
+            jobs: [{
+              id: 'owner-job',
+              teamMemberId: 'owner-local',
+              jobTitle: 'Owner',
+              hourlyRate: 0,
+              isTipEligible: false,
+              isPrimary: true,
+              overtimeEligible: false,
+            }],
+            permissionSetId: null,
+            permissionSetName: null,
+            assignedLocationIds: [],
+            avatarUrl: null,
+            hireDate: null,
+            status: 'active',
+            createdAt: new Date().toISOString(),
+          };
+          this._teamMembers.set([ownerMember]);
+        }
+      } catch {
+        // Corrupt onboarding data
+      }
+    }
   }
 
   // === Team Member Selection ===
@@ -124,14 +179,15 @@ export class PosLogin implements OnDestroy {
   onDigit(digit: string): void {
     if (this.isLocked() || this._isValidating()) return;
 
+    const maxLen = this.passcodeLength();
     const current = this._passcodeDigits();
-    if (current.length >= 4) return;
+    if (current.length >= maxLen) return;
 
     const updated = current + digit;
     this._passcodeDigits.set(updated);
     this._error.set(null);
 
-    if (updated.length === 4) {
+    if (updated.length === maxLen) {
       this.attemptLogin(updated);
     }
   }
@@ -150,6 +206,27 @@ export class PosLogin implements OnDestroy {
     this._isValidating.set(true);
     this._error.set(null);
 
+    // Try local PIN validation first (for owner seeded from onboarding)
+    const member = this._selectedMember();
+    if (member?.passcode && member.passcode === passcode) {
+      const localSession: PosSession = {
+        token: 'local-session',
+        teamMemberId: member.id,
+        teamMemberName: member.displayName,
+        role: 'owner',
+        permissions: {},
+        clockedIn: true,
+        activeTimecardId: null,
+      };
+      this._session.set(localSession);
+      this._failedAttempts.set(0);
+      this._lockoutUntil.set(null);
+      this._isValidating.set(false);
+      this.completeAuthentication();
+      return;
+    }
+
+    // Fall back to API validation
     const session = await this.laborService.posLogin(passcode);
 
     if (session) {
@@ -227,6 +304,32 @@ export class PosLogin implements OnDestroy {
     this._state.set('authenticated');
     this.teamMemberAuthenticated.emit({ teamMember: member, session });
     this.resetInactivityTimer();
+    this.navigateToLanding();
+  }
+
+  private navigateToLanding(): void {
+    const posMode = this.platformService.currentDeviceMode();
+
+    switch (posMode) {
+      case 'full_service':
+        this.router.navigate(['/floor-plan']);
+        break;
+      case 'quick_service':
+        this.router.navigate(['/order-pad']);
+        break;
+      case 'bar':
+        this.router.navigate(['/pos']);
+        break;
+      case 'bookings':
+        this.router.navigate(['/reservations']);
+        break;
+      case 'services':
+        this.router.navigate(['/invoicing']);
+        break;
+      default:
+        this.router.navigate(['/orders']);
+        break;
+    }
   }
 
   // === Inactivity Management ===

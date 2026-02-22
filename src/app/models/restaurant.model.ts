@@ -36,7 +36,7 @@ export interface RestaurantSettings {
   };
 }
 
-export interface Device {
+export interface LegacyDevice {
   id: string;
   restaurantId: string;
   deviceId: string;

@@ -1,30 +1,32 @@
-
-
 .control-panel {
   h2 {
-    color: var(--dark-teal, #0E7490);
+    color: var(--os-text-primary);
+    font-size: 1.375rem;
+    font-weight: 600;
   }
 }
 
 .nav-tabs {
-  border-bottom-color: var(--deep-lake, #1D3273);
+  border-bottom-color: var(--os-border);
 
   .nav-link {
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--os-text-secondary);
     border: none;
     border-bottom: 2px solid transparent;
     padding: 0.5rem 1rem;
     cursor: pointer;
     background: none;
+    font-size: 0.9375rem;
+    font-weight: 500;
 
     &:hover {
-      color: #fff;
-      border-bottom-color: rgba(126, 94, 242, 0.4);
+      color: var(--os-text-primary);
+      border-bottom-color: var(--os-primary);
     }
 
     &.active {
-      color: var(--dark-teal, #0E7490);
-      border-bottom-color: var(--medium-slate-blue, #7E5EF2);
+      color: var(--os-primary);
+      border-bottom-color: var(--os-primary);
       background: none;
     }
   }

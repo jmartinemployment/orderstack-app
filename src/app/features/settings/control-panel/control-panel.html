@@ -13,8 +13,8 @@
         </li>
       }
     </ul>
-    @if (activeTab() === 'printers') {
-      <os-printer-settings />
+    @if (activeTab() === 'hardware') {
+      <os-device-hub />
     }
     @if (activeTab() === 'ai-settings') {
       <os-ai-settings />
@@ -37,20 +37,17 @@
     @if (activeTab() === 'delivery') {
       <os-delivery-settings />
     }
-    @if (activeTab() === 'stations') {
-      <os-station-settings />
-    }
     @if (activeTab() === 'gift-cards') {
       <os-gift-card-management />
     }
     @if (activeTab() === 'staff') {
       <os-staff-management />
     }
-    @if (activeTab() === 'devices') {
-      <os-device-management />
-    }
     @if (activeTab() === 'time-clock-config') {
       <os-break-config />
+    }
+    @if (activeTab() === 'account-billing') {
+      <os-account-billing />
     }
   } @else {
     <div class="text-center text-muted py-5">

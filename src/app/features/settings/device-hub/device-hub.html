@@ -1,0 +1,698 @@
+<div class="device-hub">
+  <!-- Sub-tab navigation -->
+  <ul class="nav nav-pills hub-tabs mb-4">
+    @for (tab of tabs(); track tab.key) {
+      <li class="nav-item">
+        <button
+          class="nav-link"
+          [class.active]="activeTab() === tab.key"
+          (click)="setTab(tab.key)">
+          <i class="bi {{ tab.icon }} me-1"></i>
+          {{ tab.label }}
+        </button>
+      </li>
+    }
+  </ul>
+
+  <!-- Error banner -->
+  @if (error(); as err) {
+    <div class="alert alert-danger alert-dismissible mb-3">
+      {{ err }}
+      <button type="button" class="btn-close" (click)="clearError()"></button>
+    </div>
+  }
+
+  <!-- ============ DEVICES TAB ============ -->
+  @if (activeTab() === 'devices') {
+    <div class="tab-content-section">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Registered Devices</h5>
+        <button class="btn btn-primary btn-sm" (click)="openCodeForm()">
+          <i class="bi bi-plus-lg me-1"></i> Generate Code
+        </button>
+      </div>
+
+      <!-- Code generation form -->
+      @if (showCodeForm()) {
+        <div class="card mb-3">
+          <div class="card-body">
+            @if (generatedCode(); as code) {
+              <div class="text-center py-3">
+                <p class="text-secondary mb-2">Pairing Code</p>
+                <div class="generated-code">{{ code }}</div>
+                @if (codeExpiry(); as expiry) {
+                  <p class="text-secondary mt-2 mb-2">
+                    <small>Expires {{ expiry | date:'medium' }}</small>
+                  </p>
+                }
+                <button class="btn btn-outline-primary btn-sm" (click)="copyCode()">
+                  <i class="bi bi-clipboard me-1"></i> Copy Code
+                </button>
+                <button class="btn btn-outline-secondary btn-sm ms-2" (click)="closeCodeForm()">Done</button>
+              </div>
+            } @else {
+              <div class="row g-3">
+                <div class="col-md-5">
+                  <label class="form-label">Device Name</label>
+                  <input type="text" class="form-control" placeholder="e.g. Front Counter"
+                    [ngModel]="newDeviceName()" (ngModelChange)="newDeviceName.set($event)" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Device Type</label>
+                  <select class="form-select" [ngModel]="newDeviceType()" (ngModelChange)="newDeviceType.set($event)">
+                    @for (type of deviceTypes; track type) {
+                      <option [value]="type">{{ deviceTypeLabels[type] }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                  <button class="btn btn-primary" [disabled]="isLoading()" (click)="generateCode()">
+                    @if (isLoading()) {
+                      <span class="spinner-border spinner-border-sm me-1"></span>
+                    }
+                    Generate
+                  </button>
+                  <button class="btn btn-outline-secondary" (click)="closeCodeForm()">Cancel</button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Active devices -->
+      @if (activeDevices().length > 0) {
+        <div class="device-list">
+          @for (device of activeDevices(); track device.id) {
+            <div class="device-card">
+              <div class="device-icon">
+                <i class="bi {{ deviceTypeIcons[device.deviceType] }}"></i>
+              </div>
+              <div class="device-info">
+                <div class="device-name">{{ device.deviceName }}</div>
+                <div class="device-meta">
+                  <span class="badge bg-light text-dark">{{ deviceTypeLabels[device.deviceType] }}</span>
+                  @if (device.posMode) {
+                    <span class="badge bg-primary-subtle text-primary">{{ device.posMode }}</span>
+                  }
+                  @if (device.modeId) {
+                    <span class="badge bg-info-subtle text-info">{{ getModeName(device.modeId) }}</span>
+                  }
+                </div>
+                @if (device.hardwareInfo; as hw) {
+                  <div class="device-hw text-secondary">
+                    <small>{{ hw.platform }} {{ hw.screenSize ? '(' + hw.screenSize + ')' : '' }}</small>
+                  </div>
+                }
+              </div>
+              <div class="device-status">
+                <span class="status-dot active"></span>
+                <span class="status-label">Active</span>
+              </div>
+              <div class="device-actions">
+                @if (confirmRevokeId() === device.id) {
+                  <button class="btn btn-danger btn-sm" (click)="revokeDevice()">Confirm</button>
+                  <button class="btn btn-outline-secondary btn-sm" (click)="cancelRevoke()">Cancel</button>
+                } @else {
+                  <button class="btn btn-outline-danger btn-sm" (click)="confirmRevoke(device.id)">Revoke</button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Pending devices -->
+      @if (pendingDevices().length > 0) {
+        <h6 class="mt-4 mb-2 text-secondary">Pending Pairing</h6>
+        <div class="device-list">
+          @for (device of pendingDevices(); track device.id) {
+            <div class="device-card pending">
+              <div class="device-icon">
+                <i class="bi {{ deviceTypeIcons[device.deviceType] }}"></i>
+              </div>
+              <div class="device-info">
+                <div class="device-name">{{ device.deviceName }}</div>
+                <div class="device-meta">
+                  <span class="badge bg-light text-dark">{{ deviceTypeLabels[device.deviceType] }}</span>
+                  <span class="code-badge">{{ device.deviceCode }}</span>
+                </div>
+                <div class="device-hw text-secondary">
+                  <small>Expires {{ device.expiresAt | date:'medium' }}</small>
+                </div>
+              </div>
+              <div class="device-status">
+                <span class="status-dot pending"></span>
+                <span class="status-label">Waiting...</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (activeDevices().length === 0 && pendingDevices().length === 0 && !isLoading()) {
+        <div class="empty-state">
+          <i class="bi bi-cpu"></i>
+          <p>No devices registered yet</p>
+          <button class="btn btn-primary btn-sm" (click)="openCodeForm()">
+            <i class="bi bi-plus-lg me-1"></i> Generate Your First Code
+          </button>
+        </div>
+      }
+
+      <!-- Existing station settings embedded -->
+      <div class="mt-4">
+        <h5>KDS Stations</h5>
+        <os-station-settings />
+      </div>
+    </div>
+  }
+
+  <!-- ============ MODES TAB ============ -->
+  @if (activeTab() === 'modes') {
+    <div class="tab-content-section">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Device Modes</h5>
+        <button class="btn btn-primary btn-sm" (click)="openModeForm()">
+          <i class="bi bi-plus-lg me-1"></i> New Mode
+        </button>
+      </div>
+
+      <!-- Mode form -->
+      @if (showModeForm()) {
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6>{{ editingMode() ? 'Edit Mode' : 'Create Mode' }}</h6>
+            <div class="row g-3 mb-3">
+              <div class="col-md-4">
+                <label class="form-label">Mode Name</label>
+                <input type="text" class="form-control" placeholder="e.g. Front Counter"
+                  [ngModel]="modeFormName()" (ngModelChange)="modeFormName.set($event)" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Device Type</label>
+                <select class="form-select" [ngModel]="modeFormType()" (ngModelChange)="modeFormType.set($event)">
+                  @for (type of deviceTypes; track type) {
+                    <option [value]="type">{{ deviceTypeLabels[type] }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">POS Mode Preset</label>
+                <select class="form-select" [ngModel]="modeFormPosMode()" (ngModelChange)="onPosModeChange($event)">
+                  @for (mode of availableModes(); track mode) {
+                    <option [value]="mode">{{ mode }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <!-- Settings sections -->
+            <div class="settings-sections">
+              <!-- Checkout -->
+              <details class="settings-group" open>
+                <summary>Checkout</summary>
+                <div class="settings-body">
+                  <div class="row g-3">
+                    <div class="col-md-4">
+                      <label class="form-label">Default Order Type</label>
+                      <select class="form-select" [ngModel]="modeFormSettings().checkout.defaultOrderType"
+                        (ngModelChange)="updateCheckoutSetting('defaultOrderType', $event)">
+                        <option value="dine-in">Dine-In</option>
+                        <option value="takeout">Takeout</option>
+                        <option value="delivery">Delivery</option>
+                      </select>
+                    </div>
+                    <div class="col-md-8">
+                      <div class="form-check mt-4">
+                        <input type="checkbox" class="form-check-input" id="requireTable"
+                          [ngModel]="modeFormSettings().checkout.requireTableSelection"
+                          (ngModelChange)="updateCheckoutSetting('requireTableSelection', $event)" />
+                        <label class="form-check-label" for="requireTable">Require table selection</label>
+                      </div>
+                      <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="skipPayment"
+                          [ngModel]="modeFormSettings().checkout.skipPaymentScreen"
+                          (ngModelChange)="updateCheckoutSetting('skipPaymentScreen', $event)" />
+                        <label class="form-check-label" for="skipPayment">Skip payment screen (pay later)</label>
+                      </div>
+                      <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="showTip"
+                          [ngModel]="modeFormSettings().checkout.showTipPrompt"
+                          (ngModelChange)="updateCheckoutSetting('showTipPrompt', $event)" />
+                        <label class="form-check-label" for="showTip">Show tip prompt</label>
+                      </div>
+                      <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="autoKds"
+                          [ngModel]="modeFormSettings().checkout.autoSendToKds"
+                          (ngModelChange)="updateCheckoutSetting('autoSendToKds', $event)" />
+                        <label class="form-check-label" for="autoKds">Auto-send to KDS</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </details>
+
+              <!-- Receipt -->
+              <details class="settings-group">
+                <summary>Receipt</summary>
+                <div class="settings-body">
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="autoPrint"
+                      [ngModel]="modeFormSettings().receipt.autoPrintReceipt"
+                      (ngModelChange)="updateReceiptSetting('autoPrintReceipt', $event)" />
+                    <label class="form-check-label" for="autoPrint">Auto-print customer receipt</label>
+                  </div>
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="autoKitchen"
+                      [ngModel]="modeFormSettings().receipt.autoPrintKitchenTicket"
+                      (ngModelChange)="updateReceiptSetting('autoPrintKitchenTicket', $event)" />
+                    <label class="form-check-label" for="autoKitchen">Auto-print kitchen ticket</label>
+                  </div>
+                </div>
+              </details>
+
+              <!-- Security -->
+              <details class="settings-group">
+                <summary>Security</summary>
+                <div class="settings-body">
+                  <div class="form-check mb-2">
+                    <input type="checkbox" class="form-check-input" id="pinPerTx"
+                      [ngModel]="modeFormSettings().security.requirePinPerTransaction"
+                      (ngModelChange)="updateSecuritySetting('requirePinPerTransaction', $event)" />
+                    <label class="form-check-label" for="pinPerTx">Require PIN per transaction</label>
+                  </div>
+                  <div class="form-check mb-2">
+                    <input type="checkbox" class="form-check-input" id="lockSleep"
+                      [ngModel]="modeFormSettings().security.lockOnSleep"
+                      (ngModelChange)="updateSecuritySetting('lockOnSleep', $event)" />
+                    <label class="form-check-label" for="lockSleep">Lock on sleep</label>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-4">
+                      <label class="form-label">Inactivity Timeout (min)</label>
+                      <input type="number" class="form-control" min="0" max="60"
+                        [ngModel]="modeFormSettings().security.inactivityTimeoutMinutes"
+                        (ngModelChange)="updateSecuritySetting('inactivityTimeoutMinutes', $event)" />
+                    </div>
+                  </div>
+                </div>
+              </details>
+
+              <!-- Display -->
+              <details class="settings-group">
+                <summary>Display</summary>
+                <div class="settings-body">
+                  <div class="row g-3">
+                    <div class="col-md-4">
+                      <label class="form-label">Font Size</label>
+                      <select class="form-select"
+                        [ngModel]="modeFormSettings().display.fontSize"
+                        (ngModelChange)="updateDisplaySetting('fontSize', $event)">
+                        <option value="small">Small</option>
+                        <option value="medium">Medium</option>
+                        <option value="large">Large</option>
+                      </select>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Grid Columns</label>
+                      <select class="form-select"
+                        [ngModel]="modeFormSettings().display.gridColumns"
+                        (ngModelChange)="updateDisplaySetting('gridColumns', +$event)">
+                        <option [value]="2">2</option>
+                        <option [value]="3">3</option>
+                        <option [value]="4">4</option>
+                      </select>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Category Display</label>
+                      <select class="form-select"
+                        [ngModel]="modeFormSettings().display.categoryDisplayMode"
+                        (ngModelChange)="updateDisplaySetting('categoryDisplayMode', $event)">
+                        <option value="tabs">Tabs</option>
+                        <option value="sidebar">Sidebar</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-check mt-2">
+                    <input type="checkbox" class="form-check-input" id="showImages"
+                      [ngModel]="modeFormSettings().display.showImages"
+                      (ngModelChange)="updateDisplaySetting('showImages', $event)" />
+                    <label class="form-check-label" for="showImages">Show item images</label>
+                  </div>
+                </div>
+              </details>
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+              <button class="btn btn-primary" [disabled]="!modeFormName()" (click)="saveMode()">
+                {{ editingMode() ? 'Update' : 'Create' }} Mode
+              </button>
+              <button class="btn btn-outline-secondary" (click)="closeModeForm()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Mode list -->
+      @if (modes().length > 0) {
+        <div class="mode-list">
+          @for (mode of modes(); track mode.id) {
+            <div class="mode-card">
+              <div class="mode-info">
+                <div class="mode-name">
+                  {{ mode.name }}
+                  @if (mode.isDefault) {
+                    <span class="badge bg-warning-subtle text-warning ms-2">Default</span>
+                  }
+                </div>
+                <div class="mode-meta text-secondary">
+                  <small>{{ deviceTypeLabels[mode.deviceType] }}</small>
+                </div>
+              </div>
+              <div class="mode-actions">
+                <button class="btn btn-outline-primary btn-sm" (click)="openModeForm(mode)">Edit</button>
+                @if (confirmDeleteModeId() === mode.id) {
+                  <button class="btn btn-danger btn-sm" (click)="deleteMode()">Confirm</button>
+                  <button class="btn btn-outline-secondary btn-sm" (click)="cancelDeleteMode()">Cancel</button>
+                } @else {
+                  <button class="btn btn-outline-danger btn-sm" (click)="confirmDeleteMode(mode.id)">Delete</button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      } @else if (!isLoading()) {
+        <div class="empty-state">
+          <i class="bi bi-sliders"></i>
+          <p>No device modes configured</p>
+          <button class="btn btn-primary btn-sm" (click)="openModeForm()">
+            <i class="bi bi-plus-lg me-1"></i> Create Your First Mode
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ============ PRINTER PROFILES TAB ============ -->
+  @if (activeTab() === 'printer-profiles') {
+    <div class="tab-content-section">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Printer Profiles</h5>
+        <button class="btn btn-primary btn-sm" (click)="openProfileForm()">
+          <i class="bi bi-plus-lg me-1"></i> New Profile
+        </button>
+      </div>
+
+      <!-- Profile form -->
+      @if (showProfileForm()) {
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6>{{ editingProfile() ? 'Edit Profile' : 'Create Profile' }}</h6>
+            <div class="mb-3">
+              <label class="form-label">Profile Name</label>
+              <input type="text" class="form-control" placeholder="e.g. Main Floor"
+                [ngModel]="profileFormName()" (ngModelChange)="profileFormName.set($event)" />
+            </div>
+
+            <!-- Routing matrix -->
+            <div class="table-responsive">
+              <table class="table table-sm routing-table">
+                <thead>
+                  <tr>
+                    <th>Job Type</th>
+                    <th>Printer</th>
+                    <th>Copies</th>
+                    <th>Enabled</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (rule of profileFormRules(); track rule.jobType; let i = $index) {
+                    <tr>
+                      <td>{{ printJobLabels[rule.jobType] }}</td>
+                      <td>
+                        <select class="form-select form-select-sm"
+                          [ngModel]="rule.printerId"
+                          (ngModelChange)="updateRule(i, 'printerId', $event)">
+                          <option value="">None</option>
+                          @for (printer of printers(); track printer.id) {
+                            <option [value]="printer.id">{{ printer.name }}</option>
+                          }
+                        </select>
+                      </td>
+                      <td>
+                        <input type="number" class="form-control form-control-sm copies-input"
+                          min="1" max="3"
+                          [ngModel]="rule.copies"
+                          (ngModelChange)="updateRule(i, 'copies', $event)" />
+                      </td>
+                      <td>
+                        <input type="checkbox" class="form-check-input"
+                          [ngModel]="rule.enabled"
+                          (ngModelChange)="updateRule(i, 'enabled', $event)" />
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary" [disabled]="!profileFormName()" (click)="saveProfile()">
+                {{ editingProfile() ? 'Update' : 'Create' }} Profile
+              </button>
+              <button class="btn btn-outline-secondary" (click)="closeProfileForm()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Profile list -->
+      @if (printerProfiles().length > 0) {
+        <div class="profile-list">
+          @for (profile of printerProfiles(); track profile.id) {
+            <div class="profile-card">
+              <div class="profile-info">
+                <div class="profile-name">
+                  {{ profile.name }}
+                  @if (profile.isDefault) {
+                    <i class="bi bi-star-fill text-warning ms-1"></i>
+                  }
+                </div>
+                <div class="profile-meta text-secondary">
+                  <small>{{ profile.routingRules.length }} routing rules</small>
+                </div>
+              </div>
+              <div class="profile-actions">
+                <button class="btn btn-outline-primary btn-sm" (click)="openProfileForm(profile)">Edit</button>
+                <button class="btn btn-outline-danger btn-sm" (click)="deleteProfile(profile.id)">Delete</button>
+              </div>
+            </div>
+          }
+        </div>
+      } @else if (!isLoading()) {
+        <div class="empty-state">
+          <i class="bi bi-printer"></i>
+          <p>No printer profiles configured</p>
+          <button class="btn btn-primary btn-sm" (click)="openProfileForm()">
+            <i class="bi bi-plus-lg me-1"></i> Create Your First Profile
+          </button>
+        </div>
+      }
+
+      <!-- Existing printer settings embedded -->
+      <div class="mt-4">
+        <h5>Registered Printers</h5>
+        <os-printer-settings />
+      </div>
+    </div>
+  }
+
+  <!-- ============ PERIPHERALS TAB ============ -->
+  @if (activeTab() === 'peripherals') {
+    <div class="tab-content-section">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Peripherals</h5>
+        <button class="btn btn-primary btn-sm" [disabled]="activeDevices().length === 0" (click)="openPeripheralForm()">
+          <i class="bi bi-plus-lg me-1"></i> Register Peripheral
+        </button>
+      </div>
+
+      <!-- Registration form -->
+      @if (showPeripheralForm()) {
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6>Register Peripheral</h6>
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label class="form-label">Parent Device</label>
+                <select class="form-select"
+                  [ngModel]="peripheralParentDevice()" (ngModelChange)="peripheralParentDevice.set($event)">
+                  <option value="">Select device...</option>
+                  @for (device of activeDevices(); track device.id) {
+                    <option [value]="device.id">{{ device.deviceName }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Type</label>
+                <select class="form-select"
+                  [ngModel]="peripheralType()" (ngModelChange)="peripheralType.set($event)">
+                  @for (type of peripheralTypes; track type) {
+                    <option [value]="type">{{ peripheralTypeLabels[type] }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" placeholder="Optional"
+                  [ngModel]="peripheralName()" (ngModelChange)="peripheralName.set($event)" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Connection</label>
+                <select class="form-select"
+                  [ngModel]="peripheralConnection()" (ngModelChange)="peripheralConnection.set($event)">
+                  @for (conn of connectionTypes; track conn) {
+                    <option [value]="conn">{{ conn | titlecase }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+              <button class="btn btn-primary" [disabled]="!peripheralParentDevice()" (click)="registerPeripheral()">Register</button>
+              <button class="btn btn-outline-secondary" (click)="closePeripheralForm()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Peripheral list grouped by parent device -->
+      @if (peripherals().length > 0) {
+        @for (device of activeDevices(); track device.id) {
+          @if (hasPeripherals(device.id)) {
+            <div class="peripheral-group mb-3">
+              <h6 class="text-secondary">{{ device.deviceName }}</h6>
+              @for (peripheral of getPeripheralsForDevice(device.id); track peripheral.id) {
+                <div class="peripheral-card">
+                  <div class="peripheral-icon">
+                    <i class="bi bi-usb-drive"></i>
+                  </div>
+                  <div class="peripheral-info">
+                    <div class="peripheral-name">{{ peripheral.name }}</div>
+                    <div class="peripheral-meta text-secondary">
+                      <span class="badge bg-light text-dark">{{ peripheralTypeLabels[peripheral.type] }}</span>
+                      <span class="badge bg-light text-dark">{{ peripheral.connectionType }}</span>
+                    </div>
+                  </div>
+                  <div class="peripheral-status">
+                    <span class="status-dot" [class.active]="peripheral.status === 'connected'"
+                      [class.error]="peripheral.status === 'error'"
+                      [class.pending]="peripheral.status === 'disconnected'"></span>
+                    <span class="status-label">{{ peripheral.status }}</span>
+                  </div>
+                  <button class="btn btn-outline-danger btn-sm" (click)="removePeripheral(peripheral.id)">Remove</button>
+                </div>
+              }
+            </div>
+          }
+        }
+      } @else if (!isLoading()) {
+        <div class="empty-state">
+          <i class="bi bi-usb-drive"></i>
+          <p>No peripherals registered</p>
+          @if (activeDevices().length > 0) {
+            <button class="btn btn-primary btn-sm" (click)="openPeripheralForm()">
+              <i class="bi bi-plus-lg me-1"></i> Register Your First Peripheral
+            </button>
+          } @else {
+            <p class="text-secondary"><small>Register a device first to attach peripherals.</small></p>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ============ KIOSK PROFILES TAB ============ -->
+  @if (activeTab() === 'kiosk-profiles') {
+    <div class="tab-content-section">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Kiosk Profiles</h5>
+        <button class="btn btn-primary btn-sm" (click)="openKioskForm()">
+          <i class="bi bi-plus-lg me-1"></i> New Profile
+        </button>
+      </div>
+
+      @if (showKioskForm()) {
+        <div class="card mb-3">
+          <div class="card-body">
+            <h6>Create Kiosk Profile</h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Profile Name</label>
+                <input type="text" class="form-control" placeholder="e.g. Main Entrance Kiosk"
+                  [ngModel]="kioskFormName()" (ngModelChange)="kioskFormName.set($event)" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Welcome Message</label>
+                <input type="text" class="form-control"
+                  [ngModel]="kioskFormWelcome()" (ngModelChange)="kioskFormWelcome.set($event)" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Idle Timeout (seconds)</label>
+                <input type="number" class="form-control" min="30" max="300"
+                  [ngModel]="kioskFormTimeout()" (ngModelChange)="kioskFormTimeout.set($event)" />
+              </div>
+              <div class="col-md-8">
+                <div class="form-check mt-4">
+                  <input type="checkbox" class="form-check-input" id="kioskImages"
+                    [ngModel]="kioskFormShowImages()" (ngModelChange)="kioskFormShowImages.set($event)" />
+                  <label class="form-check-label" for="kioskImages">Show item images</label>
+                </div>
+                <div class="form-check">
+                  <input type="checkbox" class="form-check-input" id="kioskName"
+                    [ngModel]="kioskFormRequireName()" (ngModelChange)="kioskFormRequireName.set($event)" />
+                  <label class="form-check-label" for="kioskName">Require name for order</label>
+                </div>
+                <div class="form-check">
+                  <input type="checkbox" class="form-check-input" id="kioskAccessibility"
+                    [ngModel]="kioskFormAccessibility()" (ngModelChange)="kioskFormAccessibility.set($event)" />
+                  <label class="form-check-label" for="kioskAccessibility">Accessibility mode (larger fonts, high contrast)</label>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+              <button class="btn btn-primary" [disabled]="!kioskFormName()" (click)="saveKioskProfile()">Create Profile</button>
+              <button class="btn btn-outline-secondary" (click)="closeKioskForm()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (kioskProfiles().length > 0) {
+        <div class="kiosk-list">
+          @for (profile of kioskProfiles(); track profile.id) {
+            <div class="kiosk-card">
+              <div class="kiosk-info">
+                <div class="kiosk-name">{{ profile.name }}</div>
+                <div class="kiosk-meta text-secondary">
+                  <small>{{ profile.welcomeMessage }}</small>
+                </div>
+              </div>
+              <div class="kiosk-actions">
+                <button class="btn btn-outline-danger btn-sm" (click)="deleteKioskProfile(profile.id)">Delete</button>
+              </div>
+            </div>
+          }
+        </div>
+      } @else if (!isLoading()) {
+        <div class="empty-state">
+          <i class="bi bi-phone"></i>
+          <p>No kiosk profiles configured</p>
+          <button class="btn btn-primary btn-sm" (click)="openKioskForm()">
+            <i class="bi bi-plus-lg me-1"></i> Create Your First Kiosk Profile
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>

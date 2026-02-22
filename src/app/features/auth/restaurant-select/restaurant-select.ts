@@ -1,5 +1,6 @@
-import { Component, inject, signal, output, effect, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, effect, ChangeDetectionStrategy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '@services/auth';
 import { Restaurant } from '@models/index';
@@ -16,6 +17,7 @@ import { environment } from '@environments/environment';
 })
 export class RestaurantSelect {
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
   readonly authService = inject(AuthService);
   private readonly apiUrl = environment.apiUrl;
 
@@ -31,8 +33,6 @@ export class RestaurantSelect {
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
   readonly userName = this.authService.user;
-
-  restaurantSelected = output<Restaurant>();
 
   constructor() {
     effect(() => {
@@ -72,7 +72,7 @@ export class RestaurantSelect {
 
   selectRestaurant(restaurant: Restaurant): void {
     this.authService.selectRestaurant(restaurant.id, restaurant.name, restaurant.logo);
-    this.restaurantSelected.emit(restaurant);
+    this.router.navigate(['/']);
   }
 
   async logout(): Promise<void> {

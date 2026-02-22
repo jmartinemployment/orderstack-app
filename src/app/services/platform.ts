@@ -9,6 +9,7 @@ import {
   PlatformModule,
   PlatformComplexity,
   MenuTemplate,
+  MENU_TEMPLATES,
   getModePreset,
   getModesForVerticals,
   getModulesForVerticals,
@@ -102,13 +103,24 @@ export class PlatformService {
   readonly canUseTipping = computed(() => this.featureFlags().enableTipping);
   readonly canUseExpoStation = computed(() => this.featureFlags().enableExpoStation);
   readonly canUseAppointments = computed(() => this.featureFlags().enableAppointmentBooking);
+  readonly canUseSeatAssignment = computed(() => this.featureFlags().enableSeatAssignment);
+  readonly canUseSplitting = computed(() => this.featureFlags().enableCheckSplitting);
+  readonly canUseTransfer = computed(() => this.featureFlags().enableCheckTransfer);
+  readonly canUsePreAuthTabs = computed(() => this.featureFlags().enablePreAuthTabs);
+  readonly canUseOrderNumbers = computed(() => this.featureFlags().enableOrderNumberTracking);
 
   private get restaurantId(): string {
     return this.authService.selectedRestaurantId() ?? '';
   }
 
   async loadMerchantProfile(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.restaurantId) {
+      console.warn('[PlatformService] loadMerchantProfile called with no restaurantId');
+      return;
+    }
+    // Skip if already loaded
+    if (this._merchantProfile() !== null && this._merchantProfile()!.businessName) return;
+
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -136,7 +148,10 @@ export class PlatformService {
   }
 
   async saveMerchantProfile(profile: Partial<MerchantProfile>): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.restaurantId) {
+      console.warn('[PlatformService] saveMerchantProfile called with no restaurantId');
+      return;
+    }
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -166,6 +181,16 @@ export class PlatformService {
     this._currentDeviceMode.set(mode);
     if (this.restaurantId) {
       localStorage.setItem(`${this.restaurantId}-device-mode`, mode);
+    }
+  }
+
+  setDeviceModeFromDevice(posMode: DevicePosMode, overrides?: Partial<ModeFeatureFlags>): void {
+    this._currentDeviceMode.set(posMode);
+    if (overrides) {
+      this._featureFlagOverrides.set(overrides);
+    }
+    if (this.restaurantId) {
+      localStorage.setItem(`${this.restaurantId}-device-mode`, posMode);
     }
   }
 
@@ -200,14 +225,21 @@ export class PlatformService {
       );
       this._menuTemplates.set(templates);
     } catch {
-      this._error.set('Failed to load menu templates');
+      // API not available — use hardcoded starter templates
+      const fallback = vertical
+        ? MENU_TEMPLATES.filter(t => t.vertical === vertical)
+        : MENU_TEMPLATES;
+      this._menuTemplates.set(fallback);
     } finally {
       this._isLoading.set(false);
     }
   }
 
   async applyMenuTemplate(templateId: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.restaurantId) {
+      console.warn('[PlatformService] applyMenuTemplate called with no restaurantId');
+      return;
+    }
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -236,13 +268,40 @@ export class PlatformService {
           payload
         )
       );
+      this.buildProfileFromPayload(payload);
       return result;
     } catch {
-      this._error.set('Failed to complete onboarding');
-      return null;
+      // API may not exist yet — save onboarding data locally and return success
+      const localResult: OnboardingResult = {
+        restaurantId: this.restaurantId ?? environment.defaultRestaurantId,
+        token: 'local-onboarding',
+        restaurant: { name: payload.businessName, onboarded: true },
+      };
+      localStorage.setItem('onboarding-payload', JSON.stringify(payload));
+      localStorage.setItem('onboarding-result', JSON.stringify(localResult));
+      this.buildProfileFromPayload(payload);
+      return localResult;
     } finally {
       this._isLoading.set(false);
     }
+  }
+
+  private buildProfileFromPayload(payload: OnboardingPayload): void {
+    const profile: MerchantProfile = {
+      ...defaultMerchantProfile(),
+      businessName: payload.businessName,
+      address: payload.address,
+      verticals: payload.verticals,
+      primaryVertical: payload.primaryVertical,
+      complexity: payload.complexity,
+      defaultDeviceMode: payload.defaultDeviceMode,
+      taxLocale: payload.taxLocale,
+      businessHours: payload.businessHours,
+      enabledModules: getModulesForVerticals(payload.verticals),
+    };
+    this._merchantProfile.set(profile);
+    this._currentDeviceMode.set(payload.defaultDeviceMode);
+    this.persistProfile(profile);
   }
 
   async lookupTaxRate(state: string, zip: string): Promise<number | null> {

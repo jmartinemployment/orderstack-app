@@ -1,17 +1,46 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
 import { RestaurantTable, TableFormData } from '../models';
 import { AuthService } from './auth';
-import { environment } from '@environments/environment';
+import { supabase } from './supabase';
+
+const TABLE = 'restaurant_tables';
+
+function toModel(row: Record<string, unknown>): RestaurantTable {
+  return {
+    id: row['id'] as string,
+    restaurantId: row['restaurant_id'] as string,
+    tableNumber: row['table_number'] as string,
+    tableName: (row['table_name'] as string) ?? null,
+    capacity: row['capacity'] as number,
+    section: (row['section'] as string) ?? null,
+    status: row['status'] as string,
+    posX: (row['pos_x'] as number) ?? null,
+    posY: (row['pos_y'] as number) ?? null,
+    active: row['active'] as boolean,
+    createdAt: row['created_at'] as string,
+    updatedAt: row['updated_at'] as string,
+  };
+}
+
+function toRow(data: Partial<RestaurantTable>): Record<string, unknown> {
+  const map: Record<string, unknown> = {};
+  if (data.restaurantId !== undefined) map['restaurant_id'] = data.restaurantId;
+  if (data.tableNumber !== undefined) map['table_number'] = data.tableNumber;
+  if (data.tableName !== undefined) map['table_name'] = data.tableName;
+  if (data.capacity !== undefined) map['capacity'] = data.capacity;
+  if (data.section !== undefined) map['section'] = data.section;
+  if (data.status !== undefined) map['status'] = data.status;
+  if (data.posX !== undefined) map['pos_x'] = data.posX;
+  if (data.posY !== undefined) map['pos_y'] = data.posY;
+  if (data.active !== undefined) map['active'] = data.active;
+  return map;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class TableService {
-  private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
-  private readonly apiUrl = environment.apiUrl;
 
   private readonly _tables = signal<RestaurantTable[]>([]);
   private readonly _isLoading = signal(false);
@@ -26,64 +55,98 @@ export class TableService {
   }
 
   async loadTables(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.restaurantId) {
+      this._error.set('No restaurant selected — cannot load tables');
+      return;
+    }
     this._isLoading.set(true);
     this._error.set(null);
 
-    try {
-      const tables = await firstValueFrom(
-        this.http.get<RestaurantTable[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/tables`)
-      );
-      this._tables.set(tables);
-    } catch {
-      this._error.set('Failed to load tables');
-    } finally {
-      this._isLoading.set(false);
+    const { data, error } = await supabase()
+      .from(TABLE)
+      .select('*')
+      .eq('restaurant_id', this.restaurantId)
+      .eq('active', true)
+      .order('table_number');
+
+    if (error) {
+      this._error.set(error.message);
+      this._tables.set([]);
+    } else {
+      this._tables.set((data ?? []).map(toModel));
     }
+    this._isLoading.set(false);
   }
 
   async createTable(data: TableFormData): Promise<RestaurantTable | null> {
-    if (!this.restaurantId) return null;
-    this._error.set(null);
-
-    try {
-      const table = await firstValueFrom(
-        this.http.post<RestaurantTable>(`${this.apiUrl}/restaurant/${this.restaurantId}/tables`, data)
-      );
-      this._tables.update(tables => [...tables, table]);
-      return table;
-    } catch {
-      this._error.set('Failed to create table');
+    if (!this.restaurantId) {
+      this._error.set('No restaurant selected — cannot create table');
       return null;
     }
+    this._error.set(null);
+
+    const now = new Date().toISOString();
+    const row = {
+      id: crypto.randomUUID(),
+      restaurant_id: this.restaurantId,
+      table_number: data.tableNumber,
+      table_name: data.tableName ?? null,
+      capacity: data.capacity,
+      section: data.section ?? null,
+      status: 'available',
+      pos_x: data.posX ?? null,
+      pos_y: data.posY ?? null,
+      active: true,
+      created_at: now,
+      updated_at: now,
+    };
+
+    const { data: inserted, error } = await supabase()
+      .from(TABLE)
+      .insert(row)
+      .select()
+      .single();
+
+    if (error) {
+      this._error.set(error.message);
+      return null;
+    }
+
+    const table = toModel(inserted);
+    this._tables.update(tables => [...tables, table]);
+    return table;
   }
 
   async updateTable(tableId: string, data: Partial<RestaurantTable>): Promise<RestaurantTable | null> {
-    if (!this.restaurantId) return null;
-    this._error.set(null);
-
-    try {
-      const updated = await firstValueFrom(
-        this.http.patch<RestaurantTable>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/tables/${tableId}`,
-          data
-        )
-      );
-      this._tables.update(tables =>
-        tables.map(t => t.id === tableId ? updated : t)
-      );
-      return updated;
-    } catch {
-      this._error.set('Failed to update table');
+    if (!this.restaurantId) {
+      this._error.set('No restaurant selected — cannot update table');
       return null;
     }
+    this._error.set(null);
+
+    const row = toRow(data);
+    row['updated_at'] = new Date().toISOString();
+
+    const { data: updated, error } = await supabase()
+      .from(TABLE)
+      .update(row)
+      .eq('id', tableId)
+      .eq('restaurant_id', this.restaurantId)
+      .select()
+      .single();
+
+    if (error) {
+      this._error.set(error.message);
+      return null;
+    }
+
+    const table = toModel(updated);
+    this._tables.update(tables => tables.map(t => (t.id === tableId ? table : t)));
+    return table;
   }
 
   async updatePosition(tableId: string, posX: number, posY: number): Promise<void> {
-    const result = await this.updateTable(tableId, { posX, posY });
-    if (!result) {
-      this._error.set('Failed to save table position');
-    }
+    await this.updateTable(tableId, { posX, posY });
   }
 
   async updateStatus(tableId: string, status: string): Promise<void> {
@@ -91,18 +154,24 @@ export class TableService {
   }
 
   async deleteTable(tableId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
-    this._error.set(null);
-
-    try {
-      await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/tables/${tableId}`)
-      );
-      this._tables.update(tables => tables.filter(t => t.id !== tableId));
-      return true;
-    } catch {
-      this._error.set('Failed to delete table');
+    if (!this.restaurantId) {
+      this._error.set('No restaurant selected — cannot delete table');
       return false;
     }
+    this._error.set(null);
+
+    const { error } = await supabase()
+      .from(TABLE)
+      .update({ active: false, updated_at: new Date().toISOString() })
+      .eq('id', tableId)
+      .eq('restaurant_id', this.restaurantId);
+
+    if (error) {
+      this._error.set(error.message);
+      return false;
+    }
+
+    this._tables.update(tables => tables.filter(t => t.id !== tableId));
+    return true;
   }
 }

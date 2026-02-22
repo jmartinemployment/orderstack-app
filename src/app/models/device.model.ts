@@ -1,0 +1,299 @@
+import { DevicePosMode } from './platform.model';
+
+// ===================================================================
+// GOS-SPEC-02: POS Device Setup & Hardware Management
+// All types, interfaces, constants, and factory functions for the
+// unified hardware management system — devices, modes, printer
+// profiles, peripherals, and kiosk profiles.
+// ===================================================================
+
+// --- Device Types ---
+
+export type DeviceType = 'pos_terminal' | 'kds_station' | 'kiosk' | 'order_pad' | 'printer_station';
+
+// --- Device (replaces DeviceRegistration from staff-management.model.ts) ---
+
+export interface Device {
+  id: string;
+  restaurantId: string;
+  locationId: string | null;
+  deviceCode: string;
+  deviceName: string;
+  deviceType: DeviceType;
+  posMode: DevicePosMode | null;
+  modeId: string | null;
+  status: 'pending' | 'active' | 'revoked';
+  hardwareInfo: DeviceHardwareInfo | null;
+  lastSeenAt: string | null;
+  pairedAt: string | null;
+  expiresAt: string;
+  createdAt: string;
+}
+
+export interface DeviceHardwareInfo {
+  platform: string;
+  osVersion: string | null;
+  appVersion: string | null;
+  screenSize: string | null;
+  serialNumber: string | null;
+}
+
+export interface DeviceFormData {
+  deviceName: string;
+  deviceType: DeviceType;
+  locationId?: string;
+  modeId?: string;
+  posMode?: DevicePosMode;
+}
+
+// --- Device Modes (reusable hardware config profiles) ---
+
+export interface DeviceMode {
+  id: string;
+  restaurantId: string;
+  name: string;
+  deviceType: DeviceType;
+  isDefault: boolean;
+  settings: DeviceModeSettings;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DeviceModeSettings {
+  checkout: {
+    defaultOrderType: 'dine-in' | 'takeout' | 'delivery';
+    requireTableSelection: boolean;
+    skipPaymentScreen: boolean;
+    autoSendToKds: boolean;
+    showTipPrompt: boolean;
+    tipPresets: number[];
+  };
+  receipt: {
+    autoPrintReceipt: boolean;
+    autoPrintKitchenTicket: boolean;
+    printerProfileId: string | null;
+  };
+  security: {
+    requirePinPerTransaction: boolean;
+    inactivityTimeoutMinutes: number;
+    lockOnSleep: boolean;
+  };
+  display: {
+    fontSize: 'small' | 'medium' | 'large';
+    showImages: boolean;
+    gridColumns: 2 | 3 | 4;
+    categoryDisplayMode: 'tabs' | 'sidebar';
+  };
+}
+
+export interface DeviceModeFormData {
+  name: string;
+  deviceType: DeviceType;
+  isDefault?: boolean;
+  settings: DeviceModeSettings;
+}
+
+// --- Printer Profiles (print job routing) ---
+
+export type PrintJobType =
+  | 'customer_receipt'
+  | 'kitchen_ticket'
+  | 'bar_ticket'
+  | 'expo_ticket'
+  | 'order_summary'
+  | 'close_of_day';
+
+export interface PrinterProfile {
+  id: string;
+  restaurantId: string;
+  name: string;
+  isDefault: boolean;
+  routingRules: PrintRoutingRule[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PrintRoutingRule {
+  jobType: PrintJobType;
+  printerId: string;
+  copies: number;
+  enabled: boolean;
+}
+
+export interface PrinterProfileFormData {
+  name: string;
+  isDefault?: boolean;
+  routingRules: PrintRoutingRule[];
+}
+
+// --- Peripheral Devices ---
+
+export type PeripheralType = 'cash_drawer' | 'barcode_scanner' | 'card_reader' | 'customer_display' | 'scale';
+export type PeripheralConnectionType = 'usb' | 'bluetooth' | 'network';
+
+export interface PeripheralDevice {
+  id: string;
+  restaurantId: string;
+  parentDeviceId: string;
+  type: PeripheralType;
+  name: string;
+  connectionType: PeripheralConnectionType;
+  status: 'connected' | 'disconnected' | 'error';
+  lastSeenAt: string | null;
+}
+
+// --- Kiosk Profiles ---
+
+export interface KioskProfile {
+  id: string;
+  restaurantId: string;
+  name: string;
+  posMode: DevicePosMode;
+  welcomeMessage: string;
+  showImages: boolean;
+  enabledCategories: string[];
+  requireNameForOrder: boolean;
+  maxIdleSeconds: number;
+  enableAccessibility: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface KioskProfileFormData {
+  name: string;
+  posMode?: DevicePosMode;
+  welcomeMessage?: string;
+  showImages?: boolean;
+  enabledCategories?: string[];
+  requireNameForOrder?: boolean;
+  maxIdleSeconds?: number;
+  enableAccessibility?: boolean;
+}
+
+// --- DeviceHub Tab Navigation ---
+
+export type DeviceHubTab = 'devices' | 'modes' | 'printer-profiles' | 'peripherals' | 'kiosk-profiles';
+
+// --- Factory Functions ---
+
+export function defaultModeSettings(): DeviceModeSettings {
+  return {
+    checkout: {
+      defaultOrderType: 'dine-in',
+      requireTableSelection: true,
+      skipPaymentScreen: false,
+      autoSendToKds: true,
+      showTipPrompt: true,
+      tipPresets: [15, 18, 20, 25],
+    },
+    receipt: {
+      autoPrintReceipt: true,
+      autoPrintKitchenTicket: true,
+      printerProfileId: null,
+    },
+    security: {
+      requirePinPerTransaction: false,
+      inactivityTimeoutMinutes: 5,
+      lockOnSleep: true,
+    },
+    display: {
+      fontSize: 'medium',
+      showImages: true,
+      gridColumns: 3,
+      categoryDisplayMode: 'tabs',
+    },
+  };
+}
+
+export function defaultModeSettingsForPosMode(posMode: DevicePosMode): DeviceModeSettings {
+  const base = defaultModeSettings();
+
+  switch (posMode) {
+    case 'quick_service':
+      return {
+        ...base,
+        checkout: {
+          ...base.checkout,
+          defaultOrderType: 'takeout',
+          requireTableSelection: false,
+          skipPaymentScreen: false,
+          showTipPrompt: true,
+        },
+        receipt: {
+          ...base.receipt,
+          autoPrintKitchenTicket: true,
+        },
+        display: {
+          ...base.display,
+          showImages: true,
+          gridColumns: 3,
+        },
+      };
+
+    case 'full_service':
+      return {
+        ...base,
+        checkout: {
+          ...base.checkout,
+          defaultOrderType: 'dine-in',
+          requireTableSelection: true,
+          skipPaymentScreen: true,
+          showTipPrompt: true,
+        },
+        receipt: {
+          ...base.receipt,
+          autoPrintKitchenTicket: true,
+        },
+        display: {
+          ...base.display,
+          showImages: true,
+          gridColumns: 3,
+        },
+      };
+
+    case 'bar':
+      return {
+        ...base,
+        checkout: {
+          ...base.checkout,
+          defaultOrderType: 'dine-in',
+          requireTableSelection: false,
+          skipPaymentScreen: true,
+          showTipPrompt: true,
+        },
+        receipt: {
+          ...base.receipt,
+          autoPrintKitchenTicket: true,
+        },
+        display: {
+          ...base.display,
+          showImages: false,
+          gridColumns: 2,
+        },
+      };
+
+    case 'retail':
+      return {
+        ...base,
+        checkout: {
+          ...base.checkout,
+          defaultOrderType: 'takeout',
+          requireTableSelection: false,
+          skipPaymentScreen: false,
+          showTipPrompt: false,
+        },
+        receipt: {
+          ...base.receipt,
+          autoPrintKitchenTicket: false,
+        },
+        display: {
+          ...base.display,
+          showImages: true,
+          gridColumns: 4,
+        },
+      };
+
+    default:
+      return base;
+  }
+}

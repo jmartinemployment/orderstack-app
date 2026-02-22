@@ -1,5 +1,6 @@
-import { Component, inject, signal, output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '@services/auth';
 import { ErrorDisplay } from '@shared/error-display/error-display';
 
@@ -13,12 +14,10 @@ import { ErrorDisplay } from '@shared/error-display/error-display';
 export class Login {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly isLoading = this.authService.isLoading;
   readonly error = this.authService.error;
-  readonly isAuthenticated = this.authService.isAuthenticated;
-
-  loginSuccess = output<void>();
 
   loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -42,7 +41,16 @@ export class Login {
     const success = await this.authService.login({ email, password });
 
     if (success) {
-      this.loginSuccess.emit();
+      const restaurants = this.authService.restaurants();
+
+      if (restaurants.length === 0) {
+        this.router.navigate(['/setup']);
+      } else if (restaurants.length === 1) {
+        this.authService.selectRestaurant(restaurants[0].id, restaurants[0].name);
+        this.router.navigate(['/']);
+      } else {
+        this.router.navigate(['/select-restaurant']);
+      }
     }
   }
 

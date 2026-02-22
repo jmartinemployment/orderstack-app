@@ -6,7 +6,10 @@
         <i class="bi bi-check-circle-fill"></i>
       </div>
       <h2>You're all set!</h2>
-      <p>Your business has been created. You can now start using OrderStack.</p>
+      <p>Your business is ready. Let's sign you in.</p>
+      <button type="button" class="btn btn-primary btn-lg mt-4" (click)="goToDashboard()">
+        Let's Go <i class="bi bi-arrow-right"></i>
+      </button>
     </div>
   } @else {
     <!-- Brand + Progress -->
@@ -24,14 +27,14 @@
     </div>
 
     <div class="wizard-body">
-      <!-- ============ STEP 1: Business Info ============ -->
+      <!-- ============ STEP 1: Welcome + Business Name ============ -->
       @if (currentStep() === 1) {
-        <div class="step-content">
-          <h2>Tell us about your business</h2>
-          <p class="step-subtitle">We'll use this to set up your account.</p>
+        <div class="step-content welcome-step">
+          <h2>Welcome to OrderStack!</h2>
+          <p class="step-subtitle">Let's shape this thing to fit your business.</p>
 
           <div class="form-group">
-            <label for="businessName">Business Name</label>
+            <label for="businessName">Your business name</label>
             <input
               id="businessName"
               type="text"
@@ -39,65 +42,7 @@
               placeholder="e.g. Taipa Kitchen"
               [ngModel]="_businessName()"
               (ngModelChange)="_businessName.set($event)" />
-          </div>
-
-          <div class="form-group">
-            <label for="street">Street Address</label>
-            <input
-              id="street"
-              type="text"
-              class="form-control"
-              placeholder="123 Main St"
-              [ngModel]="_address().street"
-              (ngModelChange)="updateAddress('street', $event)" />
-          </div>
-
-          <div class="form-row">
-            <div class="form-group flex-2">
-              <label for="city">City</label>
-              <input
-                id="city"
-                type="text"
-                class="form-control"
-                placeholder="City"
-                [ngModel]="_address().city"
-                (ngModelChange)="updateAddress('city', $event)" />
-            </div>
-            <div class="form-group flex-1">
-              <label for="state">State</label>
-              <select
-                id="state"
-                class="form-control"
-                [ngModel]="_address().state"
-                (ngModelChange)="updateAddress('state', $event)">
-                <option value="">Select</option>
-                @for (s of usStates; track s.code) {
-                  <option [value]="s.code">{{ s.code }}</option>
-                }
-              </select>
-            </div>
-            <div class="form-group flex-1">
-              <label for="zip">ZIP</label>
-              <input
-                id="zip"
-                type="text"
-                class="form-control"
-                placeholder="33301"
-                maxlength="10"
-                [ngModel]="_address().zip"
-                (ngModelChange)="updateAddress('zip', $event)" />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="phone">Phone (optional)</label>
-            <input
-              id="phone"
-              type="tel"
-              class="form-control"
-              placeholder="(954) 555-0123"
-              [ngModel]="_phone()"
-              (ngModelChange)="_phone.set($event)" />
+            <p class="field-hint">This is how we'll identify you on emails, receipts, and messages to your customers.</p>
           </div>
         </div>
       }
@@ -105,7 +50,7 @@
       <!-- ============ STEP 2: Verticals ============ -->
       @if (currentStep() === 2) {
         <div class="step-content">
-          <h2>What does your business do?</h2>
+          <h2>What do you sell at {{ _businessName() || 'your business' }}?</h2>
           <p class="step-subtitle">Select all that apply. This determines which features are available.</p>
 
           <div class="vertical-grid">
@@ -130,7 +75,7 @@
       @if (currentStep() === 3) {
         <div class="step-content">
           <h2>What's your primary focus?</h2>
-          <p class="step-subtitle">This helps us prioritize the right features for you.</p>
+          <p class="step-subtitle">We'll use this information to tailor the settings on the point of sale.</p>
 
           <div class="primary-vertical-list">
             @for (v of _selectedVerticals(); track v) {
@@ -152,8 +97,8 @@
       <!-- ============ STEP 4: Complexity ============ -->
       @if (currentStep() === 4) {
         <div class="step-content">
-          <h2>How much do you need?</h2>
-          <p class="step-subtitle">You can always upgrade later.</p>
+          <h2>How do you plan to use OrderStack?</h2>
+          <p class="step-subtitle">This will help us customize your setup. You can always change this later.</p>
 
           <div class="complexity-cards">
             <button
@@ -187,8 +132,79 @@
         </div>
       }
 
-      <!-- ============ STEP 5: Tax & Locale ============ -->
+      <!-- ============ STEP 5: Recommended Mode ============ -->
       @if (currentStep() === 5) {
+        <div class="step-content">
+          @if (!_showAllModes()) {
+            <h2>Here's your ideal setup</h2>
+            <p class="step-subtitle">Based on your selections, we recommend this mode. Free with optional paid plans.</p>
+
+            @if (recommendedMode(); as rec) {
+              <div class="recommended-mode-card" (click)="acceptRecommendedMode()">
+                <div class="rec-mode-hero">
+                  <i class="{{ rec.icon }}"></i>
+                </div>
+                <h3>{{ rec.label }}</h3>
+                <p class="rec-mode-desc">{{ rec.description }}</p>
+                <div class="rec-mode-features">
+                  @for (feature of rec.highlights; track feature) {
+                    <span class="rec-feature"><i class="bi bi-check2"></i> {{ feature }}</span>
+                  }
+                </div>
+              </div>
+            }
+
+            <div class="select-another-mode">
+              <span class="another-mode-label">Not the right fit?</span>
+              <button class="another-mode-link" (click)="toggleAllModes()">
+                Select another mode <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          } @else {
+            <h2>Select a mode</h2>
+            <p class="step-subtitle">The mode you select will be used on this device. You can add multiple modes later and switch between them anytime.</p>
+
+            <h4 class="mode-group-label">Based on what you sell</h4>
+            <div class="mode-grid">
+              @for (m of availableModes(); track m.mode) {
+                <button
+                  class="mode-card"
+                  [class.selected]="_selectedMode() === m.mode"
+                  (click)="selectMode(m.mode)">
+                  <i class="{{ m.icon }} mode-icon"></i>
+                  <h3>{{ m.label }}</h3>
+                  <p>{{ m.description }}</p>
+                  @if (_selectedMode() === m.mode) {
+                    <i class="bi bi-check-circle-fill check-icon"></i>
+                  }
+                </button>
+              }
+            </div>
+
+            @if (otherModes().length > 0) {
+              <h4 class="mode-group-label">Other options</h4>
+              <div class="mode-grid">
+                @for (m of otherModes(); track m.mode) {
+                  <button
+                    class="mode-card"
+                    [class.selected]="_selectedMode() === m.mode"
+                    (click)="selectMode(m.mode)">
+                    <i class="{{ m.icon }} mode-icon"></i>
+                    <h3>{{ m.label }}</h3>
+                    <p>{{ m.description }}</p>
+                    @if (_selectedMode() === m.mode) {
+                      <i class="bi bi-check-circle-fill check-icon"></i>
+                    }
+                  </button>
+                }
+              </div>
+            }
+          }
+        </div>
+      }
+
+      <!-- ============ STEP 6: Tax & Locale ============ -->
+      @if (currentStep() === 6) {
         <div class="step-content">
           <h2>Tax & locale settings</h2>
           <p class="step-subtitle">We'll calculate tax automatically on every transaction.</p>
@@ -253,8 +269,8 @@
         </div>
       }
 
-      <!-- ============ STEP 6: Business Hours ============ -->
-      @if (currentStep() === 6) {
+      <!-- ============ STEP 7: Business Hours ============ -->
+      @if (currentStep() === 7) {
         <div class="step-content">
           <h2>When are you open?</h2>
           <p class="step-subtitle">Set your regular business hours.</p>
@@ -295,30 +311,6 @@
                   <i class="bi bi-copy"></i>
                 </button>
               </div>
-            }
-          </div>
-        </div>
-      }
-
-      <!-- ============ STEP 7: Device Mode ============ -->
-      @if (currentStep() === 7) {
-        <div class="step-content">
-          <h2>Choose your POS mode</h2>
-          <p class="step-subtitle">This controls how your point-of-sale works. You can change it per device later.</p>
-
-          <div class="mode-grid">
-            @for (m of availableModes(); track m.mode) {
-              <button
-                class="mode-card"
-                [class.selected]="_selectedMode() === m.mode"
-                (click)="selectMode(m.mode)">
-                <i class="{{ m.icon }} mode-icon"></i>
-                <h3>{{ m.label }}</h3>
-                <p>{{ m.description }}</p>
-                @if (_selectedMode() === m.mode) {
-                  <i class="bi bi-check-circle-fill check-icon"></i>
-                }
-              </button>
             }
           </div>
         </div>
@@ -374,6 +366,7 @@
 
             <div class="template-grid">
               <button
+                type="button"
                 class="template-card"
                 [class.selected]="_selectedTemplateId() === null"
                 (click)="selectTemplate(null)">
@@ -384,6 +377,7 @@
 
               @for (tmpl of _menuTemplates(); track tmpl.id) {
                 <button
+                  type="button"
                   class="template-card"
                   [class.selected]="_selectedTemplateId() === tmpl.id"
                   (click)="selectTemplate(tmpl.id)">
@@ -397,8 +391,251 @@
         </div>
       }
 
-      <!-- ============ STEP 10: Owner PIN ============ -->
+      <!-- ============ STEP 10: Menu Builder / Template Preview ============ -->
       @if (currentStep() === 10) {
+        <div class="step-content">
+          @if (_selectedTemplateId() === null) {
+            <h2>Build your menu</h2>
+            <p class="step-subtitle">Add menu items, combos, and inventory ingredients. You can always add more later.</p>
+
+            <!-- Type tabs -->
+            <div class="type-tabs">
+              <button
+                type="button"
+                class="type-tab"
+                [class.active]="_quickAddType() === 'item'"
+                (click)="_quickAddType.set('item')">
+                <i class="bi bi-tag"></i> Common Menu Items
+              </button>
+              <button
+                type="button"
+                class="type-tab"
+                [class.active]="_quickAddType() === 'inventory'"
+                (click)="_quickAddType.set('inventory')">
+                <i class="bi bi-box-seam"></i> Commonly Includes
+              </button>
+            </div>
+
+            <!-- Suggestions -->
+            @if (_quickAddType() === 'item') {
+              <div class="suggestion-panel">
+                @for (group of menuSuggestionsBeforeSides; track group.category) {
+                  <div class="suggestion-group">
+                    <span class="suggestion-group-label">{{ group.category }}</span>
+                    <div class="suggestion-chips">
+                      @for (s of group.items; track s.name) {
+                        <button
+                          type="button"
+                          class="suggestion-chip"
+                          [class.added]="addedItemNames().has(s.name)"
+                          (click)="addSuggestion(s, 'item')">
+                          @if (addedItemNames().has(s.name)) {
+                            <i class="bi bi-check-lg"></i>
+                          } @else {
+                            <i class="bi bi-plus"></i>
+                          }
+                          {{ s.name }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+                <div class="suggestion-group">
+                  <span class="suggestion-group-label">Sides</span>
+                  <div class="suggestion-chips">
+                    @for (side of sideSuggestions; track side) {
+                      <button
+                        type="button"
+                        class="suggestion-chip"
+                        [class.added]="selectedSideNames().has(side)"
+                        (click)="toggleSide(side)">
+                        @if (selectedSideNames().has(side)) {
+                          <i class="bi bi-check-lg"></i>
+                        } @else {
+                          <i class="bi bi-plus"></i>
+                        }
+                        {{ side }}
+                      </button>
+                    }
+                  </div>
+                </div>
+                @for (group of menuSuggestionsAfterSides; track group.category) {
+                  <div class="suggestion-group">
+                    <span class="suggestion-group-label">{{ group.category }}</span>
+                    <div class="suggestion-chips">
+                      @for (s of group.items; track s.name) {
+                        <button
+                          type="button"
+                          class="suggestion-chip"
+                          [class.added]="addedItemNames().has(s.name)"
+                          (click)="addSuggestion(s, 'item')">
+                          @if (addedItemNames().has(s.name)) {
+                            <i class="bi bi-check-lg"></i>
+                          } @else {
+                            <i class="bi bi-plus"></i>
+                          }
+                          {{ s.name }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (_quickAddType() === 'inventory') {
+              <div class="suggestion-panel">
+                @for (group of inventorySuggestions; track group.category) {
+                  <div class="suggestion-group">
+                    <span class="suggestion-group-label">{{ group.category }}</span>
+                    <div class="suggestion-chips">
+                      @for (s of group.items; track s.name) {
+                        <button
+                          type="button"
+                          class="suggestion-chip"
+                          [class.added]="includedIngredientNames().has(s.name)"
+                          (click)="toggleIngredient(s.name)">
+                          @if (includedIngredientNames().has(s.name)) {
+                            <i class="bi bi-check-lg"></i>
+                          } @else {
+                            <i class="bi bi-plus"></i>
+                          }
+                          {{ s.name }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Menu item form -->
+            <div class="quick-add-custom">
+              <h5>Menu Item</h5>
+            </div>
+            <div class="quick-add-form">
+              <div class="quick-add-row">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Item name (e.g. Cheeseburger)"
+                  [ngModel]="_quickAddName()"
+                  (ngModelChange)="_quickAddName.set($event)" />
+                <input
+                  type="number"
+                  class="form-control quick-add-price"
+                  placeholder="Price"
+                  min="0"
+                  step="0.01"
+                  [ngModel]="_quickAddPrice() || null"
+                  (ngModelChange)="_quickAddPrice.set($event ?? 0)" />
+              </div>
+              <div class="quick-add-row">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Category (e.g. Entrees)"
+                  [ngModel]="_quickAddCategory()"
+                  (ngModelChange)="_quickAddCategory.set($event)" />
+              </div>
+              <div class="quick-add-row">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Includes (e.g. lettuce, tomato, pickle, ketchup)"
+                  [ngModel]="_quickAddIncludes()"
+                  (ngModelChange)="_quickAddIncludes.set($event)" />
+              </div>
+              <div class="quick-add-row">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Side upgrades (e.g. Onion Rings, Sweet Potato Fries)"
+                  [ngModel]="_quickAddSideUpgrades()"
+                  (ngModelChange)="_quickAddSideUpgrades.set($event)" />
+                <input
+                  type="number"
+                  class="form-control quick-add-price"
+                  placeholder="Upcharge"
+                  min="0"
+                  step="0.25"
+                  [ngModel]="_quickAddUpcharge() || null"
+                  (ngModelChange)="_quickAddUpcharge.set($event ?? 0)" />
+              </div>
+              <div class="quick-add-row">
+                <button
+                  type="button"
+                  class="btn btn-primary btn-sm"
+                  [disabled]="!_quickAddName().trim() || _quickAddPrice() <= 0"
+                  (click)="addQuickItem()">
+                  <i class="bi bi-plus-lg"></i> Add
+                </button>
+              </div>
+            </div>
+
+            <!-- Added items list -->
+            @if (_quickAddItems().length > 0) {
+              <div class="quick-add-group">
+                <h5><i class="bi bi-tag"></i> Menu Items</h5>
+                <div class="quick-add-list">
+                  @for (item of _quickAddItems(); track $index) {
+                    <div class="quick-add-item">
+                      <div class="quick-add-item-info">
+                        <span class="quick-add-item-name">{{ item.name }}</span>
+                        <span class="quick-add-item-category">{{ item.category }}</span>
+                        @if (item.includes) {
+                          <span class="quick-add-item-detail">{{ item.includes }}</span>
+                        }
+                        @if (item.sideUpgrades) {
+                          <span class="quick-add-item-detail quick-add-item-upgrades">
+                            <i class="bi bi-arrow-up-circle"></i> {{ item.sideUpgrades }}
+                          </span>
+                        }
+                      </div>
+                      <span class="quick-add-item-price">{{ item.price | currency }}</span>
+                      <button type="button" class="btn-icon-sm" (click)="removeQuickItem($index)">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (_quickAddItems().length === 0) {
+              <div class="empty-state">
+                <i class="bi bi-card-list"></i>
+                <p>No items yet. Add your first item above.</p>
+              </div>
+            }
+          } @else {
+            @for (tmpl of _menuTemplates(); track tmpl.id) {
+              @if (tmpl.id === _selectedTemplateId()) {
+                <h2>{{ tmpl.name }}</h2>
+                <p class="step-subtitle">{{ tmpl.description }}</p>
+                <div class="template-categories">
+                  @for (cat of tmpl.categories; track cat.name) {
+                    <div class="template-category">
+                      <h5>{{ cat.name }}</h5>
+                      <div class="template-items">
+                        @for (item of cat.items; track item.name) {
+                          <div class="template-item">
+                            <span>{{ item.name }}</span>
+                            <span class="template-item-price">{{ item.price | currency }}</span>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          }
+        </div>
+      }
+
+      <!-- ============ STEP 11: Owner PIN ============ -->
+      @if (currentStep() === 11) {
         <div class="step-content">
           <h2>Create your owner account</h2>
           <p class="step-subtitle">This is how you'll log in and manage your business.</p>
@@ -440,60 +677,69 @@
             <label>Staff PIN (4-6 digits)</label>
             <p class="pin-hint">This PIN is used for quick staff operations like clock-in and POS access.</p>
 
-            <div class="pin-display">
-              @for (d of [0,1,2,3,4,5]; track d) {
-                <span class="pin-dot" [class.filled]="d < _ownerPin().length"></span>
-              }
-            </div>
-            <div class="pin-keypad">
-              @for (d of ['1','2','3','4','5','6','7','8','9','','0','⌫']; track d) {
-                @if (d === '') {
-                  <span class="keypad-spacer"></span>
-                } @else if (d === '⌫') {
-                  <button class="keypad-btn" (click)="clearPin()">
-                    <i class="bi bi-backspace"></i>
-                  </button>
-                } @else {
-                  <button class="keypad-btn" (click)="appendPinDigit(d)">{{ d }}</button>
-                }
-              }
-            </div>
-
-            @if (_ownerPin().length >= 4) {
-              <label class="mt-3">Confirm PIN</label>
+            @if (!_pinConfirming()) {
+              <label>Enter PIN</label>
               <div class="pin-display">
-                @for (d of [0,1,2,3,4,5]; track d) {
+                @for (d of [0,1,2,3,4,5]; track $index) {
+                  <span class="pin-dot" [class.filled]="d < _ownerPin().length"></span>
+                }
+              </div>
+              <div class="pin-keypad">
+                @for (d of ['1','2','3','4','5','6','7','8','9','','0','⌫']; track $index) {
+                  @if (d === '') {
+                    <span class="keypad-spacer"></span>
+                  } @else if (d === '⌫') {
+                    <button type="button" class="keypad-btn" (click)="clearPin()">
+                      <i class="bi bi-backspace"></i>
+                    </button>
+                  } @else {
+                    <button type="button" class="keypad-btn" (click)="appendPinDigit(d)">{{ d }}</button>
+                  }
+                }
+              </div>
+              @if (_ownerPin().length >= 4) {
+                <button type="button" class="btn btn-primary btn-sm mt-3" (click)="confirmPinEntry()">Continue</button>
+              }
+            } @else if (!pinMatch() && _ownerPinConfirm().length < _ownerPin().length) {
+              <label>Confirm PIN</label>
+              <div class="pin-display">
+                @for (d of [0,1,2,3,4,5]; track $index) {
                   <span class="pin-dot" [class.filled]="d < _ownerPinConfirm().length"></span>
                 }
               </div>
               <div class="pin-keypad">
-                @for (d of ['1','2','3','4','5','6','7','8','9','','0','⌫']; track d) {
+                @for (d of ['1','2','3','4','5','6','7','8','9','','0','⌫']; track $index) {
                   @if (d === '') {
                     <span class="keypad-spacer"></span>
                   } @else if (d === '⌫') {
-                    <button class="keypad-btn" (click)="clearConfirmPin()">
+                    <button type="button" class="keypad-btn" (click)="clearConfirmPin()">
                       <i class="bi bi-backspace"></i>
                     </button>
                   } @else {
-                    <button class="keypad-btn" (click)="appendConfirmDigit(d)">{{ d }}</button>
+                    <button type="button" class="keypad-btn" (click)="appendConfirmDigit(d)">{{ d }}</button>
                   }
                 }
               </div>
-
-              @if (_ownerPinConfirm().length >= 4) {
-                @if (pinMatch()) {
-                  <div class="pin-match success"><i class="bi bi-check-circle"></i> PINs match</div>
-                } @else {
-                  <div class="pin-match error"><i class="bi bi-x-circle"></i> PINs don't match</div>
-                }
+              <button type="button" class="btn btn-sm btn-outline mt-3" (click)="clearPin()">
+                <i class="bi bi-arrow-counterclockwise"></i> Re-enter PIN
+              </button>
+            } @else {
+              @if (pinMatch()) {
+                <div class="pin-match success"><i class="bi bi-check-circle"></i> PINs match</div>
+                <button type="button" class="btn btn-sm btn-outline mt-2" (click)="clearPin()">Change PIN</button>
+              } @else {
+                <div class="pin-match error">
+                  <i class="bi bi-x-circle"></i> PINs don't match
+                  <button type="button" class="btn btn-sm btn-outline" style="margin-left: 0.75rem" (click)="clearPin()">Try again</button>
+                </div>
               }
             }
           </div>
         </div>
       }
 
-      <!-- ============ STEP 11: Confirmation ============ -->
-      @if (currentStep() === 11) {
+      <!-- ============ STEP 12: Confirmation ============ -->
+      @if (currentStep() === 12) {
         <div class="step-content">
           <h2>Review & confirm</h2>
           <p class="step-subtitle">Everything look right? You can edit any section by clicking it.</p>
@@ -502,7 +748,6 @@
             <div class="review-section" (click)="goToStep(1)">
               <div class="review-label">Business</div>
               <div class="review-value">{{ _businessName() }}</div>
-              <div class="review-detail">{{ _address().city }}{{ _address().state ? ', ' + _address().state : '' }} {{ _address().zip }}</div>
               <i class="bi bi-pencil edit-icon"></i>
             </div>
 
@@ -519,14 +764,14 @@
             </div>
 
             <div class="review-section" (click)="goToStep(5)">
-              <div class="review-label">Tax</div>
-              <div class="review-value">{{ _taxLocale().taxRate }}% &middot; {{ _taxLocale().currency }}</div>
+              <div class="review-label">POS Mode</div>
+              <div class="review-value">{{ getModeLabel() }}</div>
               <i class="bi bi-pencil edit-icon"></i>
             </div>
 
-            <div class="review-section" (click)="goToStep(7)">
-              <div class="review-label">POS Mode</div>
-              <div class="review-value">{{ getModeLabel() }}</div>
+            <div class="review-section" (click)="goToStep(6)">
+              <div class="review-label">Tax</div>
+              <div class="review-value">{{ _taxLocale().taxRate }}% &middot; {{ _taxLocale().currency }}</div>
               <i class="bi bi-pencil edit-icon"></i>
             </div>
 
@@ -542,7 +787,7 @@
               <i class="bi bi-pencil edit-icon"></i>
             </div>
 
-            <div class="review-section" (click)="goToStep(10)">
+            <div class="review-section" (click)="goToStep(11)">
               <div class="review-label">Owner</div>
               <div class="review-value">{{ _ownerName() }}</div>
               <div class="review-detail">{{ _ownerEmail() }}</div>

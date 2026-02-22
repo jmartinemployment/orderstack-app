@@ -1,5 +1,8 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
+import { onboardingGuard } from './guards/onboarding.guard';
+import { deviceModeRedirectGuard } from './guards/device-mode.guard';
+import { deviceInitResolver } from './resolvers/device-init.resolver';
 import { MainLayoutComponent } from './layouts/main-layout.component';
 import { AuthLayoutComponent } from './layouts/auth-layout.component';
 
@@ -14,7 +17,18 @@ export const routes: Routes = [
   },
   {
     path: 'setup',
+    canActivate: [authGuard],
     loadComponent: () => import('./features/onboarding/setup-wizard/setup-wizard').then(m => m.SetupWizard),
+  },
+  {
+    path: 'device-setup',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/onboarding/device-setup/device-setup').then(m => m.DeviceSetup),
+  },
+  {
+    path: 'pos-login',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/auth/pos-login/pos-login').then(m => m.PosLogin),
   },
   {
     path: 'order/:restaurantSlug',
@@ -28,14 +42,19 @@ export const routes: Routes = [
     path: 'staff',
     loadComponent: () => import('./features/staff/staff-portal/staff-portal').then(m => m.StaffPortal),
   },
+  {
+    path: 'select-restaurant',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/auth/restaurant-select/restaurant-select').then(m => m.RestaurantSelect),
+  },
 
   // Authenticated routes
   {
     path: '',
     component: MainLayoutComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, onboardingGuard],
+    resolve: { deviceInit: deviceInitResolver },
     children: [
-      { path: 'select-restaurant', loadComponent: () => import('./features/auth/restaurant-select/restaurant-select').then(m => m.RestaurantSelect) },
 
       // Orders
       { path: 'orders', loadComponent: () => import('./features/orders/pending-orders/pending-orders').then(m => m.PendingOrders) },
@@ -88,8 +107,8 @@ export const routes: Routes = [
       { path: 'multi-location', loadComponent: () => import('./features/multi-location/multi-location-dashboard/multi-location-dashboard').then(m => m.MultiLocationDashboard) },
       { path: 'settings', loadComponent: () => import('./features/settings/control-panel/control-panel').then(m => m.ControlPanel) },
 
-      // Default
-      { path: '', redirectTo: 'orders', pathMatch: 'full' },
+      // Default — mode-aware redirect
+      { path: '', canActivate: [deviceModeRedirectGuard], children: [] },
     ],
   },
 

@@ -13,6 +13,7 @@ import { OrderService, MappedOrderEvent } from '@services/order';
 import { TableService } from '@services/table';
 import { AuthService } from '@services/auth';
 import { CheckService } from '@services/check';
+import { PlatformService } from '@services/platform';
 import { ModifierPrompt, ModifierPromptResult } from '../modifier-prompt';
 import {
   RestaurantTable,
@@ -36,6 +37,12 @@ export class OrderPad implements OnInit, OnDestroy {
   private readonly tableService = inject(TableService);
   private readonly authService = inject(AuthService);
   private readonly checkService = inject(CheckService);
+  private readonly platformService = inject(PlatformService);
+
+  // Mode-aware feature flags
+  readonly canUseFloorPlan = this.platformService.canUseFloorPlan;
+  readonly canUseSeatAssignment = this.platformService.canUseSeatAssignment;
+  readonly canUseOrderNumbers = this.platformService.canUseOrderNumbers;
 
   readonly tables = this.tableService.tables;
   readonly orders = this.orderService.orders;
@@ -146,7 +153,9 @@ export class OrderPad implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.menuService.loadMenu();
-    this.tableService.loadTables();
+    if (this.canUseFloorPlan()) {
+      this.tableService.loadTables();
+    }
     this.orderService.loadOrders();
 
     const checkMenu = setInterval(() => {
@@ -191,26 +200,28 @@ export class OrderPad implements OnInit, OnDestroy {
     }
   }
 
-  private async createNewOrder(tableId?: string): Promise<void> {
-    const tId = tableId ?? this._selectedTableId();
-    const table = this.tables().find(t => t.id === tId);
-    if (!table) return;
+  async createNewOrder(tableId?: string): Promise<void> {
+    const table = this.canUseFloorPlan()
+      ? this.tables().find(t => t.id === (tableId ?? this._selectedTableId()))
+      : null;
 
     this._isLoading.set(true);
     this._error.set(null);
 
     try {
       const order = await this.orderService.createOrder({
-        orderType: 'dine-in',
-        tableId: table.id,
-        tableNumber: table.tableNumber,
+        orderType: table ? 'dine-in' : 'takeout',
+        tableId: table?.id ?? null,
+        tableNumber: table?.tableNumber ?? null,
         items: [],
       });
 
       if (order) {
         this._activeOrderId.set(order.guid);
         this._activeCheckGuid.set(order.checks?.[0]?.guid ?? null);
-        await this.tableService.updateStatus(table.id, 'occupied');
+        if (table) {
+          await this.tableService.updateStatus(table.id, 'occupied');
+        }
       }
     } catch {
       this._error.set('Failed to create order');
@@ -235,7 +246,7 @@ export class OrderPad implements OnInit, OnDestroy {
 
   onItemTap(item: MenuItem): void {
     if (!this.activeOrder()) {
-      this._error.set('Select a table first');
+      this._error.set(this.canUseFloorPlan() ? 'Select a table first' : 'Create an order first');
       return;
     }
 

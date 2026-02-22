@@ -4,9 +4,12 @@
   @if (state() === 'idle') {
     <div class="login-screen">
       <div class="login-header">
-        <i class="bi bi-people-fill"></i>
+        <div class="brand">
+          <i class="bi bi-stack"></i>
+          <span>OrderStack</span>
+        </div>
         <h1>Who's Working?</h1>
-        <p>Select your name to sign in</p>
+        <p>Tap your name to sign in</p>
       </div>
 
       @if (isLocked()) {
@@ -58,7 +61,7 @@
           {{ getInitials(selectedMember()!.displayName) }}
         </div>
         <h2>{{ selectedMember()!.displayName }}</h2>
-        <p>Enter your 4-digit passcode</p>
+        <p>Enter your PIN</p>
       </div>
 
       <div class="passcode-dots">

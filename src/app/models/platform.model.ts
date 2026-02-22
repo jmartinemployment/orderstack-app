@@ -54,8 +54,8 @@ export const BUSINESS_VERTICAL_CATALOG: BusinessVerticalConfig[] = [
   },
   {
     vertical: 'grocery',
-    label: 'Grocery & Gourmet',
-    description: 'Grocery stores, specialty food, wine shops',
+    label: 'Grocery / Gourmet / Alcohol',
+    description: 'Grocery stores, specialty food, wine shops, liquor stores',
     icon: 'bi-cart',
     availableModes: ['retail', 'standard'],
     enabledModules: [
@@ -161,6 +161,7 @@ export interface DevicePosModeConfig {
   description: string;
   icon: string;
   category: 'restaurant' | 'retail' | 'services' | 'general';
+  highlights: string[];
   featureFlags: ModeFeatureFlags;
 }
 
@@ -262,7 +263,7 @@ export const RESTAURANT_MODE_FULL_SERVICE: ModeFeatureFlags = {
 export const RESTAURANT_MODE_BAR: ModeFeatureFlags = {
   enableOpenChecks: true,
   enableCoursing: false,
-  enableSeatAssignment: true,
+  enableSeatAssignment: false,
   enableCheckSplitting: true,
   enableCheckTransfer: false,
   enablePreAuthTabs: true,
@@ -405,9 +406,10 @@ export const DEVICE_POS_MODE_CATALOG: DevicePosModeConfig[] = [
   {
     mode: 'quick_service',
     label: 'Quick Service',
-    description: 'Speed up ordering with conversational modifiers and multi-channel menus.',
+    description: 'Speed up ordering with conversational modifiers and multi-channel menus. Ideal for counter service, food trucks, caterers, and ghost kitchens.',
     icon: 'bi-lightning',
     category: 'restaurant',
+    highlights: ['Conversational modifiers', 'Multi-channel menus', 'Fast checkout', 'KDS integration'],
     featureFlags: RESTAURANT_MODE_QUICK_SERVICE,
   },
   {
@@ -416,6 +418,7 @@ export const DEVICE_POS_MODE_CATALOG: DevicePosModeConfig[] = [
     description: 'Offer service with open checks, coursing, and customized restaurant floor plans.',
     icon: 'bi-layout-text-sidebar',
     category: 'restaurant',
+    highlights: ['Open checks & coursing', 'Table management', 'Floor plan editor', 'Reservations'],
     featureFlags: RESTAURANT_MODE_FULL_SERVICE,
   },
   {
@@ -424,6 +427,7 @@ export const DEVICE_POS_MODE_CATALOG: DevicePosModeConfig[] = [
     description: 'Place orders using conversational modifiers and allow card pre-authorization.',
     icon: 'bi-cup-straw',
     category: 'restaurant',
+    highlights: ['Card pre-authorization', 'Tab management', 'Conversational modifiers', 'Quick reorder'],
     featureFlags: RESTAURANT_MODE_BAR,
   },
   {
@@ -432,6 +436,7 @@ export const DEVICE_POS_MODE_CATALOG: DevicePosModeConfig[] = [
     description: 'Manage inventory, orders, and customers across in-person and online sales.',
     icon: 'bi-shop',
     category: 'retail',
+    highlights: ['Barcode scanning', 'Smart inventory management', 'Advanced reporting', 'Omnichannel selling'],
     featureFlags: RETAIL_MODE,
   },
   {
@@ -440,6 +445,7 @@ export const DEVICE_POS_MODE_CATALOG: DevicePosModeConfig[] = [
     description: 'Manage your calendar and use waitlists to fill gaps in your schedule.',
     icon: 'bi-calendar-check',
     category: 'services',
+    highlights: ['Calendar management', 'Waitlist support', 'Client scheduling', 'Automated reminders'],
     featureFlags: BOOKINGS_MODE,
   },
   {
@@ -448,6 +454,7 @@ export const DEVICE_POS_MODE_CATALOG: DevicePosModeConfig[] = [
     description: 'Manage projects, send invoices, and take payments anytime, anywhere.',
     icon: 'bi-clipboard-check',
     category: 'services',
+    highlights: ['Project management', 'Invoice generation', 'Mobile payments', 'Client tracking'],
     featureFlags: SERVICES_MODE,
   },
   {
@@ -456,6 +463,7 @@ export const DEVICE_POS_MODE_CATALOG: DevicePosModeConfig[] = [
     description: 'Accept simple payments without anything extra. Trusted by more than 2 million businesses globally.',
     icon: 'bi-credit-card',
     category: 'general',
+    highlights: ['Simple checkout', 'Card & cash payments', 'Basic reporting', 'Receipt printing'],
     featureFlags: STANDARD_MODE,
   },
 ];
@@ -555,6 +563,197 @@ export interface MenuTemplateItem {
   sku: string | null;
   durationMinutes: number | null;
 }
+
+// --- Starter Menu Templates ---
+
+export const MENU_TEMPLATES: MenuTemplate[] = [
+  {
+    id: 'casual-dining',
+    vertical: 'food_and_drink',
+    name: 'Casual Dining',
+    description: 'Full-service restaurant with appetizers, entrees, desserts, and drinks.',
+    itemCount: 24,
+    categories: [
+      {
+        name: 'Appetizers', sortOrder: 1, items: [
+          { name: 'Wings', description: 'Choice of Buffalo, BBQ, or Garlic Parmesan', price: 12.99, sortOrder: 1, prepTimeMinutes: 15, sku: null, durationMinutes: null },
+          { name: 'Mozzarella Sticks', description: 'Served with marinara', price: 9.99, sortOrder: 2, prepTimeMinutes: 10, sku: null, durationMinutes: null },
+          { name: 'Nachos', description: 'Loaded with cheese, jalapeños, sour cream', price: 11.99, sortOrder: 3, prepTimeMinutes: 12, sku: null, durationMinutes: null },
+          { name: 'Soup of the Day', description: null, price: 6.99, sortOrder: 4, prepTimeMinutes: 5, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Entrees', sortOrder: 2, items: [
+          { name: 'Grilled Chicken', description: 'With seasonal vegetables and rice', price: 16.99, sortOrder: 1, prepTimeMinutes: 20, sku: null, durationMinutes: null },
+          { name: 'Salmon', description: 'Pan-seared with lemon butter sauce', price: 22.99, sortOrder: 2, prepTimeMinutes: 18, sku: null, durationMinutes: null },
+          { name: 'Ribeye Steak', description: '12oz with mashed potatoes', price: 28.99, sortOrder: 3, prepTimeMinutes: 25, sku: null, durationMinutes: null },
+          { name: 'Pasta Primavera', description: 'Penne with sautéed vegetables in cream sauce', price: 14.99, sortOrder: 4, prepTimeMinutes: 15, sku: null, durationMinutes: null },
+          { name: 'Fish & Chips', description: 'Beer-battered cod with fries and coleslaw', price: 15.99, sortOrder: 5, prepTimeMinutes: 18, sku: null, durationMinutes: null },
+          { name: 'Burger', description: 'Half-pound Angus beef with lettuce, tomato, fries', price: 14.99, sortOrder: 6, prepTimeMinutes: 15, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Sides', sortOrder: 3, items: [
+          { name: 'French Fries', description: null, price: 4.99, sortOrder: 1, prepTimeMinutes: 8, sku: null, durationMinutes: null },
+          { name: 'Side Salad', description: 'Mixed greens with house dressing', price: 5.99, sortOrder: 2, prepTimeMinutes: 5, sku: null, durationMinutes: null },
+          { name: 'Onion Rings', description: null, price: 5.99, sortOrder: 3, prepTimeMinutes: 8, sku: null, durationMinutes: null },
+          { name: 'Mac & Cheese', description: null, price: 5.99, sortOrder: 4, prepTimeMinutes: 10, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Desserts', sortOrder: 4, items: [
+          { name: 'Chocolate Cake', description: 'Triple layer with ganache', price: 8.99, sortOrder: 1, prepTimeMinutes: 5, sku: null, durationMinutes: null },
+          { name: 'Cheesecake', description: 'New York style with berry compote', price: 8.99, sortOrder: 2, prepTimeMinutes: 5, sku: null, durationMinutes: null },
+          { name: 'Ice Cream Sundae', description: 'Vanilla, chocolate, or strawberry', price: 6.99, sortOrder: 3, prepTimeMinutes: 5, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Drinks', sortOrder: 5, items: [
+          { name: 'Soft Drink', description: 'Coke, Sprite, Dr Pepper, Lemonade', price: 2.99, sortOrder: 1, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+          { name: 'Iced Tea', description: 'Sweet or unsweetened', price: 2.99, sortOrder: 2, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+          { name: 'Coffee', description: 'Regular or decaf', price: 3.49, sortOrder: 3, prepTimeMinutes: 3, sku: null, durationMinutes: null },
+          { name: 'Fresh Juice', description: 'Orange, apple, or cranberry', price: 3.99, sortOrder: 4, prepTimeMinutes: 2, sku: null, durationMinutes: null },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'quick-service',
+    vertical: 'food_and_drink',
+    name: 'Quick Service',
+    description: 'Counter-service restaurant with combos and grab-and-go items.',
+    itemCount: 18,
+    categories: [
+      {
+        name: 'Combos', sortOrder: 1, items: [
+          { name: 'Combo #1', description: 'Burger, fries, drink', price: 10.99, sortOrder: 1, prepTimeMinutes: 8, sku: null, durationMinutes: null },
+          { name: 'Combo #2', description: 'Chicken sandwich, fries, drink', price: 10.99, sortOrder: 2, prepTimeMinutes: 8, sku: null, durationMinutes: null },
+          { name: 'Combo #3', description: '2 tacos, chips & salsa, drink', price: 9.99, sortOrder: 3, prepTimeMinutes: 8, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Sandwiches', sortOrder: 2, items: [
+          { name: 'Classic Burger', description: 'Beef patty with lettuce, tomato, pickles', price: 7.99, sortOrder: 1, prepTimeMinutes: 8, sku: null, durationMinutes: null },
+          { name: 'Chicken Sandwich', description: 'Grilled or crispy', price: 7.99, sortOrder: 2, prepTimeMinutes: 8, sku: null, durationMinutes: null },
+          { name: 'Veggie Wrap', description: 'Grilled vegetables with hummus', price: 7.49, sortOrder: 3, prepTimeMinutes: 6, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Sides', sortOrder: 3, items: [
+          { name: 'Fries', description: 'Regular or seasoned', price: 3.49, sortOrder: 1, prepTimeMinutes: 5, sku: null, durationMinutes: null },
+          { name: 'Chips & Salsa', description: null, price: 3.99, sortOrder: 2, prepTimeMinutes: 2, sku: null, durationMinutes: null },
+          { name: 'Coleslaw', description: null, price: 2.49, sortOrder: 3, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Drinks', sortOrder: 4, items: [
+          { name: 'Fountain Drink', description: 'Small, Medium, Large', price: 1.99, sortOrder: 1, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+          { name: 'Bottled Water', description: null, price: 1.49, sortOrder: 2, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+          { name: 'Milkshake', description: 'Chocolate, vanilla, or strawberry', price: 4.99, sortOrder: 3, prepTimeMinutes: 3, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Extras', sortOrder: 5, items: [
+          { name: 'Extra Cheese', description: null, price: 0.99, sortOrder: 1, prepTimeMinutes: 0, sku: null, durationMinutes: null },
+          { name: 'Bacon', description: null, price: 1.49, sortOrder: 2, prepTimeMinutes: 0, sku: null, durationMinutes: null },
+          { name: 'Avocado', description: null, price: 1.49, sortOrder: 3, prepTimeMinutes: 0, sku: null, durationMinutes: null },
+          { name: 'Extra Patty', description: null, price: 2.99, sortOrder: 4, prepTimeMinutes: 5, sku: null, durationMinutes: null },
+          { name: 'Side of Ranch', description: null, price: 0.50, sortOrder: 5, prepTimeMinutes: 0, sku: null, durationMinutes: null },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'coffee-shop',
+    vertical: 'food_and_drink',
+    name: 'Coffee & Bakery',
+    description: 'Café with hot and cold drinks, pastries, and light bites.',
+    itemCount: 20,
+    categories: [
+      {
+        name: 'Hot Drinks', sortOrder: 1, items: [
+          { name: 'Drip Coffee', description: 'House blend, single origin available', price: 3.49, sortOrder: 1, prepTimeMinutes: 2, sku: null, durationMinutes: null },
+          { name: 'Latte', description: 'Espresso with steamed milk', price: 4.99, sortOrder: 2, prepTimeMinutes: 4, sku: null, durationMinutes: null },
+          { name: 'Cappuccino', description: 'Espresso with foamed milk', price: 4.99, sortOrder: 3, prepTimeMinutes: 4, sku: null, durationMinutes: null },
+          { name: 'Americano', description: 'Espresso with hot water', price: 3.99, sortOrder: 4, prepTimeMinutes: 3, sku: null, durationMinutes: null },
+          { name: 'Hot Chocolate', description: 'Rich chocolate with whipped cream', price: 4.49, sortOrder: 5, prepTimeMinutes: 3, sku: null, durationMinutes: null },
+          { name: 'Tea', description: 'Green, black, chamomile, or Earl Grey', price: 2.99, sortOrder: 6, prepTimeMinutes: 2, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Cold Drinks', sortOrder: 2, items: [
+          { name: 'Iced Coffee', description: 'House blend over ice', price: 3.99, sortOrder: 1, prepTimeMinutes: 2, sku: null, durationMinutes: null },
+          { name: 'Iced Latte', description: 'Espresso with cold milk over ice', price: 5.49, sortOrder: 2, prepTimeMinutes: 3, sku: null, durationMinutes: null },
+          { name: 'Cold Brew', description: '12-hour steeped, smooth and bold', price: 4.49, sortOrder: 3, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+          { name: 'Smoothie', description: 'Mango, strawberry, or mixed berry', price: 5.99, sortOrder: 4, prepTimeMinutes: 4, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Pastries', sortOrder: 3, items: [
+          { name: 'Croissant', description: 'Butter or chocolate', price: 3.49, sortOrder: 1, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+          { name: 'Muffin', description: 'Blueberry, banana nut, or chocolate chip', price: 3.49, sortOrder: 2, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+          { name: 'Scone', description: 'Seasonal flavor', price: 3.49, sortOrder: 3, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+          { name: 'Cinnamon Roll', description: 'Freshly baked with cream cheese icing', price: 4.49, sortOrder: 4, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Light Bites', sortOrder: 4, items: [
+          { name: 'Avocado Toast', description: 'Sourdough with everything seasoning', price: 7.99, sortOrder: 1, prepTimeMinutes: 5, sku: null, durationMinutes: null },
+          { name: 'Breakfast Sandwich', description: 'Egg, cheese, choice of bacon or sausage', price: 6.99, sortOrder: 2, prepTimeMinutes: 8, sku: null, durationMinutes: null },
+          { name: 'Yogurt Parfait', description: 'Greek yogurt with granola and berries', price: 5.99, sortOrder: 3, prepTimeMinutes: 3, sku: null, durationMinutes: null },
+          { name: 'Bagel & Cream Cheese', description: 'Plain, everything, or sesame', price: 3.99, sortOrder: 4, prepTimeMinutes: 2, sku: null, durationMinutes: null },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'bar-grill',
+    vertical: 'food_and_drink',
+    name: 'Bar & Grill',
+    description: 'Sports bar with pub food, beer, wine, and cocktails.',
+    itemCount: 22,
+    categories: [
+      {
+        name: 'Starters', sortOrder: 1, items: [
+          { name: 'Wings', description: '10 piece, choice of sauce', price: 13.99, sortOrder: 1, prepTimeMinutes: 15, sku: null, durationMinutes: null },
+          { name: 'Loaded Fries', description: 'Cheese, bacon, sour cream, green onion', price: 9.99, sortOrder: 2, prepTimeMinutes: 10, sku: null, durationMinutes: null },
+          { name: 'Pretzel Bites', description: 'With beer cheese dip', price: 8.99, sortOrder: 3, prepTimeMinutes: 8, sku: null, durationMinutes: null },
+          { name: 'Quesadilla', description: 'Chicken or steak with pico de gallo', price: 10.99, sortOrder: 4, prepTimeMinutes: 10, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Burgers & Sandwiches', sortOrder: 2, items: [
+          { name: 'Classic Burger', description: 'Angus beef, lettuce, tomato, pickle, fries', price: 13.99, sortOrder: 1, prepTimeMinutes: 12, sku: null, durationMinutes: null },
+          { name: 'BBQ Bacon Burger', description: 'BBQ sauce, bacon, cheddar, onion rings', price: 15.99, sortOrder: 2, prepTimeMinutes: 14, sku: null, durationMinutes: null },
+          { name: 'Philly Cheesesteak', description: 'Shaved ribeye, peppers, onions, provolone', price: 14.99, sortOrder: 3, prepTimeMinutes: 12, sku: null, durationMinutes: null },
+          { name: 'Crispy Chicken Sandwich', description: 'Spicy mayo, pickles, brioche bun', price: 12.99, sortOrder: 4, prepTimeMinutes: 12, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Beer', sortOrder: 3, items: [
+          { name: 'Draft Beer', description: 'Ask about today\'s rotating taps', price: 6.99, sortOrder: 1, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+          { name: 'Domestic Bottle', description: 'Bud Light, Coors Light, Miller Lite', price: 4.99, sortOrder: 2, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+          { name: 'Import/Craft Bottle', description: 'Rotating selection', price: 6.99, sortOrder: 3, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+          { name: 'Bucket (5)', description: '5 domestic bottles', price: 19.99, sortOrder: 4, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Cocktails', sortOrder: 4, items: [
+          { name: 'Margarita', description: 'Classic lime, frozen or on the rocks', price: 9.99, sortOrder: 1, prepTimeMinutes: 3, sku: null, durationMinutes: null },
+          { name: 'Old Fashioned', description: 'Bourbon, bitters, orange, cherry', price: 11.99, sortOrder: 2, prepTimeMinutes: 3, sku: null, durationMinutes: null },
+          { name: 'Moscow Mule', description: 'Vodka, ginger beer, lime', price: 9.99, sortOrder: 3, prepTimeMinutes: 3, sku: null, durationMinutes: null },
+          { name: 'Long Island Iced Tea', description: null, price: 10.99, sortOrder: 4, prepTimeMinutes: 3, sku: null, durationMinutes: null },
+        ],
+      },
+      {
+        name: 'Wine', sortOrder: 5, items: [
+          { name: 'House Red', description: 'Cabernet Sauvignon', price: 7.99, sortOrder: 1, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+          { name: 'House White', description: 'Chardonnay', price: 7.99, sortOrder: 2, prepTimeMinutes: 1, sku: null, durationMinutes: null },
+        ],
+      },
+    ],
+  },
+];
 
 // --- Navigation ---
 

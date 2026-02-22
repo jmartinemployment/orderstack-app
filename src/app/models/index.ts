@@ -32,3 +32,5 @@ export * from './vendor.model';
 export * from './staff-management.model';
 export * from './waste.model';
 export * from './platform.model';
+export * from './device.model';
+export * from './subscription.model';
