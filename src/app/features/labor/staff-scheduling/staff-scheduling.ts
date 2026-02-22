@@ -23,6 +23,10 @@ import {
   PtoRequest,
   PtoRequestStatus,
   PtoType,
+  ComplianceAlert,
+  ComplianceAlertType,
+  ComplianceAlertSeverity,
+  ForecastHour,
 } from '@models/index';
 
 @Component({
@@ -104,6 +108,14 @@ export class StaffScheduling implements OnDestroy {
   // PTO state (manager view in edits tab)
   private readonly _ptoFilter = signal<PtoRequestStatus | 'all'>('pending');
 
+  // Compliance state
+  private readonly _complianceFilter = signal<ComplianceAlertSeverity | 'all'>('all');
+  private readonly _showResolvedAlerts = signal(false);
+  private readonly _isResolvingAlert = signal(false);
+
+  // Forecasting state
+  private readonly _showForecast = signal(false);
+
   readonly activeTab = this._activeTab.asReadonly();
   readonly weekOffset = this._weekOffset.asReadonly();
   readonly showShiftModal = this._showShiftModal.asReadonly();
@@ -142,6 +154,41 @@ export class StaffScheduling implements OnDestroy {
   // PTO readonly
   readonly ptoRequests = this.laborService.ptoRequests;
   readonly ptoFilter = this._ptoFilter.asReadonly();
+
+  // Compliance readonly
+  readonly complianceAlerts = this.laborService.complianceAlerts;
+  readonly complianceSummary = this.laborService.complianceSummary;
+  readonly complianceFilter = this._complianceFilter.asReadonly();
+  readonly showResolvedAlerts = this._showResolvedAlerts.asReadonly();
+  readonly isResolvingAlert = this._isResolvingAlert.asReadonly();
+
+  // Forecasting readonly
+  readonly laborForecast = this.laborService.laborForecast;
+  readonly showForecast = this._showForecast.asReadonly();
+
+  readonly filteredComplianceAlerts = computed(() => {
+    const alerts = this.laborService.complianceAlerts();
+    const severity = this._complianceFilter();
+    const showResolved = this._showResolvedAlerts();
+    let filtered = showResolved ? alerts : alerts.filter(a => !a.isResolved);
+    if (severity !== 'all') {
+      filtered = filtered.filter(a => a.severity === severity);
+    }
+    return filtered;
+  });
+
+  readonly unresolvedAlertCount = computed(() =>
+    this.laborService.complianceAlerts().filter(a => !a.isResolved).length
+  );
+
+  readonly forecastOverUnder = computed(() => {
+    const forecast = this.laborForecast();
+    if (!forecast) return [];
+    return forecast.hourlyBreakdown.map(h => ({
+      ...h,
+      delta: h.scheduledStaff - h.recommendedStaff,
+    }));
+  });
 
   readonly pendingEditsCount = computed(() =>
     this.laborService.timecardEdits().filter(e => e.status === 'pending').length
@@ -374,17 +421,73 @@ export class StaffScheduling implements OnDestroy {
       this.loadReport();
     } else if (tab === 'ai-insights') {
       this.laborService.loadRecommendations();
+      this.laborService.getLaborForecast(this.weekStartStr());
     } else if (tab === 'edits') {
       this.laborService.loadTimecardEdits();
       this.laborService.loadPtoRequests();
     } else if (tab === 'payroll') {
       this.laborService.loadPayrollPeriods();
       this.laborService.loadCommissionRules();
+    } else if (tab === 'compliance') {
+      this.laborService.loadComplianceAlerts();
+      this.laborService.loadComplianceSummary();
     }
   }
 
   refreshRecommendations(): void {
     this.laborService.loadRecommendations();
+  }
+
+  // Compliance
+  setComplianceFilter(severity: ComplianceAlertSeverity | 'all'): void {
+    this._complianceFilter.set(severity);
+  }
+
+  toggleResolvedAlerts(): void {
+    this._showResolvedAlerts.update(v => !v);
+  }
+
+  async resolveAlert(id: string): Promise<void> {
+    this._isResolvingAlert.set(true);
+    await this.laborService.resolveComplianceAlert(id);
+    this._isResolvingAlert.set(false);
+  }
+
+  getAlertSeverityClass(severity: ComplianceAlertSeverity): string {
+    if (severity === 'critical') return 'badge bg-danger';
+    if (severity === 'warning') return 'badge bg-warning text-dark';
+    return 'badge bg-info';
+  }
+
+  getAlertTypeIcon(type: ComplianceAlertType): string {
+    if (type === 'break_missed') return 'bi-cup-hot';
+    if (type === 'overtime_approaching') return 'bi-clock';
+    if (type === 'overtime_exceeded') return 'bi-exclamation-triangle';
+    if (type === 'minor_violation') return 'bi-person-exclamation';
+    return 'bi-currency-dollar';
+  }
+
+  // Forecasting
+  toggleForecast(): void {
+    this._showForecast.update(v => !v);
+    if (this._showForecast()) {
+      this.laborService.getLaborForecast(this.weekStartStr());
+    }
+  }
+
+  getForecastBarWidth(scheduled: number, recommended: number): number {
+    const max = Math.max(scheduled, recommended, 1);
+    return (scheduled / max) * 100;
+  }
+
+  getRecommendedBarWidth(scheduled: number, recommended: number): number {
+    const max = Math.max(scheduled, recommended, 1);
+    return (recommended / max) * 100;
+  }
+
+  getDayName(dayOfWeek: number): string {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return days[dayOfWeek] ?? '';
   }
 
   // Week navigation

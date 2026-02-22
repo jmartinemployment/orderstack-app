@@ -29,6 +29,9 @@ import {
   PtoRequest,
   PtoRequestStatus,
   PtoBalance,
+  LaborForecast,
+  ComplianceAlert,
+  ComplianceSummary,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -103,6 +106,16 @@ export class LaborService {
   readonly ptoPolicies = this._ptoPolicies.asReadonly();
   readonly ptoRequests = this._ptoRequests.asReadonly();
   readonly ptoBalances = this._ptoBalances.asReadonly();
+
+  // --- Labor Forecasting signals ---
+  private readonly _laborForecast = signal<LaborForecast | null>(null);
+  readonly laborForecast = this._laborForecast.asReadonly();
+
+  // --- Compliance signals ---
+  private readonly _complianceAlerts = signal<ComplianceAlert[]>([]);
+  private readonly _complianceSummary = signal<ComplianceSummary | null>(null);
+  readonly complianceAlerts = this._complianceAlerts.asReadonly();
+  readonly complianceSummary = this._complianceSummary.asReadonly();
 
   private get restaurantId(): string | null {
     return this.authService.selectedRestaurantId();
@@ -1379,6 +1392,78 @@ export class LaborService {
       this._ptoBalances.set(data);
     } catch (err: unknown) {
       this._error.set(err instanceof Error ? err.message : 'Failed to load PTO balances');
+    }
+  }
+
+  // --- Labor Forecasting ---
+
+  async getLaborForecast(weekStart: string): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<LaborForecast>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/forecast`,
+          { params: { weekStart } }
+        )
+      );
+      this._laborForecast.set(data);
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to load labor forecast');
+    }
+  }
+
+  // --- Compliance ---
+
+  async loadComplianceAlerts(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<ComplianceAlert[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/compliance/alerts`
+        )
+      );
+      this._complianceAlerts.set(data);
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to load compliance alerts');
+    }
+  }
+
+  async loadComplianceSummary(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<ComplianceSummary>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/compliance/summary`
+        )
+      );
+      this._complianceSummary.set(data);
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to load compliance summary');
+    }
+  }
+
+  async resolveComplianceAlert(id: string): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.patch<ComplianceAlert>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/compliance/alerts/${id}`,
+          { isResolved: true }
+        )
+      );
+      this._complianceAlerts.update(alerts =>
+        alerts.map(a => a.id === id ? result : a)
+      );
+      return true;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to resolve alert');
+      return false;
     }
   }
 }

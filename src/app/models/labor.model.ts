@@ -1,5 +1,5 @@
 export type ShiftPosition = 'server' | 'cook' | 'bartender' | 'host' | 'manager' | 'expo';
-export type StaffScheduleTab = 'schedule' | 'time-clock' | 'labor-report' | 'ai-insights' | 'edits' | 'payroll';
+export type StaffScheduleTab = 'schedule' | 'time-clock' | 'labor-report' | 'ai-insights' | 'edits' | 'payroll' | 'compliance';
 export type ReportRange = 'week' | 'biweek' | 'month';
 
 export interface StaffMember {
@@ -389,4 +389,56 @@ export interface PtoBalance {
   accrued: number;
   used: number;
   available: number;
+}
+
+// --- Labor Forecasting ---
+
+export interface LaborForecast {
+  weekStart: string;
+  projectedLaborCost: number;
+  budgetTarget: number;
+  hourlyBreakdown: ForecastHour[];
+}
+
+export interface ForecastHour {
+  dayOfWeek: number;
+  hour: number;
+  scheduledStaff: number;
+  recommendedStaff: number;
+  projectedRevenue: number;
+  projectedLaborCost: number;
+}
+
+// --- Compliance Dashboard ---
+
+export type ComplianceAlertType =
+  | 'break_missed'
+  | 'overtime_approaching'
+  | 'overtime_exceeded'
+  | 'minor_violation'
+  | 'tip_credit_violation';
+
+export type ComplianceAlertSeverity = 'critical' | 'warning' | 'info';
+
+export interface ComplianceAlert {
+  id: string;
+  type: ComplianceAlertType;
+  severity: ComplianceAlertSeverity;
+  teamMemberId: string;
+  teamMemberName: string;
+  title: string;
+  description: string;
+  date: string;
+  isResolved: boolean;
+  resolvedAt: string | null;
+  resolvedBy: string | null;
+}
+
+export interface ComplianceSummary {
+  totalAlerts: number;
+  criticalCount: number;
+  warningCount: number;
+  breakComplianceRate: number;
+  overtimeEmployees: number;
+  tipCreditViolations: number;
 }

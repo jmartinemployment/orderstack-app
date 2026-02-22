@@ -48,6 +48,15 @@
           <i class="bi bi-wallet2"></i> Payroll
         </button>
       </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab() === 'compliance'"
+          (click)="setTab('compliance')">
+          <i class="bi bi-shield-check"></i> Compliance
+          @if (unresolvedAlertCount() > 0) {
+            <span class="badge bg-danger ms-1">{{ unresolvedAlertCount() }}</span>
+          }
+        </button>
+      </li>
     </ul>
 
     <!-- Loading / Error -->
@@ -503,6 +512,85 @@
             </div>
           </div>
         </div>
+      }
+
+      <!-- Labor Forecasting Section -->
+      <div class="section-divider my-4"></div>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="text-white mb-0"><i class="bi bi-graph-up-arrow"></i> Labor Forecast</h6>
+        <button class="btn btn-sm btn-outline-light" (click)="toggleForecast()">
+          @if (showForecast()) {
+            <i class="bi bi-chevron-up"></i> Hide
+          } @else {
+            <i class="bi bi-chevron-down"></i> Show
+          }
+        </button>
+      </div>
+
+      @if (showForecast()) {
+        @if (laborForecast(); as forecast) {
+          <!-- Budget vs Projected -->
+          <div class="forecast-summary mb-3">
+            <div class="row g-2">
+              <div class="col-md-4">
+                <div class="forecast-stat">
+                  <div class="forecast-stat-label">Projected Cost</div>
+                  <div class="forecast-stat-value">{{ forecast.projectedLaborCost | currency }}</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="forecast-stat">
+                  <div class="forecast-stat-label">Budget Target</div>
+                  <div class="forecast-stat-value">{{ forecast.budgetTarget | currency }}</div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="forecast-stat" [class.over-budget]="forecast.projectedLaborCost > forecast.budgetTarget"
+                  [class.under-budget]="forecast.projectedLaborCost <= forecast.budgetTarget">
+                  <div class="forecast-stat-label">Variance</div>
+                  <div class="forecast-stat-value">
+                    {{ (forecast.projectedLaborCost - forecast.budgetTarget) | currency }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Staffing Bar Chart -->
+          <h6 class="text-muted small mb-2">Scheduled vs Recommended Staffing</h6>
+          <div class="forecast-bars">
+            @for (item of forecastOverUnder(); track $index) {
+              <div class="forecast-bar-row">
+                <div class="forecast-bar-label">
+                  {{ getDayName(item.dayOfWeek) }} {{ item.hour }}:00
+                </div>
+                <div class="forecast-bar-track">
+                  <div class="forecast-bar-scheduled"
+                    [style.width.%]="getForecastBarWidth(item.scheduledStaff, item.recommendedStaff)">
+                    {{ item.scheduledStaff }}
+                  </div>
+                  <div class="forecast-bar-recommended"
+                    [style.width.%]="getRecommendedBarWidth(item.scheduledStaff, item.recommendedStaff)">
+                    {{ item.recommendedStaff }}
+                  </div>
+                </div>
+                <div class="forecast-bar-delta" [class.over]="item.delta > 0" [class.under]="item.delta < 0">
+                  @if (item.delta > 0) { +{{ item.delta }} }
+                  @else if (item.delta < 0) { {{ item.delta }} }
+                  @else { — }
+                </div>
+              </div>
+            }
+          </div>
+          <div class="forecast-legend mt-2">
+            <span class="legend-item"><span class="legend-dot scheduled"></span> Scheduled</span>
+            <span class="legend-item"><span class="legend-dot recommended"></span> Recommended</span>
+          </div>
+        } @else {
+          @if (!isLoading()) {
+            <p class="text-muted small">No forecast data available for this week.</p>
+          }
+        }
       }
     }
 
@@ -989,6 +1077,120 @@
                 <i class="bi bi-trash3"></i>
               </button>
             </div>
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ==================== COMPLIANCE TAB ==================== -->
+    @if (activeTab() === 'compliance') {
+      <!-- Summary Cards -->
+      @if (complianceSummary(); as summary) {
+        <div class="row g-2 mb-3">
+          <div class="col-md-2 col-4">
+            <div class="compliance-stat">
+              <div class="compliance-stat-value text-danger">{{ summary.criticalCount }}</div>
+              <div class="compliance-stat-label">Critical</div>
+            </div>
+          </div>
+          <div class="col-md-2 col-4">
+            <div class="compliance-stat">
+              <div class="compliance-stat-value text-warning">{{ summary.warningCount }}</div>
+              <div class="compliance-stat-label">Warnings</div>
+            </div>
+          </div>
+          <div class="col-md-2 col-4">
+            <div class="compliance-stat">
+              <div class="compliance-stat-value text-info">{{ summary.totalAlerts }}</div>
+              <div class="compliance-stat-label">Total</div>
+            </div>
+          </div>
+          <div class="col-md-2 col-4">
+            <div class="compliance-stat">
+              <div class="compliance-stat-value text-success">{{ summary.breakComplianceRate | percent:'1.0-0' }}</div>
+              <div class="compliance-stat-label">Break Rate</div>
+            </div>
+          </div>
+          <div class="col-md-2 col-4">
+            <div class="compliance-stat">
+              <div class="compliance-stat-value text-warning">{{ summary.overtimeEmployees }}</div>
+              <div class="compliance-stat-label">OT Staff</div>
+            </div>
+          </div>
+          <div class="col-md-2 col-4">
+            <div class="compliance-stat">
+              <div class="compliance-stat-value text-danger">{{ summary.tipCreditViolations }}</div>
+              <div class="compliance-stat-label">Tip Viol.</div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Filters -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="btn-group btn-group-sm">
+          <button class="btn" [class.btn-light]="complianceFilter() === 'all'"
+            [class.btn-outline-light]="complianceFilter() !== 'all'" (click)="setComplianceFilter('all')">
+            All
+          </button>
+          <button class="btn" [class.btn-danger]="complianceFilter() === 'critical'"
+            [class.btn-outline-danger]="complianceFilter() !== 'critical'" (click)="setComplianceFilter('critical')">
+            Critical
+          </button>
+          <button class="btn" [class.btn-warning]="complianceFilter() === 'warning'"
+            [class.btn-outline-warning]="complianceFilter() !== 'warning'" (click)="setComplianceFilter('warning')">
+            Warning
+          </button>
+          <button class="btn" [class.btn-info]="complianceFilter() === 'info'"
+            [class.btn-outline-info]="complianceFilter() !== 'info'" (click)="setComplianceFilter('info')">
+            Info
+          </button>
+        </div>
+        <label class="form-check form-check-inline text-muted small mb-0">
+          <input type="checkbox" class="form-check-input" [checked]="showResolvedAlerts()"
+            (change)="toggleResolvedAlerts()">
+          Show resolved
+        </label>
+      </div>
+
+      <!-- Alerts List -->
+      @if (filteredComplianceAlerts().length === 0 && !isLoading()) {
+        <div class="text-center py-4">
+          <i class="bi bi-shield-check text-success" style="font-size: 2rem;"></i>
+          <p class="text-muted mt-2 mb-0">No compliance alerts. All clear.</p>
+        </div>
+      }
+
+      @for (alert of filteredComplianceAlerts(); track alert.id) {
+        <div class="compliance-alert-card mb-2" [class.resolved]="alert.isResolved">
+          <div class="d-flex align-items-start">
+            <i class="bi {{ getAlertTypeIcon(alert.type) }} compliance-alert-icon me-2"
+              [class.text-danger]="alert.severity === 'critical'"
+              [class.text-warning]="alert.severity === 'warning'"
+              [class.text-info]="alert.severity === 'info'"></i>
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <strong class="text-white">{{ alert.title }}</strong>
+                <span [class]="getAlertSeverityClass(alert.severity)">{{ alert.severity }}</span>
+                @if (alert.isResolved) {
+                  <span class="badge bg-success">Resolved</span>
+                }
+              </div>
+              <p class="text-muted mb-1 small">{{ alert.description }}</p>
+              <div class="d-flex align-items-center gap-3 small text-muted">
+                <span><i class="bi bi-person"></i> {{ alert.teamMemberName }}</span>
+                <span><i class="bi bi-calendar3"></i> {{ alert.date | date:'mediumDate' }}</span>
+                @if (alert.resolvedAt) {
+                  <span><i class="bi bi-check-circle"></i> Resolved {{ alert.resolvedAt | date:'short' }}</span>
+                }
+              </div>
+            </div>
+            @if (!alert.isResolved) {
+              <button class="btn btn-sm btn-outline-success ms-2" (click)="resolveAlert(alert.id)"
+                [disabled]="isResolvingAlert()" title="Mark as resolved">
+                <i class="bi bi-check-lg"></i>
+              </button>
+            }
           </div>
         </div>
       }
