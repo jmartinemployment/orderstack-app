@@ -195,19 +195,7 @@ export class DeviceService {
     // Skip if already resolved
     if (this._currentDevice() !== null) return;
 
-    // Check for skipped device setup (local-only device) first
-    const skippedRaw = localStorage.getItem('device_skipped');
-    if (skippedRaw) {
-      try {
-        const skipped = JSON.parse(skippedRaw) as Device;
-        this._currentDevice.set(skipped);
-        return;
-      } catch {
-        // Corrupt — fall through
-      }
-    }
-
-    // Look up paired device by ID
+    // Look up paired/registered device by ID
     const deviceId = localStorage.getItem('device_id');
     if (!deviceId) {
       this._currentDevice.set(null);
@@ -230,31 +218,41 @@ export class DeviceService {
     }
   }
 
-  skipDeviceSetup(posMode: DevicePosMode): void {
-    const localDevice: Device = {
-      id: 'local-browser',
-      restaurantId: this.restaurantId,
-      locationId: null,
-      deviceCode: 'LOCAL',
-      deviceName: 'This Browser',
-      deviceType: 'pos_terminal',
-      posMode,
-      modeId: null,
-      status: 'active',
-      hardwareInfo: {
-        platform: 'Browser',
-        osVersion: navigator.platform ?? null,
-        appVersion: null,
-        screenSize: `${window.screen.width}x${window.screen.height}`,
-        serialNumber: null,
-      },
-      lastSeenAt: new Date().toISOString(),
-      pairedAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-      createdAt: new Date().toISOString(),
+  async registerBrowserDevice(posMode: DevicePosMode): Promise<Device | null> {
+    if (!this.restaurantId) {
+      this._error.set('No restaurant selected');
+      return null;
+    }
+
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    const hardwareInfo: DeviceHardwareInfo = {
+      platform: 'Browser',
+      osVersion: navigator.platform ?? null,
+      appVersion: null,
+      screenSize: `${window.screen.width}x${window.screen.height}`,
+      serialNumber: null,
     };
-    this._currentDevice.set(localDevice);
-    localStorage.setItem('device_skipped', JSON.stringify(localDevice));
+
+    try {
+      const device = await firstValueFrom(
+        this.http.post<Device>(`${this.baseUrl}/devices/register-browser`, {
+          posMode,
+          hardwareInfo,
+        })
+      );
+      this._currentDevice.set(device);
+      localStorage.setItem('device_id', device.id);
+      this._devices.update(list => [...list, device]);
+      this.persistData('devices', this._devices());
+      return device;
+    } catch {
+      this._error.set('Failed to register device. Please check your connection and try again.');
+      return null;
+    } finally {
+      this._isLoading.set(false);
+    }
   }
 
   // --- Mode CRUD ---

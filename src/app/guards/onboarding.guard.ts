@@ -28,11 +28,5 @@ export const onboardingGuard = async () => {
     return true;
   }
 
-  // Fallback: check localStorage for completed onboarding
-  const onboardingResult = localStorage.getItem('onboarding-result');
-  if (onboardingResult) {
-    return true;
-  }
-
   return router.createUrlTree(['/setup']);
 };

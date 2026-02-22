@@ -755,13 +755,17 @@ export class SetupWizard {
     return day.charAt(0).toUpperCase() + day.slice(1);
   }
 
-  goToDashboard(): void {
-    // After onboarding, skip formal device pairing — use default mode
+  async goToDashboard(): Promise<void> {
     const defaultMode = this._selectedMode();
-    this.deviceService.skipDeviceSetup(defaultMode);
-    this.platformService.setDeviceModeFromDevice(defaultMode);
 
-    // Go to POS login (PIN screen)
+    // Register this browser as a device via the backend
+    const device = await this.deviceService.registerBrowserDevice(defaultMode);
+    if (!device) {
+      this._submitError.set(this.deviceService.error() ?? 'Failed to register device');
+      return;
+    }
+
+    this.platformService.setDeviceModeFromDevice(defaultMode);
     this.router.navigate(['/pos-login']);
   }
 }

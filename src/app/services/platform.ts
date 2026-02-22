@@ -40,6 +40,7 @@ export interface OnboardingPayload {
 export interface OnboardingResult {
   restaurantId: string;
   token: string;
+  deviceId: string;
   restaurant: Record<string, unknown>;
 }
 
@@ -269,18 +270,14 @@ export class PlatformService {
         )
       );
       this.buildProfileFromPayload(payload);
+      localStorage.setItem('onboarding-payload', JSON.stringify(payload));
+      if (result.deviceId) {
+        localStorage.setItem('device_id', result.deviceId);
+      }
       return result;
     } catch {
-      // API may not exist yet — save onboarding data locally and return success
-      const localResult: OnboardingResult = {
-        restaurantId: this.restaurantId ?? environment.defaultRestaurantId,
-        token: 'local-onboarding',
-        restaurant: { name: payload.businessName, onboarded: true },
-      };
-      localStorage.setItem('onboarding-payload', JSON.stringify(payload));
-      localStorage.setItem('onboarding-result', JSON.stringify(localResult));
-      this.buildProfileFromPayload(payload);
-      return localResult;
+      this._error.set('Failed to complete onboarding. Please check your connection and try again.');
+      return null;
     } finally {
       this._isLoading.set(false);
     }

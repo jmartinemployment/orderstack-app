@@ -110,10 +110,17 @@ export class DeviceSetup implements OnInit {
     this.isPairing.set(false);
   }
 
-  getStarted(): void {
+  async getStarted(): Promise<void> {
     const profile = this.platformService.merchantProfile();
     const defaultMode = profile?.defaultDeviceMode ?? 'full_service';
-    this.deviceService.skipDeviceSetup(defaultMode);
+
+    // Register this browser as a device via the backend
+    const device = await this.deviceService.registerBrowserDevice(defaultMode);
+    if (!device) {
+      this.pairingError.set(this.deviceService.error() ?? 'Failed to register device');
+      return;
+    }
+
     this.platformService.setDeviceModeFromDevice(defaultMode);
     this.enterPinPhase();
   }

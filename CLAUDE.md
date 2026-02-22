@@ -277,4 +277,20 @@ ng build --configuration=production
 - **Files modified:** `services/platform.ts`, `models/platform.model.ts`, `features/pos/server-pos-terminal/server-pos-terminal.ts`, `features/pos/server-pos-terminal/server-pos-terminal.html`, `features/pos/order-pad/order-pad.ts`, `features/pos/order-pad/order-pad.html`
 - Next: Style remaining feature pages to Square light theme. Verify device pairing backend endpoints exist.
 
-*Last Updated: February 22, 2026 (Session 6)*
+**[February 22, 2026] (Session 7) — Device Management Backend + Frontend Stub Cleanup:**
+- **Plan:** `.claude/plans/device-backend-stub-cleanup.md` — 5-segment plan, ALL COMPLETE
+- **Segment 1 (Prisma schema):** Expanded `Device` model (removed `deviceId`/`isActive`, added `deviceCode`/`posMode`/`modeId`/`status`/`hardwareInfo`/`pairedAt`/`expiresAt`/`locationId`). Added 4 new models: `DeviceMode`, `PrinterProfile`, `PeripheralDevice`, `KioskProfile`. Added relations to `Restaurant`. Used `prisma db push --accept-data-loss` (migration history drift). Fixed `auth.middleware.ts` and `socket.service.ts` for new field names.
+- **Segment 2 (Device routes + pairing):** Created `src/utils/device-code.ts` (5-char code generator). Rewrote `device.routes.ts` (7 endpoints with Zod validation). Created `device-pairing.routes.ts` (`POST /pair` unauthenticated, `GET /:id` authenticated). Updated `onboarding.routes.ts` to create browser device in transaction, return `deviceId` in response. Mounted in `app.ts`.
+- **Segment 3 (New CRUD routes):** Created `device-mode.routes.ts` (DeviceMode CRUD with nested settings validation, default enforcement, delete protection), `printer-profile.routes.ts`, `peripheral.routes.ts`, `kiosk-profile.routes.ts`. Mounted all in `app.ts`. Fixed Zod `.default({})` TypeScript error with explicit default values.
+- **Segment 4 (Frontend stub removal):**
+  - **Removed:** `skipDeviceSetup()` from `DeviceService`, `device_skipped` localStorage read from `resolveCurrentDevice()`, fake `OnboardingResult` catch block from `PlatformService.completeOnboarding()`, `onboarding-result` localStorage fallback from `onboardingGuard`
+  - **Added:** `registerBrowserDevice(posMode)` to `DeviceService` — calls `POST /devices/register-browser`, stores `device_id` in localStorage. `deviceId: string` to `OnboardingResult` interface. `device_id` localStorage storage on successful onboarding.
+  - **Updated:** `setup-wizard.ts` `goToDashboard()` → calls `registerBrowserDevice()` instead of `skipDeviceSetup()`. `device-setup.ts` `getStarted()` → calls `registerBrowserDevice()` instead of `skipDeviceSetup()`.
+- **Segment 5 (Integration hardening):** Verified device code expiration (15min create, rejected on pair), default mode enforcement, delete protection. Confirmed zero orphaned localStorage keys (`device_skipped`, `onboarding-result`, `local-onboarding`, `local-browser` all eliminated).
+- **Backend files created (6):** `device-code.ts`, `device-pairing.routes.ts`, `device-mode.routes.ts`, `printer-profile.routes.ts`, `peripheral.routes.ts`, `kiosk-profile.routes.ts`
+- **Backend files modified (5):** `prisma/schema.prisma`, `device.routes.ts` (full rewrite), `onboarding.routes.ts`, `app.ts`, `auth.middleware.ts`, `socket.service.ts`
+- **Frontend files modified (5):** `services/device.ts`, `services/platform.ts`, `guards/onboarding.guard.ts`, `features/onboarding/setup-wizard/setup-wizard.ts`, `features/onboarding/device-setup/device-setup.ts`
+- **Build: zero errors** — both backend (`tsc --noEmit`) and frontend (`ng build --configuration=production`)
+- Next: Style remaining feature pages to Square light theme. End-to-end test with live backend.
+
+*Last Updated: February 22, 2026 (Session 7)*
