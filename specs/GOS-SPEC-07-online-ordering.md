@@ -5,8 +5,9 @@
 | Phase | Status |
 |-------|--------|
 | Phase 1 (Steps 1-5) | ✅ COMPLETE — modifier bottom sheet, scheduled ordering, delivery zones, promo codes, prep time + WebSocket tracking |
-| Phase 2 (Steps 6-9) | NOT STARTED — future work |
-| Phase 3 (Steps 10-14) | NOT STARTED — future work |
+| Phase 2 (Steps 6-9) | ✅ COMPLETE — upsell in checkout, saved addresses, order-again, age verification |
+| Phase 2.5 (Step 10) | NOT STARTED — multi-location ordering |
+| Phase 3 (Steps 11-14) | NOT STARTED — future work |
 
 **Implemented in:** `orderstack-app/` (standalone Angular 21 SaaS)
 **Depends on:** GOS-SPEC-01 (vertical-specific order types and fulfillment)

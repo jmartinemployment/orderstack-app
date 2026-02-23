@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, effect, input, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { MenuService } from '@services/menu';
 import { CartService } from '@services/cart';
 import { OrderService } from '@services/order';
@@ -7,16 +7,18 @@ import { AuthService } from '@services/auth';
 import { LoyaltyService } from '@services/loyalty';
 import { DeliveryService } from '@services/delivery';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
+import { AnalyticsService } from '@services/analytics';
+import { CustomerService } from '@services/customer';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { GiftCardService } from '@services/gift-card';
-import { MenuItem, Order, OrderType, DeliveryQuote, getOrderIdentifier, LoyaltyProfile, LoyaltyReward, GiftCardBalanceCheck, getTierLabel, getTierColor, tierMeetsMinimum, AllergenType, Allergen, NutritionFacts, isItemAvailable, getItemAvailabilityLabel, getAllergenLabel } from '@models/index';
+import { MenuItem, Order, OrderType, DeliveryQuote, getOrderIdentifier, LoyaltyProfile, LoyaltyReward, GiftCardBalanceCheck, getTierLabel, getTierColor, tierMeetsMinimum, AllergenType, Allergen, NutritionFacts, isItemAvailable, getItemAvailabilityLabel, getAllergenLabel, UpsellSuggestion, SavedAddress } from '@models/index';
 
 type OnlineStep = 'menu' | 'cart' | 'info' | 'confirm';
 type TipPreset = { label: string; percent: number };
 
 @Component({
   selector: 'os-online-ordering',
-  imports: [CurrencyPipe, LoadingSpinner],
+  imports: [CurrencyPipe, DatePipe, LoadingSpinner],
   templateUrl: './online-order-portal.html',
   styleUrl: './online-order-portal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,6 +32,8 @@ export class OnlineOrderPortal implements OnDestroy {
   private readonly deliveryService = inject(DeliveryService);
   private readonly settingsService = inject(RestaurantSettingsService);
   private readonly giftCardService = inject(GiftCardService);
+  private readonly analyticsService = inject(AnalyticsService);
+  private readonly customerService = inject(CustomerService);
 
   readonly restaurantSlug = input<string>('');
   readonly table = input<string>('');
@@ -231,8 +235,50 @@ export class OnlineOrderPortal implements OnDestroy {
     return items;
   });
 
+  // --- Upsell (Step 6) ---
+  private readonly _showUpsell = signal(false);
+  private readonly _upsellDismissed = signal(false);
+  readonly showUpsell = this._showUpsell.asReadonly();
+  readonly upsellDismissed = this._upsellDismissed.asReadonly();
+  readonly upsellSuggestions = this.analyticsService.upsellSuggestions;
+  readonly isLoadingUpsell = this.analyticsService.isLoadingUpsell;
+
+  // --- Saved Addresses (Step 7) ---
+  private readonly _selectedAddressId = signal<string | null>(null);
+  private readonly _saveNewAddress = signal(false);
+  private readonly _newAddressLabel = signal('Home');
+  readonly selectedAddressId = this._selectedAddressId.asReadonly();
+  readonly saveNewAddress = this._saveNewAddress.asReadonly();
+  readonly newAddressLabel = this._newAddressLabel.asReadonly();
+  readonly savedAddresses = this.customerService.savedAddresses;
+  readonly defaultAddress = this.customerService.defaultAddress;
+
+  // --- Order Again (Step 8) ---
+  private readonly _recentOrders = signal<Order[]>([]);
+  private readonly _showRecentOrders = signal(false);
+  private readonly _isLoadingRecentOrders = signal(false);
+  readonly recentOrders = this._recentOrders.asReadonly();
+  readonly showRecentOrders = this._showRecentOrders.asReadonly();
+  readonly isLoadingRecentOrders = this._isLoadingRecentOrders.asReadonly();
+
+  // --- Age Verification (Step 9) ---
+  private readonly _showAgeVerification = signal(false);
+  private readonly _ageVerified = signal(false);
+  readonly showAgeVerification = this._showAgeVerification.asReadonly();
+  readonly ageVerified = this._ageVerified.asReadonly();
+
+  readonly cartRequiresAgeVerification = computed(() =>
+    this.cartItems().some(i => i.menuItem.requiresAgeVerification)
+  );
+
+  // Track customer ID for saved address operations
+  private readonly _identifiedCustomerId = signal<string | null>(null);
+  readonly identifiedCustomerId = this._identifiedCustomerId.asReadonly();
+
   readonly canSubmit = computed(() => {
     if (this.cartItemCount() === 0) return false;
+    // Age verification required but not done
+    if (this.cartRequiresAgeVerification() && !this._ageVerified()) return false;
     // Tableside: no customer info required (dine-in at table)
     if (this.isTableside()) return true;
     const firstName = this._customerFirstName().trim();
@@ -367,6 +413,7 @@ export class OnlineOrderPortal implements OnDestroy {
       case 'deliveryNotes': this._deliveryNotes.set(value); break;
       case 'vehicle': this._vehicleDescription.set(value); break;
       case 'instructions': this._specialInstructions.set(value); break;
+      case 'addressLabel': this._newAddressLabel.set(value); break;
     }
   }
 
@@ -377,7 +424,96 @@ export class OnlineOrderPortal implements OnDestroy {
   }
 
   goToInfo(): void {
+    // Trigger upsell before info step (only once, skip if dismissed)
+    if (!this._upsellDismissed() && this.cartItemCount() > 0) {
+      const cartItemIds = this.cartItems().map(i => i.menuItem.id);
+      this.analyticsService.fetchUpsellSuggestions(cartItemIds);
+      this._showUpsell.set(true);
+    } else {
+      this._step.set('info');
+    }
+  }
+
+  // --- Upsell methods (Step 6) ---
+
+  addUpsellItem(suggestion: UpsellSuggestion): void {
+    this.cartService.addItem(suggestion.item);
+  }
+
+  dismissUpsell(): void {
+    this._showUpsell.set(false);
+    this._upsellDismissed.set(true);
+    this.analyticsService.clearUpsellSuggestions();
     this._step.set('info');
+  }
+
+  // --- Saved Address methods (Step 7) ---
+
+  selectSavedAddress(address: SavedAddress): void {
+    this._selectedAddressId.set(address.id);
+    this._deliveryAddress.set(address.address);
+    this._deliveryAddress2.set(address.address2 ?? '');
+    this._deliveryCity.set(address.city);
+    this._deliveryStateUS.set(address.state);
+    this._deliveryZip.set(address.zip);
+  }
+
+  clearSelectedAddress(): void {
+    this._selectedAddressId.set(null);
+    this._deliveryAddress.set('');
+    this._deliveryAddress2.set('');
+    this._deliveryCity.set('');
+    this._deliveryStateUS.set('');
+    this._deliveryZip.set('');
+  }
+
+  toggleSaveNewAddress(): void {
+    this._saveNewAddress.update(v => !v);
+  }
+
+  // --- Order Again methods (Step 8) ---
+
+  toggleRecentOrders(): void {
+    this._showRecentOrders.update(v => !v);
+  }
+
+  getOrderSelections(order: Order): { menuItemGuid: string; menuItemName: string; quantity: number }[] {
+    if (!order.checks || order.checks.length === 0) return [];
+    return order.checks.flatMap(c => c.selections ?? []).map(s => ({
+      menuItemGuid: s.menuItemGuid,
+      menuItemName: s.menuItemName,
+      quantity: s.quantity,
+    }));
+  }
+
+  async reorderFromPast(order: Order): Promise<void> {
+    const selections = this.getOrderSelections(order);
+    if (selections.length === 0) return;
+    for (const sel of selections) {
+      const menuItem = this.menuService.allItems().find(i => i.id === sel.menuItemGuid);
+      if (menuItem && menuItem.isActive !== false && !menuItem.eightySixed) {
+        for (let q = 0; q < sel.quantity; q++) {
+          this.cartService.addItem(menuItem);
+        }
+      }
+    }
+    this._showRecentOrders.set(false);
+    this._step.set('cart');
+  }
+
+  // --- Age Verification methods (Step 9) ---
+
+  openAgeVerification(): void {
+    this._showAgeVerification.set(true);
+  }
+
+  confirmAge(): void {
+    this._ageVerified.set(true);
+    this._showAgeVerification.set(false);
+  }
+
+  cancelAgeVerification(): void {
+    this._showAgeVerification.set(false);
   }
 
   // --- Loyalty methods ---
@@ -410,6 +546,10 @@ export class OnlineOrderPortal implements OnDestroy {
     this._loyaltyLookupDone.set(false);
     this._pointsToRedeem.set(0);
     this.cartService.clearLoyaltyRedemption();
+    this._identifiedCustomerId.set(null);
+    this._recentOrders.set([]);
+    this._showRecentOrders.set(false);
+    this.customerService.clearSavedAddresses();
 
     const digits = phone.replaceAll(/\D/g, '');
     if (digits.length < 10) return;
@@ -419,9 +559,26 @@ export class OnlineOrderPortal implements OnDestroy {
       try {
         const customer = await this.loyaltyService.lookupCustomerByPhone(digits);
         if (customer) {
+          this._identifiedCustomerId.set(customer.id);
           const profile = await this.loyaltyService.getCustomerLoyalty(customer.id);
           this._loyaltyProfile.set(profile);
           this.cartService.setEstimatedPointsEarned(this.estimatedPointsEarned());
+
+          // Load saved addresses for delivery
+          await this.customerService.loadSavedAddresses(customer.id);
+          const defaultAddr = this.customerService.defaultAddress();
+          if (defaultAddr && this._orderType() === 'delivery') {
+            this.selectSavedAddress(defaultAddr);
+          }
+
+          // Load recent orders for order-again
+          this._isLoadingRecentOrders.set(true);
+          try {
+            const recent = await this.orderService.getCustomerRecentOrders(digits);
+            this._recentOrders.set(recent);
+          } finally {
+            this._isLoadingRecentOrders.set(false);
+          }
         }
       } finally {
         this._isLookingUpLoyalty.set(false);
@@ -542,6 +699,12 @@ export class OnlineOrderPortal implements OnDestroy {
   async submitOrder(): Promise<void> {
     if (!this.canSubmit() || this._isSubmitting()) return;
 
+    // Check age verification before submitting
+    if (this.cartRequiresAgeVerification() && !this._ageVerified()) {
+      this.openAgeVerification();
+      return;
+    }
+
     this._isSubmitting.set(true);
     this._error.set(null);
 
@@ -606,6 +769,11 @@ export class OnlineOrderPortal implements OnDestroy {
         orderData['giftCardAmount'] = this._giftCardAmount();
       }
 
+      // Age verification timestamp
+      if (this._ageVerified()) {
+        orderData['ageVerifiedAt'] = new Date().toISOString();
+      }
+
       const order = await this.orderService.createOrder(orderData as Partial<any>);
       if (order) {
         this._orderNumber.set(getOrderIdentifier(order));
@@ -622,6 +790,18 @@ export class OnlineOrderPortal implements OnDestroy {
           this._earnedPointsMessage.set(`You earned ${earned} points on this order!`);
         }
         this.cartService.clear();
+        // Save new address if requested
+        if (this._saveNewAddress() && this._identifiedCustomerId() && type === 'delivery') {
+          await this.customerService.saveAddress(this._identifiedCustomerId()!, {
+            label: this._newAddressLabel(),
+            address: this._deliveryAddress().trim(),
+            address2: this._deliveryAddress2().trim() || undefined,
+            city: this._deliveryCity().trim(),
+            state: this._deliveryStateUS().trim(),
+            zip: this._deliveryZip().trim(),
+            isDefault: this.savedAddresses().length === 0,
+          });
+        }
         // Redeem gift card balance
         if (this._giftCardApplied() && this._giftCardAmount() > 0) {
           await this.giftCardService.redeemGiftCard(
@@ -677,6 +857,19 @@ export class OnlineOrderPortal implements OnDestroy {
     this._giftCardApplied.set(false);
     this._deliveryQuote.set(null);
     this.deliveryService.reset();
+    // Reset Phase 2 state
+    this._showUpsell.set(false);
+    this._upsellDismissed.set(false);
+    this._selectedAddressId.set(null);
+    this._saveNewAddress.set(false);
+    this._newAddressLabel.set('Home');
+    this._recentOrders.set([]);
+    this._showRecentOrders.set(false);
+    this._identifiedCustomerId.set(null);
+    this._ageVerified.set(false);
+    this._showAgeVerification.set(false);
+    this.customerService.clearSavedAddresses();
+    this.analyticsService.clearUpsellSuggestions();
   }
 
   ngOnDestroy(): void {

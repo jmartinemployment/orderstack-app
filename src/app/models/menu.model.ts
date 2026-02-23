@@ -61,6 +61,10 @@ export interface MenuItem {
   variations?: ItemVariation[];
   optionSetIds?: string[];
   hasVariations?: boolean;
+
+  // --- Age verification (GOS-SPEC-07) ---
+  requiresAgeVerification?: boolean;
+  minimumAge?: number;
 }
 
 export interface ModifierGroup {

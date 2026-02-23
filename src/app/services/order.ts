@@ -972,6 +972,24 @@ export class OrderService implements OnDestroy {
     }
   }
 
+  // --- Customer Recent Orders (Online Portal) ---
+
+  async getCustomerRecentOrders(phone: string, limit = 5): Promise<Order[]> {
+    if (!this.restaurantId) return [];
+
+    try {
+      const rawOrders = await firstValueFrom(
+        this.http.get<any[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/recent`,
+          { params: { phone, limit: limit.toString() } }
+        )
+      );
+      return (rawOrders ?? []).map(raw => this.mapOrder(raw));
+    } catch {
+      return [];
+    }
+  }
+
   // --- Backend → Frontend mapping (the bridge) ---
 
   private mapOrder(raw: any): Order {

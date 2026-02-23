@@ -444,4 +444,20 @@ ng build --configuration=production
 - **Build: zero errors**
 - Next: Remaining spec Phase 2s (GOS-SPEC-02, 07, 09, 10, 11). End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 16)*
+**[February 23, 2026] (Session 17) — GOS-SPEC-07 Phase 2 Complete (Steps 6-9: Upsell, Saved Addresses, Order Again, Age Verification):**
+- **Phase 2 COMPLETE** — Customer experience enhancements for online ordering portal
+- **Step 6 (Upsell in Checkout):** Upsell interstitial between cart and info steps. `AnalyticsService.fetchUpsellSuggestions(cartItemIds)` called on "Continue to Checkout". Horizontal scroll cards showing suggested items with name, reason, price, and "Add" button. "No Thanks" / "Continue" dismisses. `_showUpsell`, `_upsellDismissed` signals control one-time display.
+- **Step 7 (Saved Addresses):** After phone lookup identifies customer via loyalty, `CustomerService.loadSavedAddresses()` loads saved addresses. Saved address selector buttons in delivery section (Home/Work/Other icons, default badge). "New Address" option clears fields for manual entry. "Save this address" checkbox with label input when entering new address for identified customer. Default address auto-selected on phone lookup. Address saved after successful order submission.
+- **Step 8 (Order Again):** After phone lookup, `OrderService.getCustomerRecentOrders(phone)` loads last 5 orders. Collapsible "Order Again" section with recent order compact cards showing date, total, item names. Tap card → adds all available items to cart via `reorderFromPast()` which maps `checks[].selections[]` → menu items. Items no longer on menu or 86'd are silently skipped.
+- **Step 9 (Age Verification):** `requiresAgeVerification` and `minimumAge` fields on `MenuItem`. `cartRequiresAgeVerification` computed checks cart for restricted items. Age badge on menu items ("21+"). Yellow notice in cart step. Age gate section in info step before submit. Modal confirmation dialog ("Are you 21 or older?"). `ageVerifiedAt` timestamp included in order payload. `canSubmit` blocks submission until verified.
+- **Step 10 (Multi-Location):** Deferred — multi-location infrastructure not yet in place.
+- **Models added (previous session):** `SavedAddress`, `SavedAddressFormData` to `customer.model.ts`. `requiresAgeVerification`, `minimumAge` to `MenuItem` in `menu.model.ts`.
+- **Services added (previous session):** `CustomerService` — `loadSavedAddresses()`, `saveAddress()`, `deleteAddress()`, `clearSavedAddresses()`, `defaultAddress` computed. `OrderService` — `getCustomerRecentOrders()`.
+- **Build error fix:** `Order` model uses `checks[].selections[]` (not `items[]`), `totalAmount` (not `total`), `timestamps.createdDate` (not `createdAt`). Added `getOrderSelections()` helper method.
+- **Spec updated:** `specs/GOS-SPEC-07-online-ordering.md` — Phase 2 status set to COMPLETE
+- **Files rewritten:** `features/online-ordering/online-order-portal/online-order-portal.ts` (added AnalyticsService + CustomerService injection, ~15 new signals, ~10 new methods), `online-order-portal.html` (upsell interstitial, saved address selector, order-again section, age verification gate + modal), `online-order-portal.scss` (upsell scroll cards, saved address buttons, recent order cards, age gate/modal styles)
+- **Files modified:** `models/customer.model.ts`, `models/menu.model.ts`, `services/customer.ts`, `services/order.ts`, `specs/GOS-SPEC-07-online-ordering.md`
+- **Build: zero errors**
+- Next: Remaining spec Phase 2s (GOS-SPEC-02, 09, 10, 11). End-to-end test with live backend.
+
+*Last Updated: February 23, 2026 (Session 17)*

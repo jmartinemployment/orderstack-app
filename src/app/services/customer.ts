@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { Customer, CustomerSegment, CustomerSegmentInfo } from '../models';
+import { Customer, CustomerSegment, CustomerSegmentInfo, SavedAddress, SavedAddressFormData } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
 
@@ -16,12 +16,18 @@ export class CustomerService {
   private readonly _customers = signal<Customer[]>([]);
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
+  private readonly _savedAddresses = signal<SavedAddress[]>([]);
 
   readonly customers = this._customers.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
+  readonly savedAddresses = this._savedAddresses.asReadonly();
 
   readonly customerCount = computed(() => this._customers().length);
+
+  readonly defaultAddress = computed(() =>
+    this._savedAddresses().find(a => a.isDefault) ?? null
+  );
 
   private get restaurantId(): string | null {
     return this.authService.selectedRestaurantId();
@@ -88,6 +94,59 @@ export class CustomerService {
       this._error.set(message);
       return false;
     }
+  }
+
+  // --- Saved Addresses ---
+
+  async loadSavedAddresses(customerId: string): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<SavedAddress[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/addresses`
+        )
+      );
+      this._savedAddresses.set(data ?? []);
+    } catch {
+      this._savedAddresses.set([]);
+    }
+  }
+
+  async saveAddress(customerId: string, data: SavedAddressFormData): Promise<SavedAddress | null> {
+    if (!this.restaurantId) return null;
+
+    try {
+      const address = await firstValueFrom(
+        this.http.post<SavedAddress>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/addresses`,
+          data
+        )
+      );
+      this._savedAddresses.update(list => [...list, address]);
+      return address;
+    } catch {
+      return null;
+    }
+  }
+
+  async deleteAddress(customerId: string, addressId: string): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      await firstValueFrom(
+        this.http.delete(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/addresses/${addressId}`
+        )
+      );
+      this._savedAddresses.update(list => list.filter(a => a.id !== addressId));
+    } catch {
+      // Keep existing state
+    }
+  }
+
+  clearSavedAddresses(): void {
+    this._savedAddresses.set([]);
   }
 
   getSegment(customer: Customer): CustomerSegmentInfo {

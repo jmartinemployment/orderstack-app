@@ -118,6 +118,12 @@
                   }
                 </div>
               }
+              <!-- Age verification badge -->
+              @if (item.requiresAgeVerification) {
+                <div class="age-badge">
+                  <i class="bi bi-shield-check"></i> {{ item.minimumAge ?? 21 }}+
+                </div>
+              }
               <!-- Expandable nutrition panel -->
               @if (isItemExpanded(item.id) && item.nutritionFacts) {
                 <div class="nutrition-panel">
@@ -208,6 +214,14 @@
             }
           </div>
 
+          <!-- Age Verification Notice -->
+          @if (cartRequiresAgeVerification() && !ageVerified()) {
+            <div class="age-notice mx-3 mb-3">
+              <i class="bi bi-shield-exclamation me-2"></i>
+              Your cart contains age-restricted items. Verification required at checkout.
+            </div>
+          }
+
           <div class="cart-summary">
             <div class="summary-row">
               <span>Subtotal</span>
@@ -250,8 +264,53 @@
       </div>
     }
 
+    <!-- UPSELL INTERSTITIAL -->
+    @if (showUpsell() && !upsellDismissed()) {
+      <div class="upsell-view px-3 pt-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h3 class="h5 mb-0">You might also like</h3>
+          <button type="button" class="btn btn-sm btn-outline-light" (click)="dismissUpsell()">No Thanks</button>
+        </div>
+
+        @if (isLoadingUpsell()) {
+          <div class="d-flex justify-content-center p-4">
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            <span class="text-muted small">Finding suggestions...</span>
+          </div>
+        } @else if (upsellSuggestions().length > 0) {
+          <div class="upsell-scroll">
+            @for (suggestion of upsellSuggestions(); track suggestion.item.id) {
+              <div class="upsell-card">
+                @if (suggestion.item.image) {
+                  <div class="upsell-image" [style.background-image]="'url(' + suggestion.item.image + ')'"></div>
+                } @else {
+                  <div class="upsell-image upsell-placeholder">
+                    <i class="bi bi-cup-hot"></i>
+                  </div>
+                }
+                <div class="upsell-info">
+                  <div class="upsell-name">{{ suggestion.item.name }}</div>
+                  <div class="upsell-reason">{{ suggestion.reason }}</div>
+                  <div class="upsell-price">{{ suggestion.item.price | currency }}</div>
+                </div>
+                <button type="button" class="upsell-add-btn" (click)="addUpsellItem(suggestion)">
+                  <i class="bi bi-plus"></i> Add
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="mt-3 pb-3">
+          <button type="button" class="btn btn-primary w-100" (click)="dismissUpsell()">
+            Continue to Checkout
+          </button>
+        </div>
+      </div>
+    }
+
     <!-- INFO STEP -->
-    @if (step() === 'info') {
+    @if (step() === 'info' && (upsellDismissed() || !showUpsell())) {
       <div class="info-view px-3 pt-3">
         <button type="button" class="btn btn-sm btn-outline-light mb-3" (click)="setStep('cart')">Back to Cart</button>
 
@@ -323,29 +382,129 @@
           </div>
         }
 
+        <!-- Order Again (Step 8) — shown after phone lookup identifies customer -->
+        @if (recentOrders().length > 0) {
+          <div class="order-again-section mb-3">
+            <button type="button" class="order-again-toggle" (click)="toggleRecentOrders()">
+              <span><i class="bi bi-clock-history me-2"></i>Order Again</span>
+              <i class="bi" [class.bi-chevron-down]="!showRecentOrders()" [class.bi-chevron-up]="showRecentOrders()"></i>
+            </button>
+            @if (showRecentOrders()) {
+              <div class="recent-orders-list">
+                @for (order of recentOrders(); track order.guid) {
+                  <div class="recent-order-card" (click)="reorderFromPast(order)">
+                    <div class="recent-order-header">
+                      <span class="recent-order-date">{{ order.timestamps.createdDate | date:'MMM d' }}</span>
+                      <span class="recent-order-total">{{ order.totalAmount | currency }}</span>
+                    </div>
+                    <div class="recent-order-items">
+                      @for (sel of getOrderSelections(order).slice(0, 3); track sel.menuItemGuid) {
+                        <span class="recent-item-name">{{ sel.quantity }}x {{ sel.menuItemName }}</span>
+                      }
+                      @if (getOrderSelections(order).length > 3) {
+                        <span class="recent-item-more">+{{ getOrderSelections(order).length - 3 }} more</span>
+                      }
+                    </div>
+                    <div class="recent-order-action">
+                      <i class="bi bi-plus-circle me-1"></i> Add to Cart
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        } @else if (isLoadingRecentOrders()) {
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="spinner-border spinner-border-sm"></span>
+            <span class="text-muted small">Loading past orders...</span>
+          </div>
+        }
+
+        <!-- Delivery Address -->
         @if (orderType() === 'delivery') {
-          <div class="mb-3">
-            <label class="form-label">Street Address *</label>
-            <input type="text" class="form-control" [value]="deliveryAddress()" (input)="onFieldInput('address', $event)" placeholder="123 Main St" />
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Apt / Suite</label>
-            <input type="text" class="form-control" [value]="deliveryAddress2()" (input)="onFieldInput('address2', $event)" placeholder="Apt 4B" />
-          </div>
-          <div class="row mb-3">
-            <div class="col-5">
-              <label class="form-label">City *</label>
-              <input type="text" class="form-control" [value]="deliveryCity()" (input)="onFieldInput('city', $event)" placeholder="City" />
+          <!-- Saved Addresses (Step 7) -->
+          @if (savedAddresses().length > 0) {
+            <div class="saved-addresses-section mb-3">
+              <label class="form-label">Delivery Address</label>
+              <div class="saved-address-list">
+                @for (addr of savedAddresses(); track addr.id) {
+                  <button
+                    type="button"
+                    class="saved-address-btn"
+                    [class.active]="selectedAddressId() === addr.id"
+                    (click)="selectSavedAddress(addr)"
+                  >
+                    <div class="saved-addr-label">
+                      <i class="bi" [class.bi-house-fill]="addr.label === 'Home'" [class.bi-building]="addr.label === 'Work'" [class.bi-geo-alt-fill]="addr.label !== 'Home' && addr.label !== 'Work'"></i>
+                      {{ addr.label }}
+                      @if (addr.isDefault) {
+                        <span class="default-badge">Default</span>
+                      }
+                    </div>
+                    <div class="saved-addr-text">{{ addr.address }}, {{ addr.city }}</div>
+                  </button>
+                }
+                <button
+                  type="button"
+                  class="saved-address-btn"
+                  [class.active]="!selectedAddressId()"
+                  (click)="clearSelectedAddress()"
+                >
+                  <div class="saved-addr-label"><i class="bi bi-plus-circle"></i> New Address</div>
+                </button>
+              </div>
             </div>
-            <div class="col-3">
-              <label class="form-label">State *</label>
-              <input type="text" class="form-control" [value]="deliveryStateUS()" (input)="onFieldInput('stateUS', $event)" placeholder="FL" maxlength="2" />
+          }
+
+          @if (!selectedAddressId()) {
+            <div class="mb-3">
+              @if (savedAddresses().length === 0) {
+                <label class="form-label">Street Address *</label>
+              }
+              <input type="text" class="form-control" [value]="deliveryAddress()" (input)="onFieldInput('address', $event)" placeholder="123 Main St" />
             </div>
-            <div class="col-4">
-              <label class="form-label">ZIP *</label>
-              <input type="text" class="form-control" [value]="deliveryZip()" (input)="onFieldInput('zip', $event)" placeholder="33301" maxlength="10" />
+            <div class="mb-3">
+              <label class="form-label">Apt / Suite</label>
+              <input type="text" class="form-control" [value]="deliveryAddress2()" (input)="onFieldInput('address2', $event)" placeholder="Apt 4B" />
             </div>
-          </div>
+            <div class="row mb-3">
+              <div class="col-5">
+                <label class="form-label">City *</label>
+                <input type="text" class="form-control" [value]="deliveryCity()" (input)="onFieldInput('city', $event)" placeholder="City" />
+              </div>
+              <div class="col-3">
+                <label class="form-label">State *</label>
+                <input type="text" class="form-control" [value]="deliveryStateUS()" (input)="onFieldInput('stateUS', $event)" placeholder="FL" maxlength="2" />
+              </div>
+              <div class="col-4">
+                <label class="form-label">ZIP *</label>
+                <input type="text" class="form-control" [value]="deliveryZip()" (input)="onFieldInput('zip', $event)" placeholder="33301" maxlength="10" />
+              </div>
+            </div>
+
+            <!-- Save address checkbox (only when customer is identified) -->
+            @if (identifiedCustomerId()) {
+              <div class="save-address-toggle mb-3">
+                <label class="d-flex align-items-center gap-2">
+                  <input type="checkbox" [checked]="saveNewAddress()" (change)="toggleSaveNewAddress()" />
+                  <span>Save this address</span>
+                </label>
+                @if (saveNewAddress()) {
+                  <div class="mt-2">
+                    <input
+                      type="text"
+                      class="form-control form-control-sm"
+                      [value]="newAddressLabel()"
+                      (input)="onFieldInput('addressLabel', $event)"
+                      placeholder="Label (Home, Work, etc.)"
+                      style="max-width: 200px;"
+                    />
+                  </div>
+                }
+              </div>
+            }
+          }
+
           <div class="mb-3">
             <label class="form-label">Delivery Notes</label>
             <input type="text" class="form-control" [value]="deliveryNotes()" (input)="onFieldInput('deliveryNotes', $event)" placeholder="Gate code, building entrance, etc." />
@@ -381,14 +540,14 @@
                   <span class="tier-badge" [style.background-color]="tierColor()">
                     {{ tierLabel() }}
                   </span>
-                  <span class="fw-semibold" style="color: #fff;">{{ profile.points }} pts</span>
+                  <span class="fw-semibold">{{ profile.points }} pts</span>
                 </div>
                 <div class="small text-muted mb-2">
                   Earn ~{{ estimatedPointsEarned() }} points on this order
                 </div>
                 <div class="redeem-section">
                   <div class="d-flex align-items-center gap-2 mb-1">
-                    <span class="small" style="color: rgba(255,255,255,0.7);">Redeem:</span>
+                    <span class="small text-muted">Redeem:</span>
                     <input
                       type="number"
                       class="form-control form-control-sm redeem-input"
@@ -410,7 +569,7 @@
                 </div>
                 @if (availableRewards().length > 0) {
                   <div class="rewards-list mt-2">
-                    <div class="small fw-semibold mb-1" style="color: rgba(255,255,255,0.7);">Available Rewards</div>
+                    <div class="small fw-semibold mb-1 text-muted">Available Rewards</div>
                     @for (reward of availableRewards(); track reward.id) {
                       <button
                         type="button"
@@ -464,13 +623,13 @@
             @if (gc.status === 'active' && gc.currentBalance > 0) {
               <div class="gift-card-found">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                  <span class="small" style="color: rgba(255,255,255,0.7);">Balance</span>
+                  <span class="small text-muted">Balance</span>
                   <span class="gc-balance">{{ gc.currentBalance | currency }}</span>
                 </div>
                 @if (!giftCardApplied()) {
                   <div class="d-flex align-items-center gap-2">
-                    <span class="small" style="color: rgba(255,255,255,0.7);">Apply:</span>
-                    <span class="small" style="color: rgba(255,255,255,0.7);">$</span>
+                    <span class="small text-muted">Apply:</span>
+                    <span class="small text-muted">$</span>
                     <input
                       type="number"
                       class="form-control form-control-sm"
@@ -582,6 +741,19 @@
           </div>
         </div>
 
+        <!-- Age Verification Gate -->
+        @if (cartRequiresAgeVerification() && !ageVerified()) {
+          <div class="age-gate mb-3">
+            <div class="age-gate-icon"><i class="bi bi-shield-check"></i></div>
+            <div class="age-gate-text">
+              Your order includes age-restricted items. Please verify your age to continue.
+            </div>
+            <button type="button" class="btn btn-warning w-100" (click)="openAgeVerification()">
+              Verify Age
+            </button>
+          </div>
+        }
+
         <button
           type="button"
           class="btn btn-primary w-100 mb-3"
@@ -595,6 +767,20 @@
             Place Order - {{ totalAfterGiftCard() | currency }}
           }
         </button>
+      </div>
+    }
+
+    <!-- AGE VERIFICATION MODAL -->
+    @if (showAgeVerification()) {
+      <div class="modal-backdrop" (click)="cancelAgeVerification()"></div>
+      <div class="age-modal">
+        <div class="age-modal-icon"><i class="bi bi-shield-check"></i></div>
+        <h3>Age Verification</h3>
+        <p>Your order contains items that require age verification. Are you 21 or older?</p>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-light flex-fill" (click)="cancelAgeVerification()">No, I'm Under 21</button>
+          <button type="button" class="btn btn-primary flex-fill" (click)="confirmAge()">Yes, I'm 21+</button>
+        </div>
       </div>
     }
 

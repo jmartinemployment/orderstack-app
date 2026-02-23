@@ -29,5 +29,27 @@ export interface CustomerSegmentInfo {
   description: string;
 }
 
+export interface SavedAddress {
+  id: string;
+  customerId: string;
+  label: string;
+  address: string;
+  address2: string | null;
+  city: string;
+  state: string;
+  zip: string;
+  isDefault: boolean;
+}
+
+export interface SavedAddressFormData {
+  label: string;
+  address: string;
+  address2?: string;
+  city: string;
+  state: string;
+  zip: string;
+  isDefault?: boolean;
+}
+
 export type CrmTab = 'customers' | 'segments' | 'insights';
 export type CrmSortField = 'name' | 'totalSpent' | 'totalOrders' | 'lastOrderDate' | 'loyaltyPoints';
