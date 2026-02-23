@@ -20,6 +20,9 @@ import {
   DemandForecastItem,
   StaffingRecommendation,
   OnlineOrderEventType,
+  AiInsightCard,
+  PinnedWidget,
+  AiQueryResponse,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -538,5 +541,91 @@ export class AnalyticsService {
 
   resetOnlineSession(): void {
     this._onlineSessionId = null;
+  }
+
+  // --- AI Dashboard Widgets (GAP-R02) ---
+
+  private readonly _pinnedWidgets = signal<PinnedWidget[]>([]);
+  private readonly _isQueryingAi = signal(false);
+
+  readonly pinnedWidgets = this._pinnedWidgets.asReadonly();
+  readonly isQueryingAi = this._isQueryingAi.asReadonly();
+
+  async queryAi(question: string): Promise<AiQueryResponse> {
+    const restaurantId = this.authService.selectedRestaurantId();
+    this._isQueryingAi.set(true);
+    try {
+      const response = await firstValueFrom(
+        this.http.post<AiQueryResponse>(`${this.apiUrl}/analytics/ai-query`, {
+          question,
+          restaurantId,
+        })
+      );
+      return response;
+    } catch {
+      // Return a text fallback if the AI query endpoint is not available
+      return {
+        query: question,
+        cards: [{
+          id: crypto.randomUUID(),
+          query: question,
+          responseType: 'text',
+          title: 'Response',
+          data: { text: 'AI query processing is being set up. Your question has been received.' },
+          createdAt: new Date().toISOString(),
+        }],
+        suggestedFollowUps: [],
+      };
+    } finally {
+      this._isQueryingAi.set(false);
+    }
+  }
+
+  async loadPinnedWidgets(): Promise<void> {
+    const restaurantId = this.authService.selectedRestaurantId();
+    if (!restaurantId) return;
+    try {
+      const widgets = await firstValueFrom(
+        this.http.get<PinnedWidget[]>(`${this.apiUrl}/analytics/pinned-widgets?restaurantId=${restaurantId}`)
+      );
+      this._pinnedWidgets.set(widgets);
+    } catch {
+      // Load from localStorage fallback
+      const stored = localStorage.getItem(`pinned-widgets-${restaurantId}`);
+      if (stored) {
+        this._pinnedWidgets.set(JSON.parse(stored) as PinnedWidget[]);
+      }
+    }
+  }
+
+  pinWidget(card: AiInsightCard): void {
+    const restaurantId = this.authService.selectedRestaurantId();
+    const widget: PinnedWidget = {
+      id: crypto.randomUUID(),
+      insightCard: card,
+      position: this._pinnedWidgets().length,
+      size: card.responseType === 'kpi' ? 'small' : 'medium',
+      pinnedAt: new Date().toISOString(),
+      pinnedBy: this.authService.user()?.firstName ?? 'unknown',
+    };
+    this._pinnedWidgets.update(w => [...w, widget]);
+    if (restaurantId) {
+      localStorage.setItem(`pinned-widgets-${restaurantId}`, JSON.stringify(this._pinnedWidgets()));
+    }
+    // Fire and forget API persistence
+    firstValueFrom(
+      this.http.post(`${this.apiUrl}/analytics/pinned-widgets`, { ...widget, restaurantId })
+    ).catch(() => { /* localStorage fallback already saved */ });
+  }
+
+  unpinWidget(widgetId: string): void {
+    const restaurantId = this.authService.selectedRestaurantId();
+    this._pinnedWidgets.update(w => w.filter(pw => pw.id !== widgetId));
+    if (restaurantId) {
+      localStorage.setItem(`pinned-widgets-${restaurantId}`, JSON.stringify(this._pinnedWidgets()));
+    }
+    firstValueFrom(
+      this.http.delete(`${this.apiUrl}/analytics/pinned-widgets/${widgetId}`)
+    ).catch(() => { /* localStorage fallback already saved */ });
   }
 }

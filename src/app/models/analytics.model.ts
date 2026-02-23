@@ -228,6 +228,40 @@ export interface StaffingRecommendation {
   estimatedLaborCost: number;
 }
 
+// --- AI Dashboard Widgets (GAP-R02) ---
+
+export type AiCardResponseType = 'chart' | 'table' | 'kpi' | 'text';
+export type AiChartType = 'bar' | 'line' | 'pie' | 'doughnut';
+
+export interface AiInsightCard {
+  id: string;
+  query: string;
+  responseType: AiCardResponseType;
+  title: string;
+  data: Record<string, unknown>;
+  chartType?: AiChartType;
+  columns?: string[];
+  value?: number;
+  unit?: string;
+  trend?: 'up' | 'down' | 'flat';
+  createdAt: string;
+}
+
+export interface PinnedWidget {
+  id: string;
+  insightCard: AiInsightCard;
+  position: number;
+  size: 'small' | 'medium' | 'large';
+  pinnedAt: string;
+  pinnedBy: string;
+}
+
+export interface AiQueryResponse {
+  query: string;
+  cards: AiInsightCard[];
+  suggestedFollowUps: string[];
+}
+
 // --- Online Ordering Analytics Events (GOS-SPEC-07 Phase 3) ---
 
 export type OnlineOrderEventType =

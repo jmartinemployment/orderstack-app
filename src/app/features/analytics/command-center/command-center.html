@@ -82,6 +82,67 @@
     </li>
   </ul>
 
+  <!-- Pinned Widgets (My Insights) -->
+  @if (pinnedWidgets().length > 0) {
+    <div class="pinned-section mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="panel-title mb-0">
+          <i class="bi bi-pin-fill me-1"></i> My Insights
+        </h5>
+        <span class="badge bg-light text-dark">{{ pinnedWidgets().length }} pinned</span>
+      </div>
+      <div class="pinned-grid">
+        @for (widget of pinnedWidgets(); track widget.id) {
+          <div class="pinned-card" [class.pinned-small]="widget.size === 'small'" [class.pinned-medium]="widget.size === 'medium'" [class.pinned-large]="widget.size === 'large'">
+            <div class="pinned-card-header">
+              <span class="pinned-card-title">{{ widget.insightCard.title }}</span>
+              <button class="btn-unpin" (click)="unpinWidget(widget.id)" title="Remove">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+
+            @if (widget.insightCard.responseType === 'kpi') {
+              <div class="pinned-kpi">
+                <span class="pinned-kpi-value">
+                  @if (widget.insightCard.unit === '$') {
+                    {{ widget.insightCard.value | currency }}
+                  } @else if (widget.insightCard.unit === '%') {
+                    {{ widget.insightCard.value | number:'1.1-1' }}%
+                  } @else {
+                    {{ widget.insightCard.value }}
+                  }
+                </span>
+                @if (widget.insightCard.trend) {
+                  <span class="pinned-trend" [class.up]="widget.insightCard.trend === 'up'" [class.down]="widget.insightCard.trend === 'down'">
+                    <i class="bi" [class.bi-arrow-up]="widget.insightCard.trend === 'up'" [class.bi-arrow-down]="widget.insightCard.trend === 'down'"></i>
+                  </span>
+                }
+              </div>
+            }
+
+            @if (widget.insightCard.responseType === 'text') {
+              <div class="pinned-text">{{ getWidgetText(widget) }}</div>
+            }
+
+            @if (widget.insightCard.responseType === 'chart') {
+              <div class="pinned-chart-preview">
+                <i class="bi bi-bar-chart"></i>
+                <span>Chart — {{ widget.insightCard.query }}</span>
+              </div>
+            }
+
+            @if (widget.insightCard.responseType === 'table') {
+              <div class="pinned-chart-preview">
+                <i class="bi bi-table"></i>
+                <span>Table — {{ widget.insightCard.query }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
   @if (isLoading()) {
     <div class="d-flex justify-content-center p-5">
       <os-loading-spinner message="Loading command center..." />

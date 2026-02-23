@@ -15,6 +15,7 @@ import {
   RevenueForecast,
   DemandForecastItem,
   StaffingRecommendation,
+  PinnedWidget,
 } from '@models/index';
 
 type CommandTab = 'overview' | 'insights' | 'alerts' | 'forecast';
@@ -188,6 +189,9 @@ export class CommandCenter {
     return insights;
   });
 
+  // Pinned widgets
+  readonly pinnedWidgets = this.analyticsService.pinnedWidgets;
+
   // Forecast computeds
   readonly forecastTotalPredicted = computed(() => {
     return this._revenueForecast()?.totalPredicted ?? 0;
@@ -247,6 +251,7 @@ export class CommandCenter {
         this.inventoryService.loadPredictions(),
         this.orderService.loadOrders(20),
         this.loadProfitSummary(),
+        this.analyticsService.loadPinnedWidgets(),
       ]);
       this._lastRefresh.set(new Date());
     } catch (err: unknown) {
@@ -404,6 +409,15 @@ export class CommandCenter {
     const d = new Date();
     d.setDate(d.getDate() + 1);
     return d.toISOString().split('T')[0];
+  }
+
+  unpinWidget(widgetId: string): void {
+    this.analyticsService.unpinWidget(widgetId);
+  }
+
+  getWidgetText(widget: PinnedWidget): string {
+    const data = widget.insightCard.data as Record<string, unknown>;
+    return (data['text'] as string) ?? '';
   }
 
   private async loadProfitSummary(): Promise<void> {
