@@ -1,9 +1,12 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '@services/auth';
+import { PlatformService } from '@services/platform';
 import { environment } from '@environments/environment';
 import {
+  ReportBlock,
+  ReportBlockType,
   SavedReport,
   SavedReportFormData,
   ReportSchedule,
@@ -17,10 +20,28 @@ import {
   RefundReportRow,
 } from '@models/report.model';
 
+const ALL_REPORT_BLOCKS: ReportBlock[] = [
+  { type: 'sales_summary', label: 'Sales Summary', displayOrder: 1 },
+  { type: 'payment_methods', label: 'Payment Methods', displayOrder: 2 },
+  { type: 'item_sales', label: 'Item Sales', displayOrder: 3 },
+  { type: 'category_sales', label: 'Category Sales', displayOrder: 4 },
+  { type: 'modifier_sales', label: 'Modifier Sales', displayOrder: 5 },
+  { type: 'team_member_sales', label: 'Team Member Sales', displayOrder: 6 },
+  { type: 'discounts', label: 'Discounts', displayOrder: 7 },
+  { type: 'voids_comps', label: 'Voids & Comps', displayOrder: 8 },
+  { type: 'taxes_fees', label: 'Taxes & Fees', displayOrder: 9 },
+  { type: 'tips', label: 'Tips', displayOrder: 10 },
+  { type: 'hourly_breakdown', label: 'Hourly Breakdown', displayOrder: 11 },
+  { type: 'section_sales', label: 'Section Sales', displayOrder: 12 },
+  { type: 'channel_breakdown', label: 'Channel Breakdown', displayOrder: 13 },
+  { type: 'refunds', label: 'Refunds', displayOrder: 14 },
+];
+
 @Injectable({ providedIn: 'root' })
 export class ReportService {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
+  private readonly platformService = inject(PlatformService);
   private readonly apiUrl = environment.apiUrl;
 
   private get restaurantId(): string | null {
@@ -36,6 +57,26 @@ export class ReportService {
   readonly schedules = this._schedules.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
+
+  readonly availableBlocks = computed<ReportBlock[]>(() => {
+    const flags = this.platformService.featureFlags();
+    const modules = this.platformService.enabledModules();
+    return ALL_REPORT_BLOCKS.filter(block => {
+      switch (block.type) {
+        case 'modifier_sales':
+        case 'voids_comps':
+          return flags.enableConversationalModifiers || modules.includes('menu_management');
+        case 'tips':
+          return flags.enableTipping;
+        case 'section_sales':
+          return flags.enableFloorPlan;
+        case 'channel_breakdown':
+          return modules.includes('online_ordering') || modules.includes('delivery');
+        default:
+          return true;
+      }
+    });
+  });
 
   // --- Saved Reports ---
 
@@ -107,6 +148,7 @@ export class ReportService {
         )
       );
       this._savedReports.update(list => list.filter(r => r.id !== id));
+      this._schedules.update(list => list.filter(s => s.savedReportId !== id));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to delete report';
       this._error.set(message);
@@ -185,6 +227,25 @@ export class ReportService {
       const message = err instanceof Error ? err.message : 'Failed to create schedule';
       this._error.set(message);
       return null;
+    }
+  }
+
+  async toggleSchedule(id: string, isActive: boolean): Promise<void> {
+    if (!this.restaurantId) return;
+    this._error.set(null);
+    try {
+      const updated = await firstValueFrom(
+        this.http.patch<ReportSchedule>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/schedules/${id}`,
+          { isActive }
+        )
+      );
+      this._schedules.update(list =>
+        list.map(s => (s.id === id ? updated : s))
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to update schedule';
+      this._error.set(message);
     }
   }
 

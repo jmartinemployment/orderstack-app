@@ -88,6 +88,7 @@ export const routes: Routes = [
       { path: 'sales', loadComponent: () => import('./features/analytics/sales-dashboard/sales-dashboard').then(m => m.SalesDashboard) },
       { path: 'menu-engineering', loadComponent: () => import('./features/analytics/menu-engineering-dashboard/menu-engineering-dashboard').then(m => m.MenuEngineeringDashboard) },
       { path: 'close-of-day', loadComponent: () => import('./features/reports/close-of-day/close-of-day').then(m => m.CloseOfDay) },
+      { path: 'reports', loadComponent: () => import('./features/reports/report-dashboard/report-dashboard').then(m => m.ReportDashboard) },
 
       // Customers
       { path: 'customers', loadComponent: () => import('./features/crm/customer-dashboard/customer-dashboard').then(m => m.CustomerDashboard) },

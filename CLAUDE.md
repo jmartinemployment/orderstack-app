@@ -430,4 +430,18 @@ ng build --configuration=production
 - **Build: zero errors**
 - Next: Remaining spec Phase 2s (GOS-SPEC-02, 04, 07, 09, 10, 11). End-to-end test with live backend.
 
+**[February 23, 2026] (Session 16 continued) — GOS-SPEC-04 Phase 2 Complete (Steps 6-10: Report Builder, Dashboard, Scheduling, Export):**
+- **Phase 2 COMPLETE** — Custom report builder, saved reports dashboard, scheduling, PDF/CSV/XLSX export, period-over-period comparison
+- **Step 6 (Report Builder):** Created `features/reports/report-builder/` (ts, html, scss). Block palette showing available report blocks (14 types, filtered by vertical via `availableBlocks` computed). Click-to-add blocks to composition. Reorder with up/down controls. Remove blocks. Report name input. Date range picker with comparison period selector (previous period, same period last year, custom). Save and Run Now buttons.
+- **Step 7 (Report Dashboard):** Created `features/reports/report-dashboard/` (ts, html, scss). Built-in reports section (Close of Day, Sales Dashboard, Labor Report — navigation cards). Custom reports list with block count, updated date, edit/export/schedule/delete actions. Per-report schedule rows with active/paused toggle. Empty state with CTA. Route `/reports` added to `app.routes.ts`.
+- **Step 8 (Scheduling UI):** Schedule modal in Report Dashboard — frequency picker (daily/weekly/monthly), day-of-week/month selector, time picker, comma-separated email recipients. `toggleSchedule()` and active schedule count badge.
+- **Step 9 (PDF Export):** Export modal with format picker (PDF/CSV/Excel cards), date range, comparison period. `exportReport()` returns blob → triggers browser download. Export button on each saved report card.
+- **Step 10 (Period-Over-Period Comparison):** Comparison period selector in both Report Builder and Export modal. Options: previous period, same period last year, custom range. Custom range shows additional date inputs. Passed to API via `ReportDateRange`.
+- **ReportService enhanced:** Added `PlatformService` injection, `availableBlocks` computed (filters 14 block types by `featureFlags` + `enabledModules`), `toggleSchedule()` method. `deleteSavedReport()` now also removes associated schedules from local state.
+- **Spec updated:** `specs/GOS-SPEC-04-reports.md` — Phase 2 status set to COMPLETE
+- **Files created:** `features/reports/report-builder/` (ts, html, scss), `features/reports/report-dashboard/` (ts, html, scss)
+- **Files modified:** `services/report.ts` (availableBlocks computed, toggleSchedule, PlatformService), `app.routes.ts` (added /reports route), `specs/GOS-SPEC-04-reports.md`
+- **Build: zero errors**
+- Next: Remaining spec Phase 2s (GOS-SPEC-02, 07, 09, 10, 11). End-to-end test with live backend.
+
 *Last Updated: February 23, 2026 (Session 16)*
