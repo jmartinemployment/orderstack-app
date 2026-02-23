@@ -16,6 +16,7 @@ import {
   DemandForecastItem,
   StaffingRecommendation,
   PinnedWidget,
+  AiInsightCard,
 } from '@models/index';
 
 type CommandTab = 'overview' | 'insights' | 'alerts' | 'forecast';
@@ -189,6 +190,12 @@ export class CommandCenter {
     return insights;
   });
 
+  // Proactive insights (GAP-R02 Phase 2)
+  readonly proactiveInsights = this.analyticsService.proactiveInsights;
+  readonly isLoadingProactiveInsights = this.analyticsService.isLoadingProactiveInsights;
+
+  readonly proactiveInsightCount = computed(() => this.proactiveInsights().length);
+
   // Pinned widgets
   readonly pinnedWidgets = this.analyticsService.pinnedWidgets;
 
@@ -252,6 +259,7 @@ export class CommandCenter {
         this.orderService.loadOrders(20),
         this.loadProfitSummary(),
         this.analyticsService.loadPinnedWidgets(),
+        this.analyticsService.loadProactiveInsights(),
       ]);
       this._lastRefresh.set(new Date());
     } catch (err: unknown) {
@@ -413,6 +421,39 @@ export class CommandCenter {
 
   unpinWidget(widgetId: string): void {
     this.analyticsService.unpinWidget(widgetId);
+  }
+
+  dismissInsight(cardId: string): void {
+    this.analyticsService.dismissInsight(cardId);
+  }
+
+  pinInsight(card: AiInsightCard): void {
+    this.analyticsService.pinWidget(card);
+    this.analyticsService.dismissInsight(card.id);
+  }
+
+  getProactiveInsightIcon(card: AiInsightCard): string {
+    if (card.trend === 'down') return 'bi-exclamation-triangle';
+    if (card.trend === 'up') return 'bi-arrow-up-circle';
+    return 'bi-lightbulb';
+  }
+
+  getProactiveInsightClass(card: AiInsightCard): string {
+    if (card.trend === 'down') return 'proactive-negative';
+    if (card.trend === 'up') return 'proactive-positive';
+    return 'proactive-neutral';
+  }
+
+  getProactiveInsightText(card: AiInsightCard): string {
+    if (card.responseType === 'text') {
+      const data = card.data as Record<string, unknown>;
+      return (data['text'] as string) ?? '';
+    }
+    if (card.responseType === 'kpi' && card.value !== undefined) {
+      if (card.unit === '%') return `${card.value > 0 ? '+' : ''}${card.value.toFixed(1)}% vs yesterday`;
+      return `${card.value} ${card.unit ?? ''}`;
+    }
+    return card.title;
   }
 
   getWidgetText(widget: PinnedWidget): string {

@@ -6,6 +6,9 @@ import {
   CashDrawerSession,
   CashDenomination,
   CashReconciliation,
+  EmployeeCashSummary,
+  CashDiscrepancyAlert,
+  CashEventReportRow,
   isCashInflow,
   calculateDenominationTotal,
 } from '../models/cash-drawer.model';
@@ -78,6 +81,202 @@ export class CashDrawerService {
       .filter(s => s.closedAt && new Date(s.closedAt) >= today)
       .map(s => this.buildReconciliation(s));
   });
+
+  // --- Phase 2: Employee tracking, discrepancy alerts, event reporting ---
+
+  private readonly _discrepancyThreshold = signal(5); // $5 default
+  private readonly _reportDateFrom = signal<Date | null>(null);
+  private readonly _reportDateTo = signal<Date | null>(null);
+  private readonly _reportEmployeeFilter = signal<string | null>(null);
+  private readonly _reportTypeFilter = signal<CashEventType | null>(null);
+
+  readonly discrepancyThreshold = this._discrepancyThreshold.asReadonly();
+  readonly reportDateFrom = this._reportDateFrom.asReadonly();
+  readonly reportDateTo = this._reportDateTo.asReadonly();
+  readonly reportEmployeeFilter = this._reportEmployeeFilter.asReadonly();
+  readonly reportTypeFilter = this._reportTypeFilter.asReadonly();
+
+  readonly employeeSummaries = computed<EmployeeCashSummary[]>(() => {
+    const history = this._sessionHistory();
+    const employeeMap = new Map<string, EmployeeCashSummary>();
+
+    for (const session of history) {
+      for (const event of session.events) {
+        if (event.type === 'opening_float') continue;
+        const name = event.performedBy;
+        let summary = employeeMap.get(name);
+        if (!summary) {
+          summary = {
+            employeeName: name,
+            totalCashHandled: 0,
+            totalCashIn: 0,
+            totalCashOut: 0,
+            eventCount: 0,
+            sessionCount: 0,
+            avgVariance: 0,
+            totalVariance: 0,
+            discrepancyCount: 0,
+          };
+          employeeMap.set(name, summary);
+        }
+        summary.eventCount++;
+        summary.totalCashHandled += event.amount;
+        if (isCashInflow(event.type)) {
+          summary.totalCashIn += event.amount;
+        } else {
+          summary.totalCashOut += event.amount;
+        }
+      }
+
+      // Session-level variance tracking (only for closed sessions)
+      if (session.closedAt && session.closedBy && session.overShort !== undefined) {
+        const closer = session.closedBy;
+        let summary = employeeMap.get(closer);
+        if (!summary) {
+          summary = {
+            employeeName: closer,
+            totalCashHandled: 0,
+            totalCashIn: 0,
+            totalCashOut: 0,
+            eventCount: 0,
+            sessionCount: 0,
+            avgVariance: 0,
+            totalVariance: 0,
+            discrepancyCount: 0,
+          };
+          employeeMap.set(closer, summary);
+        }
+        summary.sessionCount++;
+        summary.totalVariance += session.overShort;
+        if (Math.abs(session.overShort) > this._discrepancyThreshold()) {
+          summary.discrepancyCount++;
+        }
+        summary.avgVariance = summary.sessionCount > 0
+          ? Math.round(summary.totalVariance / summary.sessionCount * 100) / 100
+          : 0;
+      }
+    }
+
+    return Array.from(employeeMap.values())
+      .sort((a, b) => b.totalCashHandled - a.totalCashHandled);
+  });
+
+  readonly discrepancyAlerts = computed<CashDiscrepancyAlert[]>(() => {
+    const history = this._sessionHistory();
+    const threshold = this._discrepancyThreshold();
+    const alerts: CashDiscrepancyAlert[] = [];
+
+    for (const session of history) {
+      if (!session.closedAt || session.overShort === undefined) continue;
+      if (Math.abs(session.overShort) > threshold) {
+        alerts.push({
+          sessionId: session.id,
+          employee: session.closedBy ?? 'unknown',
+          variance: session.overShort,
+          isOver: session.overShort > 0,
+          closedAt: session.closedAt,
+          threshold,
+        });
+      }
+    }
+
+    return alerts.sort((a, b) =>
+      new Date(b.closedAt).getTime() - new Date(a.closedAt).getTime()
+    );
+  });
+
+  readonly flaggedEmployees = computed(() => {
+    return this.employeeSummaries().filter(e => e.discrepancyCount >= 2);
+  });
+
+  readonly cashEventReport = computed<CashEventReportRow[]>(() => {
+    const history = this._sessionHistory();
+    const dateFrom = this._reportDateFrom();
+    const dateTo = this._reportDateTo();
+    const employeeFilter = this._reportEmployeeFilter();
+    const typeFilter = this._reportTypeFilter();
+
+    const rows: CashEventReportRow[] = [];
+
+    for (const session of history) {
+      for (const event of session.events) {
+        if (event.type === 'opening_float') continue;
+
+        const ts = new Date(event.timestamp);
+        if (dateFrom && ts < dateFrom) continue;
+        if (dateTo) {
+          const endOfDay = new Date(dateTo);
+          endOfDay.setHours(23, 59, 59, 999);
+          if (ts > endOfDay) continue;
+        }
+        if (employeeFilter && event.performedBy !== employeeFilter) continue;
+        if (typeFilter && event.type !== typeFilter) continue;
+
+        rows.push({
+          event,
+          sessionId: session.id,
+          sessionOpenedAt: session.openedAt,
+        });
+      }
+    }
+
+    return rows.sort((a, b) =>
+      new Date(b.event.timestamp).getTime() - new Date(a.event.timestamp).getTime()
+    );
+  });
+
+  readonly eventsByType = computed(() => {
+    const rows = this.cashEventReport();
+    const map = new Map<CashEventType, { count: number; total: number }>();
+    for (const row of rows) {
+      const entry = map.get(row.event.type) ?? { count: 0, total: 0 };
+      entry.count++;
+      entry.total += row.event.amount;
+      map.set(row.event.type, entry);
+    }
+    return Array.from(map.entries())
+      .map(([type, data]) => ({ type, ...data }))
+      .sort((a, b) => b.total - a.total);
+  });
+
+  readonly allEmployeeNames = computed(() => {
+    const names = new Set<string>();
+    for (const session of this._sessionHistory()) {
+      for (const event of session.events) {
+        if (event.type !== 'opening_float') {
+          names.add(event.performedBy);
+        }
+      }
+    }
+    return Array.from(names).sort();
+  });
+
+  setDiscrepancyThreshold(value: number): void {
+    this._discrepancyThreshold.set(Math.max(0, value));
+  }
+
+  setReportDateFrom(date: Date | null): void {
+    this._reportDateFrom.set(date);
+  }
+
+  setReportDateTo(date: Date | null): void {
+    this._reportDateTo.set(date);
+  }
+
+  setReportEmployeeFilter(name: string | null): void {
+    this._reportEmployeeFilter.set(name);
+  }
+
+  setReportTypeFilter(type: CashEventType | null): void {
+    this._reportTypeFilter.set(type);
+  }
+
+  clearReportFilters(): void {
+    this._reportDateFrom.set(null);
+    this._reportDateTo.set(null);
+    this._reportEmployeeFilter.set(null);
+    this._reportTypeFilter.set(null);
+  }
 
   private get restaurantId(): string | null {
     return this.authService.selectedRestaurantId();

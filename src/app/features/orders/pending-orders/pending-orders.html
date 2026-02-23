@@ -247,6 +247,51 @@
                   </div>
                 </div>
               }
+
+              <!-- Third-Party Delivery Tracking (GAP-R08 Phase 2) -->
+              @if (getTrackingForOrder(order.guid); as tracking) {
+                <div class="delivery-tracking-card small mb-2">
+                  <div class="tracking-header d-flex align-items-center justify-content-between">
+                    <span class="badge" [class]="getTrackingStatusClass(tracking.status)">
+                      {{ getTrackingStatusLabel(tracking.status) }}
+                    </span>
+                    @if (getTrackingEtaMinutes(tracking) !== null) {
+                      <span class="tracking-eta">
+                        <i class="bi bi-clock me-1"></i>{{ getTrackingEtaMinutes(tracking) }} min
+                      </span>
+                    }
+                  </div>
+                  @if (tracking.driver) {
+                    <div class="tracking-driver d-flex align-items-center gap-2 mt-1">
+                      @if (tracking.driver.photoUrl) {
+                        <img [src]="tracking.driver.photoUrl" alt="Driver" class="tracking-driver-photo" />
+                      } @else {
+                        <i class="bi bi-person-circle tracking-driver-icon"></i>
+                      }
+                      <div>
+                        @if (tracking.driver.name) {
+                          <strong>{{ tracking.driver.name }}</strong>
+                        }
+                        @if (tracking.driver.phone) {
+                          <span class="text-muted ms-2">{{ tracking.driver.phone }}</span>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @if (tracking.trackingUrl) {
+                    <a [href]="tracking.trackingUrl" target="_blank" rel="noopener" class="tracking-link mt-1">
+                      <i class="bi bi-box-arrow-up-right me-1"></i>Live Tracking
+                    </a>
+                  }
+                  <button type="button" class="btn btn-sm btn-outline-secondary mt-1" (click)="stopTracking(order.guid)">
+                    Stop Tracking
+                  </button>
+                </div>
+              } @else if (order.deliveryInfo?.deliveryExternalId) {
+                <button type="button" class="btn btn-sm btn-outline-primary mt-1" (click)="startTracking(order)">
+                  <i class="bi bi-geo-alt me-1"></i>Track Delivery
+                </button>
+              }
             }
 
             @if (order.curbsideInfo) {

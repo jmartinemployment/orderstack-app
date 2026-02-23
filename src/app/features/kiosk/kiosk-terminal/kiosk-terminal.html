@@ -64,8 +64,8 @@
           <div class="items-grid">
             @for (item of filteredItems(); track item.id) {
               <div class="item-card" [class.unavailable]="!isItemAvailable(item)" (click)="isItemAvailable(item) ? addToCart(item) : null">
-                @if (item.image) {
-                  <div class="item-image" [style.background-image]="'url(' + item.image + ')'"></div>
+                @if (item.imageUrl || item.image) {
+                  <div class="item-image" [style.background-image]="'url(' + (item.thumbnailUrl || item.imageUrl || item.image) + ')'"></div>
                 } @else {
                   <div class="item-image item-image-placeholder">
                     <i class="bi bi-cup-hot"></i>
@@ -173,8 +173,8 @@
       <div class="upsell-grid">
         @for (item of upsellItems(); track item.id) {
           <div class="upsell-card" (click)="addUpsellItem(item)">
-            @if (item.image) {
-              <div class="upsell-image" [style.background-image]="'url(' + item.image + ')'"></div>
+            @if (item.imageUrl || item.image) {
+              <div class="upsell-image" [style.background-image]="'url(' + (item.thumbnailUrl || item.imageUrl || item.image) + ')'"></div>
             } @else {
               <div class="upsell-image upsell-image-placeholder">
                 <i class="bi bi-plus-circle"></i>

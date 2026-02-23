@@ -64,6 +64,33 @@ export interface CashReconciliation {
   eventCount: number;
 }
 
+export interface EmployeeCashSummary {
+  employeeName: string;
+  totalCashHandled: number;
+  totalCashIn: number;
+  totalCashOut: number;
+  eventCount: number;
+  sessionCount: number;
+  avgVariance: number;
+  totalVariance: number;
+  discrepancyCount: number;
+}
+
+export interface CashDiscrepancyAlert {
+  sessionId: string;
+  employee: string;
+  variance: number;
+  isOver: boolean;
+  closedAt: Date;
+  threshold: number;
+}
+
+export interface CashEventReportRow {
+  event: CashEvent;
+  sessionId: string;
+  sessionOpenedAt: Date;
+}
+
 export function getCashEventLabel(type: CashEventType): string {
   switch (type) {
     case 'opening_float': return 'Opening Float';

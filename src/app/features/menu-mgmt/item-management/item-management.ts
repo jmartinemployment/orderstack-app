@@ -758,13 +758,67 @@ export class ItemManagement {
     this._isUploadingImage.set(true);
     this._localError.set(null);
     try {
-      const result = await this.menuService.uploadItemImage(itemId, file);
+      const optimized = await this.optimizeImage(file);
+      const result = await this.menuService.uploadItemImage(itemId, optimized);
       this._imagePreview.set(result.imageUrl);
     } catch {
       this._localError.set('Failed to upload image');
     } finally {
       this._isUploadingImage.set(false);
     }
+  }
+
+  private optimizeImage(file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.85): Promise<File> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+
+        // Skip if already small enough
+        if (width <= maxWidth && height <= maxHeight && file.size <= 500 * 1024) {
+          resolve(file);
+          return;
+        }
+
+        // Scale down proportionally
+        if (width > maxWidth) {
+          height = Math.round(height * (maxWidth / width));
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = Math.round(width * (maxHeight / height));
+          height = maxHeight;
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(file);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Try WebP first, fall back to JPEG
+        const outputType = 'image/webp';
+        canvas.toBlob(
+          blob => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            const ext = outputType === 'image/webp' ? 'webp' : 'jpg';
+            const optimizedFile = new File([blob], file.name.replace(/\.[^.]+$/, `.${ext}`), { type: outputType });
+            resolve(optimizedFile);
+          },
+          outputType,
+          quality,
+        );
+      };
+      img.onerror = () => reject(new Error('Failed to load image for optimization'));
+      img.src = URL.createObjectURL(file);
+    });
   }
 
   async removeImage(): Promise<void> {

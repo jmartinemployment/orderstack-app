@@ -407,6 +407,40 @@
   color: var(--os-text-primary);
 }
 
+// Quick query shortcuts (GAP-R02 Phase 2)
+.quick-queries {
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--os-border);
+  overflow-x: auto;
+  flex-shrink: 0;
+
+  &::-webkit-scrollbar { height: 0; }
+}
+
+.quick-query-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  border-radius: 1rem;
+  border: 1px solid var(--os-border);
+  background-color: var(--os-bg);
+  color: var(--os-text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) {
+    border-color: var(--os-primary);
+    color: var(--os-primary);
+    background-color: rgba(0, 106, 255, 0.04);
+  }
+
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
 // Follow-up suggestions
 .follow-ups {
   display: flex;

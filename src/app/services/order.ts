@@ -27,6 +27,7 @@ import {
   OrderTemplate,
   OrderTemplateItem,
   ScanToPaySession,
+  CourseTemplate,
 } from '../models';
 import { getDiningOption, DiningOptionType } from '../models/dining-option.model';
 import { AuthService } from './auth';
@@ -204,6 +205,20 @@ export class OrderService implements OnDestroy {
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
 
+  // Course complete notifications
+  private readonly _courseCompleteNotifications = signal<{
+    orderId: string;
+    tableName: string;
+    completedCourseName: string;
+    nextCourseName: string;
+    nextCourseGuid: string;
+  } | null>(null);
+  readonly courseCompleteNotifications = this._courseCompleteNotifications.asReadonly();
+
+  clearCourseNotification(): void {
+    this._courseCompleteNotifications.set(null);
+  }
+
   // Mapped order event callbacks
   private mappedOrderCallbacks: Array<(event: MappedOrderEvent) => void> = [];
 
@@ -249,6 +264,26 @@ export class OrderService implements OnDestroy {
     this.socketService.onCustomEvent('course:updated', (data: any) => {
       const orderId = data?.orderId;
       if (orderId) {
+        // Detect course completion → notify POS to fire next course
+        const completedCourseName = data?.completedCourseName;
+        const newStatus = String(data?.fireStatus ?? '').toUpperCase();
+        if (newStatus === 'READY' && completedCourseName) {
+          const order = this._orders().find(o => o.guid === orderId);
+          const courses = order?.courses ?? [];
+          const completedIdx = courses.findIndex(
+            c => c.name.toLowerCase() === String(completedCourseName).toLowerCase()
+          );
+          const nextCourse = completedIdx >= 0 ? courses[completedIdx + 1] : undefined;
+          if (nextCourse && nextCourse.fireStatus === 'PENDING') {
+            this._courseCompleteNotifications.set({
+              orderId,
+              tableName: order?.table?.name ?? '',
+              completedCourseName,
+              nextCourseName: nextCourse.name,
+              nextCourseGuid: nextCourse.guid,
+            });
+          }
+        }
         this.loadOrders();
       }
     });
@@ -466,7 +501,17 @@ export class OrderService implements OnDestroy {
     return this.updateOrderStatus(orderId, 'VOIDED');
   }
 
-  triggerPrint(orderId: string): void {
+  triggerPrint(orderId: string, includeQrCode = false): void {
+    if (includeQrCode) {
+      const order = this._orders().find(o => o.guid === orderId);
+      const check = order?.checks[0];
+      if (check?.qrCodeUrl) {
+        // Send print request with QR code URL via API
+        firstValueFrom(
+          this.http.post(`${this.apiUrl}/orders/${orderId}/print`, { qrCodeUrl: check.qrCodeUrl })
+        ).catch(() => { /* Print API optional — fallback to standard print */ });
+      }
+    }
     this.setPrintStatus(orderId, 'printing');
     this.startPrintTimeout(orderId);
   }
@@ -1092,10 +1137,10 @@ export class OrderService implements OnDestroy {
     }
   }
 
-  async getCheckByToken(token: string): Promise<(ScanToPaySession & { check: Check; restaurantName: string; restaurantLogo?: string }) | null> {
+  async getCheckByToken(token: string): Promise<(ScanToPaySession & { check: Check; restaurantName: string; restaurantLogo?: string; allowSplitPay?: boolean; emailReceiptEnabled?: boolean }) | null> {
     try {
       return await firstValueFrom(
-        this.http.get<ScanToPaySession & { check: Check; restaurantName: string; restaurantLogo?: string }>(
+        this.http.get<ScanToPaySession & { check: Check; restaurantName: string; restaurantLogo?: string; allowSplitPay?: boolean; emailReceiptEnabled?: boolean }>(
           `${this.apiUrl}/scan-to-pay/${token}`
         )
       );
@@ -1114,6 +1159,38 @@ export class OrderService implements OnDestroy {
       );
     } catch (err: unknown) {
       return { success: false, error: err instanceof Error ? err.message : 'Payment failed' };
+    }
+  }
+
+  async submitPartialScanToPayment(
+    token: string,
+    payload: {
+      tipAmount: number;
+      paymentMethodNonce: string;
+      selectedItemGuids: string[];
+      amount: number;
+    }
+  ): Promise<{ success: boolean; receiptNumber?: string; remainingBalance?: number; error?: string }> {
+    try {
+      return await firstValueFrom(
+        this.http.post<{ success: boolean; receiptNumber?: string; remainingBalance?: number; error?: string }>(
+          `${this.apiUrl}/scan-to-pay/${token}/pay-partial`,
+          payload
+        )
+      );
+    } catch (err: unknown) {
+      return { success: false, error: err instanceof Error ? err.message : 'Payment failed' };
+    }
+  }
+
+  async sendScanToPayReceipt(token: string, email: string): Promise<boolean> {
+    try {
+      await firstValueFrom(
+        this.http.post(`${this.apiUrl}/scan-to-pay/${token}/receipt`, { email })
+      );
+      return true;
+    } catch {
+      return false;
     }
   }
 

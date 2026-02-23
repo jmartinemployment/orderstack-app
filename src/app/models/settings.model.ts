@@ -252,6 +252,30 @@ export function defaultDeliverySettings(): DeliverySettings {
   };
 }
 
+// --- Scan to Pay ---
+
+export interface ScanToPaySettings {
+  enabled: boolean;
+  defaultTipPercentages: number[];
+  tokenExpirationMinutes: number;
+  autoCloseOnFullPayment: boolean;
+  allowSplitPay: boolean;
+  includeQrOnPrintedReceipts: boolean;
+  emailReceiptEnabled: boolean;
+}
+
+export function defaultScanToPaySettings(): ScanToPaySettings {
+  return {
+    enabled: true,
+    defaultTipPercentages: [15, 18, 20, 25],
+    tokenExpirationMinutes: 120,
+    autoCloseOnFullPayment: true,
+    allowSplitPay: true,
+    includeQrOnPrintedReceipts: true,
+    emailReceiptEnabled: true,
+  };
+}
+
 // === AI Admin Configuration ===
 
 export type AIFeatureKey =

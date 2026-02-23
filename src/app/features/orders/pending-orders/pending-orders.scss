@@ -481,6 +481,77 @@
   color: #fff;
 }
 
+// Delivery Tracking (GAP-R08 Phase 2)
+.delivery-tracking-card {
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  background-color: rgba(0, 106, 255, 0.04);
+  border-left: 3px solid var(--os-primary);
+}
+
+.tracking-header {
+  gap: 0.5rem;
+}
+
+.tracking-eta {
+  font-weight: 600;
+  color: var(--os-primary);
+  font-size: 0.8rem;
+}
+
+.tracking-driver-photo {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.tracking-driver-icon {
+  font-size: 1.25rem;
+  color: var(--os-text-secondary);
+}
+
+.tracking-link {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--os-primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.tracking-pending {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.tracking-assigned {
+  background-color: #0dcaf0;
+  color: #000;
+}
+
+.tracking-picked-up {
+  background-color: var(--os-warning);
+  color: #000;
+}
+
+.tracking-active {
+  background-color: var(--os-primary);
+  color: #fff;
+}
+
+.tracking-delivered {
+  background-color: var(--os-success);
+  color: #fff;
+}
+
+.tracking-failed {
+  background-color: var(--os-danger);
+  color: #fff;
+}
+
 // Confirmation modals
 .modal-overlay {
   position: fixed;

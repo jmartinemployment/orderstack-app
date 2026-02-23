@@ -59,6 +59,12 @@
     <button type="button" class="cod-tab" [class.active]="activeTab() === 'team'" (click)="setTab('team')">Team Sales</button>
     <button type="button" class="cod-tab" [class.active]="activeTab() === 'taxes'" (click)="setTab('taxes')">Taxes & Fees</button>
     <button type="button" class="cod-tab" [class.active]="activeTab() === 'cash'" (click)="setTab('cash')">Cash</button>
+    <button type="button" class="cod-tab" [class.active]="activeTab() === 'delivery'" (click)="setTab('delivery')">
+      Delivery
+      @if (deliveryOrderCount() > 0) {
+        <span class="badge bg-primary ms-1" style="font-size: 0.65rem;">{{ deliveryOrderCount() }}</span>
+      }
+    </button>
   </div>
 
   <!-- Loading -->
@@ -528,6 +534,117 @@
         } @else {
           <div class="section-card full-width text-center py-4">
             <p class="text-muted-custom">No cash drawer sessions closed today</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- DELIVERY TAB -->
+    @if (activeTab() === 'delivery') {
+      <div class="cod-section">
+        @if (isLoadingDelivery()) {
+          <div class="section-card full-width text-center py-4">
+            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+            Loading delivery analytics...
+          </div>
+        } @else if (deliveryReport(); as report) {
+          <!-- Delivery KPIs -->
+          <div class="section-card full-width">
+            <h6>Delivery Overview</h6>
+            <div class="delivery-kpi-grid">
+              <div class="delivery-kpi">
+                <span class="delivery-kpi-value">{{ report.totalDeliveries }}</span>
+                <span class="delivery-kpi-label">Total Deliveries</span>
+              </div>
+              <div class="delivery-kpi">
+                <span class="delivery-kpi-value">{{ report.avgDeliveryMinutes | number:'1.0-0' }} min</span>
+                <span class="delivery-kpi-label">Avg Delivery Time</span>
+              </div>
+              <div class="delivery-kpi">
+                <span class="delivery-kpi-value">{{ report.onTimePercentage | number:'1.0-0' }}%</span>
+                <span class="delivery-kpi-label">On-Time Rate</span>
+              </div>
+              <div class="delivery-kpi">
+                <span class="delivery-kpi-value">{{ report.totalDeliveryFees | currency }}</span>
+                <span class="delivery-kpi-label">Total Fees</span>
+              </div>
+              <div class="delivery-kpi">
+                <span class="delivery-kpi-value">{{ report.costPerDelivery | currency }}</span>
+                <span class="delivery-kpi-label">Cost / Delivery</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- By Driver -->
+          @if (report.byDriver.length > 0) {
+            <div class="section-card full-width">
+              <h6>Driver Performance</h6>
+              <table class="cod-table">
+                <thead>
+                  <tr>
+                    <th>Driver</th>
+                    <th class="text-end">Deliveries</th>
+                    <th class="text-end">On-Time</th>
+                    <th class="text-end">Late</th>
+                    <th class="text-end">Avg Time</th>
+                    <th class="text-end">Distance</th>
+                    <th class="text-end">Fees</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (driver of report.byDriver; track driver.driverId) {
+                    <tr>
+                      <td class="fw-semibold">{{ driver.driverName }}</td>
+                      <td class="text-end">{{ driver.totalDeliveries }}</td>
+                      <td class="text-end" style="color: var(--os-success);">{{ driver.onTimeCount }}</td>
+                      <td class="text-end" style="color: var(--os-danger);">{{ driver.lateCount }}</td>
+                      <td class="text-end">{{ driver.avgDeliveryMinutes | number:'1.0-0' }} min</td>
+                      <td class="text-end">{{ driver.totalDistanceKm | number:'1.1-1' }} km</td>
+                      <td class="text-end fw-semibold">{{ driver.totalFees | currency }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+
+              <!-- Driver bar chart -->
+              <div class="delivery-bar-chart mt-3">
+                @for (driver of report.byDriver; track driver.driverId) {
+                  <div class="delivery-bar-row">
+                    <span class="delivery-bar-label">{{ driver.driverName }}</span>
+                    <div class="delivery-bar-track">
+                      <div class="delivery-bar-fill" [style.width.%]="getDeliveryBarWidth(driver.totalDeliveries)"></div>
+                    </div>
+                    <span class="delivery-bar-value">{{ driver.totalDeliveries }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- By Provider -->
+          @if (report.byProvider.length > 0) {
+            <div class="section-card full-width">
+              <h6>Provider Breakdown</h6>
+              @for (prov of report.byProvider; track prov.provider) {
+                <div class="provider-card">
+                  <span class="provider-name">{{ prov.provider }}</span>
+                  <div class="provider-stats">
+                    <span><span class="fw-semibold">{{ prov.count }}</span> deliveries</span>
+                    <span><span class="fw-semibold">{{ prov.avgMinutes | number:'1.0-0' }}</span> min avg</span>
+                    <span><span class="fw-semibold">{{ prov.onTimePercentage | number:'1.0-0' }}%</span> on-time</span>
+                    <span><span class="fw-semibold">{{ prov.totalFees | currency }}</span> fees</span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        } @else {
+          <div class="section-card full-width text-center py-4">
+            @if (deliveryOrderCount() === 0) {
+              <p class="text-muted-custom">No delivery orders today</p>
+            } @else {
+              <p class="text-muted-custom">No delivery analytics available for this date</p>
+            }
           </div>
         }
       </div>

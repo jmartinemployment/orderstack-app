@@ -262,6 +262,24 @@ export function getDaypartLabel(dayOfWeek: number): string {
   return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayOfWeek] ?? '';
 }
 
+// --- Schedule Overrides (GAP-R07 Phase 2) ---
+
+export interface ScheduleOverride {
+  id: string;
+  date: string;                // 'YYYY-MM-DD'
+  label: string;               // e.g., 'Mother's Day Brunch', 'Christmas'
+  mode: 'replace' | 'closed';  // replace dayparts for the day, or fully closed
+  dayparts: Daypart[];          // Only used when mode === 'replace'
+}
+
+export interface SchedulePreviewResult {
+  daypart: Daypart | null;
+  items: MenuItem[];
+  isOverride: boolean;
+  overrideLabel?: string;
+  isClosed: boolean;
+}
+
 // --- CSV Import ---
 
 export interface CsvImportResult {

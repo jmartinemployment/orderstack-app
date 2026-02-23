@@ -26,6 +26,8 @@ import {
   MarketplaceSyncState,
   Driver,
   DeliveryAssignment,
+  DeliveryTrackingInfo,
+  DeliveryDispatchStatus,
 } from '@models/index';
 import { exportToCsv } from '@shared/utils/csv-export';
 
@@ -730,6 +732,46 @@ export class PendingOrders implements OnInit, OnDestroy {
     if (driverId) {
       void this.assignDriver(orderId, driverId);
     }
+  }
+
+  // --- Real-Time Delivery Tracking (GAP-R08 Phase 2) ---
+
+  readonly trackingOrders = this.deliveryService.trackingOrders;
+  readonly activeTrackingCount = this.deliveryService.activeTrackingCount;
+
+  getTrackingForOrder(orderId: string): DeliveryTrackingInfo | undefined {
+    return this.deliveryService.getTrackingForOrder(orderId);
+  }
+
+  isBeingTracked(orderId: string): boolean {
+    return this.trackingOrders().has(orderId);
+  }
+
+  startTracking(order: Order): void {
+    const externalId = order.deliveryInfo?.deliveryExternalId;
+    if (!externalId) return;
+    const provider = order.deliveryInfo?.deliveryProvider ?? 'doordash';
+    this.deliveryService.startTrackingDelivery(order.guid, externalId, provider as any);
+  }
+
+  stopTracking(orderId: string): void {
+    this.deliveryService.stopTrackingDelivery(orderId);
+  }
+
+  getTrackingStatusLabel(status: DeliveryDispatchStatus): string {
+    return this.deliveryService.getDispatchStatusLabel(status);
+  }
+
+  getTrackingStatusClass(status: DeliveryDispatchStatus): string {
+    return this.deliveryService.getDispatchStatusClass(status);
+  }
+
+  getTrackingEtaMinutes(tracking: DeliveryTrackingInfo): number | null {
+    if (!tracking.estimatedDeliveryAt) return null;
+    const eta = new Date(tracking.estimatedDeliveryAt).getTime();
+    const now = Date.now();
+    const minutes = Math.max(0, Math.round((eta - now) / 60000));
+    return minutes;
   }
 
   private printCheck(order: Order): void {

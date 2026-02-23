@@ -27,8 +27,12 @@ import {
   DriverStatus,
   DeliveryAssignment,
   DeliveryAssignmentStatus,
+  DeliveryTrackingInfo,
+  DeliveryAnalyticsReport,
+  DeliveryDispatchStatus,
 } from '../models';
 import { AuthService } from './auth';
+import { SocketService, DeliveryLocationEvent } from './socket';
 import { environment } from '@environments/environment';
 import { DoorDashDeliveryProvider } from './providers/doordash-provider';
 import { UberDeliveryProvider } from './providers/uber-provider';
@@ -43,6 +47,7 @@ export interface DeliveryConfigStatus {
 })
 export class DeliveryService {
   private readonly authService = inject(AuthService);
+  private readonly socketService = inject(SocketService);
   private readonly apiUrl = environment.apiUrl;
 
   private provider: DeliveryProvider | null = null;
@@ -934,5 +939,279 @@ export class DeliveryService {
 
   getDriverById(driverId: string): Driver | undefined {
     return this._drivers().find(d => d.id === driverId);
+  }
+
+  // ============ Real-Time Delivery Tracking (GAP-R08 Phase 2) ============
+
+  private readonly _trackingOrders = signal<Map<string, DeliveryTrackingInfo>>(new Map());
+  private readonly _deliveryAnalytics = signal<DeliveryAnalyticsReport | null>(null);
+  private readonly _isLoadingAnalytics = signal(false);
+  private trackingPollingIntervals = new Map<string, ReturnType<typeof setInterval>>();
+  private locationUnsubscribe: (() => void) | null = null;
+
+  readonly trackingOrders = this._trackingOrders.asReadonly();
+  readonly deliveryAnalytics = this._deliveryAnalytics.asReadonly();
+  readonly isLoadingAnalytics = this._isLoadingAnalytics.asReadonly();
+
+  readonly activeTrackingCount = computed(() => {
+    let count = 0;
+    for (const info of this._trackingOrders().values()) {
+      if (info.status !== 'DELIVERED' && info.status !== 'CANCELLED' && info.status !== 'FAILED') {
+        count++;
+      }
+    }
+    return count;
+  });
+
+  getTrackingForOrder(orderId: string): DeliveryTrackingInfo | undefined {
+    return this._trackingOrders().get(orderId);
+  }
+
+  startTrackingDelivery(orderId: string, deliveryExternalId: string, provider: DeliveryProviderType): void {
+    const initial: DeliveryTrackingInfo = {
+      orderId,
+      deliveryExternalId,
+      provider,
+      status: 'DISPATCH_REQUESTED',
+      driver: null,
+      trackingUrl: null,
+      estimatedDeliveryAt: null,
+      lastUpdatedAt: new Date().toISOString(),
+    };
+    this._trackingOrders.update(map => {
+      const next = new Map(map);
+      next.set(orderId, initial);
+      return next;
+    });
+
+    // Subscribe to socket location events if not already
+    if (!this.locationUnsubscribe) {
+      this.locationUnsubscribe = this.socketService.onDeliveryLocationEvent(
+        (event: DeliveryLocationEvent) => this.handleLocationUpdate(event)
+      );
+    }
+
+    // Poll delivery status every 30 seconds
+    const interval = setInterval(() => {
+      void this.pollDeliveryStatus(orderId, deliveryExternalId);
+    }, 30000);
+    this.trackingPollingIntervals.set(orderId, interval);
+
+    // Fetch initial status
+    void this.pollDeliveryStatus(orderId, deliveryExternalId);
+  }
+
+  stopTrackingDelivery(orderId: string): void {
+    const interval = this.trackingPollingIntervals.get(orderId);
+    if (interval) {
+      clearInterval(interval);
+      this.trackingPollingIntervals.delete(orderId);
+    }
+    this._trackingOrders.update(map => {
+      const next = new Map(map);
+      next.delete(orderId);
+      return next;
+    });
+
+    // Clean up socket listener if no more tracked orders
+    if (this.trackingPollingIntervals.size === 0 && this.locationUnsubscribe) {
+      this.locationUnsubscribe();
+      this.locationUnsubscribe = null;
+    }
+  }
+
+  stopAllTracking(): void {
+    for (const [orderId, interval] of this.trackingPollingIntervals) {
+      clearInterval(interval);
+    }
+    this.trackingPollingIntervals.clear();
+    this._trackingOrders.set(new Map());
+    if (this.locationUnsubscribe) {
+      this.locationUnsubscribe();
+      this.locationUnsubscribe = null;
+    }
+  }
+
+  private async pollDeliveryStatus(orderId: string, deliveryExternalId: string): Promise<void> {
+    const info = await this.getDeliveryStatus(orderId, deliveryExternalId);
+    if (!info) return;
+
+    this._trackingOrders.update(map => {
+      const existing = map.get(orderId);
+      if (!existing) return map;
+      const next = new Map(map);
+      const status = this.inferDispatchStatus(info);
+      next.set(orderId, {
+        ...existing,
+        driver: info,
+        status,
+        estimatedDeliveryAt: info.estimatedDeliveryAt ?? existing.estimatedDeliveryAt,
+        lastUpdatedAt: new Date().toISOString(),
+      });
+      return next;
+    });
+
+    // Auto-stop tracking when delivered
+    const updated = this._trackingOrders().get(orderId);
+    if (updated && (updated.status === 'DELIVERED' || updated.status === 'CANCELLED')) {
+      this.stopTrackingDelivery(orderId);
+    }
+  }
+
+  private handleLocationUpdate(event: DeliveryLocationEvent): void {
+    this._trackingOrders.update(map => {
+      const existing = map.get(event.orderId);
+      if (!existing) return map;
+      const next = new Map(map);
+      next.set(event.orderId, {
+        ...existing,
+        driver: {
+          ...existing.driver,
+          location: { lat: event.lat, lng: event.lng },
+        },
+        estimatedDeliveryAt: event.estimatedDeliveryAt ?? existing.estimatedDeliveryAt,
+        lastUpdatedAt: new Date().toISOString(),
+      });
+      return next;
+    });
+  }
+
+  private inferDispatchStatus(info: DeliveryDriverInfo): DeliveryDispatchStatus {
+    if (!info.name && !info.phone) return 'DISPATCH_REQUESTED';
+    if (info.location) return 'DRIVER_EN_ROUTE_TO_DROPOFF';
+    return 'DRIVER_ASSIGNED';
+  }
+
+  // ============ Delivery Analytics (GAP-R08 Phase 2) ============
+
+  async loadDeliveryAnalytics(dateFrom: string, dateTo: string): Promise<DeliveryAnalyticsReport | null> {
+    if (!this.restaurantId) return null;
+
+    this._isLoadingAnalytics.set(true);
+    try {
+      const response = await fetch(
+        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/analytics?from=${encodeURIComponent(dateFrom)}&to=${encodeURIComponent(dateTo)}`,
+        { headers: this.buildAuthHeaders() }
+      );
+      if (response.ok) {
+        const report = await response.json() as DeliveryAnalyticsReport;
+        this._deliveryAnalytics.set(report);
+        return report;
+      }
+      // Fallback: generate from local assignments
+      return this.generateLocalAnalytics(dateFrom, dateTo);
+    } catch {
+      return this.generateLocalAnalytics(dateFrom, dateTo);
+    } finally {
+      this._isLoadingAnalytics.set(false);
+    }
+  }
+
+  private generateLocalAnalytics(dateFrom: string, dateTo: string): DeliveryAnalyticsReport {
+    const assignments = this._activeAssignments();
+    const completed = assignments.filter(a => a.status === 'delivered');
+    const totalDeliveries = completed.length;
+
+    const driverMap = new Map<string, DeliveryAssignment[]>();
+    for (const a of completed) {
+      const list = driverMap.get(a.driverId) ?? [];
+      list.push(a);
+      driverMap.set(a.driverId, list);
+    }
+
+    const byDriver: DeliveryAnalyticsReport['byDriver'] = [];
+    let totalMinutes = 0;
+    let onTimeTotal = 0;
+    let totalFees = 0;
+
+    for (const [driverId, deliveries] of driverMap) {
+      const driver = this.getDriverById(driverId);
+      let driverTotalMinutes = 0;
+      let driverOnTime = 0;
+      let driverDistance = 0;
+
+      for (const d of deliveries) {
+        const minutes = d.estimatedDeliveryMinutes ?? 30;
+        driverTotalMinutes += minutes;
+        if (d.deliveredAt && d.assignedAt) {
+          const actualMinutes = (new Date(d.deliveredAt).getTime() - new Date(d.assignedAt).getTime()) / 60000;
+          if (actualMinutes <= minutes) driverOnTime++;
+        }
+        driverDistance += d.distanceKm ?? 0;
+      }
+
+      const avgMinutes = deliveries.length > 0 ? Math.round(driverTotalMinutes / deliveries.length) : 0;
+      totalMinutes += driverTotalMinutes;
+      onTimeTotal += driverOnTime;
+
+      byDriver.push({
+        driverId,
+        driverName: driver?.name ?? 'Unknown',
+        vehicleType: driver?.vehicleType ?? 'car',
+        totalDeliveries: deliveries.length,
+        onTimeCount: driverOnTime,
+        lateCount: deliveries.length - driverOnTime,
+        avgDeliveryMinutes: avgMinutes,
+        totalDistanceKm: Math.round(driverDistance * 10) / 10,
+        totalFees: 0,
+      });
+    }
+
+    const avgDeliveryMinutes = totalDeliveries > 0 ? Math.round(totalMinutes / totalDeliveries) : 0;
+    const onTimePercentage = totalDeliveries > 0 ? Math.round((onTimeTotal / totalDeliveries) * 100) : 0;
+
+    const report: DeliveryAnalyticsReport = {
+      dateFrom,
+      dateTo,
+      totalDeliveries,
+      avgDeliveryMinutes,
+      onTimePercentage,
+      totalDeliveryFees: totalFees,
+      costPerDelivery: totalDeliveries > 0 ? Math.round((totalFees / totalDeliveries) * 100) / 100 : 0,
+      byDriver,
+      byProvider: [
+        {
+          provider: 'self',
+          count: totalDeliveries,
+          avgMinutes: avgDeliveryMinutes,
+          onTimePercentage,
+          totalFees: 0,
+        },
+      ],
+    };
+    this._deliveryAnalytics.set(report);
+    return report;
+  }
+
+  getDispatchStatusLabel(status: DeliveryDispatchStatus): string {
+    const labels: Record<DeliveryDispatchStatus, string> = {
+      QUOTED: 'Quoted',
+      DISPATCH_REQUESTED: 'Dispatching...',
+      DRIVER_ASSIGNED: 'Driver Assigned',
+      DRIVER_EN_ROUTE_TO_PICKUP: 'En Route to Pickup',
+      DRIVER_AT_PICKUP: 'At Pickup',
+      PICKED_UP: 'Picked Up',
+      DRIVER_EN_ROUTE_TO_DROPOFF: 'On the Way',
+      DRIVER_AT_DROPOFF: 'Arriving',
+      DELIVERED: 'Delivered',
+      CANCELLED: 'Cancelled',
+      FAILED: 'Failed',
+    };
+    return labels[status] ?? status;
+  }
+
+  getDispatchStatusClass(status: DeliveryDispatchStatus): string {
+    switch (status) {
+      case 'DELIVERED': return 'tracking-delivered';
+      case 'CANCELLED':
+      case 'FAILED': return 'tracking-failed';
+      case 'DRIVER_EN_ROUTE_TO_DROPOFF':
+      case 'DRIVER_AT_DROPOFF': return 'tracking-active';
+      case 'PICKED_UP': return 'tracking-picked-up';
+      case 'DRIVER_ASSIGNED':
+      case 'DRIVER_EN_ROUTE_TO_PICKUP':
+      case 'DRIVER_AT_PICKUP': return 'tracking-assigned';
+      default: return 'tracking-pending';
+    }
   }
 }

@@ -5,15 +5,15 @@ import { AuthService } from '@services/auth';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
 import {
-  MenuEngineeringItem,
   MenuQuadrant,
   ItemProfitabilityTrend,
   PriceElasticityIndicator,
   CannibalizationResult,
   SeasonalPattern,
+  PrepTimeAccuracyRow,
 } from '@models/index';
 
-type DeepDiveTab = 'overview' | 'profitability' | 'elasticity' | 'cannibalization' | 'seasonal';
+type DeepDiveTab = 'overview' | 'profitability' | 'elasticity' | 'cannibalization' | 'seasonal' | 'prep-time';
 
 @Component({
   selector: 'os-menu-engineering',
@@ -55,6 +55,12 @@ export class MenuEngineeringDashboard implements OnInit {
   private readonly _seasonalPattern = signal<SeasonalPattern | null>(null);
   private readonly _isLoadingSeasonal = signal(false);
 
+  // --- Prep Time Accuracy (GAP-R05 Phase 2) ---
+  private readonly _prepAccuracyDays = signal(30);
+  private readonly _prepSortField = signal<'itemName' | 'accuracy' | 'sampleSize'>('accuracy');
+  private readonly _prepSortAsc = signal(true);
+  private readonly _showFlaggedOnly = signal(false);
+
   readonly deepDiveTab = this._deepDiveTab.asReadonly();
   readonly selectedItemId = this._selectedItemId.asReadonly();
   readonly profitTrendDays = this._profitTrendDays.asReadonly();
@@ -67,6 +73,13 @@ export class MenuEngineeringDashboard implements OnInit {
   readonly isLoadingCannibalization = this._isLoadingCannibalization.asReadonly();
   readonly seasonalPattern = this._seasonalPattern.asReadonly();
   readonly isLoadingSeasonal = this._isLoadingSeasonal.asReadonly();
+  readonly prepTimeAccuracy = this.analyticsService.prepTimeAccuracy;
+  readonly isLoadingPrepAccuracy = this.analyticsService.isLoadingPrepAccuracy;
+  readonly flaggedPrepItems = this.analyticsService.flaggedPrepItems;
+  readonly prepAccuracyDays = this._prepAccuracyDays.asReadonly();
+  readonly prepSortField = this._prepSortField.asReadonly();
+  readonly prepSortAsc = this._prepSortAsc.asReadonly();
+  readonly showFlaggedOnly = this._showFlaggedOnly.asReadonly();
 
   readonly filteredItems = computed(() => {
     const engineering = this.data();
@@ -99,14 +112,12 @@ export class MenuEngineeringDashboard implements OnInit {
     return engineering?.items.find(i => i.id === id)?.name ?? null;
   });
 
-  // Elasticity sorted by absolute estimated revenue change (most impactful first)
   readonly sortedElasticity = computed(() => {
     return [...this._elasticityData()].sort(
       (a, b) => Math.abs(b.estimatedRevenueChange) - Math.abs(a.estimatedRevenueChange)
     );
   });
 
-  // Profit trend sparkline: min/max for chart scaling
   readonly trendMinMargin = computed(() => {
     const trend = this._profitTrend();
     if (!trend || trend.dataPoints.length === 0) return 0;
@@ -119,7 +130,6 @@ export class MenuEngineeringDashboard implements OnInit {
     return Math.max(...trend.dataPoints.map(d => d.margin));
   });
 
-  // Seasonal: peak day and peak month
   readonly peakDay = computed(() => {
     const pattern = this._seasonalPattern();
     if (!pattern || pattern.dayOfWeek.length === 0) return null;
@@ -130,6 +140,31 @@ export class MenuEngineeringDashboard implements OnInit {
     const pattern = this._seasonalPattern();
     if (!pattern || pattern.monthOfYear.length === 0) return null;
     return [...pattern.monthOfYear].sort((a, b) => b.avgSales - a.avgSales)[0];
+  });
+
+  // Prep time: sorted and filtered
+  readonly sortedPrepAccuracy = computed(() => {
+    let rows = this._showFlaggedOnly()
+      ? this.flaggedPrepItems()
+      : [...this.prepTimeAccuracy()];
+
+    const field = this._prepSortField();
+    const asc = this._prepSortAsc();
+    rows.sort((a, b) => {
+      const aVal = a[field];
+      const bVal = b[field];
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return asc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+      return asc ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
+    });
+    return rows;
+  });
+
+  readonly avgPrepAccuracy = computed(() => {
+    const rows = this.prepTimeAccuracy();
+    if (rows.length === 0) return 0;
+    return Math.round(rows.reduce((sum, r) => sum + r.accuracy, 0) / rows.length);
   });
 
   ngOnInit(): void {
@@ -191,12 +226,14 @@ export class MenuEngineeringDashboard implements OnInit {
   setDeepDiveTab(tab: DeepDiveTab): void {
     this._deepDiveTab.set(tab);
 
-    // Auto-load data for the tab
     if (tab === 'elasticity' && this._elasticityData().length === 0) {
       this.loadElasticity();
     }
     if (tab === 'cannibalization' && this._cannibalizationData().length === 0) {
       this.loadCannibalization();
+    }
+    if (tab === 'prep-time' && this.prepTimeAccuracy().length === 0) {
+      this.analyticsService.loadPrepTimeAccuracy(this._prepAccuracyDays());
     }
   }
 
@@ -313,5 +350,47 @@ export class MenuEngineeringDashboard implements OnInit {
     const max = Math.max(...allValues.map(v => v.avgSales));
     if (max === 0) return 10;
     return Math.max(10, (avgSales / max) * 100);
+  }
+
+  // === Prep Time Accuracy (GAP-R05 Phase 2) ===
+
+  setPrepAccuracyDays(days: number): void {
+    this._prepAccuracyDays.set(days);
+    this.analyticsService.loadPrepTimeAccuracy(days);
+  }
+
+  setPrepSort(field: 'itemName' | 'accuracy' | 'sampleSize'): void {
+    if (this._prepSortField() === field) {
+      this._prepSortAsc.update(v => !v);
+    } else {
+      this._prepSortField.set(field);
+      this._prepSortAsc.set(true);
+    }
+  }
+
+  toggleFlaggedOnly(): void {
+    this._showFlaggedOnly.update(v => !v);
+  }
+
+  getAccuracyClass(accuracy: number): string {
+    if (accuracy >= 85) return 'accuracy-good';
+    if (accuracy >= 70) return 'accuracy-fair';
+    return 'accuracy-poor';
+  }
+
+  getAccuracyLabel(accuracy: number): string {
+    if (accuracy >= 85) return 'Good';
+    if (accuracy >= 70) return 'Fair';
+    return 'Poor';
+  }
+
+  getDeviationPercent(row: PrepTimeAccuracyRow): number {
+    if (row.estimatedMinutes === 0) return 0;
+    return Math.round(Math.abs(row.actualAvgMinutes - row.estimatedMinutes) / row.estimatedMinutes * 100);
+  }
+
+  async applySuggestion(row: PrepTimeAccuracyRow): Promise<void> {
+    if (row.suggestedAdjustment === null) return;
+    await this.analyticsService.applyPrepTimeSuggestion(row.itemId, row.suggestedAdjustment);
   }
 }

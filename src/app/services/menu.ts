@@ -13,6 +13,8 @@ import {
   MenuSchedule,
   MenuScheduleFormData,
   Daypart,
+  ScheduleOverride,
+  SchedulePreviewResult,
   isItemAvailable,
   isDaypartActive,
 } from '../models';
@@ -44,6 +46,7 @@ export class MenuService {
   // Menu schedules (GAP-R07)
   private readonly _menuSchedules = signal<MenuSchedule[]>([]);
   private readonly _activeScheduleId = signal<string | null>(null);
+  private readonly _scheduleOverrides = signal<ScheduleOverride[]>([]);
 
   // Public readonly signals
   readonly categories = this._categories.asReadonly();
@@ -55,6 +58,7 @@ export class MenuService {
   readonly optionSets = this._optionSets.asReadonly();
   readonly menuSchedules = this._menuSchedules.asReadonly();
   readonly activeScheduleId = this._activeScheduleId.asReadonly();
+  readonly scheduleOverrides = this._scheduleOverrides.asReadonly();
 
   readonly activeSchedule = computed(() => {
     const id = this._activeScheduleId();
@@ -839,11 +843,112 @@ export class MenuService {
     return item.daypartIds.some(id => activeDpIds.includes(id));
   }
 
+  // --- Phase 2: Schedule Preview, Overrides, Notifications ---
+
+  previewMenuAt(targetDate: Date): SchedulePreviewResult[] {
+    const schedule = this.activeSchedule();
+    if (!schedule) {
+      return [{ daypart: null, items: this.allItems(), isOverride: false, isClosed: false }];
+    }
+
+    const dateStr = targetDate.toISOString().split('T')[0];
+    const override = this._scheduleOverrides().find(o => o.date === dateStr);
+
+    if (override) {
+      if (override.mode === 'closed') {
+        return [{ daypart: null, items: [], isOverride: true, overrideLabel: override.label, isClosed: true }];
+      }
+      return override.dayparts
+        .filter(dp => isDaypartActive(dp, targetDate))
+        .map(dp => ({
+          daypart: dp,
+          items: this.getItemsForDaypart(dp.id),
+          isOverride: true,
+          overrideLabel: override.label,
+          isClosed: false,
+        }));
+    }
+
+    const activeDps = schedule.dayparts.filter(dp => isDaypartActive(dp, targetDate));
+    if (activeDps.length === 0) {
+      return [{ daypart: null, items: this.getAlwaysAvailableItems(), isOverride: false, isClosed: false }];
+    }
+
+    return activeDps.map(dp => ({
+      daypart: dp,
+      items: this.getItemsForDaypart(dp.id),
+      isOverride: false,
+      isClosed: false,
+    }));
+  }
+
+  private getItemsForDaypart(daypartId: string): MenuItem[] {
+    return this.allItems().filter(item => {
+      if (!item.daypartIds || item.daypartIds.length === 0) return true;
+      return item.daypartIds.includes(daypartId);
+    });
+  }
+
+  private getAlwaysAvailableItems(): MenuItem[] {
+    return this.allItems().filter(item => !item.daypartIds || item.daypartIds.length === 0);
+  }
+
+  getOverrideForDate(dateStr: string): ScheduleOverride | null {
+    return this._scheduleOverrides().find(o => o.date === dateStr) ?? null;
+  }
+
+  addScheduleOverride(override: Omit<ScheduleOverride, 'id'>): void {
+    const newOverride: ScheduleOverride = { ...override, id: crypto.randomUUID() };
+    this._scheduleOverrides.update(list => {
+      const filtered = list.filter(o => o.date !== override.date);
+      return [...filtered, newOverride].sort((a, b) => a.date.localeCompare(b.date));
+    });
+    this.persistSchedules();
+  }
+
+  updateScheduleOverride(id: string, data: Omit<ScheduleOverride, 'id'>): void {
+    this._scheduleOverrides.update(list =>
+      list.map(o => o.id === id ? { ...o, ...data } : o)
+    );
+    this.persistSchedules();
+  }
+
+  deleteScheduleOverride(id: string): void {
+    this._scheduleOverrides.update(list => list.filter(o => o.id !== id));
+    this.persistSchedules();
+  }
+
+  getUpcomingDaypartChange(): { nextDaypart: Daypart; minutesUntil: number } | null {
+    const schedule = this.activeSchedule();
+    if (!schedule) return null;
+
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const dayOfWeek = now.getDay();
+
+    let nearest: { daypart: Daypart; minutesUntil: number } | null = null;
+
+    for (const dp of schedule.dayparts) {
+      if (!dp.isActive || !dp.daysOfWeek.includes(dayOfWeek)) continue;
+      const [startH, startM] = dp.startTime.split(':').map(Number);
+      const startMinutes = startH * 60 + startM;
+      const diff = startMinutes - currentMinutes;
+      if (diff > 0 && diff <= 30) {
+        if (!nearest || diff < nearest.minutesUntil) {
+          nearest = { daypart: dp, minutesUntil: diff };
+        }
+      }
+    }
+
+    return nearest ? { nextDaypart: nearest.daypart, minutesUntil: nearest.minutesUntil } : null;
+  }
+
   private persistSchedules(): void {
     const key = `menu-schedules-${this.restaurantId ?? 'unknown'}`;
     const data = {
       schedules: this._menuSchedules(),
       activeId: this._activeScheduleId(),
+      overrides: this._scheduleOverrides(),
     };
     localStorage.setItem(key, JSON.stringify(data));
   }
@@ -853,9 +958,10 @@ export class MenuService {
     try {
       const stored = localStorage.getItem(key);
       if (stored) {
-        const data = JSON.parse(stored) as { schedules: MenuSchedule[]; activeId: string | null };
+        const data = JSON.parse(stored) as { schedules: MenuSchedule[]; activeId: string | null; overrides?: ScheduleOverride[] };
         this._menuSchedules.set(data.schedules ?? []);
         this._activeScheduleId.set(data.activeId ?? null);
+        this._scheduleOverrides.set(data.overrides ?? []);
       }
     } catch {
       // Ignore corrupted storage

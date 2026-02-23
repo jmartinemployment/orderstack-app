@@ -10,8 +10,8 @@
       @if (suggestions().length > 0) {
         @for (suggestion of suggestions(); track suggestion.item.id) {
           <div class="upsell-item card" (click)="addItem(suggestion.item)">
-            @if (suggestion.item.image) {
-              <img [src]="suggestion.item.image" [alt]="suggestion.item.name" width="80" height="60" class="card-img-top" />
+            @if (suggestion.item.imageUrl || suggestion.item.image) {
+              <img [src]="suggestion.item.thumbnailUrl || suggestion.item.imageUrl || suggestion.item.image" [alt]="suggestion.item.name" width="80" height="60" class="card-img-top" />
             }
             <div class="card-body p-2">
               <p class="card-title small mb-1">{{ suggestion.item.name }}</p>
@@ -24,8 +24,8 @@
       } @else if (fallbackItems().length > 0) {
         @for (item of fallbackItems(); track item.id) {
           <div class="upsell-item card" (click)="addItem(item)">
-            @if (item.image) {
-              <img [src]="item.image" [alt]="item.name" width="80" height="60" class="card-img-top" />
+            @if (item.imageUrl || item.image) {
+              <img [src]="item.thumbnailUrl || item.imageUrl || item.image" [alt]="item.name" width="80" height="60" class="card-img-top" />
             }
             <div class="card-body p-2">
               <p class="card-title small mb-1">{{ item.name }}</p>

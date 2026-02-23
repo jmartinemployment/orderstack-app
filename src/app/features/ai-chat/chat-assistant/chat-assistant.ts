@@ -82,6 +82,14 @@ export class ChatAssistant {
     'Any critical alerts I should know about?',
   ];
 
+  readonly quickQueries = [
+    { label: 'Best Seller', query: 'What\'s our best seller this week?' },
+    { label: 'Slowest Day', query: 'What was our slowest day this week?' },
+    { label: 'Labor Cost', query: 'Show me labor cost trend' },
+    { label: 'Top Customer', query: 'Who is our top customer this month?' },
+    { label: 'Revenue vs Last Month', query: 'How does this month\'s revenue compare to last month?' },
+  ];
+
   onInput(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this._inputValue.set(value);

@@ -18,6 +18,7 @@ import {
 } from '@models/cash-drawer.model';
 
 type DrawerView = 'status' | 'open' | 'close' | 'event';
+type DrawerTab = 'drawer' | 'employees' | 'alerts' | 'report';
 
 interface DenominationRow {
   key: keyof CashDenomination;
@@ -38,6 +39,11 @@ const DENOMINATION_ROWS: DenominationRow[] = [
   { key: 'pennies', label: '1¢', value: 0.01 },
 ];
 
+const REPORTABLE_EVENT_TYPES: CashEventType[] = [
+  'cash_sale', 'cash_in', 'cash_out', 'paid_out',
+  'tip_payout', 'drop_to_safe', 'petty_cash', 'bank_deposit', 'refund',
+];
+
 @Component({
   selector: 'os-cash-drawer',
   imports: [CurrencyPipe, DatePipe],
@@ -49,19 +55,24 @@ export class CashDrawer {
   readonly drawerService = inject(CashDrawerService);
 
   private readonly _view = signal<DrawerView>('status');
+  private readonly _tab = signal<DrawerTab>('drawer');
   private readonly _openingFloat = signal(200);
   private readonly _denomination = signal<CashDenomination>(emptyDenomination());
   private readonly _eventType = signal<CashEventType>('cash_out');
   private readonly _eventAmount = signal(0);
   private readonly _eventReason = signal('');
+  private readonly _thresholdInput = signal(5);
 
   readonly view = this._view.asReadonly();
+  readonly tab = this._tab.asReadonly();
   readonly openingFloat = this._openingFloat.asReadonly();
   readonly denomination = this._denomination.asReadonly();
   readonly eventType = this._eventType.asReadonly();
   readonly eventAmount = this._eventAmount.asReadonly();
   readonly eventReason = this._eventReason.asReadonly();
+  readonly thresholdInput = this._thresholdInput.asReadonly();
   readonly denominationRows = DENOMINATION_ROWS;
+  readonly reportableEventTypes = REPORTABLE_EVENT_TYPES;
 
   readonly eventLog = computed(() => {
     const session = this.drawerService.session();
@@ -84,6 +95,17 @@ export class CashDrawer {
     if (session.overShort < 0) return 'short';
     return 'even';
   });
+
+  readonly alertCount = computed(() => this.drawerService.discrepancyAlerts().length);
+  readonly flaggedCount = computed(() => this.drawerService.flaggedEmployees().length);
+
+  // --- Tab navigation ---
+
+  selectTab(tab: DrawerTab): void {
+    this._tab.set(tab);
+  }
+
+  // --- Drawer view methods ---
 
   showOpenDrawer(): void {
     this._openingFloat.set(200);
@@ -160,6 +182,40 @@ export class CashDrawer {
     this.showOpenDrawer();
   }
 
+  // --- Discrepancy threshold ---
+
+  setThresholdInput(val: number): void {
+    this._thresholdInput.set(Math.max(0, val));
+  }
+
+  applyThreshold(): void {
+    this.drawerService.setDiscrepancyThreshold(this._thresholdInput());
+  }
+
+  // --- Report filters ---
+
+  setReportDateFrom(value: string): void {
+    this.drawerService.setReportDateFrom(value ? new Date(value) : null);
+  }
+
+  setReportDateTo(value: string): void {
+    this.drawerService.setReportDateTo(value ? new Date(value) : null);
+  }
+
+  setReportEmployee(value: string): void {
+    this.drawerService.setReportEmployeeFilter(value || null);
+  }
+
+  setReportType(value: string): void {
+    this.drawerService.setReportTypeFilter((value || null) as CashEventType | null);
+  }
+
+  clearFilters(): void {
+    this.drawerService.clearReportFilters();
+  }
+
+  // --- Helpers ---
+
   getEventLabel(type: CashEventType): string {
     return getCashEventLabel(type);
   }
@@ -170,5 +226,11 @@ export class CashDrawer {
 
   isInflow(type: CashEventType): boolean {
     return isCashInflow(type);
+  }
+
+  formatVariance(value: number): string {
+    const abs = Math.abs(value);
+    const prefix = value > 0 ? '+$' : value < 0 ? '-$' : '$';
+    return `${prefix}${abs.toFixed(2)}`;
   }
 }

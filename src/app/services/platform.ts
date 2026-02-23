@@ -109,6 +109,7 @@ export class PlatformService {
   readonly canUseTransfer = computed(() => this.featureFlags().enableCheckTransfer);
   readonly canUsePreAuthTabs = computed(() => this.featureFlags().enablePreAuthTabs);
   readonly canUseOrderNumbers = computed(() => this.featureFlags().enableOrderNumberTracking);
+  readonly showItemImages = computed(() => this.featureFlags().showItemImages);
 
   private get restaurantId(): string {
     return this.authService.selectedRestaurantId() ?? '';

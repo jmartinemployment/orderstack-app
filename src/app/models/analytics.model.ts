@@ -204,6 +204,24 @@ export interface SeasonalPattern {
   monthOfYear: { month: string; avgSales: number }[];
 }
 
+// --- Prep Time Accuracy (GAP-R05 Phase 2) ---
+
+export interface PrepTimeAccuracyRow {
+  itemId: string;
+  itemName: string;
+  estimatedMinutes: number;
+  actualAvgMinutes: number;
+  accuracy: number;          // percentage (0-100)
+  sampleSize: number;
+  suggestedAdjustment: number | null;  // null = no change needed
+}
+
+export interface PrepTimeQueueEstimate {
+  baseMinutes: number;
+  queueDepth: number;
+  adjustedMinutes: number;
+}
+
 // --- Predictive Analytics (Phase 3) ---
 
 export interface RevenueForecast {

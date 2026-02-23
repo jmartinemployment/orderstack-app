@@ -1,9 +1,9 @@
 @if (itemValue) {
   <div class="menu-item-card card" [class.eighty-sixed]="isEightySixed()" [class.unavailable]="isUnavailable()" (click)="isEightySixed() || isUnavailable() ? null : toggleDetails()">
     <div class="d-flex">
-      @if (itemValue.image) {
+      @if (itemValue.imageUrl || itemValue.image) {
         <div class="card-image-wrapper flex-shrink-0">
-          <img [src]="itemValue.image" [alt]="localizedName()" class="card-image" />
+          <img [src]="itemValue.thumbnailUrl || itemValue.imageUrl || itemValue.image" [alt]="localizedName()" class="card-image" />
         </div>
       }
       <div class="card-body flex-grow-1">
@@ -61,13 +61,13 @@
 
         <div class="card-body">
           <div class="row g-0 mb-3">
-            @if (itemValue.image) {
+            @if (itemValue.imageUrl || itemValue.image) {
               <div class="col-4">
-                <img [src]="itemValue.image" [alt]="localizedName()" width="120" height="120" style="aspect-ratio: 1/1; object-fit: cover;" />
+                <img [src]="itemValue.imageUrl || itemValue.image" [alt]="localizedName()" width="120" height="120" style="aspect-ratio: 1/1; object-fit: cover;" />
               </div>
             }
 
-            <div [class]="itemValue.image ? 'col-8 ps-3' : 'col-12'">
+            <div [class]="(itemValue.imageUrl || itemValue.image) ? 'col-8 ps-3' : 'col-12'">
               @if (localizedDescription()) {
                 <p class="mb-3" style="color: #FFFFFF;">{{ localizedDescription() }}</p>
               }

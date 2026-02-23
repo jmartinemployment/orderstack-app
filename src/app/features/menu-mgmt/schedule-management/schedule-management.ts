@@ -5,12 +5,15 @@ import {
   signal,
   computed,
   OnInit,
+  DestroyRef,
 } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { MenuService } from '@services/menu';
 import {
   MenuSchedule,
   Daypart,
+  ScheduleOverride,
+  SchedulePreviewResult,
   getDaypartLabel,
   isDaypartActive,
 } from '@models/index';
@@ -24,32 +27,65 @@ interface DaypartFormRow {
   displayOrder: number;
 }
 
+type ScheduleView = 'list' | 'form' | 'preview' | 'overrides';
+
 @Component({
   selector: 'os-schedule-management',
-  imports: [],
+  imports: [DatePipe],
   templateUrl: './schedule-management.html',
   styleUrl: './schedule-management.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ScheduleManagement implements OnInit {
   readonly menuService = inject(MenuService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  private readonly _showForm = signal(false);
+  // View state
+  private readonly _view = signal<ScheduleView>('list');
   private readonly _editingScheduleId = signal<string | null>(null);
   private readonly _formName = signal('');
   private readonly _formIsDefault = signal(false);
   private readonly _formDayparts = signal<DaypartFormRow[]>([]);
 
-  readonly showForm = this._showForm.asReadonly();
+  // Preview state
+  private readonly _previewDate = signal('');
+  private readonly _previewTime = signal('');
+  private readonly _previewResults = signal<SchedulePreviewResult[]>([]);
+
+  // Override form state
+  private readonly _showOverrideForm = signal(false);
+  private readonly _editingOverrideId = signal<string | null>(null);
+  private readonly _overrideDate = signal('');
+  private readonly _overrideLabel = signal('');
+  private readonly _overrideMode = signal<'replace' | 'closed'>('closed');
+  private readonly _overrideDayparts = signal<DaypartFormRow[]>([]);
+
+  // Daypart change notification
+  private readonly _upcomingChange = signal<{ nextDaypart: Daypart; minutesUntil: number } | null>(null);
+  private _notificationInterval: ReturnType<typeof setInterval> | null = null;
+
+  readonly view = this._view.asReadonly();
   readonly editingScheduleId = this._editingScheduleId.asReadonly();
   readonly formName = this._formName.asReadonly();
   readonly formIsDefault = this._formIsDefault.asReadonly();
   readonly formDayparts = this._formDayparts.asReadonly();
+  readonly previewDate = this._previewDate.asReadonly();
+  readonly previewTime = this._previewTime.asReadonly();
+  readonly previewResults = this._previewResults.asReadonly();
+  readonly showOverrideForm = this._showOverrideForm.asReadonly();
+  readonly editingOverrideId = this._editingOverrideId.asReadonly();
+  readonly overrideDate = this._overrideDate.asReadonly();
+  readonly overrideLabel = this._overrideLabel.asReadonly();
+  readonly overrideMode = this._overrideMode.asReadonly();
+  readonly overrideDayparts = this._overrideDayparts.asReadonly();
+  readonly upcomingChange = this._upcomingChange.asReadonly();
 
   readonly schedules = this.menuService.menuSchedules;
   readonly activeScheduleId = this.menuService.activeScheduleId;
+  readonly overrides = this.menuService.scheduleOverrides;
 
   readonly allDays: number[] = [0, 1, 2, 3, 4, 5, 6];
+  readonly timelineHours = Array.from({ length: 24 }, (_, i) => i);
 
   readonly canSave = computed(() => {
     const name = this._formName().trim();
@@ -57,11 +93,37 @@ export class ScheduleManagement implements OnInit {
     return name.length > 0 && dayparts.length > 0 && dayparts.every(dp => dp.name.trim().length > 0);
   });
 
-  readonly timelineHours = Array.from({ length: 24 }, (_, i) => i);
+  readonly canSaveOverride = computed(() => {
+    return this._overrideDate().length > 0 && this._overrideLabel().trim().length > 0;
+  });
+
+  readonly upcomingOverrides = computed(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return this.overrides().filter(o => o.date >= today).slice(0, 10);
+  });
+
+  readonly pastOverrides = computed(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return this.overrides().filter(o => o.date < today);
+  });
 
   ngOnInit(): void {
     this.menuService.loadMenuSchedules();
+    this.checkUpcomingChange();
+    this._notificationInterval = setInterval(() => this.checkUpcomingChange(), 60_000);
+    this.destroyRef.onDestroy(() => {
+      if (this._notificationInterval) clearInterval(this._notificationInterval);
+    });
   }
+
+  // --- Navigation ---
+
+  showView(view: ScheduleView): void {
+    this._view.set(view);
+    if (view === 'preview') this.runPreview();
+  }
+
+  // --- Helpers ---
 
   getDayLabel(day: number): string {
     return getDaypartLabel(day);
@@ -92,7 +154,7 @@ export class ScheduleManagement implements OnInit {
     return ((h * 60 + m) / 1440) * 100;
   }
 
-  // --- Form methods ---
+  // --- Schedule Form ---
 
   openNewForm(): void {
     this._editingScheduleId.set(null);
@@ -103,7 +165,7 @@ export class ScheduleManagement implements OnInit {
       { name: 'Lunch', startTime: '11:00', endTime: '16:00', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], isActive: true, displayOrder: 1 },
       { name: 'Dinner', startTime: '16:00', endTime: '23:00', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], isActive: true, displayOrder: 2 },
     ]);
-    this._showForm.set(true);
+    this._view.set('form');
   }
 
   openEditForm(schedule: MenuSchedule): void {
@@ -118,21 +180,16 @@ export class ScheduleManagement implements OnInit {
       isActive: dp.isActive,
       displayOrder: dp.displayOrder,
     })));
-    this._showForm.set(true);
+    this._view.set('form');
   }
 
   closeForm(): void {
-    this._showForm.set(false);
+    this._view.set('list');
     this._editingScheduleId.set(null);
   }
 
-  setFormName(val: string): void {
-    this._formName.set(val);
-  }
-
-  setFormIsDefault(val: boolean): void {
-    this._formIsDefault.set(val);
-  }
+  setFormName(val: string): void { this._formName.set(val); }
+  setFormIsDefault(val: boolean): void { this._formIsDefault.set(val); }
 
   addDaypart(): void {
     const dayparts = this._formDayparts();
@@ -210,5 +267,143 @@ export class ScheduleManagement implements OnInit {
 
   setActiveSchedule(scheduleId: string | null): void {
     this.menuService.setActiveSchedule(scheduleId);
+  }
+
+  // --- Preview (Phase 2 Step 6) ---
+
+  setPreviewDate(val: string): void {
+    this._previewDate.set(val);
+    this.runPreview();
+  }
+
+  setPreviewTime(val: string): void {
+    this._previewTime.set(val);
+    this.runPreview();
+  }
+
+  runPreview(): void {
+    const dateStr = this._previewDate();
+    const timeStr = this._previewTime();
+    if (!dateStr) {
+      this._previewResults.set([]);
+      return;
+    }
+
+    const date = new Date(dateStr + 'T' + (timeStr || '12:00'));
+    this._previewResults.set(this.menuService.previewMenuAt(date));
+  }
+
+  previewNow(): void {
+    const now = new Date();
+    this._previewDate.set(now.toISOString().split('T')[0]);
+    this._previewTime.set(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
+    this.runPreview();
+  }
+
+  // --- Overrides (Phase 2 Step 7) ---
+
+  openNewOverride(): void {
+    this._editingOverrideId.set(null);
+    this._overrideDate.set('');
+    this._overrideLabel.set('');
+    this._overrideMode.set('closed');
+    this._overrideDayparts.set([]);
+    this._showOverrideForm.set(true);
+  }
+
+  openEditOverride(override: ScheduleOverride): void {
+    this._editingOverrideId.set(override.id);
+    this._overrideDate.set(override.date);
+    this._overrideLabel.set(override.label);
+    this._overrideMode.set(override.mode);
+    this._overrideDayparts.set(override.dayparts.map(dp => ({
+      name: dp.name,
+      startTime: dp.startTime,
+      endTime: dp.endTime,
+      daysOfWeek: dp.daysOfWeek,
+      isActive: dp.isActive,
+      displayOrder: dp.displayOrder,
+    })));
+    this._showOverrideForm.set(true);
+  }
+
+  closeOverrideForm(): void {
+    this._showOverrideForm.set(false);
+    this._editingOverrideId.set(null);
+  }
+
+  setOverrideDate(val: string): void { this._overrideDate.set(val); }
+  setOverrideLabel(val: string): void { this._overrideLabel.set(val); }
+  setOverrideMode(val: string): void { this._overrideMode.set(val as 'replace' | 'closed'); }
+
+  addOverrideDaypart(): void {
+    this._overrideDayparts.update(dps => [...dps, {
+      name: '',
+      startTime: '08:00',
+      endTime: '22:00',
+      daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
+      isActive: true,
+      displayOrder: dps.length,
+    }]);
+  }
+
+  removeOverrideDaypart(index: number): void {
+    this._overrideDayparts.update(dps => dps.filter((_, i) => i !== index));
+  }
+
+  setOverrideDpName(index: number, val: string): void {
+    this._overrideDayparts.update(dps => dps.map((dp, i) => i === index ? { ...dp, name: val } : dp));
+  }
+
+  setOverrideDpStart(index: number, val: string): void {
+    this._overrideDayparts.update(dps => dps.map((dp, i) => i === index ? { ...dp, startTime: val } : dp));
+  }
+
+  setOverrideDpEnd(index: number, val: string): void {
+    this._overrideDayparts.update(dps => dps.map((dp, i) => i === index ? { ...dp, endTime: val } : dp));
+  }
+
+  saveOverride(): void {
+    const date = this._overrideDate();
+    const label = this._overrideLabel().trim();
+    if (!date || !label) return;
+
+    const data = {
+      date,
+      label,
+      mode: this._overrideMode(),
+      dayparts: this._overrideDayparts().map((dp, i) => ({
+        id: crypto.randomUUID(),
+        name: dp.name.trim(),
+        startTime: dp.startTime,
+        endTime: dp.endTime,
+        daysOfWeek: dp.daysOfWeek,
+        isActive: dp.isActive,
+        displayOrder: i,
+      })),
+    };
+
+    const editId = this._editingOverrideId();
+    if (editId) {
+      this.menuService.updateScheduleOverride(editId, data);
+    } else {
+      this.menuService.addScheduleOverride(data);
+    }
+
+    this.closeOverrideForm();
+  }
+
+  deleteOverride(id: string): void {
+    this.menuService.deleteScheduleOverride(id);
+  }
+
+  // --- Notifications (Phase 2 Step 8) ---
+
+  private checkUpcomingChange(): void {
+    this._upcomingChange.set(this.menuService.getUpcomingDaypartChange());
+  }
+
+  dismissNotification(): void {
+    this._upcomingChange.set(null);
   }
 }

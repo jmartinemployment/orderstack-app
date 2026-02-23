@@ -108,7 +108,7 @@
     }
   </div>
 
-  <div class="d-flex gap-2">
+  <div class="d-flex gap-2 mb-4">
     <button
       type="button"
       class="btn btn-primary"
@@ -132,6 +132,168 @@
     </button>
     @if (saved()) {
       <span class="text-success small align-self-center ms-2">Saved</span>
+    }
+  </div>
+
+  <!-- ==================== Scan to Pay Section ==================== -->
+  <div class="stp-settings-section">
+    <div class="stp-settings-header">
+      <div>
+        <h5 class="mb-1">
+          <i class="bi bi-qr-code me-2"></i>Scan to Pay
+        </h5>
+        <p class="text-muted small mb-0">
+          Guests scan a QR code to view their check, add a tip, and pay from their phone.
+        </p>
+      </div>
+      <div class="form-check form-switch">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="stpEnabled"
+          [checked]="stpEnabled()"
+          (change)="onStpEnabledChange($event)"
+        />
+      </div>
+    </div>
+
+    @if (stpEnabled()) {
+      <div class="stp-settings-body">
+        <!-- Tip Percentages -->
+        <div class="stp-field">
+          <label class="form-label">Default Tip Percentages</label>
+          <div class="stp-tip-chips">
+            @for (pct of stpTipPercentages(); track pct; let i = $index) {
+              <span class="stp-tip-chip">
+                {{ pct }}%
+                <button type="button" class="stp-chip-remove" (click)="removeTipPercentage(i)">
+                  <i class="bi bi-x"></i>
+                </button>
+              </span>
+            }
+            <div class="stp-add-tip">
+              <input
+                type="number"
+                class="form-control form-control-sm stp-tip-input"
+                placeholder="%"
+                min="1"
+                max="100"
+                [value]="stpCustomTip()"
+                (input)="setStpCustomTip($any($event.target).value)"
+                (keydown.enter)="addTipPercentage()"
+              />
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="addTipPercentage()">
+                <i class="bi bi-plus"></i>
+              </button>
+            </div>
+          </div>
+          <small class="text-muted">Guests will see these preset tip options when paying.</small>
+        </div>
+
+        <!-- Token Expiration -->
+        <div class="stp-field">
+          <label class="form-label" for="stpExpiration">QR Code Expiration</label>
+          <div class="d-flex align-items-center gap-2">
+            <input
+              type="number"
+              class="form-control form-control-sm stp-expiration-input"
+              id="stpExpiration"
+              [value]="stpTokenExpiration()"
+              (input)="onStpTokenExpirationChange($event)"
+              min="15"
+              max="1440"
+            />
+            <span class="small text-muted">minutes</span>
+          </div>
+          <small class="text-muted">Time before the QR payment link expires. Default: 120 minutes (2 hours).</small>
+        </div>
+
+        <!-- Toggles -->
+        <div class="stp-toggles">
+          <div class="form-check mb-2">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="stpAutoClose"
+              [checked]="stpAutoClose()"
+              (change)="onStpAutoCloseChange($event)"
+            />
+            <label class="form-check-label" for="stpAutoClose">
+              Auto-close check when fully paid
+              <span class="d-block text-muted small">When disabled, server must manually close the check after QR payment.</span>
+            </label>
+          </div>
+
+          <div class="form-check mb-2">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="stpAllowSplit"
+              [checked]="stpAllowSplit()"
+              (change)="onStpAllowSplitChange($event)"
+            />
+            <label class="form-check-label" for="stpAllowSplit">
+              Allow split pay via QR
+              <span class="d-block text-muted small">Multiple guests can scan the same QR and each pay for their items.</span>
+            </label>
+          </div>
+
+          <div class="form-check mb-2">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="stpQrOnReceipts"
+              [checked]="stpQrOnReceipts()"
+              (change)="onStpQrOnReceiptsChange($event)"
+            />
+            <label class="form-check-label" for="stpQrOnReceipts">
+              Include QR code on printed receipts
+              <span class="d-block text-muted small">Automatically adds a payment QR code to every printed check.</span>
+            </label>
+          </div>
+
+          <div class="form-check mb-2">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="stpEmailReceipt"
+              [checked]="stpEmailReceipt()"
+              (change)="onStpEmailReceiptChange($event)"
+            />
+            <label class="form-check-label" for="stpEmailReceipt">
+              Email receipt option
+              <span class="d-block text-muted small">After paying, guests can enter their email to receive a digital receipt.</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-3">
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="!stpIsDirty() || isSaving()"
+            (click)="saveScanToPay()"
+          >
+            @if (isSaving()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+              Saving...
+            } @else {
+              Save Scan to Pay
+            }
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-light"
+            [disabled]="!stpIsDirty()"
+            (click)="discardScanToPay()"
+          >
+            Discard
+          </button>
+          @if (stpSaved()) {
+            <span class="text-success small align-self-center ms-2">Saved</span>
+          }
+        </div>
+      </div>
     }
   </div>
 </div>

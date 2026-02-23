@@ -138,7 +138,11 @@
           type="button"
           class="item-btn"
           [class.has-modifiers]="item.modifierGroups && item.modifierGroups.length > 0"
+          [class.has-thumbnail]="showItemImages() && (item.thumbnailUrl || item.imageUrl)"
           (click)="onItemTap(item)">
+          @if (showItemImages() && (item.thumbnailUrl || item.imageUrl)) {
+            <img [src]="item.thumbnailUrl || item.imageUrl" [alt]="item.name" class="item-thumbnail" loading="lazy" />
+          }
           <span class="item-name">{{ item.name }}</span>
           <span class="item-price">{{ +item.price | currency }}</span>
           @if (item.modifierGroups && item.modifierGroups.length > 0) {
@@ -219,6 +223,24 @@
           </div>
         }
 
+        <!-- Partial payment progress (QR split pay) -->
+        @if (hasPartialPayment()) {
+          <div class="partial-payment-bar">
+            <div class="partial-payment-info">
+              <span class="partial-label">
+                <i class="bi bi-qr-code-scan"></i> QR Payment
+              </span>
+              <span class="partial-amounts">
+                {{ checkPaidAmount() | currency }} of {{ activeCheck()!.totalAmount | currency }}
+              </span>
+            </div>
+            <div class="partial-progress-track">
+              <div class="partial-progress-fill" [style.width.%]="checkPaymentProgress()"></div>
+            </div>
+            <span class="partial-percent">{{ checkPaymentProgress() }}%</span>
+          </div>
+        }
+
         <!-- Check items: Course-grouped or flat -->
         <div class="check-items">
           @if (courseTimingEnabled() && orderCourses().length > 0) {
@@ -231,6 +253,22 @@
                     {{ group.course.fireStatus }}
                   </span>
                 </div>
+                <!-- Course timing suggestion: show on the NEXT pending course after a READY course -->
+                @for (suggestion of courseTimingSuggestions(); track suggestion.courseGuid) {
+                  @if (suggestion.courseGuid === group.course.guid) {
+                    <div class="course-timing-badge"
+                      [class.timing-green]="suggestion.remainingSeconds > 60"
+                      [class.timing-amber]="suggestion.remainingSeconds <= 60 && suggestion.remainingSeconds > 0"
+                      [class.timing-fire-now]="suggestion.remainingSeconds <= 0">
+                      <i class="bi bi-clock"></i>
+                      @if (suggestion.remainingSeconds <= 0) {
+                        Fire now
+                      } @else {
+                        Fire in {{ formatCountdown(suggestion.remainingSeconds) }}
+                      }
+                    </div>
+                  }
+                }
                 @for (sel of group.selections; track sel.guid) {
                   <div class="check-item" [class.comped]="sel.isComped">
                     <div class="item-row">
@@ -805,6 +843,21 @@
 
         <!-- Add course controls -->
         <div class="course-fire-footer">
+          <!-- Course templates -->
+          @if (courseTemplates.length > 0) {
+            <div class="course-template-cards">
+              @for (tmpl of courseTemplates; track tmpl.id) {
+                <button
+                  type="button"
+                  class="course-template-card"
+                  (click)="applyCourseTemplate(tmpl)">
+                  <span class="course-template-name">{{ tmpl.name }}</span>
+                  <span class="course-template-count">{{ tmpl.courses.length }} courses</span>
+                </button>
+              }
+            </div>
+          }
+
           <!-- Quick-add default courses -->
           @if (getDefaultCourseNames().length > 0) {
             <div class="course-default-chips">
@@ -851,6 +904,28 @@
         <span>Tip: {{ notif.tipAmount | currency }} &middot; Total: {{ notif.total | currency }}</span>
       </div>
       <button type="button" class="stp-toast-close">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+  }
+
+  <!-- Course Complete Notification Toast -->
+  @if (courseNotification(); as notif) {
+    <div class="course-notification" (click)="dismissCourseNotification()">
+      <i class="bi bi-fire course-notification-icon"></i>
+      <div class="course-notification-content">
+        <strong>
+          @if (notif.tableName) {
+            {{ notif.tableName }} —
+          }
+          {{ notif.completedCourseName }} complete
+        </strong>
+        <span>Ready to fire {{ notif.nextCourseName }}</span>
+      </div>
+      <button type="button" class="course-notification-action" (click)="$event.stopPropagation(); fireFromNotification(notif.nextCourseGuid)">
+        <i class="bi bi-fire me-1"></i> Fire {{ notif.nextCourseName }}
+      </button>
+      <button type="button" class="course-notification-close" (click)="$event.stopPropagation(); dismissCourseNotification()">
         <i class="bi bi-x-lg"></i>
       </button>
     </div>

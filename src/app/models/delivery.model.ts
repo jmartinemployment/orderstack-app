@@ -219,6 +219,51 @@ export function defaultDeliveryDispatchConfig(): DeliveryDispatchConfig {
   };
 }
 
+// --- Delivery Tracking (GAP-R08 Phase 2) ---
+
+export interface DeliveryTrackingInfo {
+  orderId: string;
+  deliveryExternalId: string;
+  provider: DeliveryProviderType;
+  status: DeliveryDispatchStatus;
+  driver: DeliveryDriverInfo | null;
+  trackingUrl: string | null;
+  estimatedDeliveryAt: string | null;
+  lastUpdatedAt: string;
+}
+
+// --- Delivery Analytics (GAP-R08 Phase 2) ---
+
+export interface DeliveryAnalyticsRow {
+  driverId: string;
+  driverName: string;
+  vehicleType: VehicleType;
+  totalDeliveries: number;
+  onTimeCount: number;
+  lateCount: number;
+  avgDeliveryMinutes: number;
+  totalDistanceKm: number;
+  totalFees: number;
+}
+
+export interface DeliveryAnalyticsReport {
+  dateFrom: string;
+  dateTo: string;
+  totalDeliveries: number;
+  avgDeliveryMinutes: number;
+  onTimePercentage: number;
+  totalDeliveryFees: number;
+  costPerDelivery: number;
+  byDriver: DeliveryAnalyticsRow[];
+  byProvider: Array<{
+    provider: DeliveryProviderType;
+    count: number;
+    avgMinutes: number;
+    onTimePercentage: number;
+    totalFees: number;
+  }>;
+}
+
 // --- Context passed to provider classes (mirrors PaymentContext) ---
 export interface DeliveryContext {
   restaurantId: string;

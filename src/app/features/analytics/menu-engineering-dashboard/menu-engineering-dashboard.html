@@ -47,6 +47,14 @@
       <li class="nav-item">
         <button type="button" class="nav-link" [class.active]="deepDiveTab() === 'seasonal'" (click)="setDeepDiveTab('seasonal')">Seasonal</button>
       </li>
+      <li class="nav-item">
+        <button type="button" class="nav-link" [class.active]="deepDiveTab() === 'prep-time'" (click)="setDeepDiveTab('prep-time')">
+          Prep Time
+          @if (flaggedPrepItems().length > 0) {
+            <span class="prep-tab-badge">{{ flaggedPrepItems().length }}</span>
+          }
+        </button>
+      </li>
     </ul>
 
     <!-- ===== OVERVIEW TAB ===== -->
@@ -451,6 +459,139 @@
         } @else {
           <div class="empty-state text-center p-5">
             <p class="text-muted">Select an item above to view its day-of-week and month-of-year sales patterns.</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ===== PREP TIME ACCURACY TAB ===== -->
+    @if (deepDiveTab() === 'prep-time') {
+      <div class="deep-dive-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="section-title mb-1">Prep Time Accuracy</h5>
+            <p class="text-muted small mb-0">Compare estimated prep times against actual completion data</p>
+          </div>
+          <div class="d-flex gap-2 align-items-center">
+            <button
+              type="button"
+              class="btn btn-sm"
+              [class.btn-warning]="showFlaggedOnly()"
+              [class.btn-outline-secondary]="!showFlaggedOnly()"
+              (click)="toggleFlaggedOnly()"
+            >
+              @if (flaggedPrepItems().length > 0) {
+                <i class="bi bi-flag-fill me-1"></i>
+              }
+              Flagged ({{ flaggedPrepItems().length }})
+            </button>
+            @for (d of [7, 14, 30, 60]; track d) {
+              <button
+                type="button"
+                class="btn btn-sm"
+                [class.btn-primary]="prepAccuracyDays() === d"
+                [class.btn-outline-light]="prepAccuracyDays() !== d"
+                (click)="setPrepAccuracyDays(d)"
+              >
+                {{ d }}d
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Summary KPIs -->
+        @if (prepTimeAccuracy().length > 0) {
+          <div class="prep-summary-cards d-flex gap-3 mb-4">
+            <div class="prep-summary-card">
+              <span class="prep-summary-value">{{ prepTimeAccuracy().length }}</span>
+              <span class="prep-summary-label">Items Tracked</span>
+            </div>
+            <div class="prep-summary-card">
+              <span class="prep-summary-value" [class]="getAccuracyClass(avgPrepAccuracy())">{{ avgPrepAccuracy() }}%</span>
+              <span class="prep-summary-label">Avg Accuracy</span>
+            </div>
+            <div class="prep-summary-card">
+              <span class="prep-summary-value text-warning">{{ flaggedPrepItems().length }}</span>
+              <span class="prep-summary-label">Needs Adjustment</span>
+            </div>
+          </div>
+        }
+
+        @if (isLoadingPrepAccuracy()) {
+          <div class="d-flex justify-content-center p-4">
+            <os-loading-spinner message="Loading prep time accuracy data..." />
+          </div>
+        } @else if (sortedPrepAccuracy().length > 0) {
+          <!-- Flagged Items Alert -->
+          @if (flaggedPrepItems().length > 0 && !showFlaggedOnly()) {
+            <div class="prep-alert mb-3">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              {{ flaggedPrepItems().length }} item{{ flaggedPrepItems().length > 1 ? 's' : '' }} have actual prep times that differ from estimates by more than 25%.
+              <button type="button" class="btn btn-sm btn-outline-warning ms-2" (click)="toggleFlaggedOnly()">View Flagged</button>
+            </div>
+          }
+
+          <!-- Accuracy Table -->
+          <div class="prep-table">
+            <div class="prep-table-header d-flex py-2 px-3">
+              <button type="button" class="col-prep-name flex-grow-1 table-sort" (click)="setPrepSort('itemName')">
+                Item {{ prepSortField() === 'itemName' ? (prepSortAsc() ? '&#9650;' : '&#9660;') : '' }}
+              </button>
+              <span class="col-prep-est">Estimated</span>
+              <span class="col-prep-actual">Actual Avg</span>
+              <span class="col-prep-deviation">Deviation</span>
+              <button type="button" class="col-prep-accuracy table-sort" (click)="setPrepSort('accuracy')">
+                Accuracy {{ prepSortField() === 'accuracy' ? (prepSortAsc() ? '&#9650;' : '&#9660;') : '' }}
+              </button>
+              <button type="button" class="col-prep-samples table-sort" (click)="setPrepSort('sampleSize')">
+                Samples {{ prepSortField() === 'sampleSize' ? (prepSortAsc() ? '&#9650;' : '&#9660;') : '' }}
+              </button>
+              <span class="col-prep-action">Action</span>
+            </div>
+
+            @for (row of sortedPrepAccuracy(); track row.itemId) {
+              <div class="prep-table-row d-flex align-items-center py-2 px-3" [class.flagged]="row.suggestedAdjustment !== null">
+                <span class="col-prep-name flex-grow-1 fw-semibold">
+                  {{ row.itemName }}
+                  @if (row.suggestedAdjustment !== null) {
+                    <i class="bi bi-flag-fill text-warning ms-1" title="Needs adjustment"></i>
+                  }
+                </span>
+                <span class="col-prep-est">{{ row.estimatedMinutes }} min</span>
+                <span class="col-prep-actual">{{ row.actualAvgMinutes | number:'1.1-1' }} min</span>
+                <span class="col-prep-deviation" [class.text-danger]="getDeviationPercent(row) > 25" [class.text-warning]="getDeviationPercent(row) > 10 && getDeviationPercent(row) <= 25" [class.text-success]="getDeviationPercent(row) <= 10">
+                  @if (row.actualAvgMinutes > row.estimatedMinutes) {
+                    +{{ getDeviationPercent(row) }}%
+                  } @else {
+                    -{{ getDeviationPercent(row) }}%
+                  }
+                </span>
+                <span class="col-prep-accuracy">
+                  <span class="accuracy-badge" [class]="getAccuracyClass(row.accuracy)">
+                    {{ row.accuracy }}% {{ getAccuracyLabel(row.accuracy) }}
+                  </span>
+                </span>
+                <span class="col-prep-samples text-muted">{{ row.sampleSize }}</span>
+                <span class="col-prep-action">
+                  @if (row.suggestedAdjustment !== null) {
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-primary"
+                      title="Apply suggested adjustment to {{ row.suggestedAdjustment }} min"
+                      (click)="applySuggestion(row)"
+                    >
+                      {{ row.suggestedAdjustment }} min
+                    </button>
+                  } @else {
+                    <span class="text-muted small">OK</span>
+                  }
+                </span>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state text-center p-5">
+            <p class="text-muted">No prep time accuracy data available. Data is collected when orders are completed on KDS.</p>
           </div>
         }
       </div>

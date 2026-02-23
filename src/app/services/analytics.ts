@@ -23,6 +23,7 @@ import {
   AiInsightCard,
   PinnedWidget,
   AiQueryResponse,
+  PrepTimeAccuracyRow,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -391,6 +392,63 @@ export class AnalyticsService {
     }
   }
 
+  // === Prep Time Accuracy (GAP-R05 Phase 2) ===
+
+  private readonly _prepTimeAccuracy = signal<PrepTimeAccuracyRow[]>([]);
+  private readonly _isLoadingPrepAccuracy = signal(false);
+
+  readonly prepTimeAccuracy = this._prepTimeAccuracy.asReadonly();
+  readonly isLoadingPrepAccuracy = this._isLoadingPrepAccuracy.asReadonly();
+
+  readonly flaggedPrepItems = computed(() =>
+    this._prepTimeAccuracy().filter(row => row.suggestedAdjustment !== null)
+  );
+
+  async loadPrepTimeAccuracy(days = 30): Promise<void> {
+    if (!this.restaurantId) return;
+
+    this._isLoadingPrepAccuracy.set(true);
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<PrepTimeAccuracyRow[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/prep-time-accuracy?days=${days}`
+        )
+      );
+      this._prepTimeAccuracy.set(data);
+    } catch {
+      this._prepTimeAccuracy.set([]);
+    } finally {
+      this._isLoadingPrepAccuracy.set(false);
+    }
+  }
+
+  async applyPrepTimeSuggestion(itemId: string, newMinutes: number): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    try {
+      await firstValueFrom(
+        this.http.patch(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/items/${itemId}`,
+          { prepTimeMinutes: newMinutes }
+        )
+      );
+      // Update local state — clear the suggestion for the applied item
+      this._prepTimeAccuracy.update(rows =>
+        rows.map(r => r.itemId === itemId ? { ...r, estimatedMinutes: newMinutes, suggestedAdjustment: null } : r)
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  getQueueAdjustedEstimate(baseMinutes: number, queueDepth: number): number {
+    // Each order in queue adds ~3 minutes of delay (configurable constant)
+    const perOrderDelay = 3;
+    return baseMinutes + (queueDepth * perOrderDelay);
+  }
+
   // === Menu Deep Dive (Phase 3) ===
 
   async getItemProfitabilityTrend(itemId: string, days = 30): Promise<ItemProfitabilityTrend | null> {
@@ -571,9 +629,142 @@ export class AnalyticsService {
 
   private readonly _pinnedWidgets = signal<PinnedWidget[]>([]);
   private readonly _isQueryingAi = signal(false);
+  private readonly _proactiveInsights = signal<AiInsightCard[]>([]);
+  private readonly _isLoadingProactiveInsights = signal(false);
+  private readonly _dismissedInsightIds = signal<Set<string>>(new Set());
 
   readonly pinnedWidgets = this._pinnedWidgets.asReadonly();
   readonly isQueryingAi = this._isQueryingAi.asReadonly();
+  readonly proactiveInsights = computed(() =>
+    this._proactiveInsights().filter(c => !this._dismissedInsightIds().has(c.id))
+  );
+  readonly isLoadingProactiveInsights = this._isLoadingProactiveInsights.asReadonly();
+
+  async loadProactiveInsights(): Promise<void> {
+    const restaurantId = this.authService.selectedRestaurantId();
+    if (!restaurantId) return;
+    this._isLoadingProactiveInsights.set(true);
+    try {
+      const cards = await firstValueFrom(
+        this.http.get<AiInsightCard[]>(`${this.apiUrl}/analytics/proactive-insights?restaurantId=${restaurantId}`)
+      );
+      this._proactiveInsights.set(cards);
+    } catch {
+      // Generate proactive insights locally from existing data
+      const insights: AiInsightCard[] = [];
+      const now = new Date().toISOString();
+
+      // From sales alerts
+      const alerts = this._salesAlerts();
+      for (const alert of alerts.filter(a => !a.acknowledged).slice(0, 5)) {
+        const typeLabels: Record<string, string> = {
+          revenue_anomaly: 'Revenue Anomaly',
+          aov_anomaly: 'AOV Anomaly',
+          volume_spike: 'Volume Spike',
+          volume_drop: 'Volume Drop',
+          new_customer_surge: 'New Customer Surge',
+          channel_shift: 'Channel Shift',
+        };
+        insights.push({
+          id: `proactive-alert-${alert.id}`,
+          query: 'proactive',
+          responseType: 'text',
+          title: `${typeLabels[alert.type] ?? 'Alert'} Detected`,
+          data: { text: alert.message },
+          trend: alert.severity === 'critical' ? 'down' : 'flat',
+          createdAt: now,
+        });
+      }
+
+      // From menu engineering — underperformers
+      const engineering = this._menuEngineering();
+      if (engineering) {
+        const dogs = engineering.items.filter(i => i.classification === 'dog');
+        if (dogs.length > 2) {
+          insights.push({
+            id: 'proactive-dogs',
+            query: 'proactive',
+            responseType: 'kpi',
+            title: 'Underperforming Items',
+            data: {},
+            value: dogs.length,
+            unit: 'items',
+            trend: 'down',
+            createdAt: now,
+          });
+        }
+
+        if (engineering.summary.averageMargin < 30) {
+          insights.push({
+            id: 'proactive-low-margin',
+            query: 'proactive',
+            responseType: 'text',
+            title: 'Low Profit Margin',
+            data: { text: `Average menu profit margin is ${engineering.summary.averageMargin.toFixed(1)}%, below the 30% target. Consider reviewing pricing or food costs.` },
+            trend: 'down',
+            createdAt: now,
+          });
+        }
+      }
+
+      // From sales report — revenue anomaly
+      const sales = this._salesReport();
+      if (sales?.comparison) {
+        if (sales.comparison.revenueChange < -15) {
+          insights.push({
+            id: 'proactive-revenue-drop',
+            query: 'proactive',
+            responseType: 'kpi',
+            title: 'Revenue Declining',
+            data: {},
+            value: sales.comparison.revenueChange,
+            unit: '%',
+            trend: 'down',
+            createdAt: now,
+          });
+        }
+        if (sales.comparison.revenueChange > 20) {
+          insights.push({
+            id: 'proactive-revenue-surge',
+            query: 'proactive',
+            responseType: 'kpi',
+            title: 'Revenue Surge',
+            data: {},
+            value: sales.comparison.revenueChange,
+            unit: '%',
+            trend: 'up',
+            createdAt: now,
+          });
+        }
+      }
+
+      // From prep time accuracy — flagged items
+      const flagged = this.flaggedPrepItems();
+      if (flagged.length > 0) {
+        insights.push({
+          id: 'proactive-prep-accuracy',
+          query: 'proactive',
+          responseType: 'text',
+          title: 'Prep Time Inaccuracies',
+          data: { text: `${flagged.length} menu item(s) have prep time estimates that deviate significantly from actual times. Review in Menu Engineering > Prep Time tab.` },
+          trend: 'flat',
+          createdAt: now,
+        });
+      }
+
+      this._proactiveInsights.set(insights);
+    } finally {
+      this._isLoadingProactiveInsights.set(false);
+    }
+  }
+
+  dismissInsight(cardId: string): void {
+    this._dismissedInsightIds.update(ids => {
+      const next = new Set(ids);
+      next.add(cardId);
+      return next;
+    });
+  }
 
   async queryAi(question: string): Promise<AiQueryResponse> {
     const restaurantId = this.authService.selectedRestaurantId();

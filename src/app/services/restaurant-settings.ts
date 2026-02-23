@@ -22,6 +22,8 @@ import {
   defaultTimeclockSettings,
   AutoGratuitySettings,
   defaultAutoGratuitySettings,
+  ScanToPaySettings,
+  defaultScanToPaySettings,
   SpecialHours,
   BusinessHoursCheck,
 } from '../models';
@@ -45,6 +47,7 @@ export class RestaurantSettingsService {
   private readonly _deliverySettings = signal<DeliverySettings>(defaultDeliverySettings());
   private readonly _timeclockSettings = signal<TimeclockSettings>(defaultTimeclockSettings());
   private readonly _autoGratuitySettings = signal<AutoGratuitySettings>(defaultAutoGratuitySettings());
+  private readonly _scanToPaySettings = signal<ScanToPaySettings>(defaultScanToPaySettings());
   private readonly _capacityBlocks = signal<CapacityBlock[]>([]);
   private readonly _cateringOrders = signal<Order[]>([]);
   private readonly _aiAdminConfig = signal<AIAdminConfig | null>(null);
@@ -61,6 +64,7 @@ export class RestaurantSettingsService {
   readonly deliverySettings = this._deliverySettings.asReadonly();
   readonly timeclockSettings = this._timeclockSettings.asReadonly();
   readonly autoGratuitySettings = this._autoGratuitySettings.asReadonly();
+  readonly scanToPaySettings = this._scanToPaySettings.asReadonly();
   readonly capacityBlocks = this._capacityBlocks.asReadonly();
   readonly cateringOrders = this._cateringOrders.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
@@ -117,6 +121,9 @@ export class RestaurantSettingsService {
 
       const autoGratuityFromServer = response['autoGratuitySettings'] as Partial<AutoGratuitySettings> | undefined;
       this._autoGratuitySettings.set({ ...defaultAutoGratuitySettings(), ...this.readLocalStorage('auto-gratuity-settings'), ...autoGratuityFromServer });
+
+      const scanToPayFromServer = response['scanToPaySettings'] as Partial<ScanToPaySettings> | undefined;
+      this._scanToPaySettings.set({ ...defaultScanToPaySettings(), ...this.readLocalStorage('scan-to-pay-settings'), ...scanToPayFromServer });
     } catch {
       // Backend may not have these fields yet — fall back to localStorage
       this._aiSettings.set(this.normalizeAISettings({
@@ -130,6 +137,7 @@ export class RestaurantSettingsService {
       this._deliverySettings.set({ ...defaultDeliverySettings(), ...this.readLocalStorage('delivery-settings') });
       this._timeclockSettings.set({ ...defaultTimeclockSettings(), ...this.readLocalStorage('timeclock-settings') });
       this._autoGratuitySettings.set({ ...defaultAutoGratuitySettings(), ...this.readLocalStorage('auto-gratuity-settings') });
+      this._scanToPaySettings.set({ ...defaultScanToPaySettings(), ...this.readLocalStorage('scan-to-pay-settings') });
     } finally {
       this.loadCapacityBlocks();
       this._isLoading.set(false);
@@ -301,6 +309,27 @@ export class RestaurantSettingsService {
     } finally {
       localStorage.setItem(`${this.restaurantId}-auto-gratuity-settings`, JSON.stringify(s));
       this._autoGratuitySettings.set(s);
+      this._isSaving.set(false);
+    }
+  }
+
+  async saveScanToPaySettings(s: ScanToPaySettings): Promise<void> {
+    if (!this.restaurantId) return;
+    this._isSaving.set(true);
+    this._error.set(null);
+
+    try {
+      await firstValueFrom(
+        this.http.patch(
+          `${this.apiUrl}/restaurant/${this.restaurantId}`,
+          { scanToPaySettings: s }
+        )
+      );
+    } catch {
+      this._error.set('Settings saved locally only — backend sync failed');
+    } finally {
+      localStorage.setItem(`${this.restaurantId}-scan-to-pay-settings`, JSON.stringify(s));
+      this._scanToPaySettings.set(s);
       this._isSaving.set(false);
     }
   }

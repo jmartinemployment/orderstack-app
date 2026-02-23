@@ -194,6 +194,22 @@
     }
   </div>
 
+  <!-- Quick Query Shortcuts (GAP-R02 Phase 2) -->
+  @if (hasMessages()) {
+    <div class="quick-queries">
+      @for (q of quickQueries; track q.label) {
+        <button
+          type="button"
+          class="quick-query-chip"
+          [disabled]="isTyping() || isQueryingAi()"
+          (click)="sendSuggested(q.query)"
+        >
+          {{ q.label }}
+        </button>
+      }
+    </div>
+  }
+
   <!-- Input Area -->
   <div class="chat-input">
     <div class="input-wrapper">

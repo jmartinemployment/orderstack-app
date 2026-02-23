@@ -1,6 +1,7 @@
 import {
   Component,
   ChangeDetectionStrategy,
+  DestroyRef,
   inject,
   signal,
   computed,
@@ -32,6 +33,8 @@ import {
   OrderTemplateItem,
   Course,
   CourseFireStatus,
+  CourseTemplate,
+  BUILT_IN_COURSE_TEMPLATES,
 } from '@models/index';
 
 type PosModal = 'none' | 'modifier' | 'discount' | 'void' | 'comp' | 'split' | 'transfer' | 'tab' | 'templates' | 'save-template' | 'qr-pay' | 'course-fire';
@@ -62,6 +65,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   private readonly settingsService = inject(RestaurantSettingsService);
   private readonly checkService = inject(CheckService);
   private readonly platformService = inject(PlatformService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly tables = this.tableService.tables;
   readonly orders = this.orderService.orders;
@@ -75,6 +79,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   readonly canUseSplitting = this.platformService.canUseSplitting;
   readonly canUseTransfer = this.platformService.canUseTransfer;
   readonly canUsePreAuthTabs = this.platformService.canUsePreAuthTabs;
+  readonly showItemImages = this.platformService.showItemImages;
 
   // Course timing
   readonly courseTimingEnabled = computed(() => {
@@ -265,9 +270,119 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   readonly isGeneratingQr = this._isGeneratingQr.asReadonly();
   readonly scanToPayNotification = this._scanToPayNotification.asReadonly();
 
+  // --- Course timing suggestions (Step 6) ---
+  private readonly _courseSuggestionTick = signal(0);
+  private courseSuggestionTimer: ReturnType<typeof setInterval> | null = null;
+
+  readonly courseTimingSuggestions = computed(() => {
+    // Read tick to trigger reactivity every second
+    this._courseSuggestionTick();
+    const courses = this.orderCourses();
+    const gapSeconds = this.settingsService.aiSettings().targetCourseServeGapSeconds;
+    const suggestions: { courseGuid: string; nextCourseName: string; remainingSeconds: number }[] = [];
+
+    for (let i = 0; i < courses.length; i++) {
+      const course = courses[i];
+      const nextCourse = courses[i + 1];
+      if (
+        course.fireStatus === 'READY' &&
+        course.readyDate &&
+        nextCourse &&
+        nextCourse.fireStatus === 'PENDING'
+      ) {
+        const readyMs = course.readyDate instanceof Date
+          ? course.readyDate.getTime()
+          : new Date(course.readyDate).getTime();
+        const fireAtMs = readyMs + gapSeconds * 1000;
+        const remaining = Math.round((fireAtMs - Date.now()) / 1000);
+        suggestions.push({
+          courseGuid: nextCourse.guid,
+          nextCourseName: nextCourse.name,
+          remainingSeconds: remaining,
+        });
+      }
+    }
+
+    return suggestions;
+  });
+
+  formatCountdown(seconds: number): string {
+    if (seconds <= 0) return 'Fire now';
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  }
+
+  // --- Course complete notifications (Step 7) ---
+  readonly courseNotification = computed(() => {
+    const mode = this.settingsService.aiSettings().coursePacingMode;
+    if (mode !== 'server_fires') return null;
+    return this.orderService.courseCompleteNotifications();
+  });
+  private courseNotificationTimer: ReturnType<typeof setTimeout> | null = null;
+
+  dismissCourseNotification(): void {
+    this.orderService.clearCourseNotification();
+    if (this.courseNotificationTimer) {
+      clearTimeout(this.courseNotificationTimer);
+      this.courseNotificationTimer = null;
+    }
+  }
+
+  fireFromNotification(courseGuid: string): void {
+    const notif = this.orderService.courseCompleteNotifications();
+    if (notif) {
+      this.orderService.fireCourse(notif.orderId, courseGuid);
+      this.orderService.loadOrders();
+    }
+    this.dismissCourseNotification();
+  }
+
+  // --- Course templates (Step 8) ---
+  readonly courseTemplates = BUILT_IN_COURSE_TEMPLATES;
+
+  async applyCourseTemplate(template: CourseTemplate): Promise<void> {
+    const order = this.activeOrder();
+    if (!order) return;
+
+    const existingCourses = order.courses ?? [];
+    let sortOrder = existingCourses.length;
+
+    for (const courseName of template.courses) {
+      if (existingCourses.some(c => c.name.toLowerCase() === courseName.toLowerCase())) {
+        continue;
+      }
+      await this.orderService.addCourseToOrder(order.guid, courseName, sortOrder);
+      sortOrder++;
+    }
+
+    this.orderService.loadOrders();
+    this._activeModal.set('none');
+  }
+
   readonly hasCheckItems = computed(() => {
     const check = this.activeCheck();
     return check ? check.selections.length > 0 : false;
+  });
+
+  // Partial payment progress (Scan to Pay split pay)
+  readonly checkPaidAmount = computed(() => {
+    const check = this.activeCheck();
+    if (!check) return 0;
+    return check.payments
+      .filter(p => p.status === 'PAID')
+      .reduce((sum, p) => sum + p.amount, 0);
+  });
+
+  readonly checkPaymentProgress = computed(() => {
+    const check = this.activeCheck();
+    if (!check || check.totalAmount === 0) return 0;
+    return Math.min(100, Math.round(this.checkPaidAmount() / check.totalAmount * 100));
+  });
+
+  readonly hasPartialPayment = computed(() => {
+    const check = this.activeCheck();
+    return check?.paymentStatus === 'PARTIAL' || (this.checkPaidAmount() > 0 && this.checkPaymentProgress() < 100);
   });
 
   // Customer-Facing Display (GAP-R10)
@@ -309,6 +424,28 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
       this.orderService.loadOrders();
       // Auto-dismiss after 10 seconds
       setTimeout(() => this._scanToPayNotification.set(null), 10000);
+    });
+
+    // Course timing suggestion tick (1-second interval)
+    this.courseSuggestionTimer = setInterval(() => {
+      this._courseSuggestionTick.update(v => v + 1);
+
+      // Auto-dismiss course notification after 15 seconds
+      const notif = this.orderService.courseCompleteNotifications();
+      if (notif && !this.courseNotificationTimer) {
+        this.courseNotificationTimer = setTimeout(() => {
+          this.orderService.clearCourseNotification();
+          this.courseNotificationTimer = null;
+        }, 15000);
+      }
+    }, 1000);
+    this.destroyRef.onDestroy(() => {
+      if (this.courseSuggestionTimer) {
+        clearInterval(this.courseSuggestionTimer);
+      }
+      if (this.courseNotificationTimer) {
+        clearTimeout(this.courseNotificationTimer);
+      }
     });
   }
 
@@ -904,7 +1041,8 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   printCheck(): void {
     const order = this.activeOrder();
     if (!order) return;
-    this.orderService.triggerPrint(order.guid);
+    const includeQr = this.settingsService.scanToPaySettings().includeQrOnPrintedReceipts;
+    this.orderService.triggerPrint(order.guid, includeQr);
   }
 
   // --- Modal close ---

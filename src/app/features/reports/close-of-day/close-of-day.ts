@@ -13,6 +13,7 @@ import { TipService } from '@services/tip';
 import { AuthService } from '@services/auth';
 import { ReportService } from '@services/report';
 import { CashDrawerService } from '@services/cash-drawer';
+import { DeliveryService } from '@services/delivery';
 import {
   Order,
   Check,
@@ -21,9 +22,10 @@ import {
   TeamMemberSalesRow,
   TaxServiceChargeReport,
   CashReconciliation,
+  DeliveryAnalyticsReport,
 } from '@models/index';
 
-type ReportTab = 'summary' | 'payments' | 'tips' | 'voids' | 'items' | 'team' | 'taxes' | 'cash';
+type ReportTab = 'summary' | 'payments' | 'tips' | 'voids' | 'items' | 'team' | 'taxes' | 'cash' | 'delivery';
 
 interface PaymentMethodBreakdown {
   method: string;
@@ -58,6 +60,7 @@ export class CloseOfDay implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly reportService = inject(ReportService);
   readonly cashDrawerService = inject(CashDrawerService);
+  private readonly deliveryService = inject(DeliveryService);
 
   private readonly _activeTab = signal<ReportTab>('summary');
   private readonly _reportDate = signal(new Date());
@@ -336,12 +339,16 @@ export class CloseOfDay implements OnInit {
     if (tab === 'cash') {
       this.cashDrawerService.loadSessionHistory();
     }
+    if (tab === 'delivery' && !this._deliveryReport()) {
+      void this.loadDeliveryAnalytics();
+    }
   }
 
   setReportDate(dateStr: string): void {
     this._reportDate.set(new Date(dateStr + 'T12:00:00'));
     this._teamSales.set([]);
     this._taxReport.set(null);
+    this._deliveryReport.set(null);
     this.loadReport();
   }
 
@@ -394,6 +401,39 @@ export class CloseOfDay implements OnInit {
   getTeamBarWidth(revenue: number): number {
     const max = this.teamMaxRevenue();
     return max > 0 ? (revenue / max) * 100 : 0;
+  }
+
+  // --- GAP-R08 Phase 2: Delivery Analytics ---
+
+  private readonly _deliveryReport = signal<DeliveryAnalyticsReport | null>(null);
+  private readonly _isLoadingDelivery = signal(false);
+  readonly deliveryReport = this._deliveryReport.asReadonly();
+  readonly isLoadingDelivery = this._isLoadingDelivery.asReadonly();
+
+  readonly deliveryOrderCount = computed(() =>
+    this.closedOrders().filter(o => o.diningOption.type === 'delivery').length
+  );
+
+  readonly deliveryMaxDeliveries = computed(() => {
+    const report = this._deliveryReport();
+    if (!report) return 1;
+    return Math.max(1, ...report.byDriver.map(d => d.totalDeliveries));
+  });
+
+  async loadDeliveryAnalytics(): Promise<void> {
+    this._isLoadingDelivery.set(true);
+    try {
+      const dateStr = this.getReportDateString();
+      const report = await this.deliveryService.loadDeliveryAnalytics(dateStr, dateStr);
+      this._deliveryReport.set(report);
+    } finally {
+      this._isLoadingDelivery.set(false);
+    }
+  }
+
+  getDeliveryBarWidth(deliveries: number): number {
+    const max = this.deliveryMaxDeliveries();
+    return max > 0 ? (deliveries / max) * 100 : 0;
   }
 
   // --- Phase 3: Tax & Service Charge Report ---

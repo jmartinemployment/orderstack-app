@@ -1,291 +1,548 @@
 <div class="cash-drawer">
-  <!-- STATUS VIEW -->
-  @if (view() === 'status') {
-    @if (drawerService.session(); as session) {
-      <div class="drawer-header">
-        <h5><i class="bi bi-cash-stack"></i> Cash Drawer</h5>
-        @if (drawerService.isOpen()) {
-          <span class="drawer-status open">Open</span>
-        } @else {
-          <span class="drawer-status closed">Closed</span>
-        }
-      </div>
 
-      <div class="drawer-kpis">
-        <div class="drawer-kpi kpi-balance">
-          <span class="kpi-val">{{ drawerService.runningBalance() | currency }}</span>
-          <span class="kpi-lbl">Expected Balance</span>
-        </div>
-        <div class="drawer-kpi">
-          <span class="kpi-val">{{ session.openingFloat | currency }}</span>
-          <span class="kpi-lbl">Opening Float</span>
-        </div>
-        <div class="drawer-kpi">
-          <span class="kpi-val">{{ drawerService.cashSalesTotal() | currency }}</span>
-          <span class="kpi-lbl">Cash Sales</span>
-        </div>
-        <div class="drawer-kpi">
-          <span class="kpi-val">{{ drawerService.cashOutTotal() | currency }}</span>
-          <span class="kpi-lbl">Cash Out</span>
-        </div>
-        @if (drawerService.totalDropped() > 0) {
-          <div class="drawer-kpi">
-            <span class="kpi-val">{{ drawerService.totalDropped() | currency }}</span>
-            <span class="kpi-lbl">Drops / Deposits</span>
-          </div>
-        }
-        @if (drawerService.totalPaidOut() > 0) {
-          <div class="drawer-kpi">
-            <span class="kpi-val">{{ drawerService.totalPaidOut() | currency }}</span>
-            <span class="kpi-lbl">Paid Out</span>
-          </div>
-        }
-      </div>
-
-      <!-- Reconciliation result (closed session) -->
-      @if (session.closedAt) {
-        <div class="close-result">
-          <div class="result-row">
-            <span>Expected Cash</span>
-            <span class="fw-semibold">{{ session.expectedCash | currency }}</span>
-          </div>
-          <div class="result-row">
-            <span>Actual Cash</span>
-            <span class="fw-semibold">{{ session.actualCash | currency }}</span>
-          </div>
-          <div class="result-row result-overshort" [class]="overShortClass()">
-            <span>Over/Short</span>
-            <span class="fw-bold">
-              @if ((session.overShort ?? 0) > 0) { +}{{ session.overShort | currency }}
-            </span>
-          </div>
-          <div class="result-row">
-            <span>Closed By</span>
-            <span>{{ session.closedBy }}</span>
-          </div>
-          <div class="result-row">
-            <span>Closed At</span>
-            <span>{{ session.closedAt | date:'short' }}</span>
-          </div>
-          <button type="button" class="btn btn-sm btn-primary mt-3 w-100" (click)="startNewSession()">
-            Start New Session
-          </button>
-        </div>
+  <!-- Tab navigation -->
+  <div class="drawer-tabs">
+    <button type="button" class="drawer-tab" [class.active]="tab() === 'drawer'" (click)="selectTab('drawer')">
+      <i class="bi bi-cash-stack"></i> Drawer
+    </button>
+    <button type="button" class="drawer-tab" [class.active]="tab() === 'employees'" (click)="selectTab('employees')">
+      <i class="bi bi-people"></i> Employees
+    </button>
+    <button type="button" class="drawer-tab" [class.active]="tab() === 'alerts'" (click)="selectTab('alerts')">
+      <i class="bi bi-exclamation-triangle"></i> Alerts
+      @if (alertCount() > 0) {
+        <span class="tab-badge">{{ alertCount() }}</span>
       }
+    </button>
+    <button type="button" class="drawer-tab" [class.active]="tab() === 'report'" (click)="selectTab('report')">
+      <i class="bi bi-journal-text"></i> Report
+    </button>
+  </div>
 
-      <!-- Quick action buttons (drawer open) -->
-      @if (drawerService.isOpen()) {
-        <div class="quick-actions">
-          <button type="button" class="quick-btn" (click)="showQuickEvent('paid_out')">
-            <i class="bi bi-receipt"></i>
-            <span>Paid Out</span>
-          </button>
-          <button type="button" class="quick-btn" (click)="showQuickEvent('tip_payout')">
-            <i class="bi bi-heart"></i>
-            <span>Tip Payout</span>
-          </button>
-          <button type="button" class="quick-btn" (click)="showQuickEvent('drop_to_safe')">
-            <i class="bi bi-safe"></i>
-            <span>Drop to Safe</span>
-          </button>
-          <button type="button" class="quick-btn" (click)="showQuickEvent('petty_cash')">
-            <i class="bi bi-coin"></i>
-            <span>Petty Cash</span>
-          </button>
-          <button type="button" class="quick-btn" (click)="showAddEvent()">
-            <i class="bi bi-plus-circle"></i>
-            <span>Other</span>
-          </button>
-          <button type="button" class="quick-btn quick-btn-close" (click)="showCloseDrawer()">
-            <i class="bi bi-lock"></i>
-            <span>Close Drawer</span>
-          </button>
-        </div>
-      }
+  <!-- ======================== DRAWER TAB ======================== -->
+  @if (tab() === 'drawer') {
 
-      <!-- Transaction log -->
-      <div class="event-log">
-        <h6>Transaction Log</h6>
-        @for (event of eventLog(); track event.id) {
-          <div class="event-row" [class.inflow]="isInflow(event.type)" [class.outflow]="!isInflow(event.type)">
-            <div class="event-left">
-              <div class="event-type-row">
-                <i class="bi" [class]="getEventIcon(event.type)"></i>
-                <span class="event-type">{{ getEventLabel(event.type) }}</span>
-              </div>
-              <span class="event-reason">{{ event.reason }}</span>
-            </div>
-            <div class="event-right">
-              <span class="event-amount">
-                {{ isInflow(event.type) ? '+' : '-' }}{{ event.amount | currency }}
-              </span>
-              <span class="event-time">{{ event.timestamp | date:'shortTime' }}</span>
-            </div>
-          </div>
-        } @empty {
-          <p class="text-empty">No transactions yet</p>
-        }
-      </div>
-
-    } @else {
-      <!-- No session -->
-      <div class="no-session">
-        <i class="bi bi-cash-stack"></i>
-        <p>No cash drawer session</p>
-        <button type="button" class="btn btn-primary" (click)="showOpenDrawer()">
-          Open Cash Drawer
-        </button>
-      </div>
-    }
-  }
-
-  <!-- OPEN DRAWER VIEW -->
-  @if (view() === 'open') {
-    <div class="drawer-form">
-      <h5><i class="bi bi-unlock me-2"></i>Open Cash Drawer</h5>
-      <div class="mb-3">
-        <label class="form-label">Starting Cash (Float)</label>
-        <div class="amount-group">
-          <span class="amount-prefix">$</span>
-          <input
-            type="number"
-            class="form-control"
-            min="0"
-            [value]="openingFloat()"
-            (input)="setOpeningFloat(+$any($event.target).value)">
-        </div>
-      </div>
-      <div class="presets">
-        @for (amt of [100, 150, 200, 300, 500]; track amt) {
-          <button
-            type="button"
-            class="preset"
-            [class.active]="openingFloat() === amt"
-            (click)="setOpeningFloat(amt)">
-            ${{ amt }}
-          </button>
-        }
-      </div>
-      <div class="form-actions">
-        <button type="button" class="btn btn-outline-secondary" (click)="cancelView()">Cancel</button>
-        <button type="button" class="btn btn-primary" [disabled]="openingFloat() <= 0" (click)="openDrawer()">Open Drawer</button>
-      </div>
-    </div>
-  }
-
-  <!-- CLOSE DRAWER VIEW (Denomination Count) -->
-  @if (view() === 'close') {
-    <div class="drawer-form drawer-form-wide">
-      <h5><i class="bi bi-lock me-2"></i>Close Cash Drawer</h5>
-
-      <div class="close-expected">
-        <span>Expected Cash</span>
-        <span class="fw-bold">{{ drawerService.runningBalance() | currency }}</span>
-      </div>
-
-      <!-- Denomination grid -->
-      <div class="denom-grid">
-        <div class="denom-header">
-          <span>Denomination</span>
-          <span>Count</span>
-          <span>Subtotal</span>
-        </div>
-        @for (row of denominationRows; track row.key) {
-          <div class="denom-row">
-            <span class="denom-label">{{ row.label }}</span>
-            <input
-              type="number"
-              class="denom-input"
-              min="0"
-              [value]="denomination()[row.key]"
-              (input)="setDenominationCount(row.key, +$any($event.target).value)">
-            <span class="denom-subtotal">{{ denomination()[row.key] * row.value | currency }}</span>
-          </div>
-        }
-        <div class="denom-total">
-          <span>Total Counted</span>
-          <span></span>
-          <span class="fw-bold">{{ denominationTotal() | currency }}</span>
-        </div>
-      </div>
-
-      <!-- Variance display -->
-      @if (denominationTotal() > 0) {
-        <div
-          class="close-diff"
-          [class.over]="closeVariance() > 0.005"
-          [class.short]="closeVariance() < -0.005"
-          [class.even]="closeVariance() >= -0.005 && closeVariance() <= 0.005">
-          @if (closeVariance() > 0.005) {
-            Over by {{ closeVariance() | currency }}
-          } @else if (closeVariance() < -0.005) {
-            Short by {{ -closeVariance() | currency }}
+    <!-- STATUS VIEW -->
+    @if (view() === 'status') {
+      @if (drawerService.session(); as session) {
+        <div class="drawer-header">
+          <h5><i class="bi bi-cash-stack"></i> Cash Drawer</h5>
+          @if (drawerService.isOpen()) {
+            <span class="drawer-status open">Open</span>
           } @else {
-            Balanced — no variance
+            <span class="drawer-status closed">Closed</span>
           }
         </div>
+
+        <div class="drawer-kpis">
+          <div class="drawer-kpi kpi-balance">
+            <span class="kpi-val">{{ drawerService.runningBalance() | currency }}</span>
+            <span class="kpi-lbl">Expected Balance</span>
+          </div>
+          <div class="drawer-kpi">
+            <span class="kpi-val">{{ session.openingFloat | currency }}</span>
+            <span class="kpi-lbl">Opening Float</span>
+          </div>
+          <div class="drawer-kpi">
+            <span class="kpi-val">{{ drawerService.cashSalesTotal() | currency }}</span>
+            <span class="kpi-lbl">Cash Sales</span>
+          </div>
+          <div class="drawer-kpi">
+            <span class="kpi-val">{{ drawerService.cashOutTotal() | currency }}</span>
+            <span class="kpi-lbl">Cash Out</span>
+          </div>
+          @if (drawerService.totalDropped() > 0) {
+            <div class="drawer-kpi">
+              <span class="kpi-val">{{ drawerService.totalDropped() | currency }}</span>
+              <span class="kpi-lbl">Drops / Deposits</span>
+            </div>
+          }
+          @if (drawerService.totalPaidOut() > 0) {
+            <div class="drawer-kpi">
+              <span class="kpi-val">{{ drawerService.totalPaidOut() | currency }}</span>
+              <span class="kpi-lbl">Paid Out</span>
+            </div>
+          }
+        </div>
+
+        <!-- Reconciliation result (closed session) -->
+        @if (session.closedAt) {
+          <div class="close-result">
+            <div class="result-row">
+              <span>Expected Cash</span>
+              <span class="fw-semibold">{{ session.expectedCash | currency }}</span>
+            </div>
+            <div class="result-row">
+              <span>Actual Cash</span>
+              <span class="fw-semibold">{{ session.actualCash | currency }}</span>
+            </div>
+            <div class="result-row result-overshort" [class]="overShortClass()">
+              <span>Over/Short</span>
+              <span class="fw-bold">
+                @if ((session.overShort ?? 0) > 0) { +}{{ session.overShort | currency }}
+              </span>
+            </div>
+            <div class="result-row">
+              <span>Closed By</span>
+              <span>{{ session.closedBy }}</span>
+            </div>
+            <div class="result-row">
+              <span>Closed At</span>
+              <span>{{ session.closedAt | date:'short' }}</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-primary mt-3 w-100" (click)="startNewSession()">
+              Start New Session
+            </button>
+          </div>
+        }
+
+        <!-- Quick action buttons (drawer open) -->
+        @if (drawerService.isOpen()) {
+          <div class="quick-actions">
+            <button type="button" class="quick-btn" (click)="showQuickEvent('paid_out')">
+              <i class="bi bi-receipt"></i>
+              <span>Paid Out</span>
+            </button>
+            <button type="button" class="quick-btn" (click)="showQuickEvent('tip_payout')">
+              <i class="bi bi-heart"></i>
+              <span>Tip Payout</span>
+            </button>
+            <button type="button" class="quick-btn" (click)="showQuickEvent('drop_to_safe')">
+              <i class="bi bi-safe"></i>
+              <span>Drop to Safe</span>
+            </button>
+            <button type="button" class="quick-btn" (click)="showQuickEvent('petty_cash')">
+              <i class="bi bi-coin"></i>
+              <span>Petty Cash</span>
+            </button>
+            <button type="button" class="quick-btn" (click)="showAddEvent()">
+              <i class="bi bi-plus-circle"></i>
+              <span>Other</span>
+            </button>
+            <button type="button" class="quick-btn quick-btn-close" (click)="showCloseDrawer()">
+              <i class="bi bi-lock"></i>
+              <span>Close Drawer</span>
+            </button>
+          </div>
+        }
+
+        <!-- Transaction log -->
+        <div class="event-log">
+          <h6>Transaction Log</h6>
+          @for (event of eventLog(); track event.id) {
+            <div class="event-row" [class.inflow]="isInflow(event.type)" [class.outflow]="!isInflow(event.type)">
+              <div class="event-left">
+                <div class="event-type-row">
+                  <i class="bi" [class]="getEventIcon(event.type)"></i>
+                  <span class="event-type">{{ getEventLabel(event.type) }}</span>
+                </div>
+                <span class="event-reason">{{ event.reason }}</span>
+                <span class="event-employee">{{ event.performedBy }}</span>
+              </div>
+              <div class="event-right">
+                <span class="event-amount">
+                  {{ isInflow(event.type) ? '+' : '-' }}{{ event.amount | currency }}
+                </span>
+                <span class="event-time">{{ event.timestamp | date:'shortTime' }}</span>
+              </div>
+            </div>
+          } @empty {
+            <p class="text-empty">No transactions yet</p>
+          }
+        </div>
+
+      } @else {
+        <!-- No session -->
+        <div class="no-session">
+          <i class="bi bi-cash-stack"></i>
+          <p>No cash drawer session</p>
+          <button type="button" class="btn btn-primary" (click)="showOpenDrawer()">
+            Open Cash Drawer
+          </button>
+        </div>
       }
+    }
 
-      <div class="form-actions">
-        <button type="button" class="btn btn-outline-secondary" (click)="cancelView()">Cancel</button>
-        <button type="button" class="btn btn-warning" [disabled]="denominationTotal() <= 0" (click)="closeDrawer()">
-          Close & Reconcile
-        </button>
-      </div>
-    </div>
-  }
-
-  <!-- ADD EVENT VIEW -->
-  @if (view() === 'event') {
-    <div class="drawer-form">
-      <h5>Record Cash Event</h5>
-      <div class="mb-3">
-        <label class="form-label">Type</label>
-        <div class="event-types">
-          @for (t of ['cash_in', 'cash_out', 'paid_out', 'tip_payout', 'drop_to_safe', 'petty_cash', 'bank_deposit']; track t) {
+    <!-- OPEN DRAWER VIEW -->
+    @if (view() === 'open') {
+      <div class="drawer-form">
+        <h5><i class="bi bi-unlock me-2"></i>Open Cash Drawer</h5>
+        <div class="mb-3">
+          <label class="form-label">Starting Cash (Float)</label>
+          <div class="amount-group">
+            <span class="amount-prefix">$</span>
+            <input
+              type="number"
+              class="form-control"
+              min="0"
+              [value]="openingFloat()"
+              (input)="setOpeningFloat(+$any($event.target).value)">
+          </div>
+        </div>
+        <div class="presets">
+          @for (amt of [100, 150, 200, 300, 500]; track amt) {
             <button
               type="button"
-              class="event-type-btn"
-              [class.active]="eventType() === t"
-              (click)="setEventType($any(t))">
-              <i class="bi" [class]="getEventIcon($any(t))"></i>
-              {{ getEventLabel($any(t)) }}
+              class="preset"
+              [class.active]="openingFloat() === amt"
+              (click)="setOpeningFloat(amt)">
+              ${{ amt }}
             </button>
           }
         </div>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Amount</label>
-        <div class="amount-group">
-          <span class="amount-prefix">$</span>
-          <input
-            type="number"
-            class="form-control"
-            min="0"
-            step="0.01"
-            [value]="eventAmount()"
-            (input)="setEventAmount(+$any($event.target).value)">
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline-secondary" (click)="cancelView()">Cancel</button>
+          <button type="button" class="btn btn-primary" [disabled]="openingFloat() <= 0" (click)="openDrawer()">Open Drawer</button>
         </div>
       </div>
-      <div class="mb-3">
-        <label class="form-label">Reason</label>
-        <input
-          type="text"
-          class="form-control"
-          placeholder="e.g., Vendor delivery, tip payout for John"
-          [value]="eventReason()"
-          (input)="setEventReason($any($event.target).value)">
+    }
+
+    <!-- CLOSE DRAWER VIEW (Denomination Count) -->
+    @if (view() === 'close') {
+      <div class="drawer-form drawer-form-wide">
+        <h5><i class="bi bi-lock me-2"></i>Close Cash Drawer</h5>
+
+        <div class="close-expected">
+          <span>Expected Cash</span>
+          <span class="fw-bold">{{ drawerService.runningBalance() | currency }}</span>
+        </div>
+
+        <!-- Denomination grid -->
+        <div class="denom-grid">
+          <div class="denom-header">
+            <span>Denomination</span>
+            <span>Count</span>
+            <span>Subtotal</span>
+          </div>
+          @for (row of denominationRows; track row.key) {
+            <div class="denom-row">
+              <span class="denom-label">{{ row.label }}</span>
+              <input
+                type="number"
+                class="denom-input"
+                min="0"
+                [value]="denomination()[row.key]"
+                (input)="setDenominationCount(row.key, +$any($event.target).value)">
+              <span class="denom-subtotal">{{ denomination()[row.key] * row.value | currency }}</span>
+            </div>
+          }
+          <div class="denom-total">
+            <span>Total Counted</span>
+            <span></span>
+            <span class="fw-bold">{{ denominationTotal() | currency }}</span>
+          </div>
+        </div>
+
+        <!-- Variance display -->
+        @if (denominationTotal() > 0) {
+          <div
+            class="close-diff"
+            [class.over]="closeVariance() > 0.005"
+            [class.short]="closeVariance() < -0.005"
+            [class.even]="closeVariance() >= -0.005 && closeVariance() <= 0.005">
+            @if (closeVariance() > 0.005) {
+              Over by {{ closeVariance() | currency }}
+            } @else if (closeVariance() < -0.005) {
+              Short by {{ -closeVariance() | currency }}
+            } @else {
+              Balanced — no variance
+            }
+          </div>
+        }
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline-secondary" (click)="cancelView()">Cancel</button>
+          <button type="button" class="btn btn-warning" [disabled]="denominationTotal() <= 0" (click)="closeDrawer()">
+            Close & Reconcile
+          </button>
+        </div>
       </div>
-      <div class="form-actions">
-        <button type="button" class="btn btn-outline-secondary" (click)="cancelView()">Cancel</button>
-        <button
-          type="button"
-          class="btn btn-primary"
-          [disabled]="eventAmount() <= 0 || !eventReason().trim()"
-          (click)="submitEvent()">
-          Record
-        </button>
+    }
+
+    <!-- ADD EVENT VIEW -->
+    @if (view() === 'event') {
+      <div class="drawer-form">
+        <h5>Record Cash Event</h5>
+        <div class="mb-3">
+          <label class="form-label">Type</label>
+          <div class="event-types">
+            @for (t of ['cash_in', 'cash_out', 'paid_out', 'tip_payout', 'drop_to_safe', 'petty_cash', 'bank_deposit']; track t) {
+              <button
+                type="button"
+                class="event-type-btn"
+                [class.active]="eventType() === t"
+                (click)="setEventType($any(t))">
+                <i class="bi" [class]="getEventIcon($any(t))"></i>
+                {{ getEventLabel($any(t)) }}
+              </button>
+            }
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Amount</label>
+          <div class="amount-group">
+            <span class="amount-prefix">$</span>
+            <input
+              type="number"
+              class="form-control"
+              min="0"
+              step="0.01"
+              [value]="eventAmount()"
+              (input)="setEventAmount(+$any($event.target).value)">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Reason</label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="e.g., Vendor delivery, tip payout for John"
+            [value]="eventReason()"
+            (input)="setEventReason($any($event.target).value)">
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline-secondary" (click)="cancelView()">Cancel</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="eventAmount() <= 0 || !eventReason().trim()"
+            (click)="submitEvent()">
+            Record
+          </button>
+        </div>
       </div>
+    }
+
+  }
+
+  <!-- ======================== EMPLOYEES TAB ======================== -->
+  @if (tab() === 'employees') {
+    <div class="tab-content">
+      <div class="tab-header">
+        <h5><i class="bi bi-people"></i> Employee Cash Handling</h5>
+      </div>
+
+      <!-- Flagged employees warning -->
+      @if (flaggedCount() > 0) {
+        <div class="flagged-banner">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          {{ flaggedCount() }} employee{{ flaggedCount() > 1 ? 's' : '' }} with repeated discrepancies
+        </div>
+      }
+
+      @if (drawerService.employeeSummaries().length > 0) {
+        <div class="employee-table-wrap">
+          <table class="employee-table">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th class="text-end">Cash Handled</th>
+                <th class="text-end">In</th>
+                <th class="text-end">Out</th>
+                <th class="text-end">Sessions</th>
+                <th class="text-end">Avg Variance</th>
+                <th class="text-end">Discrepancies</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (emp of drawerService.employeeSummaries(); track emp.employeeName) {
+                <tr [class.flagged-row]="emp.discrepancyCount >= 2">
+                  <td>
+                    <div class="emp-name">
+                      {{ emp.employeeName }}
+                      @if (emp.discrepancyCount >= 2) {
+                        <i class="bi bi-flag-fill text-danger" title="Repeated discrepancies"></i>
+                      }
+                    </div>
+                  </td>
+                  <td class="text-end">{{ emp.totalCashHandled | currency }}</td>
+                  <td class="text-end text-success">{{ emp.totalCashIn | currency }}</td>
+                  <td class="text-end text-danger">{{ emp.totalCashOut | currency }}</td>
+                  <td class="text-end">{{ emp.sessionCount }}</td>
+                  <td class="text-end" [class.text-danger]="emp.avgVariance < -1" [class.text-success]="emp.avgVariance > 1">
+                    {{ formatVariance(emp.avgVariance) }}
+                  </td>
+                  <td class="text-end">
+                    @if (emp.discrepancyCount > 0) {
+                      <span class="disc-badge">{{ emp.discrepancyCount }}</span>
+                    } @else {
+                      <span class="text-muted">0</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="empty-state">
+          <i class="bi bi-people"></i>
+          <p>No employee cash data yet. Data populates from closed drawer sessions.</p>
+        </div>
+      }
     </div>
   }
+
+  <!-- ======================== ALERTS TAB ======================== -->
+  @if (tab() === 'alerts') {
+    <div class="tab-content">
+      <div class="tab-header">
+        <h5><i class="bi bi-exclamation-triangle"></i> Discrepancy Alerts</h5>
+        <div class="threshold-config">
+          <label>Threshold: $</label>
+          <input
+            type="number"
+            class="threshold-input"
+            min="0"
+            step="1"
+            [value]="thresholdInput()"
+            (input)="setThresholdInput(+$any($event.target).value)">
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="applyThreshold()">Apply</button>
+        </div>
+      </div>
+
+      <!-- Flagged employees summary -->
+      @if (drawerService.flaggedEmployees().length > 0) {
+        <div class="flagged-section">
+          <h6><i class="bi bi-flag-fill"></i> Flagged Employees (2+ discrepancies)</h6>
+          <div class="flagged-chips">
+            @for (emp of drawerService.flaggedEmployees(); track emp.employeeName) {
+              <div class="flagged-chip">
+                <span class="flagged-name">{{ emp.employeeName }}</span>
+                <span class="flagged-count">{{ emp.discrepancyCount }} discrepancies</span>
+                <span class="flagged-variance">Avg: {{ formatVariance(emp.avgVariance) }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (drawerService.discrepancyAlerts().length > 0) {
+        <div class="alerts-list">
+          @for (alert of drawerService.discrepancyAlerts(); track alert.sessionId) {
+            <div class="alert-card" [class.alert-over]="alert.isOver" [class.alert-short]="!alert.isOver">
+              <div class="alert-icon">
+                @if (alert.isOver) {
+                  <i class="bi bi-arrow-up-circle-fill"></i>
+                } @else {
+                  <i class="bi bi-arrow-down-circle-fill"></i>
+                }
+              </div>
+              <div class="alert-body">
+                <div class="alert-title">
+                  {{ alert.isOver ? 'Over' : 'Short' }} by {{ alert.variance < 0 ? -alert.variance : alert.variance | currency }}
+                </div>
+                <div class="alert-meta">
+                  <span>{{ alert.employee }}</span>
+                  <span class="alert-sep">·</span>
+                  <span>{{ alert.closedAt | date:'short' }}</span>
+                  <span class="alert-sep">·</span>
+                  <span>Threshold: {{ alert.threshold | currency }}</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <i class="bi bi-check-circle"></i>
+          <p>No discrepancy alerts. All drawer sessions within the {{ drawerService.discrepancyThreshold() | currency }} threshold.</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ======================== REPORT TAB ======================== -->
+  @if (tab() === 'report') {
+    <div class="tab-content">
+      <div class="tab-header">
+        <h5><i class="bi bi-journal-text"></i> Cash Event Report</h5>
+      </div>
+
+      <!-- Filters -->
+      <div class="report-filters">
+        <div class="filter-group">
+          <label>From</label>
+          <input type="date" class="form-control form-control-sm" (change)="setReportDateFrom($any($event.target).value)">
+        </div>
+        <div class="filter-group">
+          <label>To</label>
+          <input type="date" class="form-control form-control-sm" (change)="setReportDateTo($any($event.target).value)">
+        </div>
+        <div class="filter-group">
+          <label>Employee</label>
+          <select class="form-control form-control-sm" (change)="setReportEmployee($any($event.target).value)">
+            <option value="">All</option>
+            @for (name of drawerService.allEmployeeNames(); track name) {
+              <option [value]="name">{{ name }}</option>
+            }
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Type</label>
+          <select class="form-control form-control-sm" (change)="setReportType($any($event.target).value)">
+            <option value="">All Types</option>
+            @for (t of reportableEventTypes; track t) {
+              <option [value]="t">{{ getEventLabel(t) }}</option>
+            }
+          </select>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary clear-btn" (click)="clearFilters()">
+          <i class="bi bi-x-circle"></i> Clear
+        </button>
+      </div>
+
+      <!-- Summary by type -->
+      @if (drawerService.eventsByType().length > 0) {
+        <div class="type-summary">
+          <h6>By Type</h6>
+          <div class="type-summary-grid">
+            @for (entry of drawerService.eventsByType(); track entry.type) {
+              <div class="type-card">
+                <div class="type-card-header">
+                  <i class="bi" [class]="getEventIcon(entry.type)"></i>
+                  <span>{{ getEventLabel(entry.type) }}</span>
+                </div>
+                <div class="type-card-stats">
+                  <span class="type-total">{{ entry.total | currency }}</span>
+                  <span class="type-count">{{ entry.count }} events</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Event list -->
+      @if (drawerService.cashEventReport().length > 0) {
+        <div class="report-events">
+          <h6>{{ drawerService.cashEventReport().length }} Events</h6>
+          @for (row of drawerService.cashEventReport(); track row.event.id) {
+            <div class="report-event-row" [class.inflow]="isInflow(row.event.type)" [class.outflow]="!isInflow(row.event.type)">
+              <div class="report-event-left">
+                <div class="event-type-row">
+                  <i class="bi" [class]="getEventIcon(row.event.type)"></i>
+                  <span class="event-type">{{ getEventLabel(row.event.type) }}</span>
+                </div>
+                <span class="event-reason">{{ row.event.reason }}</span>
+                <span class="event-employee">{{ row.event.performedBy }}</span>
+              </div>
+              <div class="report-event-right">
+                <span class="event-amount">
+                  {{ isInflow(row.event.type) ? '+' : '-' }}{{ row.event.amount | currency }}
+                </span>
+                <span class="event-time">{{ row.event.timestamp | date:'short' }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <i class="bi bi-journal-text"></i>
+          <p>No cash events match the current filters.</p>
+        </div>
+      }
+    </div>
+  }
+
 </div>

@@ -412,6 +412,42 @@ export interface OrderTemplateItem {
   modifiers: string[];
 }
 
+// --- Course Templates ---
+
+export interface CourseTemplate {
+  id: string;
+  name: string;
+  description: string;
+  courses: string[];
+}
+
+export const BUILT_IN_COURSE_TEMPLATES: CourseTemplate[] = [
+  {
+    id: 'tpl-3-course',
+    name: '3-Course Dinner',
+    description: 'Classic appetizer, entree, dessert progression',
+    courses: ['Appetizer', 'Entree', 'Dessert'],
+  },
+  {
+    id: 'tpl-5-course',
+    name: '5-Course Tasting',
+    description: 'Full tasting menu experience',
+    courses: ['Amuse-Bouche', 'First Course', 'Second Course', 'Main', 'Dessert'],
+  },
+  {
+    id: 'tpl-2-course',
+    name: '2-Course Brunch',
+    description: 'Simple starters and mains',
+    courses: ['Starters', 'Main'],
+  },
+  {
+    id: 'tpl-4-course',
+    name: '4-Course Dinner',
+    description: 'Appetizer, soup or salad, entree, dessert',
+    courses: ['Appetizer', 'Soup/Salad', 'Entree', 'Dessert'],
+  },
+];
+
 // --- Helper functions ---
 
 export function getCustomerDisplayName(order: Order): string {

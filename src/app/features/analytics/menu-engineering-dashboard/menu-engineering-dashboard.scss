@@ -450,3 +450,124 @@
     margin-top: 2px;
   }
 }
+
+// === Prep Time Accuracy (GAP-R05 Phase 2) ===
+
+.prep-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background-color: var(--os-warning);
+  color: #000;
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.prep-summary-cards {
+  flex-wrap: wrap;
+
+  .prep-summary-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--os-bg-card);
+    border: 1px solid var(--os-border);
+    border-radius: var(--os-radius);
+    min-width: 120px;
+
+    .prep-summary-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--os-text-primary);
+    }
+
+    .prep-summary-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--os-text-secondary);
+      margin-top: 0.25rem;
+    }
+  }
+}
+
+.prep-alert {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background-color: rgba(245, 166, 35, 0.08);
+  border: 1px solid var(--os-warning);
+  border-radius: var(--os-radius);
+  color: var(--os-text-primary);
+  font-size: 0.875rem;
+
+  .bi { color: var(--os-warning); }
+}
+
+.prep-table {
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  border-radius: var(--os-radius);
+  overflow: hidden;
+}
+
+.prep-table-header {
+  background-color: var(--os-bg);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--os-text-secondary);
+  font-weight: 600;
+}
+
+.prep-table-row {
+  border-top: 1px solid var(--os-border);
+  font-size: 0.875rem;
+  color: var(--os-text-primary);
+  transition: background-color 0.15s;
+
+  &:hover {
+    background-color: var(--os-bg);
+  }
+
+  &.flagged {
+    background-color: rgba(245, 166, 35, 0.04);
+  }
+}
+
+.col-prep-name { flex: 2; min-width: 120px; }
+.col-prep-est { flex: 0 0 80px; text-align: right; }
+.col-prep-actual { flex: 0 0 90px; text-align: right; }
+.col-prep-deviation { flex: 0 0 80px; text-align: right; font-weight: 600; }
+.col-prep-accuracy { flex: 0 0 110px; text-align: center; }
+.col-prep-samples { flex: 0 0 70px; text-align: right; }
+.col-prep-action { flex: 0 0 90px; text-align: center; }
+
+.accuracy-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &.accuracy-good {
+    background-color: rgba(0, 166, 126, 0.1);
+    color: var(--os-success);
+  }
+
+  &.accuracy-fair {
+    background-color: rgba(245, 166, 35, 0.1);
+    color: var(--os-warning);
+  }
+
+  &.accuracy-poor {
+    background-color: rgba(229, 62, 62, 0.1);
+    color: var(--os-danger);
+  }
+}

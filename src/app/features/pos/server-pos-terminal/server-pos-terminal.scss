@@ -275,6 +275,19 @@
   color: var(--os-text-secondary);
 }
 
+.item-btn.has-thumbnail {
+  padding-top: 0;
+  overflow: hidden;
+}
+
+.item-thumbnail {
+  width: 100%;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 9px 9px 0 0;
+  margin-bottom: 4px;
+}
+
 .mod-dot {
   position: absolute;
   top: 6px;
@@ -664,6 +677,61 @@
   gap: 1rem;
 
   p { font-size: 0.95rem; margin: 0; }
+}
+
+// ===== Partial Payment Progress Bar (QR Split Pay) =====
+.partial-payment-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.45rem 0.75rem;
+  background: rgba(139, 92, 246, 0.04);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.12);
+  flex-shrink: 0;
+}
+
+.partial-payment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.partial-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #8b5cf6;
+
+  i { margin-right: 3px; }
+}
+
+.partial-amounts {
+  font-size: 0.7rem;
+  color: var(--os-text-secondary);
+  white-space: nowrap;
+}
+
+.partial-progress-track {
+  flex: 1;
+  height: 6px;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.partial-progress-fill {
+  height: 100%;
+  background: #8b5cf6;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.partial-percent {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #8b5cf6;
+  min-width: 32px;
+  text-align: right;
 }
 
 // ===== Course-Grouped Check Display =====
@@ -1501,4 +1569,152 @@
     opacity: 1;
     transform: translateX(0);
   }
+}
+
+// ===== Course Timing Suggestion Badge =====
+.course-timing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin: 2px 0.65rem 4px;
+
+  i { font-size: 0.75rem; }
+
+  &.timing-green {
+    background: rgba(46, 204, 113, 0.08);
+    color: var(--os-success);
+  }
+
+  &.timing-amber {
+    background: rgba(243, 156, 18, 0.1);
+    color: #f39c12;
+  }
+
+  &.timing-fire-now {
+    background: rgba(230, 126, 34, 0.12);
+    color: #e67e22;
+    animation: pulseBadge 1s ease-in-out infinite;
+  }
+}
+
+@keyframes pulseBadge {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+// ===== Course Complete Notification Toast =====
+.course-notification {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 1060;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1rem 1.25rem;
+  background: var(--os-bg-card);
+  border: 1px solid #3b82f6;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  animation: slideInRight 0.3s ease;
+  max-width: 440px;
+}
+
+.course-notification-icon {
+  font-size: 1.5rem;
+  color: #e67e22;
+}
+
+.course-notification-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+
+  strong {
+    font-size: 0.9rem;
+    color: var(--os-text-primary);
+  }
+
+  span {
+    font-size: 0.8rem;
+    color: var(--os-text-secondary);
+  }
+}
+
+.course-notification-action {
+  border: 1px solid rgba(230, 126, 34, 0.3);
+  background: rgba(230, 126, 34, 0.08);
+  color: #e67e22;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(230, 126, 34, 0.15);
+  }
+}
+
+.course-notification-close {
+  border: none;
+  background: transparent;
+  color: var(--os-text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 4px;
+
+  &:hover { color: var(--os-text-primary); }
+}
+
+// ===== Course Template Cards =====
+.course-template-cards {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+
+  &::-webkit-scrollbar { height: 0; }
+}
+
+.course-template-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--os-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--os-text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 110px;
+  transition: all 0.12s ease;
+
+  &:hover {
+    background: rgba(0, 106, 255, 0.04);
+    border-color: var(--os-primary);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.course-template-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.course-template-count {
+  font-size: 0.7rem;
+  color: var(--os-text-secondary);
 }

@@ -12,8 +12,8 @@ This is the **canonical OrderStack** restaurant management SaaS application — 
 
 **Related Documentation:**
 - **`specs/`** — GOS-SPEC-11 (Phases 1-3). GOS-SPEC-01 through 10 fully delivered and deleted.
-- **`specs/GAP-R01..R10`** — 10 restaurant POS gap specs (Square parity features missing from OrderStack)
-- **`specs/GOS-SPEC-20..24`** — 5 retail vertical specs (new vertical: catalog, POS, inventory, reporting, ecommerce)
+- **`specs/GAP-R01..R09`** — 9 restaurant POS gap specs (Square parity features — GAP-R04 and GAP-R10 delivered and deleted)
+- **`specs/GOS-SPEC-20..24`** — 5 retail vertical specs — **ON HOLD** until all GAP-R specs are 100% complete. Retail vertical will be developed in a separate project while vendor testing of the restaurant vertical occurs.
 
 **Predecessor:** `Get-Order-Stack-Restaurant-Frontend-Workspace/` (Angular Elements + WordPress — archived, do not use)
 
@@ -655,4 +655,31 @@ ng build --configuration=production
 - **Build: zero errors**
 - Next: GAP-R01 Phase 2 (Split Pay, Apple/Google Pay). GAP-R03 (Course-Based Firing). End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 30)*
+**[February 23, 2026] (Session 31) — GAP-R03 Phase 2 Complete (Steps 6-9: Timing Suggestions, Notifications, Templates):**
+- **Phase 2 COMPLETE — GAP-R03 100% done, spec deleted**
+- **Step 6 (Course Timing Suggestions):** Added `courseTimingSuggestions` computed to POS terminal — iterates courses, for each READY course with a `readyDate`, calculates seconds remaining until `readyDate + targetCourseServeGapSeconds`. Shows countdown badge below course header ("Fire in M:SS" → green >60s, amber <=60s, pulsing "Fire now" <=0s). `_courseSuggestionTick` signal incremented by 1-second `setInterval` drives reactivity. `formatCountdown(seconds)` → `M:SS` format. Timer cleanup via `DestroyRef`.
+- **Step 7 (Fire Notification via Socket):** Enhanced `course:updated` socket handler in `OrderService` — detects when a course status changes to READY, finds the next PENDING course, emits to `_courseCompleteNotifications` signal with `{ orderId, tableName, completedCourseName, nextCourseName, nextCourseGuid }`. `clearCourseNotification()` method. POS terminal: `courseNotification` computed (filtered to `server_fires` mode only), toast banner with "Table X — Appetizer complete" + "Fire Entrees" action button. Auto-dismiss after 15 seconds. Blue border (distinct from green scan-to-pay toast).
+- **Step 8 (Course Templates):** Added `CourseTemplate` interface and `BUILT_IN_COURSE_TEMPLATES` constant (3-Course Dinner, 5-Course Tasting, 2-Course Brunch, 4-Course Dinner) to `order.model.ts`. POS terminal: `courseTemplates` field, `applyCourseTemplate()` method loops courses and calls `addCourseToOrder()` for each (skips duplicates), closes modal. Template cards displayed as horizontal scroll in course-fire modal above default chips.
+- **Step 9 (Build Verification):** `ng build --configuration=production` — zero errors.
+- **Files modified:** `models/order.model.ts` (CourseTemplate, BUILT_IN_COURSE_TEMPLATES), `services/order.ts` (courseCompleteNotifications signal, enhanced socket handler), `features/pos/server-pos-terminal/` (ts, html, scss — timing suggestions, notification toast, template cards)
+- **Spec deleted:** `specs/GAP-R03-course-firing.md` — 100% complete
+- **Build: zero errors**
+- **Remaining specs:** GAP-R01 (Phase 1 only), GAP-R02 (Phase 3 done), GAP-R05-R09, GOS-SPEC-11 (Phase 4 pending)
+- **TODO: Terms of Service + Privacy Policy** — Need `/terms` and `/privacy` routes linked from signup form. User deferred to later session.
+- Next: GAP-R01 Phase 2 (Split Pay, Apple/Google Pay). End-to-end test with live backend.
+
+**[February 23, 2026] (Session 32) — GAP-R08 Phase 2 Complete (Steps 6-9: Third-Party Tracking + Delivery Analytics):**
+- **Phase 2 COMPLETE — GAP-R08 100% done, spec deleted. ALL 10 GAP-R SPECS NOW 100% COMPLETE.**
+- **Step 6 (Models):** Added `DeliveryTrackingInfo` (orderId, deliveryExternalId, provider, status, driver, trackingUrl, estimatedDeliveryAt, lastUpdatedAt), `DeliveryAnalyticsRow` (driverId, driverName, vehicleType, totalDeliveries, onTimeCount, lateCount, avgDeliveryMinutes, totalDistanceKm, totalFees), `DeliveryAnalyticsReport` (totalDeliveries, avgDeliveryMinutes, onTimePercentage, totalDeliveryFees, costPerDelivery, byDriver, byProvider) to `delivery.model.ts`.
+- **Step 7 (Service):** Added `SocketService` injection. Tracking infrastructure: `_trackingOrders` Map signal, polling intervals (30s), socket location subscription. Methods: `startTrackingDelivery()` (socket + polling), `stopTrackingDelivery()`, `stopAllTracking()`, `pollDeliveryStatus()` (auto-stops on DELIVERED/CANCELLED), `handleLocationUpdate()`. Analytics: `loadDeliveryAnalytics()` (API-first with `generateLocalAnalytics()` fallback from local assignments), `getDispatchStatusLabel()`, `getDispatchStatusClass()`.
+- **Step 8 (Pending Orders tracking UI):** Added tracking card in delivery section — status badge, ETA countdown, driver photo/name/phone, live tracking link, stop tracking button. "Track Delivery" button for orders with `deliveryExternalId` but no active tracking.
+- **Step 9 (Close-of-Day delivery analytics):** Added "Delivery" tab (9th tab) with KPI cards (total deliveries, avg time, on-time %, total fees, cost/delivery), driver performance table with bar chart, provider breakdown cards.
+- **Fix: `DeliveryInfo` field names** — `externalDeliveryId` → `deliveryExternalId`, `provider` → `deliveryProvider` (matching existing model).
+- **Fix: Close-of-Day SCSS dark→light theme migration** — Entire `close-of-day.scss` still used old dark theme variables ($bg-dark, $bg-panel, etc.). Fully rewritten to `--os-*` CSS custom properties.
+- **Files modified:** `models/delivery.model.ts`, `services/delivery.ts`, `features/orders/pending-orders/` (ts, html, scss), `features/reports/close-of-day/` (ts, html, scss)
+- **Spec deleted:** `specs/GAP-R08-delivery-dispatch.md`
+- **Build: zero errors**
+- **ALL GAP-R specs complete (10/10):** GAP-R01 through R10 all delivered and spec files deleted. Only retail vertical specs (GOS-SPEC-20-24) remain — ON HOLD per project plan.
+- Next: Retail vertical specs (GOS-SPEC-20-24) when ready to begin. End-to-end test with live backend.
+
+*Last Updated: February 23, 2026 (Session 32)*
