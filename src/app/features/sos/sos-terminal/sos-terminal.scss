@@ -2,14 +2,14 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: var(--midnight-black, #03020D);
-  color: #fff;
+  background-color: var(--os-bg);
+  color: var(--os-text-primary);
   overflow: hidden;
 }
 
 .terminal-header {
-  background-color: var(--midnight-black, #03020D);
-  border-bottom: 1px solid var(--deep-lake, #1D3273);
+  background-color: var(--os-bg-card);
+  border-bottom: 1px solid var(--os-border);
   flex-shrink: 0;
   display: flex;
   justify-content: space-between;
@@ -37,11 +37,12 @@
   }
 
   h1 {
-    color: var(--dark-teal, #0E7490);
+    color: var(--os-text-primary);
+    font-weight: 600;
   }
 
   .restaurant-name {
-    color: var(--dark-teal, #0E7490);
+    color: var(--os-text-primary);
     font-weight: 600;
     font-size: 1.25rem;
   }
@@ -64,7 +65,7 @@
     display: block;
     width: 24px;
     height: 3px;
-    background-color: #fff;
+    background-color: var(--os-text-primary);
     position: relative;
 
     &::before,
@@ -73,7 +74,7 @@
       position: absolute;
       width: 24px;
       height: 3px;
-      background-color: #fff;
+      background-color: var(--os-text-primary);
       left: 0;
     }
 
@@ -89,7 +90,7 @@
   &:hover .hamburger-icon,
   &:hover .hamburger-icon::before,
   &:hover .hamburger-icon::after {
-    background-color: var(--dark-teal, #0E7490);
+    background-color: var(--os-primary);
   }
 }
 
@@ -108,8 +109,8 @@
   left: 0;
   bottom: 0;
   width: 280px;
-  background-color: var(--midnight-black, #03020D);
-  border-right: 1px solid var(--deep-lake, #1D3273);
+  background-color: var(--os-bg-card);
+  border-right: 1px solid var(--os-border);
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -119,10 +120,10 @@
     align-items: center;
     justify-content: space-between;
     padding: 1rem;
-    border-bottom: 1px solid var(--deep-lake, #1D3273);
+    border-bottom: 1px solid var(--os-border);
 
     .drawer-title {
-      color: var(--dark-teal, #0E7490);
+      color: var(--os-text-primary);
       font-weight: 600;
       font-size: 1.1rem;
     }
@@ -140,47 +141,48 @@
     padding: 1rem 1.5rem;
     background: transparent;
     border: none;
-    color: #fff;
+    color: var(--os-text-primary);
     text-align: left;
     font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.2s;
 
     &:hover {
-      background-color: var(--hermes, #203B8C);
+      background-color: var(--os-bg);
     }
 
     &.active {
-      background-color: var(--medium-slate-blue, #7E5EF2);
+      background-color: var(--os-primary);
+      color: #fff;
       font-weight: 600;
     }
   }
 }
 
 .btn-lang {
-  background-color: var(--midnight-black, #03020D);
-  border: 1px solid var(--deep-lake, #1D3273);
-  color: #fff;
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  color: var(--os-text-primary);
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
 
   &:hover {
-    background-color: var(--hermes, #203B8C);
-    border-color: var(--hermes, #203B8C);
-    color: #fff;
+    background-color: var(--os-bg);
+    border-color: var(--os-border);
+    color: var(--os-text-primary);
   }
 }
 
 .btn-cart {
-  background-color: var(--medium-slate-blue, #7E5EF2);
+  background-color: var(--os-primary);
   border: none;
   color: #fff;
   padding: 0.5rem 1.5rem;
   font-weight: 500;
 
   &:hover {
-    background-color: var(--lapis-lazuli, #3632A6);
+    background-color: var(--os-primary-hover);
     color: #fff;
   }
 
@@ -201,12 +203,12 @@
 
 .view-container {
   min-height: 100%;
-  background-color: var(--midnight-black, #03020D);
+  background-color: var(--os-bg);
 }
 
 .upsell-container {
-  background-color: var(--midnight-black, #03020D);
-  border-top: 1px solid var(--deep-lake, #1D3273);
+  background-color: var(--os-bg-card);
+  border-top: 1px solid var(--os-border);
   flex-shrink: 0;
 }
 
@@ -216,19 +218,19 @@
   bottom: 1.5rem;
   right: 1.5rem;
   z-index: 100;
-  background-color: var(--medium-slate-blue, #7E5EF2);
+  background-color: var(--os-primary);
   border: none;
   color: #fff;
   padding: 1rem 1.5rem;
   border-radius: 50px;
   font-weight: 600;
   font-size: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 106, 255, 0.15);
   align-items: center;
   gap: 0.5rem;
 
   &:hover {
-    background-color: var(--lapis-lazuli, #3632A6);
+    background-color: var(--os-primary-hover);
     color: #fff;
     transform: scale(1.05);
   }
@@ -238,7 +240,7 @@
   }
 
   .cart-badge {
-    background-color: #dc3545;
+    background-color: var(--os-danger);
     color: #fff;
     padding: 0.25rem 0.5rem;
     border-radius: 50px;

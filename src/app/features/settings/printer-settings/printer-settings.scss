@@ -6,22 +6,22 @@
   flex-direction: column;
   padding: 1rem 1.5rem;
   border-radius: 0.5rem;
-  background-color: var(--midnight-black, #03020D);
-  border: 1px solid var(--deep-lake, #1D3273);
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
   min-width: 140px;
   flex: 1;
 
   .kpi-label {
     font-size: 0.75rem;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--os-text-muted);
     margin-bottom: 0.25rem;
   }
 
   .kpi-value {
     font-size: 1.75rem;
     font-weight: bold;
-    color: #fff;
+    color: var(--os-text-primary);
     line-height: 1;
   }
 
@@ -32,20 +32,21 @@
 
 // CloudPRNT Banner
 .cloudprnt-banner {
-  background-color: var(--midnight-black, #03020D);
-  border: 1px solid var(--deep-lake, #1D3273);
-  border-left: 3px solid var(--dark-teal, #0E7490);
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  border-left: 3px solid var(--os-primary);
   border-radius: 0.5rem;
   padding: 1rem;
 
   h5 {
-    color: var(--dark-teal, #0E7490);
+    color: var(--os-text-primary);
+    font-weight: 600;
   }
 }
 
 .cloudprnt-url {
-  background-color: rgba(29, 50, 115, 0.2);
-  color: var(--dark-teal, #0E7490);
+  background-color: var(--os-bg);
+  color: var(--os-primary);
   padding: 0.5rem 0.75rem;
   border-radius: 0.25rem;
   font-size: 0.8rem;
@@ -54,13 +55,14 @@
 
 // Panel
 .panel {
-  background-color: var(--midnight-black, #03020D);
-  border: 1px solid var(--deep-lake, #1D3273);
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
   border-radius: 0.5rem;
   padding: 1rem;
 
   .panel-title {
-    color: var(--dark-teal, #0E7490);
+    color: var(--os-text-primary);
+    font-weight: 600;
     font-size: 1rem;
     margin-bottom: 0.75rem;
   }
@@ -74,13 +76,13 @@
   display: inline-block;
 }
 
-.status-online { background-color: #22c55e; }
-.status-offline { background-color: #dc3545; }
+.status-online { background-color: var(--os-success); }
+.status-offline { background-color: var(--os-danger); }
 .status-disabled { background-color: #6c757d; }
 
 // Default badge
 .default-badge {
-  background-color: var(--medium-slate-blue, #7E5EF2);
+  background-color: var(--os-primary);
   color: #fff;
   font-size: 0.65rem;
   padding: 0.15rem 0.5rem;
@@ -90,8 +92,8 @@
 }
 
 // MAC validation
-.mac-valid { border-color: #22c55e; }
-.mac-invalid { border-color: #dc3545; }
+.mac-valid { border-color: var(--os-success); }
+.mac-invalid { border-color: var(--os-danger); }
 
 // Small action buttons
 .btn-xs {
@@ -101,30 +103,30 @@
   border-radius: 0.25rem;
 }
 
-// Dark form controls
+// Form controls
 .form-control, .form-select {
-  background-color: #1a1a2e;
-  border-color: var(--deep-lake, #1D3273);
-  color: #fff;
+  background-color: var(--os-bg-card);
+  border-color: var(--os-border);
+  color: var(--os-text-primary);
 
   &:focus {
-    border-color: var(--medium-slate-blue, #7E5EF2);
+    border-color: var(--os-primary);
     box-shadow: none;
-    background-color: #1a1a2e;
-    color: #fff;
+    background-color: var(--os-bg-card);
+    color: var(--os-text-primary);
   }
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.4);
+    color: var(--os-text-muted);
   }
 }
 
 .form-select {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ccc' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23666' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
 }
 
 .form-label {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--os-text-secondary);
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -133,17 +135,17 @@
 }
 
 .form-check-input {
-  background-color: #1a1a2e;
-  border-color: var(--deep-lake, #1D3273);
+  background-color: var(--os-bg-card);
+  border-color: var(--os-border);
 
   &:checked {
-    background-color: var(--medium-slate-blue, #7E5EF2);
-    border-color: var(--medium-slate-blue, #7E5EF2);
+    background-color: var(--os-primary);
+    border-color: var(--os-primary);
   }
 }
 
 .form-check-label {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--os-text-secondary);
   font-size: 0.85rem;
 }
 
@@ -151,7 +153,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 1040;
 }
 
@@ -160,30 +162,31 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: #0d0d1a;
-  border: 1px solid var(--deep-lake, #1D3273);
-  border-radius: 0.5rem;
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  border-radius: var(--os-radius-lg);
+  box-shadow: var(--os-shadow-lg);
   padding: 1.5rem;
   z-index: 1050;
   min-width: 380px;
   max-width: 90vw;
-  color: #fff;
+  color: var(--os-text-primary);
 }
 
 .alert-warning {
-  background-color: rgba(255, 193, 7, 0.15);
-  border-color: rgba(255, 193, 7, 0.3);
-  color: #ffc107;
+  background-color: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.2);
+  color: var(--os-warning);
 }
 
 // Buttons
 .btn-primary {
-  background-color: var(--medium-slate-blue, #7E5EF2);
-  border-color: var(--medium-slate-blue, #7E5EF2);
+  background-color: var(--os-primary);
+  border-color: var(--os-primary);
 
   &:hover:not(:disabled) {
-    background-color: var(--lapis-lazuli, #3632A6);
-    border-color: var(--lapis-lazuli, #3632A6);
+    background-color: var(--os-primary-hover);
+    border-color: var(--os-primary-hover);
   }
 }
 

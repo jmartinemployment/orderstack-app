@@ -1,63 +1,63 @@
 .payment-settings {
-  color: #fff;
+  color: var(--os-text-primary);
 }
 
 .processor-options {
   .form-check {
     padding: 0.75rem;
     padding-left: 2rem;
-    border: 1px solid var(--deep-lake, #1D3273);
+    border: 1px solid var(--os-border);
     border-radius: 0.375rem;
 
     &:has(.form-check-input:checked) {
-      border-color: var(--medium-slate-blue, #7E5EF2);
-      background-color: rgba(126, 94, 242, 0.08);
+      border-color: var(--os-primary);
+      background-color: rgba(0, 106, 255, 0.06);
     }
   }
 }
 
 .form-check-input {
-  background-color: var(--midnight-black, #03020D);
-  border-color: var(--deep-lake, #1D3273);
+  background-color: var(--os-bg-card);
+  border-color: var(--os-border);
 
   &:checked {
-    background-color: var(--medium-slate-blue, #7E5EF2);
-    border-color: var(--medium-slate-blue, #7E5EF2);
+    background-color: var(--os-primary);
+    border-color: var(--os-primary);
   }
 }
 
 .form-check-label {
-  color: #fff;
+  color: var(--os-text-primary);
   cursor: pointer;
 }
 
 .surcharge-section {
   padding: 1rem;
-  border: 1px solid var(--deep-lake, #1D3273);
+  border: 1px solid var(--os-border);
   border-radius: 0.375rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--os-bg);
 }
 
 .surcharge-input {
   max-width: 80px;
-  background-color: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--deep-lake, #1D3273);
-  color: #fff;
+  background-color: var(--os-bg);
+  border: 1px solid var(--os-border);
+  color: var(--os-text-primary);
 
   &:focus {
-    border-color: var(--medium-slate-blue, #7E5EF2);
-    box-shadow: 0 0 0 2px rgba(126, 94, 242, 0.2);
-    color: #fff;
+    border-color: var(--os-primary);
+    box-shadow: 0 0 0 2px rgba(0, 106, 255, 0.15);
+    color: var(--os-text-primary);
   }
 }
 
 .btn-primary {
-  background-color: var(--medium-slate-blue, #7E5EF2);
-  border-color: var(--medium-slate-blue, #7E5EF2);
+  background-color: var(--os-primary);
+  border-color: var(--os-primary);
 
   &:hover:not(:disabled) {
-    background-color: var(--lapis-lazuli, #3632A6);
-    border-color: var(--lapis-lazuli, #3632A6);
+    background-color: var(--os-primary-hover);
+    border-color: var(--os-primary-hover);
   }
 
   &:disabled {

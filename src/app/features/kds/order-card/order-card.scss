@@ -1,42 +1,43 @@
 .order-card {
-  background-color: var(--midnight-black, #03020D);
-  border: 1px solid var(--deep-lake, #1D3273);
-  color: #fff;
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  color: var(--os-text-primary);
   margin-bottom: 1rem;
 
   &.urgent {
-    border-color: #dc3545;
+    border-color: var(--os-danger);
     animation: pulse-border 2s infinite;
   }
 
   &.rushed {
-    border-color: #dc3545;
-    box-shadow: 0 0 8px rgba(220, 53, 69, 0.3);
+    border-color: var(--os-danger);
+    box-shadow: 0 0 8px rgba(229, 62, 62, 0.2);
   }
 
   &.throttled {
-    border-color: #b084f5;
-    box-shadow: 0 0 10px rgba(176, 132, 245, 0.22);
+    border-color: #6f42c1;
+    box-shadow: 0 0 10px rgba(111, 66, 193, 0.15);
   }
 }
 
 @keyframes pulse-border {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+    box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.3);
   }
   50% {
-    box-shadow: 0 0 0 4px rgba(220, 53, 69, 0.2);
+    box-shadow: 0 0 0 4px rgba(229, 62, 62, 0.15);
   }
 }
 
 .card-header {
-  background-color: var(--midnight-black, #03020D);
-  border-bottom: 1px solid var(--deep-lake, #1D3273);
+  background-color: var(--os-bg-card);
+  border-bottom: 1px solid var(--os-border);
 }
 
 .order-number {
   font-size: 1.25rem;
-  color: var(--dark-teal, #0E7490);
+  color: var(--os-text-primary);
+  font-weight: 600;
 }
 
 .order-type-pickup {
@@ -52,7 +53,7 @@
 }
 
 .order-type-curbside {
-  background-color: #ffc107;
+  background-color: var(--os-warning);
   color: #000;
 }
 
@@ -82,7 +83,7 @@
 }
 
 .sync-failed {
-  background-color: #dc3545;
+  background-color: var(--os-danger);
 }
 
 .elapsed-time {
@@ -91,9 +92,9 @@
 }
 
 // Prep time colors
-.prep-ok { color: #28a745; }
-.prep-warning { color: #ffc107; }
-.prep-overdue { color: #dc3545; font-weight: 700; }
+.prep-ok { color: var(--os-success); }
+.prep-warning { color: var(--os-warning); }
+.prep-overdue { color: var(--os-danger); font-weight: 700; }
 
 .prep-eta { font-weight: 600; }
 
@@ -107,15 +108,15 @@
 // Prep time progress bar
 .prep-bar-container {
   height: 3px;
-  background-color: rgba(29, 50, 115, 0.3);
+  background-color: var(--os-border);
 
   .prep-bar {
     height: 100%;
     transition: width 0.3s;
 
-    &.prep-ok { background-color: #28a745; }
-    &.prep-warning { background-color: #ffc107; }
-    &.prep-overdue { background-color: #dc3545; }
+    &.prep-ok { background-color: var(--os-success); }
+    &.prep-warning { background-color: var(--os-warning); }
+    &.prep-overdue { background-color: var(--os-danger); }
   }
 }
 
@@ -140,7 +141,7 @@
 .order-items {
   .order-item {
     padding: 0.5rem 0;
-    border-bottom: 1px solid var(--deep-lake, #1D3273);
+    border-bottom: 1px solid var(--os-border);
 
     &:last-child {
       border-bottom: none;
@@ -153,20 +154,20 @@
 }
 
 .card-footer {
-  background-color: var(--midnight-black, #03020D);
-  border-top: 1px solid var(--deep-lake, #1D3273);
+  background-color: var(--os-bg-card);
+  border-top: 1px solid var(--os-border);
 }
 
 .bump-button {
-  background-color: var(--medium-slate-blue, #7E5EF2);
-  border-color: var(--medium-slate-blue, #7E5EF2);
+  background-color: var(--os-primary);
+  border-color: var(--os-primary);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 
   &:hover {
-    background-color: var(--lapis-lazuli, #3632A6);
-    border-color: var(--lapis-lazuli, #3632A6);
+    background-color: var(--os-primary-hover);
+    border-color: var(--os-primary-hover);
   }
 }
 
@@ -185,11 +186,11 @@
 
 // Course system
 .course-group {
-  border-left: 3px solid var(--deep-lake, #1D3273);
+  border-left: 3px solid var(--os-border);
   padding-left: 0.5rem;
 
   &:not(:last-child) {
-    border-bottom: 1px dashed var(--deep-lake, #1D3273);
+    border-bottom: 1px dashed var(--os-border);
     padding-bottom: 0.5rem;
   }
 }
@@ -200,9 +201,10 @@
 
 .course-label {
   font-size: 0.8rem;
-  color: var(--dark-teal, #0E7490);
+  color: var(--os-text-primary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-weight: 600;
 }
 
 .course-status-badge {
@@ -246,19 +248,19 @@
   margin-top: 0.2rem;
   font-size: 0.62rem;
   line-height: 1.2;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--os-text-secondary);
 }
 
 .auto-fire-rationale-meta {
   margin-top: 0.1rem;
   font-size: 0.58rem;
   line-height: 1.2;
-  color: rgba(255, 255, 255, 0.58);
+  color: var(--os-text-muted);
 }
 
 // Item actively firing (just transitioned from held)
 .item-firing {
-  border-left: 2px solid #28a745;
+  border-left: 2px solid var(--os-success);
   padding-left: 0.5rem;
 }
 
@@ -266,7 +268,7 @@
 .item-countdown {
   font-size: 0.7rem;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;  // Prevent layout shift on digit changes
+  font-variant-numeric: tabular-nums;
 }
 
 // Fire Now button (per-item override)
@@ -285,7 +287,7 @@
 .dining-info {
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
-  background-color: rgba(29, 50, 115, 0.15);
+  background-color: var(--os-bg);
 }
 
 .bg-purple {
@@ -308,8 +310,8 @@
   font-weight: 600;
 
   &.print-printing { background-color: #0dcaf0; color: #000; }
-  &.print-printed { background-color: #28a745; color: #fff; }
-  &.print-failed { background-color: #dc3545; color: #fff; }
+  &.print-printed { background-color: var(--os-success); color: #fff; }
+  &.print-failed { background-color: var(--os-danger); color: #fff; }
 }
 
 .retry-print-btn {
@@ -366,9 +368,9 @@
 }
 
 .marketplace-sync-alert {
-  color: #ff9da7;
-  border-left: 3px solid #dc3545;
-  background-color: rgba(220, 53, 69, 0.12);
+  color: var(--os-danger);
+  border-left: 3px solid var(--os-danger);
+  background-color: rgba(229, 62, 62, 0.06);
   padding: 0.35rem 0.5rem;
   border-radius: 0.25rem;
 }
@@ -379,9 +381,9 @@
   flex-wrap: wrap;
   gap: 0.25rem;
   padding: 0.35rem 0.5rem;
-  border: 1px dashed rgba(255, 193, 7, 0.7);
+  border: 1px dashed rgba(245, 166, 35, 0.5);
   border-radius: 0.35rem;
-  background-color: rgba(255, 193, 7, 0.08);
+  background-color: rgba(245, 166, 35, 0.06);
 }
 
 .bg-throttle {

@@ -1,14 +1,16 @@
 .item-management {
   h2 {
-    color: var(--dark-teal, #0E7490);
+    color: var(--os-text-primary);
+    font-size: 1.375rem;
+    font-weight: 600;
   }
 }
 
 .category-filter {
-  background-color: var(--midnight-black, #03020D);
+  background-color: var(--os-bg-card);
   padding: 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--deep-lake, #1D3273);
+  border-radius: var(--os-radius);
+  border: 1px solid var(--os-border);
 }
 
 .items-grid {
@@ -18,13 +20,13 @@
 }
 
 .item-card {
-  background-color: var(--midnight-black, #03020D);
-  border: 1px solid var(--deep-lake, #1D3273);
-  color: #fff;
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  color: var(--os-text-primary);
   transition: border-color 0.2s;
 
   &:hover {
-    border-color: var(--medium-slate-blue, #7E5EF2);
+    border-color: var(--os-primary);
   }
 
   &.unavailable {
@@ -33,7 +35,7 @@
 
   &.eighty-sixed {
     opacity: 0.5;
-    border-color: #dc3545;
+    border-color: var(--os-danger);
 
     .card-title { text-decoration: line-through; }
   }
@@ -44,13 +46,15 @@
   }
 
   .card-title {
-    color: var(--dark-teal, #0E7490);
+    color: var(--os-text-primary);
     font-size: 1rem;
+    font-weight: 600;
   }
 
   .price {
-    color: var(--cerulean-periwinkle, #5CB9F2);
+    color: var(--os-primary);
     font-size: 1.1rem;
+    font-weight: 600;
   }
 
   .category-badge {
@@ -58,9 +62,9 @@
   }
 
   .alert-warning {
-    background-color: rgba(255, 193, 7, 0.2);
-    border-color: rgba(255, 193, 7, 0.5);
-    color: #ffc107;
+    background-color: rgba(245, 166, 35, 0.08);
+    border-color: rgba(245, 166, 35, 0.3);
+    color: var(--os-warning);
   }
 }
 
@@ -77,18 +81,18 @@
   padding: 0.15rem 0.4rem;
 
   &.contains {
-    background-color: rgba(220, 53, 69, 0.3);
-    color: #f77;
+    background-color: rgba(229, 62, 62, 0.1);
+    color: var(--os-danger);
   }
 
   &.may-contain {
-    background-color: rgba(255, 193, 7, 0.25);
-    color: #ffc107;
+    background-color: rgba(245, 166, 35, 0.1);
+    color: var(--os-warning);
   }
 
   &.facility {
-    background-color: rgba(108, 117, 125, 0.3);
-    color: #adb5bd;
+    background-color: rgba(108, 117, 125, 0.1);
+    color: var(--os-text-secondary);
   }
 }
 
@@ -103,21 +107,21 @@
   font-size: 0.6rem;
   font-weight: 500;
   padding: 0.1rem 0.35rem;
-  background-color: rgba(92, 185, 242, 0.2);
-  color: var(--cerulean-periwinkle, #5CB9F2);
+  background-color: var(--os-primary-light);
+  color: var(--os-primary);
 }
 
 .empty-state {
   grid-column: 1 / -1;
-  background-color: var(--midnight-black, #03020D);
-  border: 1px dashed var(--deep-lake, #1D3273);
-  border-radius: 0.5rem;
+  background-color: var(--os-bg-card);
+  border: 1px dashed var(--os-border);
+  border-radius: var(--os-radius);
 }
 
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -126,27 +130,30 @@
 }
 
 .modal-content {
-  background-color: var(--midnight-black, #03020D);
-  border: 1px solid var(--deep-lake, #1D3273);
-  color: #fff;
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  color: var(--os-text-primary);
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
+  border-radius: var(--os-radius-lg);
+  box-shadow: var(--os-shadow-lg);
 
   .card-header {
-    background-color: var(--midnight-black, #03020D);
-    border-bottom: 1px solid var(--deep-lake, #1D3273);
+    background-color: var(--os-bg-card);
+    border-bottom: 1px solid var(--os-border);
 
     h4 {
-      color: var(--dark-teal, #0E7490);
+      color: var(--os-text-primary);
+      font-weight: 600;
     }
   }
 
   .card-footer {
-    background-color: var(--midnight-black, #03020D);
-    border-top: 1px solid var(--deep-lake, #1D3273);
+    background-color: var(--os-bg-card);
+    border-top: 1px solid var(--os-border);
   }
 }
 
@@ -158,51 +165,51 @@
 }
 
 .form-label {
-  color: var(--dark-teal, #0E7490);
+  color: var(--os-text-primary);
   font-weight: 500;
 }
 
 .form-control,
 .form-select {
-  background-color: var(--midnight-black, #03020D);
-  border-color: var(--deep-lake, #1D3273);
-  color: #fff;
+  background-color: var(--os-bg-card);
+  border-color: var(--os-border);
+  color: var(--os-text-primary);
 
   &::placeholder {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--os-text-muted);
   }
 
   &:focus {
-    background-color: var(--midnight-black, #03020D);
-    border-color: var(--medium-slate-blue, #7E5EF2);
-    color: #fff;
-    box-shadow: 0 0 0 0.25rem rgba(126, 94, 242, 0.25);
+    background-color: var(--os-bg-card);
+    border-color: var(--os-primary);
+    color: var(--os-text-primary);
+    box-shadow: 0 0 0 0.25rem rgba(0, 106, 255, 0.15);
   }
 
   option {
-    background-color: var(--midnight-black, #03020D);
+    background-color: var(--os-bg-card);
   }
 }
 
 .input-group-text {
-  background-color: var(--hermes, #203B8C);
-  border-color: var(--deep-lake, #1D3273);
-  color: #fff;
+  background-color: var(--os-bg);
+  border-color: var(--os-border);
+  color: var(--os-text-secondary);
 }
 
 .form-check-input {
-  background-color: var(--midnight-black, #03020D);
-  border-color: var(--deep-lake, #1D3273);
+  background-color: var(--os-bg-card);
+  border-color: var(--os-border);
 
   &:checked {
-    background-color: var(--medium-slate-blue, #7E5EF2);
-    border-color: var(--medium-slate-blue, #7E5EF2);
+    background-color: var(--os-primary);
+    border-color: var(--os-primary);
   }
 }
 
 // Collapsible form sections
 .collapsible-section {
-  border-top: 1px solid var(--deep-lake, #1D3273);
+  border-top: 1px solid var(--os-border);
   margin-top: 1rem;
   padding-top: 0.5rem;
 }
@@ -210,7 +217,7 @@
 .section-toggle {
   background: none;
   border: none;
-  color: var(--dark-teal, #0E7490);
+  color: var(--os-text-primary);
   font-weight: 600;
   font-size: 0.9rem;
   padding: 0.5rem 0;
@@ -222,7 +229,7 @@
   text-align: left;
 
   &:hover {
-    color: var(--cerulean-periwinkle, #5CB9F2);
+    color: var(--os-primary);
   }
 
   .badge {
@@ -263,8 +270,8 @@
 
 // Availability windows in form
 .availability-window {
-  background-color: rgba(29, 50, 115, 0.15);
-  border: 1px solid var(--deep-lake, #1D3273);
+  background-color: var(--os-bg);
+  border: 1px solid var(--os-border);
   border-radius: 0.375rem;
   padding: 0.75rem;
 }
@@ -276,21 +283,22 @@
 }
 
 .ai-data {
-  background-color: rgba(29, 50, 115, 0.3);
+  background-color: var(--os-bg);
   border-radius: 0.375rem;
   padding: 0.375rem 0.5rem;
   font-size: 0.8rem;
-  color: var(--cerulean-periwinkle, #5CB9F2);
+  color: var(--os-primary);
 }
 
 .ai-estimation-result {
-  background-color: var(--midnight-black, #03020D);
-  border: 1px solid var(--deep-lake, #1D3273);
-  color: #fff;
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  color: var(--os-text-primary);
 
   .card-body {
     h6 {
-      color: var(--dark-teal, #0E7490);
+      color: var(--os-text-primary);
+      font-weight: 600;
     }
   }
 }
@@ -314,9 +322,9 @@
 // Search bar
 .search-bar {
   .input-group-text {
-    background-color: var(--hermes, #203B8C);
-    border-color: var(--deep-lake, #1D3273);
-    color: #aaa;
+    background-color: var(--os-bg);
+    border-color: var(--os-border);
+    color: var(--os-text-secondary);
   }
 }
 
@@ -335,8 +343,8 @@
 
 // Modifier tags on item cards
 .modifier-badge {
-  background-color: rgba(126, 94, 242, 0.2);
-  color: var(--medium-slate-blue, #7E5EF2);
+  background-color: var(--os-primary-light);
+  color: var(--os-primary);
   font-size: 0.65rem;
   font-weight: 500;
 }
@@ -354,63 +362,67 @@
 
 .modifier-group-check {
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--deep-lake, #1D3273);
+  border: 1px solid var(--os-border);
   border-radius: 0.375rem;
   cursor: pointer;
   transition: border-color 0.2s;
 
   &:hover {
-    border-color: var(--medium-slate-blue, #7E5EF2);
+    border-color: var(--os-primary);
   }
 }
 
 // Delete confirmation modal
 .delete-confirm-modal {
-  background-color: var(--midnight-black, #03020D);
-  border: 1px solid var(--deep-lake, #1D3273);
-  color: #fff;
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  color: var(--os-text-primary);
   width: 100%;
   max-width: 400px;
   margin: auto;
+  border-radius: var(--os-radius-lg);
+  box-shadow: var(--os-shadow-lg);
 
   .card-header {
-    background-color: var(--midnight-black, #03020D);
-    border-bottom: 1px solid var(--deep-lake, #1D3273);
+    background-color: var(--os-bg-card);
+    border-bottom: 1px solid var(--os-border);
   }
 
   .card-footer {
-    background-color: var(--midnight-black, #03020D);
-    border-top: 1px solid var(--deep-lake, #1D3273);
+    background-color: var(--os-bg-card);
+    border-top: 1px solid var(--os-border);
   }
 }
 
 // CSV Import modal
 .import-modal {
-  background-color: var(--midnight-black, #03020D);
-  border: 1px solid var(--deep-lake, #1D3273);
-  color: #fff;
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  color: var(--os-text-primary);
   width: 100%;
   max-width: 500px;
   margin: auto;
+  border-radius: var(--os-radius-lg);
+  box-shadow: var(--os-shadow-lg);
 
   .card-header {
-    background-color: var(--midnight-black, #03020D);
-    border-bottom: 1px solid var(--deep-lake, #1D3273);
+    background-color: var(--os-bg-card);
+    border-bottom: 1px solid var(--os-border);
   }
 
   .card-footer {
-    background-color: var(--midnight-black, #03020D);
-    border-top: 1px solid var(--deep-lake, #1D3273);
+    background-color: var(--os-bg-card);
+    border-top: 1px solid var(--os-border);
   }
 }
 
 .import-dropzone {
-  border: 2px dashed var(--deep-lake, #1D3273);
-  border-radius: 0.5rem;
-  color: #adb5bd;
+  border: 2px dashed var(--os-border);
+  border-radius: var(--os-radius);
+  color: var(--os-text-secondary);
 
   i {
-    color: var(--cerulean-periwinkle, #5CB9F2);
+    color: var(--os-primary);
   }
 }
 
@@ -426,12 +438,12 @@
 }
 
 .btn-primary {
-  background-color: var(--medium-slate-blue, #7E5EF2);
-  border-color: var(--medium-slate-blue, #7E5EF2);
+  background-color: var(--os-primary);
+  border-color: var(--os-primary);
 
   &:hover:not(:disabled) {
-    background-color: var(--lapis-lazuli, #3632A6);
-    border-color: var(--lapis-lazuli, #3632A6);
+    background-color: var(--os-primary-hover);
+    border-color: var(--os-primary-hover);
   }
 
   &:disabled {

@@ -9,7 +9,7 @@
   padding: 1rem;
   font-family: 'Courier New', monospace;
   font-size: 12px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--os-border);
   border-radius: 4px;
 }
 
@@ -72,14 +72,13 @@
   }
 }
 
-// Screen styles (dark theme compatible)
 .btn-primary {
-  background-color: var(--medium-slate-blue, #7E5EF2);
-  border-color: var(--medium-slate-blue, #7E5EF2);
+  background-color: var(--os-primary);
+  border-color: var(--os-primary);
 
   &:hover:not(:disabled) {
-    background-color: var(--lapis-lazuli, #3632A6);
-    border-color: var(--lapis-lazuli, #3632A6);
+    background-color: var(--os-primary-hover);
+    border-color: var(--os-primary-hover);
   }
 
   &:disabled {

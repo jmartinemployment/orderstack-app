@@ -1,12 +1,13 @@
 .upsell-bar {
-  background-color: var(--midnight-black, #03020D);
-  border: 1px solid var(--deep-lake, #1D3273);
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
   border-radius: 0.5rem;
   padding: 1rem;
 }
 
 .upsell-title {
-  color: var(--dark-teal, #0E7490);
+  color: var(--os-text-primary);
+  font-weight: 600;
   font-size: 0.875rem;
 }
 
@@ -23,17 +24,17 @@
   position: relative;
   flex: 0 0 auto;
   width: 120px;
-  background-color: var(--midnight-black, #03020D);
-  border: 1px solid var(--deep-lake, #1D3273);
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: var(--medium-slate-blue, #7E5EF2);
+    border-color: var(--os-primary);
     transform: translateY(-2px);
 
     .add-btn {
-      background-color: var(--medium-slate-blue, #7E5EF2);
+      background-color: var(--os-primary);
     }
   }
 
@@ -43,7 +44,7 @@
   }
 
   .card-title {
-    color: #fff;
+    color: var(--os-text-primary);
     font-weight: 500;
     line-height: 1.2;
     display: -webkit-box;
@@ -53,12 +54,12 @@
   }
 
   .price {
-    color: var(--cerulean-periwinkle, #5CB9F2);
+    color: var(--os-primary);
     font-weight: bold;
   }
 
   .reason {
-    color: var(--dark-teal, #0E7490);
+    color: var(--os-text-secondary);
     font-size: 0.65rem;
     line-height: 1.2;
     margin-top: 0.25rem;
@@ -78,7 +79,7 @@
   height: 24px;
   border: none;
   border-radius: 50%;
-  background-color: var(--hermes, #203B8C);
+  background-color: var(--os-primary);
   color: #fff;
   font-size: 1rem;
   font-weight: bold;
@@ -90,6 +91,6 @@
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: var(--medium-slate-blue, #7E5EF2);
+    background-color: var(--os-primary-hover);
   }
 }

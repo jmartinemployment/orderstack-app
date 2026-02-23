@@ -1,16 +1,16 @@
 .menu-display {
-  background-color: var(--midnight-black, #03020D);
+  background-color: var(--os-bg);
   min-height: 100%;
 }
 
 .auth-required {
-  background-color: var(--midnight-black, #03020D);
+  background-color: var(--os-bg);
   min-height: 300px;
 }
 
 .category-nav {
-  background-color: var(--midnight-black, #03020D);
-  border-bottom: 1px solid var(--deep-lake, #1D3273);
+  background-color: var(--os-bg-card);
+  border-bottom: 1px solid var(--os-border);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -25,28 +25,29 @@
 }
 
 .category-pill {
-  background-color: var(--midnight-black, #03020D);
-  border: 1px solid var(--deep-lake, #1D3273);
-  color: #fff;
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  color: var(--os-text-primary);
   white-space: nowrap;
   padding: 0.5rem 1rem;
   border-radius: 2rem;
 
   &:hover {
-    background-color: var(--hermes, #203B8C);
-    border-color: var(--hermes, #203B8C);
-    color: #fff;
+    background-color: var(--os-bg);
+    border-color: var(--os-border);
+    color: var(--os-text-primary);
   }
 
   &.active {
-    background-color: var(--medium-slate-blue, #7E5EF2);
-    border-color: var(--medium-slate-blue, #7E5EF2);
+    background-color: var(--os-primary);
+    border-color: var(--os-primary);
     color: #fff;
   }
 }
 
 .category-title {
-  color: var(--dark-teal, #0E7490);
+  color: var(--os-text-primary);
+  font-weight: 600;
 }
 
 .menu-items-grid {
@@ -78,11 +79,11 @@
 .ribbon-line {
   flex: 1;
   height: 1px;
-  background-color: var(--medium-slate-blue, #7E5EF2);
+  background-color: var(--os-primary);
 }
 
 .ribbon-text {
-  color: var(--medium-slate-blue, #7E5EF2);
+  color: var(--os-primary);
   font-size: 1rem;
   font-weight: 600;
   text-transform: uppercase;

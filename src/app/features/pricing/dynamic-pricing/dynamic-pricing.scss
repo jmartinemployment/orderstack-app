@@ -1,34 +1,26 @@
-:host {
-  --midnight-black: #03020D;
-  --deep-lake: #1D3273;
-  --dark-teal: #0E7490;
-  --medium-slate-blue: #7E5EF2;
-  --cerulean-periwinkle: #5CB9F2;
-  --hermes: #203B8C;
-}
-
 .dynamic-pricing {
-  background: var(--midnight-black);
-  color: #e0e0e0;
+  background: var(--os-bg);
+  color: var(--os-text-primary);
   min-height: 100vh;
 }
 
 .auth-required {
-  background: var(--midnight-black);
-  color: #e0e0e0;
+  background: var(--os-bg);
+  color: var(--os-text-primary);
   min-height: 60vh;
 }
 
 // Header
 .pricing-header {
-  background: linear-gradient(135deg, var(--deep-lake) 0%, var(--hermes) 100%);
+  background: linear-gradient(135deg, var(--os-bg-card) 0%, var(--os-bg) 100%);
   padding: 1.25rem;
+  border-bottom: 1px solid var(--os-border);
 }
 
 .header-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--os-text-primary);
   margin: 0;
 }
 
@@ -38,13 +30,13 @@
 
 .meta-text {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--os-text-muted);
 }
 
 .active-rule-badge {
   font-size: 0.75rem;
-  background: rgba(40, 167, 69, 0.2);
-  color: #28a745;
+  background: rgba(0, 166, 126, 0.1);
+  color: var(--os-success);
   padding: 0.2rem 0.6rem;
   border-radius: 1rem;
   font-weight: 600;
@@ -59,7 +51,8 @@
 }
 
 .kpi-card {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--os-bg-card);
+  border: 1px solid var(--os-border);
   border-radius: 0.5rem;
   padding: 0.6rem;
   text-align: center;
@@ -68,28 +61,28 @@
 .kpi-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--dark-teal);
+  color: var(--os-text-primary);
 }
 
 .kpi-label {
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--os-text-muted);
 }
 
 // Tabs
 .pricing-tabs {
   display: flex;
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--os-bg-card);
+  border-bottom: 1px solid var(--os-border);
 }
 
 .tab-btn {
   flex: 1;
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--os-text-muted);
   padding: 0.75rem;
   font-size: 0.85rem;
   font-weight: 600;
@@ -101,13 +94,13 @@
   gap: 0.4rem;
 
   &.active {
-    color: var(--dark-teal);
-    border-bottom-color: var(--dark-teal);
+    color: var(--os-primary);
+    border-bottom-color: var(--os-primary);
   }
 }
 
 .tab-badge {
-  background: var(--medium-slate-blue);
+  background: var(--os-primary);
   color: #fff;
   font-size: 0.6rem;
   padding: 0.1rem 0.35rem;
@@ -116,8 +109,8 @@
 
 // Rule Form
 .rule-form {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--os-bg-card);
+  border: 1px solid var(--os-border);
   border-radius: 0.5rem;
   padding: 1rem;
 
@@ -125,43 +118,43 @@
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--os-text-secondary);
     margin-bottom: 0.2rem;
   }
 
   .form-control,
   .form-select {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #e0e0e0;
+    background: var(--os-bg-card);
+    border-color: var(--os-border);
+    color: var(--os-text-primary);
 
     &:focus {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: var(--cerulean-periwinkle);
-      box-shadow: 0 0 0 2px rgba(92, 185, 242, 0.15);
-      color: #fff;
+      background: var(--os-bg-card);
+      border-color: var(--os-primary);
+      box-shadow: 0 0 0 2px rgba(0, 106, 255, 0.15);
+      color: var(--os-text-primary);
     }
 
     option {
-      background: #1a1a2e;
+      background: var(--os-bg-card);
     }
   }
 }
 
 .day-pills {
   .day-pill {
-    background: rgba(255, 255, 255, 0.06);
-    color: #aaa;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--os-bg);
+    color: var(--os-text-secondary);
+    border: 1px solid var(--os-border);
     border-radius: 0.25rem;
     padding: 0.25rem 0.5rem;
     font-size: 0.7rem;
     cursor: pointer;
 
     &.active {
-      background: var(--medium-slate-blue);
+      background: var(--os-primary);
       color: #fff;
-      border-color: var(--medium-slate-blue);
+      border-color: var(--os-primary);
     }
   }
 }
@@ -175,7 +168,8 @@
 }
 
 .rule-card {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--os-bg-card);
+  border: 1px solid var(--os-border);
   border-radius: 0.5rem;
   overflow: hidden;
 
@@ -200,34 +194,34 @@
   font-weight: 600;
 
   &.type-happy {
-    background: rgba(40, 167, 69, 0.15);
-    color: #28a745;
+    background: rgba(0, 166, 126, 0.1);
+    color: var(--os-success);
   }
 
   &.type-surge {
-    background: rgba(220, 53, 69, 0.15);
-    color: #dc3545;
+    background: rgba(229, 62, 62, 0.08);
+    color: var(--os-danger);
   }
 
   &.type-offpeak {
-    background: rgba(92, 185, 242, 0.15);
-    color: var(--cerulean-periwinkle);
+    background: rgba(0, 106, 255, 0.08);
+    color: var(--os-primary);
   }
 
   &.type-seasonal {
-    background: rgba(255, 193, 7, 0.15);
-    color: #ffc107;
+    background: rgba(245, 166, 35, 0.1);
+    color: var(--os-warning);
   }
 
   &.type-custom {
-    background: rgba(126, 94, 242, 0.15);
-    color: var(--medium-slate-blue);
+    background: rgba(0, 106, 255, 0.08);
+    color: var(--os-primary);
   }
 }
 
 .rule-name {
   font-weight: 600;
-  color: #fff;
+  color: var(--os-text-primary);
   font-size: 0.9rem;
 }
 
@@ -236,11 +230,11 @@
   font-size: 0.85rem;
 
   &.discount {
-    color: #28a745;
+    color: var(--os-success);
   }
 
   &.premium {
-    color: #dc3545;
+    color: var(--os-danger);
   }
 }
 
@@ -250,7 +244,7 @@
 
 .rule-schedule {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--os-text-muted);
   display: flex;
   gap: 1rem;
 }
@@ -260,11 +254,11 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem 0.75rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--os-border);
 }
 
 .toggle-btn {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--os-bg);
   color: #999;
   border: none;
   border-radius: 1rem;
@@ -274,14 +268,15 @@
   cursor: pointer;
 
   &.active {
-    background: #28a745;
+    background: var(--os-success);
     color: #fff;
   }
 }
 
 // Preview Table
 .preview-table {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--os-bg-card);
+  border: 1px solid var(--os-border);
   border-radius: 0.5rem;
   overflow: hidden;
 }
@@ -291,11 +286,11 @@
   grid-template-columns: 2fr 1fr 1fr 1.5fr;
   gap: 0.5rem;
   padding: 0.6rem 0.75rem;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--os-bg);
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--os-text-muted);
   font-weight: 600;
 }
 
@@ -305,21 +300,21 @@
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   font-size: 0.8rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--os-border);
   align-items: center;
 
   &.row-adjusted {
-    background: rgba(126, 94, 242, 0.05);
+    background: rgba(0, 106, 255, 0.03);
   }
 }
 
 .col-name {
-  color: #fff;
+  color: var(--os-text-primary);
   font-weight: 500;
 }
 
 .col-base {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--os-text-secondary);
 
   &.strike {
     text-decoration: line-through;
@@ -331,18 +326,18 @@
   font-weight: 600;
 
   &.discount {
-    color: #28a745;
+    color: var(--os-success);
   }
 
   &.premium {
-    color: #dc3545;
+    color: var(--os-danger);
   }
 }
 
 .rule-mini-badge {
   font-size: 0.65rem;
-  background: rgba(126, 94, 242, 0.15);
-  color: var(--medium-slate-blue);
+  background: rgba(0, 106, 255, 0.08);
+  color: var(--os-primary);
   padding: 0.1rem 0.35rem;
   border-radius: 0.2rem;
 }
@@ -356,7 +351,8 @@
 }
 
 .rec-card {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--os-bg-card);
+  border: 1px solid var(--os-border);
   border-radius: 0.5rem;
   padding: 1rem;
 }
@@ -375,50 +371,50 @@
   border-radius: 0.2rem;
 
   &.conf-high {
-    background: rgba(40, 167, 69, 0.15);
-    color: #28a745;
+    background: rgba(0, 166, 126, 0.1);
+    color: var(--os-success);
   }
 
   &.conf-medium {
-    background: rgba(255, 193, 7, 0.15);
-    color: #ffc107;
+    background: rgba(245, 166, 35, 0.1);
+    color: var(--os-warning);
   }
 
   &.conf-low {
-    background: rgba(108, 117, 125, 0.15);
+    background: rgba(108, 117, 125, 0.1);
     color: #999;
   }
 }
 
 .rec-suggestion {
   font-weight: 600;
-  color: #fff;
+  color: var(--os-text-primary);
   font-size: 0.9rem;
   margin-bottom: 0.35rem;
 }
 
 .rec-reason {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--os-text-secondary);
   margin-bottom: 0.5rem;
 }
 
 .rec-impact {
   font-size: 0.8rem;
-  color: var(--dark-teal);
-  background: rgba(14, 116, 144, 0.06);
+  color: var(--os-primary);
+  background: rgba(0, 106, 255, 0.04);
   padding: 0.35rem 0.5rem;
   border-radius: 0.25rem;
 }
 
 .impact-label {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--os-text-muted);
 }
 
 // Bootstrap overrides
 .btn-primary {
-  background: var(--medium-slate-blue);
-  border-color: var(--medium-slate-blue);
+  background: var(--os-primary);
+  border-color: var(--os-primary);
 }
 
 .btn-outline-light {

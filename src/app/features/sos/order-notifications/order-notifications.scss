@@ -11,7 +11,7 @@
 }
 
 .notification-controls {
-  background-color: rgba(3, 2, 13, 0.9);
+  background-color: rgba(255, 255, 255, 0.95);
   border-radius: 0.375rem;
   padding: 0.375rem 0.5rem;
 
@@ -22,11 +22,12 @@
 }
 
 .notification {
-  background-color: var(--midnight-black, #03020D);
-  border: 1px solid var(--deep-lake, #1D3273);
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
   border-radius: 0.5rem;
+  box-shadow: var(--os-shadow-lg);
   animation: slideIn 0.3s ease-out;
-  border-left: 4px solid var(--deep-lake, #1D3273);
+  border-left: 4px solid var(--os-border);
 
   @keyframes slideIn {
     from {
@@ -40,20 +41,20 @@
   }
 
   .toast-header {
-    background-color: var(--midnight-black, #03020D);
-    border-bottom: 1px solid var(--deep-lake, #1D3273);
-    color: #fff;
+    background-color: var(--os-bg-card);
+    border-bottom: 1px solid var(--os-border);
+    color: var(--os-text-primary);
     padding: 0.5rem 0.75rem;
   }
 
   .toast-body {
-    color: #fff;
+    color: var(--os-text-primary);
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
   }
 
   .elapsed-text {
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--os-text-muted);
     font-size: 0.7rem;
   }
 
@@ -62,7 +63,8 @@
   }
 
   .order-type-badge {
-    background-color: var(--hermes, #203B8C);
+    background-color: var(--os-bg);
+    color: var(--os-text-secondary);
     font-size: 0.65rem;
     text-transform: capitalize;
   }
@@ -80,46 +82,46 @@
   }
 
   .status-success {
-    background-color: #28a745;
+    background-color: var(--os-success);
     color: #fff;
   }
 
   .status-info {
-    background-color: var(--cerulean-periwinkle, #5CB9F2);
+    background-color: var(--os-primary);
     color: #fff;
   }
 
   .status-warning {
-    background-color: #ffc107;
+    background-color: var(--os-warning);
     color: #000;
   }
 
   .status-urgent {
-    background-color: #dc3545;
+    background-color: var(--os-danger);
     color: #fff;
     font-size: 0.6rem;
   }
 
   // Type-specific border colors
   &.notification-success {
-    border-left-color: #28a745;
+    border-left-color: var(--os-success);
   }
 
   &.notification-info {
-    border-left-color: var(--cerulean-periwinkle, #5CB9F2);
+    border-left-color: var(--os-primary);
   }
 
   &.notification-warning {
-    border-left-color: #ffc107;
+    border-left-color: var(--os-warning);
   }
 
   &.notification-urgent {
-    border-left-color: #dc3545;
+    border-left-color: var(--os-danger);
     animation: slideIn 0.3s ease-out, pulseUrgent 2s ease-in-out 3;
 
     @keyframes pulseUrgent {
       0%, 100% { box-shadow: none; }
-      50% { box-shadow: 0 0 12px rgba(220, 53, 69, 0.5); }
+      50% { box-shadow: 0 0 12px rgba(220, 53, 69, 0.3); }
     }
   }
 }
