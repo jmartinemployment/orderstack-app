@@ -10,6 +10,7 @@ import {
   MenuSyncResult,
   MenuSyncHistory,
   SettingsPropagation,
+  OnlineLocation,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -282,5 +283,34 @@ export class MultiLocationService {
 
   clearError(): void {
     this._error.set(null);
+  }
+
+  // --- Online Ordering Multi-Location (GOS-SPEC-07 Phase 2.5) ---
+
+  private readonly _onlineLocations = signal<OnlineLocation[]>([]);
+  private readonly _isLoadingLocations = signal(false);
+
+  readonly onlineLocations = this._onlineLocations.asReadonly();
+  readonly isLoadingLocations = this._isLoadingLocations.asReadonly();
+
+  async loadOnlineLocations(groupSlug: string, lat?: number, lng?: number): Promise<OnlineLocation[]> {
+    this._isLoadingLocations.set(true);
+    try {
+      const params: Record<string, string> = {};
+      if (lat !== undefined && lng !== undefined) {
+        params['lat'] = lat.toString();
+        params['lng'] = lng.toString();
+      }
+      const result = await firstValueFrom(
+        this.http.get<OnlineLocation[]>(`${this.apiUrl}/online/locations/${groupSlug}`, { params })
+      );
+      this._onlineLocations.set(result);
+      return result;
+    } catch {
+      this._onlineLocations.set([]);
+      return [];
+    } finally {
+      this._isLoadingLocations.set(false);
+    }
   }
 }

@@ -19,6 +19,7 @@ import {
   RevenueForecast,
   DemandForecastItem,
   StaffingRecommendation,
+  OnlineOrderEventType,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -504,5 +505,38 @@ export class AnalyticsService {
     } finally {
       this._isLoadingUpsell.set(false);
     }
+  }
+
+  // --- Online Ordering Analytics Events (GOS-SPEC-07 Phase 3) ---
+
+  private _onlineSessionId: string | null = null;
+
+  private getOnlineSessionId(): string {
+    if (!this._onlineSessionId) {
+      this._onlineSessionId = crypto.randomUUID();
+    }
+    return this._onlineSessionId;
+  }
+
+  async trackOnlineEvent(type: OnlineOrderEventType, metadata: Record<string, unknown> = {}): Promise<void> {
+    const restaurantId = this.authService.selectedRestaurantId();
+    if (!restaurantId) return;
+    try {
+      await firstValueFrom(
+        this.http.post(`${this.apiUrl}/analytics/online-events`, {
+          type,
+          restaurantId,
+          sessionId: this.getOnlineSessionId(),
+          metadata,
+          timestamp: new Date().toISOString(),
+        })
+      );
+    } catch {
+      // Non-critical — silently drop analytics events on failure
+    }
+  }
+
+  resetOnlineSession(): void {
+    this._onlineSessionId = null;
   }
 }

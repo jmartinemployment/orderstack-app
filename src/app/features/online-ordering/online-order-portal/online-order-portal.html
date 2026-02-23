@@ -10,9 +10,16 @@
           }
         </h1>
       } @else {
-        <h1 class="portal-title">Order Online</h1>
+        <div class="d-flex align-items-center gap-2">
+          <h1 class="portal-title">Order Online</h1>
+          @if (isMultiLocation() && selectedLocationId() && step() !== 'location') {
+            <button type="button" class="change-location-btn" (click)="changeLocation()">
+              <i class="bi bi-geo-alt"></i> Change
+            </button>
+          }
+        </div>
       }
-      @if (step() !== 'confirm') {
+      @if (step() !== 'confirm' && step() !== 'location') {
         <button type="button" class="cart-btn" (click)="goToCart()" [disabled]="cartItemCount() === 0">
           Cart
           @if (cartItemCount() > 0) {
@@ -25,6 +32,9 @@
     <!-- Step Indicator -->
     @if (!orderConfirmed()) {
       <div class="steps d-flex gap-1 mt-2">
+        @if (isMultiLocation()) {
+          <div class="step-dot" [class.active]="step() === 'location'" (click)="changeLocation()"></div>
+        }
         <div class="step-dot" [class.active]="step() === 'menu'" (click)="setStep('menu')"></div>
         <div class="step-dot" [class.active]="step() === 'cart'"></div>
         <div class="step-dot" [class.active]="step() === 'info'"></div>
@@ -38,11 +48,93 @@
     </div>
   }
 
+  <!-- LOCATION STEP (Multi-Location) -->
+  @if (step() === 'location') {
+    <div class="location-step px-3 pt-3">
+      <h2 class="location-heading">Choose a Location</h2>
+      <p class="location-subheading">Select a location to start your order</p>
+
+      <button type="button" class="find-nearest-btn mb-3" (click)="findNearest()">
+        <i class="bi bi-crosshair me-2"></i>Find Nearest Location
+      </button>
+
+      @if (isLoadingLocations()) {
+        <div class="d-flex justify-content-center p-5">
+          <os-loading-spinner message="Loading locations..." />
+        </div>
+      } @else {
+        <div class="location-list">
+          @for (loc of onlineLocations(); track loc.id) {
+            <button type="button" class="location-card" (click)="selectLocation(loc)">
+              <div class="location-card-header">
+                @if (loc.logo) {
+                  <img [src]="loc.logo" [alt]="loc.name" class="location-logo" />
+                } @else {
+                  <div class="location-logo-placeholder">
+                    <i class="bi bi-shop"></i>
+                  </div>
+                }
+                <div class="location-card-info">
+                  <div class="location-name">{{ loc.name }}</div>
+                  <div class="location-address">{{ loc.address }}</div>
+                  @if (loc.phone) {
+                    <div class="location-phone">{{ loc.phone }}</div>
+                  }
+                </div>
+              </div>
+              <div class="location-card-meta">
+                @if (loc.distanceMiles !== null) {
+                  <span class="location-distance">
+                    <i class="bi bi-geo-alt"></i> {{ loc.distanceMiles | number:'1.1-1' }} mi
+                  </span>
+                }
+                @if (loc.isOpen) {
+                  <span class="location-status open">Open</span>
+                  @if (loc.currentWaitMinutes !== null) {
+                    <span class="location-wait">~{{ loc.currentWaitMinutes }} min</span>
+                  }
+                } @else {
+                  <span class="location-status closed">Closed</span>
+                  @if (loc.nextOpenTime) {
+                    <span class="location-next-open">Opens {{ loc.nextOpenTime }}</span>
+                  }
+                }
+              </div>
+            </button>
+          } @empty {
+            <div class="text-center p-4">
+              <p class="text-muted">No locations available</p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Business Hours Closed Banner -->
+  @if (isCurrentlyClosed() && step() !== 'location' && step() !== 'confirm') {
+    <div class="closed-banner mx-3 mt-2">
+      <div class="closed-banner-icon"><i class="bi bi-clock"></i></div>
+      <div class="closed-banner-text">
+        <strong>We're currently closed</strong>
+        @if (businessHoursCheck(); as check) {
+          @if (check.specialHoursReason) {
+            <span class="closed-reason">{{ check.specialHoursReason }}</span>
+          }
+        }
+        @if (getNextOpenLabel()) {
+          <span class="closed-next-open">{{ getNextOpenLabel() }}</span>
+        }
+      </div>
+      <div class="closed-banner-note">You can still browse the menu</div>
+    </div>
+  }
+
   @if (isLoading()) {
     <div class="d-flex justify-content-center p-5">
       <os-loading-spinner message="Loading menu..." />
     </div>
-  } @else {
+  } @else if (step() !== 'location') {
     <!-- MENU STEP -->
     @if (step() === 'menu') {
       <!-- Search -->
@@ -161,7 +253,16 @@
                   <button type="button" class="qty-btn" (click)="incrementItem(item.id)">+</button>
                 </div>
               } @else {
-                <button type="button" class="add-btn" (click)="addToCart(item)">Add</button>
+                <div class="d-flex align-items-center gap-1">
+                  <button type="button" class="add-btn" (click)="addToCart(item)">Add</button>
+                  <button type="button" class="share-btn" (click)="shareItem(item); $event.stopPropagation()">
+                    @if (isItemCopied(item.id)) {
+                      <i class="bi bi-check-lg"></i>
+                    } @else {
+                      <i class="bi bi-share"></i>
+                    }
+                  </button>
+                </div>
               }
             </div>
           </div>
@@ -256,8 +357,17 @@
           </div>
 
           <div class="px-3 pb-3">
-            <button type="button" class="btn btn-primary w-100" (click)="goToInfo()">
-              Continue to Checkout
+            <button
+              type="button"
+              class="btn btn-primary w-100"
+              [disabled]="isCurrentlyClosed()"
+              (click)="goToInfo()"
+            >
+              @if (isCurrentlyClosed()) {
+                Restaurant Currently Closed
+              } @else {
+                Continue to Checkout
+              }
             </button>
           </div>
         }

@@ -22,6 +22,8 @@ import {
   defaultTimeclockSettings,
   AutoGratuitySettings,
   defaultAutoGratuitySettings,
+  SpecialHours,
+  BusinessHoursCheck,
 } from '../models';
 import { Order } from '../models';
 import { AuthService } from './auth';
@@ -577,5 +579,46 @@ export class RestaurantSettingsService {
       `${this.restaurantId}-capacity-blocks`,
       JSON.stringify(this._capacityBlocks())
     );
+  }
+
+  // --- Business Hours (GOS-SPEC-07 Phase 3) ---
+
+  private readonly _specialHours = signal<SpecialHours[]>([]);
+  private readonly _businessHoursCheck = signal<BusinessHoursCheck | null>(null);
+
+  readonly specialHours = this._specialHours.asReadonly();
+  readonly businessHoursCheck = this._businessHoursCheck.asReadonly();
+
+  async checkBusinessHours(restaurantId: string): Promise<BusinessHoursCheck> {
+    try {
+      const result = await firstValueFrom(
+        this.http.get<BusinessHoursCheck>(`${this.apiUrl}/restaurants/${restaurantId}/business-hours/check`)
+      );
+      this._businessHoursCheck.set(result);
+      return result;
+    } catch {
+      const fallback: BusinessHoursCheck = {
+        isOpen: true,
+        currentDay: '',
+        openTime: null,
+        closeTime: null,
+        nextOpenDay: null,
+        nextOpenTime: null,
+        specialHoursReason: null,
+      };
+      this._businessHoursCheck.set(fallback);
+      return fallback;
+    }
+  }
+
+  async loadSpecialHours(restaurantId: string): Promise<void> {
+    try {
+      const result = await firstValueFrom(
+        this.http.get<SpecialHours[]>(`${this.apiUrl}/restaurants/${restaurantId}/special-hours`)
+      );
+      this._specialHours.set(result);
+    } catch {
+      this._specialHours.set([]);
+    }
   }
 }

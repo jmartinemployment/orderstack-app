@@ -31,6 +31,24 @@
   color: var(--os-text-primary);
 }
 
+.change-location-btn {
+  background: none;
+  border: 1px solid var(--os-border);
+  border-radius: 2rem;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--os-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &:hover {
+    background: rgba(0, 106, 255, 0.04);
+    border-color: var(--os-primary);
+  }
+}
+
 .cart-btn {
   background: var(--os-primary);
   color: #fff;
@@ -83,6 +101,233 @@
 
   &.active {
     background: var(--os-primary);
+  }
+}
+
+// --- Location Selector (Phase 2.5) ---
+
+.location-step {
+  padding-bottom: 2rem;
+}
+
+.location-heading {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--os-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.location-subheading {
+  font-size: 0.85rem;
+  color: var(--os-text-muted);
+  margin-bottom: 1rem;
+}
+
+.find-nearest-btn {
+  background: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  border-radius: 0.5rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--os-primary);
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(0, 106, 255, 0.04);
+    border-color: var(--os-primary);
+  }
+}
+
+.location-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.location-card {
+  background: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: var(--os-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.location-card-header {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.location-logo {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.location-logo-placeholder {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+  background: var(--os-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--os-text-muted);
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.location-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.location-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--os-text-primary);
+  margin-bottom: 0.15rem;
+}
+
+.location-address {
+  font-size: 0.8rem;
+  color: var(--os-text-muted);
+  line-height: 1.3;
+}
+
+.location-phone {
+  font-size: 0.75rem;
+  color: var(--os-text-muted);
+  margin-top: 0.1rem;
+}
+
+.location-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.location-distance {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--os-text-secondary);
+
+  i { margin-right: 0.15rem; }
+}
+
+.location-status {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 2rem;
+  letter-spacing: 0.03em;
+
+  &.open {
+    background: rgba(0, 166, 126, 0.08);
+    color: var(--os-success);
+  }
+
+  &.closed {
+    background: rgba(229, 62, 62, 0.08);
+    color: var(--os-danger);
+  }
+}
+
+.location-wait {
+  font-size: 0.75rem;
+  color: var(--os-text-muted);
+}
+
+.location-next-open {
+  font-size: 0.7rem;
+  color: var(--os-text-muted);
+  font-style: italic;
+}
+
+// --- Business Hours Closed Banner (Phase 3) ---
+
+.closed-banner {
+  background: rgba(245, 166, 35, 0.06);
+  border: 1px solid rgba(245, 166, 35, 0.2);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.35rem;
+}
+
+.closed-banner-icon {
+  font-size: 1.5rem;
+  color: var(--os-warning);
+}
+
+.closed-banner-text {
+  font-size: 0.9rem;
+  color: var(--os-text-primary);
+
+  strong {
+    display: block;
+    margin-bottom: 0.15rem;
+  }
+}
+
+.closed-reason {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--os-text-secondary);
+  font-style: italic;
+}
+
+.closed-next-open {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--os-primary);
+  font-weight: 600;
+}
+
+.closed-banner-note {
+  font-size: 0.75rem;
+  color: var(--os-text-muted);
+}
+
+// --- Share Button (Phase 3) ---
+
+.share-btn {
+  background: none;
+  border: 1px solid var(--os-border);
+  border-radius: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--os-text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 1;
+
+  &:hover {
+    color: var(--os-primary);
+    border-color: var(--os-primary);
+  }
+
+  .bi-check-lg {
+    color: var(--os-success);
   }
 }
 

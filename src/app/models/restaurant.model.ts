@@ -46,3 +46,40 @@ export interface LegacyDevice {
   lastSeenAt: string;
   createdAt: string;
 }
+
+// --- Business Hours (GOS-SPEC-07 Phase 3) ---
+
+export interface SpecialHours {
+  id: string;
+  restaurantId: string;
+  date: string;
+  openTime: string | null;
+  closeTime: string | null;
+  reason: string;
+  isOpen: boolean;
+}
+
+export interface BusinessHoursCheck {
+  isOpen: boolean;
+  currentDay: string;
+  openTime: string | null;
+  closeTime: string | null;
+  nextOpenDay: string | null;
+  nextOpenTime: string | null;
+  specialHoursReason: string | null;
+}
+
+// --- Multi-Location Online Ordering (GOS-SPEC-07 Phase 2.5) ---
+
+export interface OnlineLocation {
+  id: string;
+  name: string;
+  slug: string;
+  address: string;
+  phone: string | null;
+  distanceMiles: number | null;
+  isOpen: boolean;
+  currentWaitMinutes: number | null;
+  nextOpenTime: string | null;
+  logo: string | null;
+}

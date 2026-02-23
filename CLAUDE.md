@@ -496,4 +496,17 @@ ng build --configuration=production
 - **Build: zero errors**
 - Next: Remaining spec phases (GOS-SPEC-02, 10, 11). End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 20)*
+**[February 23, 2026] (Session 21) — GOS-SPEC-07 Phase 2.5 + Phase 3 Complete (Steps 10-14: Multi-Location, Business Hours, Share, Analytics):**
+- **GOS-SPEC-07 100% COMPLETE** — All phases done, spec deleted
+- **Completed specs deleted this session:** GOS-SPEC-04, GOS-SPEC-05, GOS-SPEC-09, GOS-SPEC-07
+- **Step 10 (Multi-Location Ordering):** Added `OnlineLocation` interface to `restaurant.model.ts`. Added `loadOnlineLocations(groupSlug, lat?, lng?)` to `MultiLocationService` with geolocation sorting. OnlineOrderPortal: `OnlineStep` expanded to `'location' | 'menu' | 'cart' | 'info' | 'confirm'`. `resolveSlug()` checks multi-location first. Location selector step with cards (logo, name, address, phone, distance, open/closed status, wait time). "Find Nearest Location" button uses `navigator.geolocation`. "Change Location" button in header. Cart clears on location change.
+- **Step 11 (Business Hours Enforcement):** Added `SpecialHours`, `BusinessHoursCheck` interfaces to `restaurant.model.ts`. Added `checkBusinessHours(restaurantId)`, `loadSpecialHours(restaurantId)` to `RestaurantSettingsService`. `isCurrentlyClosed` computed in OnlineOrderPortal. Amber closed banner shows reason, next open time. "Continue to Checkout" button disabled when closed. Menu browsing still allowed.
+- **Step 12 (Share Links):** Web Share API with clipboard fallback. Share button on each menu item (visible when item not in cart). Copies link `{origin}/order/{slug}?item={itemId}`. Check icon shows briefly after copy. `shareItem()` tracks `share_item` analytics event.
+- **Step 13 (Analytics Events):** Added `OnlineOrderEventType` (10 types) and `OnlineOrderEvent` to `analytics.model.ts`. Added `trackOnlineEvent()`, `resetOnlineSession()`, `getOnlineSessionId()` to `AnalyticsService` (session-scoped UUID via `crypto.randomUUID()`). Events tracked: `page_view`, `menu_view`, `item_view`, `add_to_cart`, `remove_from_cart`, `checkout_start`, `promo_applied`, `order_placed`, `order_failed`, `share_item`. Session resets on `startNewOrder()`.
+- **Step 14 (Build Verification):** `ng build --configuration=production` — zero errors.
+- **Files modified:** `models/restaurant.model.ts`, `models/analytics.model.ts`, `services/restaurant-settings.ts`, `services/analytics.ts`, `services/multi-location.ts`, `features/online-ordering/online-order-portal/` (ts, html, scss — full rewrite)
+- **Build: zero errors**
+- **Remaining specs:** GOS-SPEC-01 (Phase 3 done), GOS-SPEC-02 (Phase 1 only), GOS-SPEC-10 (Phase 1 only), GOS-SPEC-11 (Phase 1 only)
+- Next: GOS-SPEC-02 Phase 2 (hardware management), GOS-SPEC-10 Phase 2 (appointments), or GOS-SPEC-11 Phase 2 (multi-location). End-to-end test with live backend.
+
+*Last Updated: February 23, 2026 (Session 21)*

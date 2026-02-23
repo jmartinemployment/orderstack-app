@@ -227,3 +227,25 @@ export interface StaffingRecommendation {
   totalRecommendedHours: number;
   estimatedLaborCost: number;
 }
+
+// --- Online Ordering Analytics Events (GOS-SPEC-07 Phase 3) ---
+
+export type OnlineOrderEventType =
+  | 'page_view'
+  | 'menu_view'
+  | 'item_view'
+  | 'add_to_cart'
+  | 'remove_from_cart'
+  | 'checkout_start'
+  | 'promo_applied'
+  | 'order_placed'
+  | 'order_failed'
+  | 'share_item';
+
+export interface OnlineOrderEvent {
+  type: OnlineOrderEventType;
+  restaurantId: string;
+  sessionId: string;
+  metadata: Record<string, unknown>;
+  timestamp: string;
+}

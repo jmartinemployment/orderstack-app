@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, effect, input, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { MenuService } from '@services/menu';
 import { CartService } from '@services/cart';
 import { OrderService } from '@services/order';
@@ -9,16 +9,17 @@ import { DeliveryService } from '@services/delivery';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { AnalyticsService } from '@services/analytics';
 import { CustomerService } from '@services/customer';
+import { MultiLocationService } from '@services/multi-location';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { GiftCardService } from '@services/gift-card';
-import { MenuItem, Order, OrderType, DeliveryQuote, getOrderIdentifier, LoyaltyProfile, LoyaltyReward, GiftCardBalanceCheck, getTierLabel, getTierColor, tierMeetsMinimum, AllergenType, Allergen, NutritionFacts, isItemAvailable, getItemAvailabilityLabel, getAllergenLabel, UpsellSuggestion, SavedAddress } from '@models/index';
+import { MenuItem, Order, OrderType, DeliveryQuote, getOrderIdentifier, LoyaltyProfile, LoyaltyReward, GiftCardBalanceCheck, getTierLabel, getTierColor, tierMeetsMinimum, AllergenType, Allergen, NutritionFacts, isItemAvailable, getItemAvailabilityLabel, getAllergenLabel, UpsellSuggestion, SavedAddress, OnlineLocation, BusinessHoursCheck } from '@models/index';
 
-type OnlineStep = 'menu' | 'cart' | 'info' | 'confirm';
+type OnlineStep = 'location' | 'menu' | 'cart' | 'info' | 'confirm';
 type TipPreset = { label: string; percent: number };
 
 @Component({
   selector: 'os-online-ordering',
-  imports: [CurrencyPipe, DatePipe, LoadingSpinner],
+  imports: [CurrencyPipe, DatePipe, DecimalPipe, LoadingSpinner],
   templateUrl: './online-order-portal.html',
   styleUrl: './online-order-portal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +35,7 @@ export class OnlineOrderPortal implements OnDestroy {
   private readonly giftCardService = inject(GiftCardService);
   private readonly analyticsService = inject(AnalyticsService);
   private readonly customerService = inject(CustomerService);
+  private readonly multiLocationService = inject(MultiLocationService);
 
   readonly restaurantSlug = input<string>('');
   readonly table = input<string>('');
@@ -275,6 +277,29 @@ export class OnlineOrderPortal implements OnDestroy {
   private readonly _identifiedCustomerId = signal<string | null>(null);
   readonly identifiedCustomerId = this._identifiedCustomerId.asReadonly();
 
+  // --- Multi-Location (Phase 2.5, Step 10) ---
+  private readonly _isMultiLocation = signal(false);
+  private readonly _selectedLocationId = signal<string | null>(null);
+  readonly isMultiLocation = this._isMultiLocation.asReadonly();
+  readonly selectedLocationId = this._selectedLocationId.asReadonly();
+  readonly onlineLocations = this.multiLocationService.onlineLocations;
+  readonly isLoadingLocations = this.multiLocationService.isLoadingLocations;
+
+  // --- Business Hours (Phase 3, Step 11) ---
+  private readonly _businessHoursCheck = signal<BusinessHoursCheck | null>(null);
+  private readonly _isCheckingHours = signal(false);
+  readonly businessHoursCheck = this._businessHoursCheck.asReadonly();
+  readonly isCheckingHours = this._isCheckingHours.asReadonly();
+
+  readonly isCurrentlyClosed = computed(() => {
+    const check = this._businessHoursCheck();
+    return check !== null && !check.isOpen;
+  });
+
+  // --- Share Links (Phase 3, Step 12) ---
+  private readonly _copiedItemId = signal<string | null>(null);
+  readonly copiedItemId = this._copiedItemId.asReadonly();
+
   readonly canSubmit = computed(() => {
     if (this.cartItemCount() === 0) return false;
     // Age verification required but not done
@@ -314,6 +339,7 @@ export class OnlineOrderPortal implements OnDestroy {
         this.loyaltyService.loadConfig();
         this.loyaltyService.loadRewards();
         void this.settingsService.loadSettings();
+        void this.checkHours(authId);
       }
     });
 
@@ -333,6 +359,17 @@ export class OnlineOrderPortal implements OnDestroy {
 
   private async resolveSlug(slug: string): Promise<void> {
     this._resolveError.set(null);
+
+    // Check if slug resolves to a multi-location group
+    const locations = await this.multiLocationService.loadOnlineLocations(slug);
+    if (locations.length > 1) {
+      this._isMultiLocation.set(true);
+      this._step.set('location');
+      this.analyticsService.trackOnlineEvent('page_view', { page: 'location_selector', slug });
+      return;
+    }
+
+    // Single location or direct restaurant slug
     const restaurant = await this.authService.resolveRestaurantBySlug(slug);
     if (restaurant) {
       this.authService.selectRestaurant(restaurant.id, restaurant.name, restaurant.logo);
@@ -343,10 +380,99 @@ export class OnlineOrderPortal implements OnDestroy {
       this.loyaltyService.loadConfig();
       this.loyaltyService.loadRewards();
       await this.settingsService.loadSettings();
+      await this.checkHours(restaurant.id);
+      this.analyticsService.trackOnlineEvent('page_view', { page: 'menu', restaurantId: restaurant.id });
     } else {
       this._resolveError.set(`Restaurant "${slug}" not found`);
     }
   }
+
+  // --- Multi-Location methods (Phase 2.5) ---
+
+  async selectLocation(location: OnlineLocation): Promise<void> {
+    this._selectedLocationId.set(location.id);
+    this._isMultiLocation.set(true);
+
+    this.authService.selectRestaurant(location.id, location.name, location.logo ?? undefined);
+    this.menuService.loadMenuForRestaurant(location.id);
+    this.loyaltyService.loadConfig();
+    this.loyaltyService.loadRewards();
+    await this.settingsService.loadSettings();
+    await this.checkHours(location.id);
+    this._step.set('menu');
+    this.analyticsService.trackOnlineEvent('page_view', { page: 'menu', restaurantId: location.id });
+  }
+
+  async findNearest(): Promise<void> {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const slug = this.restaurantSlug();
+        if (slug) {
+          await this.multiLocationService.loadOnlineLocations(slug, pos.coords.latitude, pos.coords.longitude);
+        }
+      },
+      () => {
+        // Geolocation denied or unavailable — keep unsorted list
+      }
+    );
+  }
+
+  changeLocation(): void {
+    this._step.set('location');
+    this._selectedLocationId.set(null);
+    this.cartService.clear();
+  }
+
+  // --- Business Hours methods (Phase 3, Step 11) ---
+
+  private async checkHours(restaurantId: string): Promise<void> {
+    this._isCheckingHours.set(true);
+    try {
+      const check = await this.settingsService.checkBusinessHours(restaurantId);
+      this._businessHoursCheck.set(check);
+    } finally {
+      this._isCheckingHours.set(false);
+    }
+  }
+
+  getNextOpenLabel(): string {
+    const check = this._businessHoursCheck();
+    if (!check?.nextOpenDay || !check?.nextOpenTime) return '';
+    return `Opens ${check.nextOpenDay} at ${check.nextOpenTime}`;
+  }
+
+  // --- Share Link methods (Phase 3, Step 12) ---
+
+  async shareItem(item: MenuItem): Promise<void> {
+    const slug = this.restaurantSlug() || 'order';
+    const url = `${window.location.origin}/order/${slug}?item=${item.id}`;
+
+    this.analyticsService.trackOnlineEvent('share_item', { itemId: item.id, itemName: item.name });
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: item.name,
+          text: `Check out ${item.name}!`,
+          url,
+        });
+      } catch {
+        // User cancelled share — fall through to clipboard
+      }
+      return;
+    }
+
+    await navigator.clipboard.writeText(url);
+    this._copiedItemId.set(item.id);
+    setTimeout(() => this._copiedItemId.set(null), 2000);
+  }
+
+  isItemCopied(itemId: string): boolean {
+    return this._copiedItemId() === itemId;
+  }
+
+  // --- Navigation ---
 
   setStep(step: OnlineStep): void {
     this._step.set(step);
@@ -362,6 +488,7 @@ export class OnlineOrderPortal implements OnDestroy {
 
   addToCart(item: MenuItem): void {
     this.cartService.addItem(item);
+    this.analyticsService.trackOnlineEvent('add_to_cart', { itemId: item.id, itemName: item.name, price: item.price });
   }
 
   getItemQuantity(menuItemId: string): number {
@@ -384,6 +511,7 @@ export class OnlineOrderPortal implements OnDestroy {
     if (item) {
       if (item.quantity <= 1) {
         this.cartService.removeItem(item.id);
+        this.analyticsService.trackOnlineEvent('remove_from_cart', { itemId: menuItemId });
       } else {
         this.cartService.decrementQuantity(item.id);
       }
@@ -391,6 +519,10 @@ export class OnlineOrderPortal implements OnDestroy {
   }
 
   removeFromCart(cartItemId: string): void {
+    const item = this.cartItems().find(i => i.id === cartItemId);
+    if (item) {
+      this.analyticsService.trackOnlineEvent('remove_from_cart', { itemId: item.menuItem.id, itemName: item.menuItem.name });
+    }
     this.cartService.removeItem(cartItemId);
   }
 
@@ -431,6 +563,7 @@ export class OnlineOrderPortal implements OnDestroy {
       this._showUpsell.set(true);
     } else {
       this._step.set('info');
+      this.analyticsService.trackOnlineEvent('checkout_start', { itemCount: this.cartItemCount(), subtotal: this.cartSubtotal() });
     }
   }
 
@@ -438,6 +571,7 @@ export class OnlineOrderPortal implements OnDestroy {
 
   addUpsellItem(suggestion: UpsellSuggestion): void {
     this.cartService.addItem(suggestion.item);
+    this.analyticsService.trackOnlineEvent('add_to_cart', { itemId: suggestion.item.id, source: 'upsell' });
   }
 
   dismissUpsell(): void {
@@ -445,6 +579,7 @@ export class OnlineOrderPortal implements OnDestroy {
     this._upsellDismissed.set(true);
     this.analyticsService.clearUpsellSuggestions();
     this._step.set('info');
+    this.analyticsService.trackOnlineEvent('checkout_start', { itemCount: this.cartItemCount(), subtotal: this.cartSubtotal() });
   }
 
   // --- Saved Address methods (Step 7) ---
@@ -639,6 +774,7 @@ export class OnlineOrderPortal implements OnDestroy {
 
   applyGiftCard(): void {
     this._giftCardApplied.set(true);
+    this.analyticsService.trackOnlineEvent('promo_applied', { type: 'gift_card', code: this._giftCardCode() });
   }
 
   clearGiftCard(): void {
@@ -789,6 +925,14 @@ export class OnlineOrderPortal implements OnDestroy {
         if (this.loyaltyEnabled() && earned > 0) {
           this._earnedPointsMessage.set(`You earned ${earned} points on this order!`);
         }
+
+        this.analyticsService.trackOnlineEvent('order_placed', {
+          orderId: order.guid,
+          total: this.cartTotal(),
+          itemCount: this.cartItemCount(),
+          orderType: type,
+        });
+
         this.cartService.clear();
         // Save new address if requested
         if (this._saveNewAddress() && this._identifiedCustomerId() && type === 'delivery') {
@@ -819,9 +963,11 @@ export class OnlineOrderPortal implements OnDestroy {
         }
       } else {
         this._error.set(this.orderService.error() ?? 'Failed to submit order');
+        this.analyticsService.trackOnlineEvent('order_failed', { error: this.orderService.error() ?? 'unknown' });
       }
     } catch (err: unknown) {
       this._error.set(err instanceof Error ? err.message : 'An unexpected error occurred');
+      this.analyticsService.trackOnlineEvent('order_failed', { error: err instanceof Error ? err.message : 'unknown' });
     } finally {
       this._isSubmitting.set(false);
     }
@@ -868,8 +1014,11 @@ export class OnlineOrderPortal implements OnDestroy {
     this._identifiedCustomerId.set(null);
     this._ageVerified.set(false);
     this._showAgeVerification.set(false);
+    this._businessHoursCheck.set(null);
+    this._copiedItemId.set(null);
     this.customerService.clearSavedAddresses();
     this.analyticsService.clearUpsellSuggestions();
+    this.analyticsService.resetOnlineSession();
   }
 
   ngOnDestroy(): void {
@@ -960,6 +1109,7 @@ export class OnlineOrderPortal implements OnDestroy {
 
   toggleItemExpanded(itemId: string): void {
     this._expandedItemId.update(id => id === itemId ? null : itemId);
+    this.analyticsService.trackOnlineEvent('item_view', { itemId });
   }
 
   isItemExpanded(itemId: string): boolean {
