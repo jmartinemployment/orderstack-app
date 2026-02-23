@@ -5,7 +5,7 @@ import { AuthService } from '@services/auth';
 import { LoyaltyService } from '@services/loyalty';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
-import { Customer, CustomerSegment, CrmTab, CrmSortField, LoyaltyTransaction, FeedbackRequest, getTierLabel, getTierColor } from '@models/index';
+import { Customer, CustomerSegment, CrmTab, CrmSortField, LoyaltyTransaction, FeedbackRequest, SmartGroup, SmartGroupFormData, GroupRule, GroupRuleField, GroupRuleOperator, PREBUILT_SMART_GROUPS, MessageThread, MessageChannel, getTierLabel, getTierColor } from '@models/index';
 
 @Component({
   selector: 'os-crm',
@@ -41,6 +41,20 @@ export class CustomerDashboard {
   private readonly _feedbackResponseText = signal('');
   private readonly _isRespondingFeedback = signal(false);
 
+  // Smart Groups (Phase 3)
+  private readonly _showGroupForm = signal(false);
+  private readonly _editingGroupId = signal<string | null>(null);
+  private readonly _groupFormName = signal('');
+  private readonly _groupFormRules = signal<GroupRule[]>([{ field: 'total_orders', operator: 'gte', value: 1 }]);
+  private readonly _groupFormLogic = signal<'and' | 'or'>('and');
+
+  // Messaging Inbox (Phase 3)
+  private readonly _selectedThread = signal<MessageThread | null>(null);
+  private readonly _replyText = signal('');
+  private readonly _replyChannel = signal<'sms' | 'email'>('sms');
+  private readonly _isSendingReply = signal(false);
+  private readonly _inboxFilter = signal<'all' | 'unread'>('all');
+
   readonly activeTab = this._activeTab.asReadonly();
   readonly searchTerm = this._searchTerm.asReadonly();
   readonly segmentFilter = this._segmentFilter.asReadonly();
@@ -62,6 +76,33 @@ export class CustomerDashboard {
   readonly feedbackResponseId = this._feedbackResponseId.asReadonly();
   readonly feedbackResponseText = this._feedbackResponseText.asReadonly();
   readonly isRespondingFeedback = this._isRespondingFeedback.asReadonly();
+
+  // Smart Groups
+  readonly smartGroups = this.customerService.smartGroups;
+  readonly isLoadingGroups = this.customerService.isLoadingGroups;
+  readonly showGroupForm = this._showGroupForm.asReadonly();
+  readonly editingGroupId = this._editingGroupId.asReadonly();
+  readonly groupFormName = this._groupFormName.asReadonly();
+  readonly groupFormRules = this._groupFormRules.asReadonly();
+  readonly groupFormLogic = this._groupFormLogic.asReadonly();
+
+  // Messaging Inbox
+  readonly threads = this.customerService.threads;
+  readonly isLoadingThreads = this.customerService.isLoadingThreads;
+  readonly totalUnreadMessages = this.customerService.totalUnreadMessages;
+  readonly selectedThread = this._selectedThread.asReadonly();
+  readonly replyText = this._replyText.asReadonly();
+  readonly replyChannel = this._replyChannel.asReadonly();
+  readonly isSendingReply = this._isSendingReply.asReadonly();
+  readonly inboxFilter = this._inboxFilter.asReadonly();
+  readonly templates = this.customerService.templates;
+
+  readonly filteredThreads = computed(() => {
+    const filter = this._inboxFilter();
+    const list = this.threads();
+    if (filter === 'unread') return list.filter(t => t.unreadCount > 0);
+    return list;
+  });
 
   readonly customers = this.customerService.customers;
   readonly isLoading = this.customerService.isLoading;
@@ -160,6 +201,13 @@ export class CustomerDashboard {
     this._activeTab.set(tab);
     if (tab === 'insights' && this.feedback().length === 0) {
       this.loadFeedback();
+    }
+    if (tab === 'groups' && this.smartGroups().length === 0) {
+      this.customerService.loadSmartGroups();
+    }
+    if (tab === 'inbox' && this.threads().length === 0) {
+      this.customerService.loadMessageThreads();
+      this.customerService.loadMessageTemplates();
     }
   }
 
@@ -341,6 +389,177 @@ export class CustomerDashboard {
   getSortIcon(field: CrmSortField): string {
     if (this._sortField() !== field) return '';
     return this._sortAsc() ? 'asc' : 'desc';
+  }
+
+  // === Smart Groups (Phase 3) ===
+
+  openGroupForm(): void {
+    this._showGroupForm.set(true);
+    this._editingGroupId.set(null);
+    this._groupFormName.set('');
+    this._groupFormRules.set([{ field: 'total_orders', operator: 'gte', value: 1 }]);
+    this._groupFormLogic.set('and');
+  }
+
+  editGroup(group: SmartGroup): void {
+    this._showGroupForm.set(true);
+    this._editingGroupId.set(group.id);
+    this._groupFormName.set(group.name);
+    this._groupFormRules.set([...group.rules]);
+    this._groupFormLogic.set(group.rulesLogic);
+  }
+
+  closeGroupForm(): void {
+    this._showGroupForm.set(false);
+    this._editingGroupId.set(null);
+  }
+
+  setGroupFormName(event: Event): void {
+    this._groupFormName.set((event.target as HTMLInputElement).value);
+  }
+
+  setGroupFormLogic(logic: 'and' | 'or'): void {
+    this._groupFormLogic.set(logic);
+  }
+
+  addGroupRule(): void {
+    this._groupFormRules.update(rules => [...rules, { field: 'total_orders' as GroupRuleField, operator: 'gte' as GroupRuleOperator, value: 1 }]);
+  }
+
+  removeGroupRule(index: number): void {
+    this._groupFormRules.update(rules => rules.filter((_, i) => i !== index));
+  }
+
+  updateRuleField(index: number, field: string): void {
+    this._groupFormRules.update(rules => rules.map((r, i) => i === index ? { ...r, field: field as GroupRuleField } : r));
+  }
+
+  updateRuleOperator(index: number, operator: string): void {
+    this._groupFormRules.update(rules => rules.map((r, i) => i === index ? { ...r, operator: operator as GroupRuleOperator } : r));
+  }
+
+  updateRuleValue(index: number, event: Event): void {
+    const raw = (event.target as HTMLInputElement).value;
+    const value = Number.isNaN(Number(raw)) ? raw : Number(raw);
+    this._groupFormRules.update(rules => rules.map((r, i) => i === index ? { ...r, value } : r));
+  }
+
+  async saveGroup(): Promise<void> {
+    const name = this._groupFormName().trim();
+    const rules = this._groupFormRules();
+    if (!name || rules.length === 0) return;
+
+    const data: SmartGroupFormData = { name, rules, rulesLogic: this._groupFormLogic() };
+    const editId = this._editingGroupId();
+
+    if (editId) {
+      await this.customerService.updateSmartGroup(editId, data);
+    } else {
+      await this.customerService.createSmartGroup(data);
+    }
+    this.closeGroupForm();
+  }
+
+  async deleteGroup(groupId: string): Promise<void> {
+    await this.customerService.deleteSmartGroup(groupId);
+  }
+
+  async addPrebuiltGroup(index: number): Promise<void> {
+    const prebuilt = PREBUILT_SMART_GROUPS[index];
+    if (!prebuilt) return;
+    await this.customerService.createSmartGroup(prebuilt);
+  }
+
+  async refreshGroupCounts(): Promise<void> {
+    await this.customerService.refreshSmartGroupCounts();
+  }
+
+  getRuleFieldLabel(field: GroupRuleField): string {
+    switch (field) {
+      case 'total_orders': return 'Total Orders';
+      case 'total_spent': return 'Total Spent';
+      case 'avg_order_value': return 'Avg Order Value';
+      case 'days_since_last_order': return 'Days Since Last Order';
+      case 'loyalty_tier': return 'Loyalty Tier';
+      case 'loyalty_points': return 'Loyalty Points';
+      case 'tag': return 'Tag';
+    }
+  }
+
+  getRuleOperatorLabel(operator: GroupRuleOperator): string {
+    switch (operator) {
+      case 'gte': return '>=';
+      case 'lte': return '<=';
+      case 'eq': return '=';
+      case 'neq': return '!=';
+      case 'contains': return 'contains';
+    }
+  }
+
+  // === Unified Messaging Inbox (Phase 3) ===
+
+  setInboxFilter(filter: 'all' | 'unread'): void {
+    this._inboxFilter.set(filter);
+  }
+
+  selectThread(thread: MessageThread): void {
+    this._selectedThread.set(thread);
+    this._replyText.set('');
+    if (thread.unreadCount > 0) {
+      this.customerService.markThreadRead(thread.customerId);
+    }
+  }
+
+  closeThread(): void {
+    this._selectedThread.set(null);
+  }
+
+  setReplyText(event: Event): void {
+    this._replyText.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  setReplyChannel(channel: 'sms' | 'email'): void {
+    this._replyChannel.set(channel);
+  }
+
+  useTemplate(templateBody: string): void {
+    this._replyText.set(templateBody);
+  }
+
+  async sendReply(): Promise<void> {
+    const thread = this._selectedThread();
+    const body = this._replyText().trim();
+    if (!thread || !body) return;
+
+    this._isSendingReply.set(true);
+    try {
+      await this.customerService.sendMessage(thread.customerId, body, this._replyChannel());
+      this._replyText.set('');
+      // Reload threads to get updated messages
+      await this.customerService.loadMessageThreads();
+      const updated = this.threads().find(t => t.customerId === thread.customerId);
+      if (updated) this._selectedThread.set(updated);
+    } finally {
+      this._isSendingReply.set(false);
+    }
+  }
+
+  getChannelLabel(channel: MessageChannel): string {
+    switch (channel) {
+      case 'sms': return 'SMS';
+      case 'email': return 'Email';
+      case 'feedback_response': return 'Feedback';
+      case 'system': return 'System';
+    }
+  }
+
+  getChannelClass(channel: MessageChannel): string {
+    switch (channel) {
+      case 'sms': return 'channel-sms';
+      case 'email': return 'channel-email';
+      case 'feedback_response': return 'channel-feedback';
+      case 'system': return 'channel-system';
+    }
   }
 
   clearError(): void {

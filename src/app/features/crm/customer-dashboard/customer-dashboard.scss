@@ -392,3 +392,317 @@
     opacity: 0.4;
   }
 }
+
+// === Smart Groups Tab ===
+
+.group-form-card {
+  background: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+
+  .form-label {
+    color: var(--os-text-primary);
+  }
+
+  .form-control,
+  .form-select {
+    background-color: var(--os-bg);
+    border-color: var(--os-border);
+    color: var(--os-text-primary);
+    font-size: 0.85rem;
+
+    &::placeholder { color: var(--os-text-muted); }
+    &:focus {
+      border-color: var(--os-primary);
+      box-shadow: 0 0 0 0.15rem rgba(0, 106, 255, 0.15);
+    }
+  }
+}
+
+.rule-row {
+  .rule-field { max-width: 180px; }
+  .rule-operator { max-width: 100px; }
+  .rule-value { max-width: 140px; }
+}
+
+.groups-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.group-card {
+  background: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: border-color 0.2s;
+
+  &:hover { border-color: var(--os-primary); }
+
+  .group-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--os-text-primary);
+  }
+
+  .group-rules {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+  }
+}
+
+.rule-chip {
+  background: var(--os-bg);
+  border: 1px solid var(--os-border);
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--os-text-secondary);
+}
+
+.rule-logic-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--os-primary);
+}
+
+.group-member-count {
+  text-align: center;
+
+  .count-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--os-text-primary);
+    display: block;
+    line-height: 1;
+  }
+
+  .count-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    color: var(--os-text-muted);
+  }
+}
+
+.prebuilt-section {
+  h6 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--os-text-primary);
+  }
+}
+
+.prebuilt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.prebuilt-card {
+  background: var(--os-bg-card);
+  border: 1px dashed var(--os-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  i {
+    font-size: 1.25rem;
+    color: var(--os-primary);
+  }
+
+  span {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--os-text-primary);
+  }
+
+  &:hover {
+    border-color: var(--os-primary);
+    background-color: var(--os-bg);
+  }
+}
+
+// === Messaging Inbox Tab ===
+
+.inbox-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1rem;
+  min-height: 500px;
+}
+
+.thread-list-panel {
+  border-right: 1px solid var(--os-border);
+  padding-right: 1rem;
+  overflow-y: auto;
+  max-height: 600px;
+}
+
+.thread-item {
+  background: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.15s;
+  margin-bottom: 0.5rem;
+
+  &:hover { border-color: var(--os-primary); }
+
+  &.thread-selected {
+    border-color: var(--os-primary);
+    background-color: rgba(0, 106, 255, 0.05);
+  }
+
+  &.thread-unread {
+    border-left: 3px solid var(--os-primary);
+  }
+
+  .thread-customer-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--os-text-primary);
+  }
+
+  .thread-preview {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 240px;
+  }
+}
+
+.channel-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  &.channel-sms { background-color: #17a2b8; color: #fff; }
+  &.channel-email { background-color: var(--os-primary); color: #fff; }
+  &.channel-feedback { background-color: #fd7e14; color: #fff; }
+  &.channel-system { background-color: #6c757d; color: #fff; }
+}
+
+.channel-badge-sm {
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.2rem;
+
+  &.channel-sms { background-color: #17a2b8; color: #fff; }
+  &.channel-email { background-color: var(--os-primary); color: #fff; }
+  &.channel-feedback { background-color: #fd7e14; color: #fff; }
+  &.channel-system { background-color: #6c757d; color: #fff; }
+}
+
+.conversation-panel {
+  display: flex;
+  flex-direction: column;
+
+  .conversation-header {
+    border-bottom: 1px solid var(--os-border);
+    padding-bottom: 0.75rem;
+  }
+}
+
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+}
+
+.message-bubble {
+  max-width: 80%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+
+  &.message-inbound {
+    background: var(--os-bg);
+    border: 1px solid var(--os-border);
+    align-self: flex-start;
+    color: var(--os-text-primary);
+  }
+
+  &.message-outbound {
+    background: var(--os-primary);
+    color: #fff;
+    align-self: flex-end;
+
+    .text-muted { color: rgba(255, 255, 255, 0.7) !important; }
+    .channel-badge-sm { opacity: 0.8; }
+  }
+
+  .message-meta {
+    margin-bottom: 0.25rem;
+  }
+
+  .message-subject {
+    margin-bottom: 0.25rem;
+  }
+
+  .message-body {
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+}
+
+.reply-form {
+  border-top: 1px solid var(--os-border);
+  padding-top: 0.75rem;
+
+  .form-control {
+    background: var(--os-bg);
+    border-color: var(--os-border);
+    color: var(--os-text-primary);
+    font-size: 0.85rem;
+
+    &::placeholder { color: var(--os-text-muted); }
+    &:focus {
+      border-color: var(--os-primary);
+      box-shadow: 0 0 0 0.15rem rgba(0, 106, 255, 0.15);
+    }
+  }
+}
+
+.template-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.template-chip {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .inbox-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .thread-list-panel {
+    border-right: none;
+    padding-right: 0;
+    max-height: 300px;
+  }
+}

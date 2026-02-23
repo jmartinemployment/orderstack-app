@@ -56,6 +56,8 @@
     <button type="button" class="cod-tab" [class.active]="activeTab() === 'tips'" (click)="setTab('tips')">Tips</button>
     <button type="button" class="cod-tab" [class.active]="activeTab() === 'voids'" (click)="setTab('voids')">Voids & Comps</button>
     <button type="button" class="cod-tab" [class.active]="activeTab() === 'items'" (click)="setTab('items')">Top Sellers</button>
+    <button type="button" class="cod-tab" [class.active]="activeTab() === 'team'" (click)="setTab('team')">Team Sales</button>
+    <button type="button" class="cod-tab" [class.active]="activeTab() === 'taxes'" (click)="setTab('taxes')">Taxes & Fees</button>
   </div>
 
   <!-- Loading -->
@@ -307,6 +309,174 @@
             </tbody>
           </table>
         </div>
+      </div>
+    }
+
+    <!-- TEAM SALES TAB -->
+    @if (activeTab() === 'team') {
+      <div class="cod-section">
+        @if (isLoadingTeam()) {
+          <div class="section-card full-width text-center py-4">
+            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+            Loading team sales...
+          </div>
+        } @else {
+          <div class="section-card full-width">
+            <h6>Team Member Sales</h6>
+            <table class="cod-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Job Title</th>
+                  <th class="text-end">Orders</th>
+                  <th class="text-end">Revenue</th>
+                  <th class="text-end">Avg Ticket</th>
+                  <th class="text-end">Tips</th>
+                  <th class="text-end">Hours</th>
+                  <th class="text-end">Commission</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (member of teamSales(); track member.staffId) {
+                  <tr>
+                    <td class="fw-semibold">{{ member.staffName }}</td>
+                    <td>{{ member.jobTitle }}</td>
+                    <td class="text-end">{{ member.orderCount }}</td>
+                    <td class="text-end fw-semibold">{{ member.revenue | currency }}</td>
+                    <td class="text-end">{{ member.avgTicket | currency }}</td>
+                    <td class="text-end">{{ member.tips | currency }}</td>
+                    <td class="text-end">{{ member.hoursWorked | number:'1.1-1' }}</td>
+                    <td class="text-end">{{ member.commissionEarned | currency }}</td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="8" class="text-muted-custom text-center py-4">No team sales data for this date</td></tr>
+                }
+              </tbody>
+              @if (teamSales().length > 0) {
+                <tfoot>
+                  <tr class="total-row">
+                    <td colspan="2">Total</td>
+                    <td class="text-end">{{ teamTotalOrders() }}</td>
+                    <td class="text-end fw-bold">{{ teamTotalRevenue() | currency }}</td>
+                    <td></td>
+                    <td class="text-end fw-bold">{{ teamTotalTips() | currency }}</td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              }
+            </table>
+          </div>
+
+          <!-- Revenue by Team Member Bar Chart -->
+          @if (teamSales().length > 0) {
+            <div class="section-card full-width">
+              <h6>Revenue by Team Member</h6>
+              <div class="team-bar-chart">
+                @for (member of teamSales(); track member.staffId) {
+                  <div class="team-bar-row">
+                    <span class="team-bar-label">{{ member.staffName }}</span>
+                    <div class="team-bar-track">
+                      <div class="team-bar-fill" [style.width.%]="getTeamBarWidth(member.revenue)"></div>
+                    </div>
+                    <span class="team-bar-value">{{ member.revenue | currency }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
+      </div>
+    }
+
+    <!-- TAXES & FEES TAB -->
+    @if (activeTab() === 'taxes') {
+      <div class="cod-section">
+        @if (isLoadingTax()) {
+          <div class="section-card full-width text-center py-4">
+            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+            Loading tax report...
+          </div>
+        } @else if (taxReport(); as report) {
+          <!-- Revenue Summary -->
+          <div class="section-card full-width">
+            <h6>Revenue Summary</h6>
+            <div class="tax-summary-grid">
+              <div class="tax-summary-item">
+                <span class="tax-summary-label">Gross Revenue</span>
+                <span class="tax-summary-value">{{ report.grossRevenue | currency }}</span>
+              </div>
+              <div class="tax-summary-item tax-deduction">
+                <span class="tax-summary-label">Total Tax</span>
+                <span class="tax-summary-value">- {{ report.totalTax | currency }}</span>
+              </div>
+              <div class="tax-summary-item tax-deduction">
+                <span class="tax-summary-label">Service Charges</span>
+                <span class="tax-summary-value">- {{ report.totalServiceCharges | currency }}</span>
+              </div>
+              <div class="tax-summary-item tax-deduction">
+                <span class="tax-summary-label">Fees</span>
+                <span class="tax-summary-value">- {{ report.totalFees | currency }}</span>
+              </div>
+              <div class="tax-summary-item tax-net">
+                <span class="tax-summary-label">Net Revenue</span>
+                <span class="tax-summary-value">{{ report.netRevenue | currency }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Taxes by Rate -->
+          <div class="section-card">
+            <h6>Taxes Collected</h6>
+            @for (tax of report.taxes; track tax.taxName) {
+              <div class="breakdown-row">
+                <span class="breakdown-label">
+                  {{ tax.taxName }}
+                  <small class="text-muted-custom">({{ tax.taxRate | percent:'1.2-2' }})</small>
+                </span>
+                <span class="breakdown-value">{{ tax.taxCollected | currency }}</span>
+              </div>
+            } @empty {
+              <p class="text-muted-custom">No tax data</p>
+            }
+          </div>
+
+          <!-- Service Charges -->
+          <div class="section-card">
+            <h6>Service Charges</h6>
+            @for (charge of report.serviceCharges; track charge.chargeName) {
+              <div class="breakdown-row">
+                <span class="breakdown-label">
+                  {{ charge.chargeName }}
+                  <small class="text-muted-custom">({{ charge.timesApplied }}x)</small>
+                </span>
+                <span class="breakdown-value">{{ charge.totalCollected | currency }}</span>
+              </div>
+            } @empty {
+              <p class="text-muted-custom">No service charges</p>
+            }
+          </div>
+
+          <!-- Fee Breakdown -->
+          <div class="section-card">
+            <h6>Fee Breakdown</h6>
+            @for (fee of report.fees; track fee.feeType) {
+              <div class="breakdown-row">
+                <span class="breakdown-label">
+                  {{ fee.feeType }}
+                  <small class="text-muted-custom">({{ fee.transactionCount }} txns)</small>
+                </span>
+                <span class="breakdown-value">{{ fee.totalAmount | currency }}</span>
+              </div>
+            } @empty {
+              <p class="text-muted-custom">No fees recorded</p>
+            }
+          </div>
+        } @else {
+          <div class="section-card full-width text-center py-4">
+            <p class="text-muted-custom">No tax and fee data available for this date</p>
+          </div>
+        }
       </div>
     }
   }

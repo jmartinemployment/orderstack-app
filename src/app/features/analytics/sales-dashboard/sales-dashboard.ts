@@ -13,6 +13,7 @@ import { CurrencyPipe, DecimalPipe, PercentPipe, TitleCasePipe } from '@angular/
 import { FormsModule } from '@angular/forms';
 import { AnalyticsService } from '@services/analytics';
 import { AuthService } from '@services/auth';
+import { ReportService } from '@services/report';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
 import {
@@ -29,6 +30,7 @@ import {
   TeamMemberSales,
   FunnelStep,
   SalesAlert,
+  RealTimeKpi,
 } from '@models/index';
 
 type SalesDashboardTab = 'overview' | 'goals' | 'team' | 'funnel' | 'alerts';
@@ -43,10 +45,12 @@ type SalesDashboardTab = 'overview' | 'goals' | 'team' | 'funnel' | 'alerts';
 export class SalesDashboard implements OnInit, OnDestroy {
   private readonly analyticsService = inject(AnalyticsService);
   private readonly authService = inject(AuthService);
+  private readonly reportService = inject(ReportService);
 
   readonly teamChartCanvas = viewChild<ElementRef<HTMLCanvasElement>>('teamChart');
 
   private teamChart: Chart | null = null;
+  private kpiRefreshInterval: ReturnType<typeof setInterval> | null = null;
 
   readonly isAuthenticated = this.authService.isAuthenticated;
   readonly report = this.analyticsService.salesReport;
@@ -63,6 +67,30 @@ export class SalesDashboard implements OnInit, OnDestroy {
   readonly salesAlerts = this.analyticsService.salesAlerts;
   readonly isLoadingAlerts = this.analyticsService.isLoadingAlerts;
   readonly unacknowledgedAlertCount = this.analyticsService.unacknowledgedAlertCount;
+
+  // Real-Time KPIs
+  private readonly _realTimeKpi = signal<RealTimeKpi | null>(null);
+  private readonly _isLoadingKpi = signal(false);
+  readonly realTimeKpi = this._realTimeKpi.asReadonly();
+  readonly isLoadingKpi = this._isLoadingKpi.asReadonly();
+
+  readonly revenueVsYesterday = computed(() => {
+    const kpi = this._realTimeKpi();
+    if (!kpi || kpi.yesterdaySameTimeRevenue === 0) return null;
+    return ((kpi.todayRevenue - kpi.yesterdaySameTimeRevenue) / kpi.yesterdaySameTimeRevenue) * 100;
+  });
+
+  readonly ordersVsYesterday = computed(() => {
+    const kpi = this._realTimeKpi();
+    if (!kpi || kpi.yesterdaySameTimeOrders === 0) return null;
+    return ((kpi.todayOrders - kpi.yesterdaySameTimeOrders) / kpi.yesterdaySameTimeOrders) * 100;
+  });
+
+  readonly revenueVsLastWeek = computed(() => {
+    const kpi = this._realTimeKpi();
+    if (!kpi || kpi.lastWeekSameDayRevenue === 0) return null;
+    return ((kpi.todayRevenue - kpi.lastWeekSameDayRevenue) / kpi.lastWeekSameDayRevenue) * 100;
+  });
 
   private readonly _period = signal<'daily' | 'weekly'>('daily');
   private readonly _activeTab = signal<SalesDashboardTab>('overview');
@@ -120,11 +148,40 @@ export class SalesDashboard implements OnInit, OnDestroy {
       this.analyticsService.loadSalesReport(this._period());
       this.analyticsService.loadGoals();
       this.analyticsService.loadSalesAlerts();
+      this.loadRealTimeKpis();
+      // Refresh KPIs every 60 seconds
+      this.kpiRefreshInterval = setInterval(() => this.loadRealTimeKpis(), 60000);
     }
   }
 
   ngOnDestroy(): void {
     destroyChart(this.teamChart);
+    if (this.kpiRefreshInterval) {
+      clearInterval(this.kpiRefreshInterval);
+    }
+  }
+
+  async loadRealTimeKpis(): Promise<void> {
+    this._isLoadingKpi.set(true);
+    try {
+      const kpi = await this.reportService.getRealTimeKpis();
+      this._realTimeKpi.set(kpi);
+    } finally {
+      this._isLoadingKpi.set(false);
+    }
+  }
+
+  getComparisonClass(value: number | null): string {
+    if (value === null) return 'text-muted';
+    if (value > 0) return 'text-success';
+    if (value < 0) return 'text-danger';
+    return 'text-muted';
+  }
+
+  getComparisonIcon(value: number | null): string {
+    if (value === null) return '';
+    if (value > 0) return '+';
+    return '';
   }
 
   setTab(tab: SalesDashboardTab): void {

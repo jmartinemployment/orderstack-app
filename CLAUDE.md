@@ -484,4 +484,16 @@ ng build --configuration=production
 - **Build: zero errors**
 - Next: Remaining spec phases (GOS-SPEC-02, 10, 11). End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 19)*
+**[February 23, 2026] (Session 20) — GOS-SPEC-04 Phase 3 Complete + GOS-SPEC-09 Phase 3 Complete:**
+- **GOS-SPEC-04 Phase 3 COMPLETE** — Team Member Sales, Tax & Service Charge Report, Real-Time KPI Ticker
+- **GOS-SPEC-09 Phase 3 COMPLETE** — Smart Customer Groups, Unified Messaging Inbox
+- **Models (prior session):** Added `TeamMemberSalesRow`, `TaxReportRow`, `ServiceChargeRow`, `FeeBreakdownRow`, `TaxServiceChargeReport`, `RealTimeKpi` to `report.model.ts`. Added `GroupRuleField`, `GroupRuleOperator`, `GroupRule`, `SmartGroup`, `SmartGroupFormData`, `PREBUILT_SMART_GROUPS`, `MessageChannel`, `CustomerMessage`, `MessageThread`, `MessageTemplate` to `customer.model.ts`.
+- **Services (prior session):** Added `getTeamMemberSales()`, `getTaxServiceChargeReport()`, `getRealTimeKpis()` to `ReportService`. Added `loadSmartGroups()`, `createSmartGroup()`, `updateSmartGroup()`, `deleteSmartGroup()`, `refreshSmartGroupCounts()`, `loadMessageThreads()`, `sendMessage()`, `markThreadRead()`, `loadMessageTemplates()` to `CustomerService`.
+- **Close-of-Day UI:** Added "Team Sales" and "Taxes & Fees" tabs (7 total). Team tab: 8-column table (name, job, orders, revenue, avg ticket, tips, hours, commission) + totals footer + CSS bar chart. Taxes tab: revenue summary (gross → deductions → net), taxes by rate, service charges, fee breakdown. Lazy-loaded tab data.
+- **Sales Dashboard UI:** Added real-time KPI ticker above tabs — today's revenue/orders with vs-yesterday %, AOV, vs-last-week %. Auto-refreshes every 60 seconds with proper cleanup in ngOnDestroy.
+- **CRM Dashboard UI:** Added "Groups" and "Inbox" tabs. Groups: create/edit form with rules builder (field/operator/value), groups list with rule chips, prebuilt groups quick-add (Lunch Regulars, Weekend Diners, High Spenders, Birthday This Month). Inbox: two-panel layout with thread list (filter all/unread, channel badges) and conversation panel (message bubbles, channel selector, template chips, reply form).
+- **Files modified:** `models/report.model.ts`, `models/customer.model.ts`, `services/report.ts`, `services/customer.ts`, `features/reports/close-of-day/` (ts, html, scss), `features/analytics/sales-dashboard/` (ts, html, scss), `features/crm/customer-dashboard/` (ts, html, scss), `specs/GOS-SPEC-04-reports.md`, `specs/GOS-SPEC-09-customer-engagement.md`
+- **Build: zero errors**
+- Next: Remaining spec phases (GOS-SPEC-02, 10, 11). End-to-end test with live backend.
+
+*Last Updated: February 23, 2026 (Session 20)*

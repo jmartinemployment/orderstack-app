@@ -18,6 +18,9 @@ import {
   ChannelBreakdownRow,
   DiscountReportRow,
   RefundReportRow,
+  TeamMemberSalesRow,
+  TaxServiceChargeReport,
+  RealTimeKpi,
 } from '@models/report.model';
 
 const ALL_REPORT_BLOCKS: ReportBlock[] = [
@@ -354,6 +357,60 @@ export class ReportService {
       const message = err instanceof Error ? err.message : 'Failed to load refund report';
       this._error.set(message);
       return [];
+    }
+  }
+
+  // --- Phase 3: Team Member Sales ---
+
+  async getTeamMemberSales(dateRange: ReportDateRange): Promise<TeamMemberSalesRow[]> {
+    if (!this.restaurantId) return [];
+    this._error.set(null);
+    try {
+      const rows = await firstValueFrom(
+        this.http.get<TeamMemberSalesRow[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/team-member-sales`,
+          { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
+        )
+      );
+      return rows ?? [];
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load team member sales';
+      this._error.set(message);
+      return [];
+    }
+  }
+
+  // --- Phase 3: Tax & Service Charge Report ---
+
+  async getTaxServiceChargeReport(dateRange: ReportDateRange): Promise<TaxServiceChargeReport | null> {
+    if (!this.restaurantId) return null;
+    this._error.set(null);
+    try {
+      return await firstValueFrom(
+        this.http.get<TaxServiceChargeReport>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/tax-service-charges`,
+          { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
+        )
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load tax report';
+      this._error.set(message);
+      return null;
+    }
+  }
+
+  // --- Phase 3: Real-Time KPI ---
+
+  async getRealTimeKpis(): Promise<RealTimeKpi | null> {
+    if (!this.restaurantId) return null;
+    try {
+      return await firstValueFrom(
+        this.http.get<RealTimeKpi>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/realtime-kpis`
+        )
+      );
+    } catch {
+      return null;
     }
   }
 

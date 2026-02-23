@@ -22,6 +22,35 @@
     </div>
   </div>
 
+  <!-- Real-Time KPI Ticker -->
+  @if (realTimeKpi(); as kpi) {
+    <div class="realtime-ticker mb-3">
+      <div class="ticker-item">
+        <span class="ticker-label"><i class="bi bi-lightning-charge-fill"></i> Today</span>
+        <span class="ticker-value">{{ kpi.todayRevenue | currency }}</span>
+        <span class="ticker-sub">{{ kpi.todayOrders }} orders</span>
+        @if (revenueVsYesterday() !== null) {
+          <span class="ticker-change" [class]="getComparisonClass(revenueVsYesterday())">
+            {{ getComparisonIcon(revenueVsYesterday()) }}{{ revenueVsYesterday()! | number:'1.1-1' }}% vs yesterday
+          </span>
+        }
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-label">Avg Order</span>
+        <span class="ticker-value">{{ kpi.todayAov | currency }}</span>
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-label">vs Last Week</span>
+        <span class="ticker-value">{{ kpi.lastWeekSameDayRevenue | currency }}</span>
+        @if (revenueVsLastWeek() !== null) {
+          <span class="ticker-change" [class]="getComparisonClass(revenueVsLastWeek())">
+            {{ getComparisonIcon(revenueVsLastWeek()) }}{{ revenueVsLastWeek()! | number:'1.1-1' }}%
+          </span>
+        }
+      </div>
+    </div>
+  }
+
   <!-- Tabs -->
   <div class="dashboard-tabs mb-3">
     <button class="tab-btn" [class.active]="activeTab() === 'overview'" (click)="setTab('overview')">

@@ -6,14 +6,22 @@ import {
   computed,
   OnInit,
 } from '@angular/core';
-import { CurrencyPipe, PercentPipe } from '@angular/common';
+import { CurrencyPipe, PercentPipe, DecimalPipe } from '@angular/common';
 import { OrderService } from '@services/order';
 import { AnalyticsService } from '@services/analytics';
 import { TipService } from '@services/tip';
 import { AuthService } from '@services/auth';
-import { Order, Check, CheckDiscount, VoidedSelection } from '@models/index';
+import { ReportService } from '@services/report';
+import {
+  Order,
+  Check,
+  CheckDiscount,
+  VoidedSelection,
+  TeamMemberSalesRow,
+  TaxServiceChargeReport,
+} from '@models/index';
 
-type ReportTab = 'summary' | 'payments' | 'tips' | 'voids' | 'items';
+type ReportTab = 'summary' | 'payments' | 'tips' | 'voids' | 'items' | 'team' | 'taxes';
 
 interface PaymentMethodBreakdown {
   method: string;
@@ -36,7 +44,7 @@ interface TopSellerEntry {
 
 @Component({
   selector: 'os-close-of-day',
-  imports: [CurrencyPipe, PercentPipe],
+  imports: [CurrencyPipe, PercentPipe, DecimalPipe],
   templateUrl: './close-of-day.html',
   styleUrl: './close-of-day.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,16 +54,44 @@ export class CloseOfDay implements OnInit {
   private readonly analyticsService = inject(AnalyticsService);
   private readonly tipService = inject(TipService);
   private readonly authService = inject(AuthService);
+  private readonly reportService = inject(ReportService);
 
   private readonly _activeTab = signal<ReportTab>('summary');
   private readonly _reportDate = signal(new Date());
   private readonly _isLoading = signal(false);
+
+  // Phase 3: Team Member Sales
+  private readonly _teamSales = signal<TeamMemberSalesRow[]>([]);
+  private readonly _isLoadingTeam = signal(false);
+
+  // Phase 3: Tax & Service Charge Report
+  private readonly _taxReport = signal<TaxServiceChargeReport | null>(null);
+  private readonly _isLoadingTax = signal(false);
 
   readonly activeTab = this._activeTab.asReadonly();
   readonly reportDate = this._reportDate.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly salesReport = this.analyticsService.salesReport;
   readonly tipReport = this.tipService.report;
+
+  readonly teamSales = this._teamSales.asReadonly();
+  readonly isLoadingTeam = this._isLoadingTeam.asReadonly();
+  readonly taxReport = this._taxReport.asReadonly();
+  readonly isLoadingTax = this._isLoadingTax.asReadonly();
+
+  // Team member computed totals
+  readonly teamTotalRevenue = computed(() =>
+    this._teamSales().reduce((sum, m) => sum + m.revenue, 0)
+  );
+  readonly teamTotalOrders = computed(() =>
+    this._teamSales().reduce((sum, m) => sum + m.orderCount, 0)
+  );
+  readonly teamTotalTips = computed(() =>
+    this._teamSales().reduce((sum, m) => sum + m.tips, 0)
+  );
+  readonly teamMaxRevenue = computed(() =>
+    Math.max(1, ...this._teamSales().map(m => m.revenue))
+  );
 
   // Filter orders to today's closed orders
   readonly todayOrders = computed(() => {
@@ -97,7 +133,6 @@ export class CloseOfDay implements OnInit {
   });
 
   readonly totalGuests = computed(() => {
-    // Estimate: count unique seat numbers or default to 1 per order
     return this.closedOrders().reduce((sum, o) => {
       const seats = new Set<number>();
       for (const check of o.checks) {
@@ -131,7 +166,6 @@ export class CloseOfDay implements OnInit {
           map.set(method, entry);
         }
       }
-      // If no payments recorded, count as cash
       if (order.checks.every(c => c.payments.length === 0)) {
         const entry = map.get('cash') ?? { count: 0, total: 0 };
         entry.count++;
@@ -277,7 +311,6 @@ export class CloseOfDay implements OnInit {
         this.orderService.loadOrders(),
         this.analyticsService.loadSalesReport('daily'),
       ]);
-      // Set tip service date range to today
       const date = this._reportDate();
       const start = new Date(date);
       start.setHours(0, 0, 0, 0);
@@ -291,10 +324,18 @@ export class CloseOfDay implements OnInit {
 
   setTab(tab: ReportTab): void {
     this._activeTab.set(tab);
+    if (tab === 'team' && this._teamSales().length === 0) {
+      this.loadTeamSales();
+    }
+    if (tab === 'taxes' && !this._taxReport()) {
+      this.loadTaxReport();
+    }
   }
 
   setReportDate(dateStr: string): void {
     this._reportDate.set(new Date(dateStr + 'T12:00:00'));
+    this._teamSales.set([]);
+    this._taxReport.set(null);
     this.loadReport();
   }
 
@@ -327,6 +368,45 @@ export class CloseOfDay implements OnInit {
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  // --- Phase 3: Team Member Sales ---
+
+  async loadTeamSales(): Promise<void> {
+    this._isLoadingTeam.set(true);
+    try {
+      const dateStr = this.getReportDateString();
+      const rows = await this.reportService.getTeamMemberSales({
+        startDate: dateStr,
+        endDate: dateStr,
+      });
+      this._teamSales.set(rows);
+    } finally {
+      this._isLoadingTeam.set(false);
+    }
+  }
+
+  getTeamBarWidth(revenue: number): number {
+    const max = this.teamMaxRevenue();
+    return max > 0 ? (revenue / max) * 100 : 0;
+  }
+
+  // --- Phase 3: Tax & Service Charge Report ---
+
+  async loadTaxReport(): Promise<void> {
+    this._isLoadingTax.set(true);
+    try {
+      const dateStr = this.getReportDateString();
+      const report = await this.reportService.getTaxServiceChargeReport({
+        startDate: dateStr,
+        endDate: dateStr,
+      });
+      this._taxReport.set(report);
+    } finally {
+      this._isLoadingTax.set(false);
+    }
+  }
+
+  // --- Private helpers ---
 
   private formatPaymentMethod(method: string): string {
     switch (method) {

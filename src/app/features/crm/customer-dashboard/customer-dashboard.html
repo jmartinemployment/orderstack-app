@@ -53,6 +53,19 @@
         }
       </button>
     </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab() === 'groups'" (click)="setTab('groups')">
+        Groups
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab() === 'inbox'" (click)="setTab('inbox')">
+        Inbox
+        @if (totalUnreadMessages() > 0) {
+          <span class="badge bg-danger ms-1">{{ totalUnreadMessages() }}</span>
+        }
+      </button>
+    </li>
   </ul>
 
   @if (isLoading()) {
@@ -359,6 +372,322 @@
           </div>
         }
       }
+    }
+
+    <!-- GROUPS TAB -->
+    @if (activeTab() === 'groups') {
+      <div class="groups-section">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="mb-0">Smart Customer Groups</h6>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="refreshGroupCounts()">
+              <i class="bi bi-arrow-clockwise me-1"></i>Refresh Counts
+            </button>
+            <button type="button" class="btn btn-sm btn-primary" (click)="openGroupForm()">
+              <i class="bi bi-plus-lg me-1"></i>Create Group
+            </button>
+          </div>
+        </div>
+
+        @if (isLoadingGroups()) {
+          <div class="d-flex justify-content-center p-4">
+            <os-loading-spinner message="Loading groups..." />
+          </div>
+        } @else {
+          <!-- Group Form -->
+          @if (showGroupForm()) {
+            <div class="group-form-card mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0">{{ editingGroupId() ? 'Edit Group' : 'New Group' }}</h6>
+                <button type="button" class="btn-close" (click)="closeGroupForm()"></button>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label small fw-semibold">Group Name</label>
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  placeholder="e.g. Lunch Regulars"
+                  [value]="groupFormName()"
+                  (input)="setGroupFormName($event)"
+                />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label small fw-semibold">Rules Logic</label>
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-sm" [class.btn-primary]="groupFormLogic() === 'and'" [class.btn-outline-secondary]="groupFormLogic() !== 'and'" (click)="setGroupFormLogic('and')">
+                    Match ALL rules
+                  </button>
+                  <button type="button" class="btn btn-sm" [class.btn-primary]="groupFormLogic() === 'or'" [class.btn-outline-secondary]="groupFormLogic() !== 'or'" (click)="setGroupFormLogic('or')">
+                    Match ANY rule
+                  </button>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label small fw-semibold">Rules</label>
+                @for (rule of groupFormRules(); track $index) {
+                  <div class="rule-row d-flex gap-2 mb-2 align-items-center">
+                    <select class="form-select form-select-sm rule-field" [value]="rule.field" (change)="updateRuleField($index, $any($event.target).value)">
+                      <option value="total_orders">Total Orders</option>
+                      <option value="total_spent">Total Spent</option>
+                      <option value="avg_order_value">Avg Order Value</option>
+                      <option value="days_since_last_order">Days Since Last Order</option>
+                      <option value="loyalty_tier">Loyalty Tier</option>
+                      <option value="loyalty_points">Loyalty Points</option>
+                      <option value="tag">Tag</option>
+                    </select>
+                    <select class="form-select form-select-sm rule-operator" [value]="rule.operator" (change)="updateRuleOperator($index, $any($event.target).value)">
+                      <option value="gte">>=</option>
+                      <option value="lte"><=</option>
+                      <option value="eq">=</option>
+                      <option value="neq">!=</option>
+                      <option value="contains">contains</option>
+                    </select>
+                    <input
+                      type="text"
+                      class="form-control form-control-sm rule-value"
+                      [value]="rule.value"
+                      (input)="updateRuleValue($index, $event)"
+                    />
+                    @if (groupFormRules().length > 1) {
+                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeGroupRule($index)">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    }
+                  </div>
+                }
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="addGroupRule()">
+                  <i class="bi bi-plus me-1"></i>Add Rule
+                </button>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-primary" [disabled]="!groupFormName().trim() || groupFormRules().length === 0" (click)="saveGroup()">
+                  {{ editingGroupId() ? 'Update Group' : 'Create Group' }}
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="closeGroupForm()">Cancel</button>
+              </div>
+            </div>
+          }
+
+          <!-- Groups List -->
+          @if (smartGroups().length > 0) {
+            <div class="groups-list">
+              @for (group of smartGroups(); track group.id) {
+                <div class="group-card">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <div class="group-name">
+                        {{ group.name }}
+                        @if (group.isPrebuilt) {
+                          <span class="badge bg-secondary ms-1">Prebuilt</span>
+                        }
+                      </div>
+                      <div class="group-rules small text-muted mt-1">
+                        @for (rule of group.rules; track $index) {
+                          @if ($index > 0) {
+                            <span class="rule-logic-label">{{ group.rulesLogic === 'and' ? 'AND' : 'OR' }}</span>
+                          }
+                          <span class="rule-chip">
+                            {{ getRuleFieldLabel(rule.field) }}
+                            {{ getRuleOperatorLabel(rule.operator) }}
+                            {{ rule.value }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                      <div class="group-member-count">
+                        <span class="count-value">{{ group.memberCount }}</span>
+                        <span class="count-label">members</span>
+                      </div>
+                      <div class="d-flex gap-1">
+                        @if (!group.isPrebuilt) {
+                          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="editGroup(group)">
+                            <i class="bi bi-pencil"></i>
+                          </button>
+                        }
+                        <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteGroup(group.id)">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-state text-center py-4 mb-4">
+              <div class="empty-icon mb-2"><i class="bi bi-people"></i></div>
+              <p class="text-muted mb-3">No customer groups yet. Create custom groups or add prebuilt ones.</p>
+            </div>
+          }
+
+          <!-- Prebuilt Groups -->
+          <div class="prebuilt-section mt-4">
+            <h6 class="mb-3">Quick-Add Prebuilt Groups</h6>
+            <div class="prebuilt-grid">
+              <div class="prebuilt-card" (click)="addPrebuiltGroup(0)">
+                <i class="bi bi-sun"></i>
+                <span>Lunch Regulars</span>
+              </div>
+              <div class="prebuilt-card" (click)="addPrebuiltGroup(1)">
+                <i class="bi bi-calendar-weekend"></i>
+                <span>Weekend Diners</span>
+              </div>
+              <div class="prebuilt-card" (click)="addPrebuiltGroup(2)">
+                <i class="bi bi-gem"></i>
+                <span>High Spenders</span>
+              </div>
+              <div class="prebuilt-card" (click)="addPrebuiltGroup(3)">
+                <i class="bi bi-cake2"></i>
+                <span>Birthday This Month</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- INBOX TAB -->
+    @if (activeTab() === 'inbox') {
+      <div class="inbox-section">
+        @if (isLoadingThreads()) {
+          <div class="d-flex justify-content-center p-4">
+            <os-loading-spinner message="Loading messages..." />
+          </div>
+        } @else {
+          <div class="inbox-layout">
+            <!-- Thread List -->
+            <div class="thread-list-panel">
+              <div class="thread-filters d-flex gap-2 mb-3">
+                <button type="button" class="btn btn-sm" [class.btn-primary]="inboxFilter() === 'all'" [class.btn-outline-secondary]="inboxFilter() !== 'all'" (click)="setInboxFilter('all')">
+                  All
+                </button>
+                <button type="button" class="btn btn-sm" [class.btn-primary]="inboxFilter() === 'unread'" [class.btn-outline-secondary]="inboxFilter() !== 'unread'" (click)="setInboxFilter('unread')">
+                  Unread
+                  @if (totalUnreadMessages() > 0) {
+                    <span class="badge bg-danger ms-1">{{ totalUnreadMessages() }}</span>
+                  }
+                </button>
+              </div>
+
+              @if (filteredThreads().length === 0) {
+                <div class="empty-state text-center py-4">
+                  <div class="empty-icon mb-2"><i class="bi bi-inbox"></i></div>
+                  <p class="text-muted">
+                    @if (inboxFilter() === 'unread') {
+                      No unread messages
+                    } @else {
+                      No messages yet. Customer conversations will appear here.
+                    }
+                  </p>
+                </div>
+              } @else {
+                @for (thread of filteredThreads(); track thread.customerId) {
+                  <div class="thread-item" [class.thread-selected]="selectedThread()?.customerId === thread.customerId" [class.thread-unread]="thread.unreadCount > 0" (click)="selectThread(thread)">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div class="thread-customer-name">{{ thread.customerName }}</div>
+                      <span class="thread-time small text-muted">{{ thread.lastMessageAt | date:'shortDate' }}</span>
+                    </div>
+                    <div class="thread-preview small text-muted">
+                      {{ thread.messages.at(-1)?.body ?? '' }}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                      <span class="badge channel-badge" [class]="getChannelClass(thread.messages.at(-1)?.channel ?? 'system')">
+                        {{ getChannelLabel(thread.messages.at(-1)?.channel ?? 'system') }}
+                      </span>
+                      @if (thread.unreadCount > 0) {
+                        <span class="badge bg-danger">{{ thread.unreadCount }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+
+            <!-- Conversation View -->
+            <div class="conversation-panel">
+              @if (selectedThread(); as thread) {
+                <div class="conversation-header d-flex justify-content-between align-items-center mb-3">
+                  <div>
+                    <h6 class="mb-0">{{ thread.customerName }}</h6>
+                    <div class="small text-muted">
+                      @if (thread.customerPhone) { {{ thread.customerPhone }} }
+                      @if (thread.customerPhone && thread.customerEmail) { &middot; }
+                      @if (thread.customerEmail) { {{ thread.customerEmail }} }
+                    </div>
+                  </div>
+                  <button type="button" class="btn-close" (click)="closeThread()"></button>
+                </div>
+
+                <div class="messages-container">
+                  @for (msg of thread.messages; track msg.id) {
+                    <div class="message-bubble" [class.message-outbound]="msg.direction === 'outbound'" [class.message-inbound]="msg.direction === 'inbound'">
+                      <div class="message-meta small">
+                        <span class="badge channel-badge-sm" [class]="getChannelClass(msg.channel)">{{ getChannelLabel(msg.channel) }}</span>
+                        <span class="text-muted ms-1">{{ msg.createdAt | date:'short' }}</span>
+                      </div>
+                      @if (msg.subject) {
+                        <div class="message-subject fw-semibold small">{{ msg.subject }}</div>
+                      }
+                      <div class="message-body">{{ msg.body }}</div>
+                    </div>
+                  }
+                </div>
+
+                <!-- Reply Form -->
+                <div class="reply-form mt-3">
+                  <!-- Templates -->
+                  @if (templates().length > 0) {
+                    <div class="template-chips mb-2">
+                      <span class="small text-muted me-2">Templates:</span>
+                      @for (tpl of templates(); track tpl.id) {
+                        <button type="button" class="btn btn-sm btn-outline-secondary template-chip" (click)="useTemplate(tpl.body)">
+                          {{ tpl.name }}
+                        </button>
+                      }
+                    </div>
+                  }
+
+                  <div class="d-flex gap-2 mb-2">
+                    <button type="button" class="btn btn-sm" [class.btn-primary]="replyChannel() === 'sms'" [class.btn-outline-secondary]="replyChannel() !== 'sms'" (click)="setReplyChannel('sms')" [disabled]="!thread.customerPhone">
+                      <i class="bi bi-chat-dots me-1"></i>SMS
+                    </button>
+                    <button type="button" class="btn btn-sm" [class.btn-primary]="replyChannel() === 'email'" [class.btn-outline-secondary]="replyChannel() !== 'email'" (click)="setReplyChannel('email')" [disabled]="!thread.customerEmail">
+                      <i class="bi bi-envelope me-1"></i>Email
+                    </button>
+                  </div>
+
+                  <div class="d-flex gap-2">
+                    <textarea
+                      class="form-control form-control-sm"
+                      rows="2"
+                      placeholder="Type your reply..."
+                      [value]="replyText()"
+                      (input)="setReplyText($event)"
+                    ></textarea>
+                    <button type="button" class="btn btn-primary btn-sm align-self-end" [disabled]="!replyText().trim() || isSendingReply()" (click)="sendReply()">
+                      @if (isSendingReply()) {
+                        <span class="spinner-border spinner-border-sm"></span>
+                      } @else {
+                        <i class="bi bi-send"></i>
+                      }
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <div class="empty-state text-center py-5">
+                  <div class="empty-icon mb-2"><i class="bi bi-chat-left-text"></i></div>
+                  <p class="text-muted">Select a conversation to view messages</p>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
     }
   }
 

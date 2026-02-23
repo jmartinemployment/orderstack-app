@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { Customer, CustomerSegment, CustomerSegmentInfo, SavedAddress, SavedAddressFormData, FeedbackRequest, Referral, ReferralConfig } from '../models';
+import { Customer, CustomerSegment, CustomerSegmentInfo, SavedAddress, SavedAddressFormData, FeedbackRequest, Referral, ReferralConfig, SmartGroup, SmartGroupFormData, MessageThread, CustomerMessage, MessageTemplate } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
 
@@ -21,6 +21,15 @@ export class CustomerService {
   private readonly _referrals = signal<Referral[]>([]);
   private readonly _referralConfig = signal<ReferralConfig | null>(null);
 
+  // --- Smart Groups (Phase 3) ---
+  private readonly _smartGroups = signal<SmartGroup[]>([]);
+  private readonly _isLoadingGroups = signal(false);
+
+  // --- Messaging Inbox (Phase 3) ---
+  private readonly _threads = signal<MessageThread[]>([]);
+  private readonly _templates = signal<MessageTemplate[]>([]);
+  private readonly _isLoadingThreads = signal(false);
+
   readonly customers = this._customers.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
@@ -28,6 +37,15 @@ export class CustomerService {
   readonly feedback = this._feedback.asReadonly();
   readonly referrals = this._referrals.asReadonly();
   readonly referralConfig = this._referralConfig.asReadonly();
+  readonly smartGroups = this._smartGroups.asReadonly();
+  readonly isLoadingGroups = this._isLoadingGroups.asReadonly();
+  readonly threads = this._threads.asReadonly();
+  readonly templates = this._templates.asReadonly();
+  readonly isLoadingThreads = this._isLoadingThreads.asReadonly();
+
+  readonly totalUnreadMessages = computed(() =>
+    this._threads().reduce((sum, t) => sum + t.unreadCount, 0)
+  );
 
   readonly customerCount = computed(() => this._customers().length);
 
@@ -365,6 +383,163 @@ export class CustomerService {
       return updated;
     } catch {
       return null;
+    }
+  }
+
+  // === Smart Customer Groups (Phase 3) ===
+
+  async loadSmartGroups(): Promise<void> {
+    if (!this.restaurantId) return;
+    this._isLoadingGroups.set(true);
+    try {
+      const groups = await firstValueFrom(
+        this.http.get<SmartGroup[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/smart-groups`
+        )
+      );
+      this._smartGroups.set(groups ?? []);
+    } catch {
+      this._smartGroups.set([]);
+    } finally {
+      this._isLoadingGroups.set(false);
+    }
+  }
+
+  async createSmartGroup(data: SmartGroupFormData): Promise<SmartGroup | null> {
+    if (!this.restaurantId) return null;
+    try {
+      const group = await firstValueFrom(
+        this.http.post<SmartGroup>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/smart-groups`,
+          data
+        )
+      );
+      this._smartGroups.update(list => [...list, group]);
+      return group;
+    } catch {
+      return null;
+    }
+  }
+
+  async updateSmartGroup(groupId: string, data: SmartGroupFormData): Promise<boolean> {
+    if (!this.restaurantId) return false;
+    try {
+      const updated = await firstValueFrom(
+        this.http.patch<SmartGroup>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/smart-groups/${groupId}`,
+          data
+        )
+      );
+      this._smartGroups.update(list => list.map(g => g.id === groupId ? updated : g));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async deleteSmartGroup(groupId: string): Promise<boolean> {
+    if (!this.restaurantId) return false;
+    try {
+      await firstValueFrom(
+        this.http.delete(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/smart-groups/${groupId}`
+        )
+      );
+      this._smartGroups.update(list => list.filter(g => g.id !== groupId));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async refreshSmartGroupCounts(): Promise<void> {
+    if (!this.restaurantId) return;
+    try {
+      const groups = await firstValueFrom(
+        this.http.post<SmartGroup[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/smart-groups/refresh`,
+          {}
+        )
+      );
+      if (groups) {
+        this._smartGroups.set(groups);
+      }
+    } catch {
+      // Silent — counts stay stale
+    }
+  }
+
+  // === Unified Messaging Inbox (Phase 3) ===
+
+  async loadMessageThreads(): Promise<void> {
+    if (!this.restaurantId) return;
+    this._isLoadingThreads.set(true);
+    try {
+      const threads = await firstValueFrom(
+        this.http.get<MessageThread[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/messages/threads`
+        )
+      );
+      this._threads.set(threads ?? []);
+    } catch {
+      this._threads.set([]);
+    } finally {
+      this._isLoadingThreads.set(false);
+    }
+  }
+
+  async sendMessage(customerId: string, body: string, channel: 'sms' | 'email'): Promise<CustomerMessage | null> {
+    if (!this.restaurantId) return null;
+    try {
+      const message = await firstValueFrom(
+        this.http.post<CustomerMessage>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/messages`,
+          { body, channel }
+        )
+      );
+      this._threads.update(threads =>
+        threads.map(t => t.customerId === customerId
+          ? { ...t, messages: [...t.messages, message], lastMessageAt: message.createdAt }
+          : t
+        )
+      );
+      return message;
+    } catch {
+      return null;
+    }
+  }
+
+  async markThreadRead(customerId: string): Promise<void> {
+    if (!this.restaurantId) return;
+    try {
+      await firstValueFrom(
+        this.http.patch(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/messages/read`,
+          {}
+        )
+      );
+      this._threads.update(threads =>
+        threads.map(t => t.customerId === customerId
+          ? { ...t, unreadCount: 0, messages: t.messages.map(m => ({ ...m, isRead: true })) }
+          : t
+        )
+      );
+    } catch {
+      // Silent
+    }
+  }
+
+  async loadMessageTemplates(): Promise<void> {
+    if (!this.restaurantId) return;
+    try {
+      const templates = await firstValueFrom(
+        this.http.get<MessageTemplate[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/messages/templates`
+        )
+      );
+      this._templates.set(templates ?? []);
+    } catch {
+      this._templates.set([]);
     }
   }
 

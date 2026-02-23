@@ -115,6 +115,65 @@ export interface RefundReportRow {
   paymentMethod: string;
 }
 
+// --- Team Member Sales Report (Phase 3) ---
+
+export interface TeamMemberSalesRow {
+  staffId: string;
+  staffName: string;
+  jobTitle: string;
+  orderCount: number;
+  revenue: number;
+  avgTicket: number;
+  tips: number;
+  hoursWorked: number;
+  commissionEarned: number;
+}
+
+// --- Tax & Service Charge Report (Phase 3) ---
+
+export interface TaxReportRow {
+  taxName: string;
+  taxRate: number;
+  taxableAmount: number;
+  taxCollected: number;
+}
+
+export interface ServiceChargeRow {
+  chargeName: string;
+  timesApplied: number;
+  totalCollected: number;
+}
+
+export interface FeeBreakdownRow {
+  feeType: string;
+  totalAmount: number;
+  transactionCount: number;
+}
+
+export interface TaxServiceChargeReport {
+  taxes: TaxReportRow[];
+  serviceCharges: ServiceChargeRow[];
+  fees: FeeBreakdownRow[];
+  grossRevenue: number;
+  totalTax: number;
+  totalServiceCharges: number;
+  totalFees: number;
+  netRevenue: number;
+}
+
+// --- Real-Time KPI (Phase 3) ---
+
+export interface RealTimeKpi {
+  todayRevenue: number;
+  todayOrders: number;
+  todayAov: number;
+  yesterdaySameTimeRevenue: number;
+  yesterdaySameTimeOrders: number;
+  lastWeekSameDayRevenue: number;
+  lastWeekSameDayOrders: number;
+  lastUpdated: string;
+}
+
 export type ShiftPreset = 'all' | 'morning' | 'afternoon' | 'evening';
 
 export interface ShiftFilter {
