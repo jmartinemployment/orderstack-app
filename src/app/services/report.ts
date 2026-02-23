@@ -42,6 +42,7 @@ export class ReportService {
   async loadSavedReports(): Promise<void> {
     if (!this.restaurantId) return;
     this._isLoading.set(true);
+    this._error.set(null);
     try {
       const reports = await firstValueFrom(
         this.http.get<SavedReport[]>(
@@ -49,7 +50,9 @@ export class ReportService {
         )
       );
       this._savedReports.set(reports ?? []);
-    } catch {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load saved reports';
+      this._error.set(message);
       this._savedReports.set([]);
     } finally {
       this._isLoading.set(false);
@@ -58,6 +61,7 @@ export class ReportService {
 
   async createSavedReport(data: SavedReportFormData): Promise<SavedReport | null> {
     if (!this.restaurantId) return null;
+    this._error.set(null);
     try {
       const report = await firstValueFrom(
         this.http.post<SavedReport>(
@@ -67,14 +71,16 @@ export class ReportService {
       );
       this._savedReports.update(list => [...list, report]);
       return report;
-    } catch {
-      this._error.set('Failed to create report');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to create report';
+      this._error.set(message);
       return null;
     }
   }
 
   async updateSavedReport(id: string, data: SavedReportFormData): Promise<void> {
     if (!this.restaurantId) return;
+    this._error.set(null);
     try {
       const updated = await firstValueFrom(
         this.http.patch<SavedReport>(
@@ -85,13 +91,15 @@ export class ReportService {
       this._savedReports.update(list =>
         list.map(r => (r.id === id ? updated : r))
       );
-    } catch {
-      this._error.set('Failed to update report');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to update report';
+      this._error.set(message);
     }
   }
 
   async deleteSavedReport(id: string): Promise<void> {
     if (!this.restaurantId) return;
+    this._error.set(null);
     try {
       await firstValueFrom(
         this.http.delete(
@@ -99,8 +107,9 @@ export class ReportService {
         )
       );
       this._savedReports.update(list => list.filter(r => r.id !== id));
-    } catch {
-      this._error.set('Failed to delete report');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to delete report';
+      this._error.set(message);
     }
   }
 
@@ -108,6 +117,7 @@ export class ReportService {
 
   async runReport(reportId: string, dateRange: ReportDateRange): Promise<Record<string, unknown> | null> {
     if (!this.restaurantId) return null;
+    this._error.set(null);
     try {
       return await firstValueFrom(
         this.http.post<Record<string, unknown>>(
@@ -115,14 +125,16 @@ export class ReportService {
           { reportId, ...dateRange }
         )
       );
-    } catch {
-      this._error.set('Failed to run report');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to run report';
+      this._error.set(message);
       return null;
     }
   }
 
   async exportReport(reportId: string, dateRange: ReportDateRange, format: ReportExportFormat): Promise<Blob | null> {
     if (!this.restaurantId) return null;
+    this._error.set(null);
     try {
       return await firstValueFrom(
         this.http.post(
@@ -131,8 +143,9 @@ export class ReportService {
           { responseType: 'blob' }
         )
       );
-    } catch {
-      this._error.set('Failed to export report');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to export report';
+      this._error.set(message);
       return null;
     }
   }
@@ -141,6 +154,7 @@ export class ReportService {
 
   async loadSchedules(): Promise<void> {
     if (!this.restaurantId) return;
+    this._error.set(null);
     try {
       const schedules = await firstValueFrom(
         this.http.get<ReportSchedule[]>(
@@ -148,13 +162,16 @@ export class ReportService {
         )
       );
       this._schedules.set(schedules ?? []);
-    } catch {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load schedules';
+      this._error.set(message);
       this._schedules.set([]);
     }
   }
 
   async createSchedule(data: ReportScheduleFormData): Promise<ReportSchedule | null> {
     if (!this.restaurantId) return null;
+    this._error.set(null);
     try {
       const schedule = await firstValueFrom(
         this.http.post<ReportSchedule>(
@@ -164,14 +181,16 @@ export class ReportService {
       );
       this._schedules.update(list => [...list, schedule]);
       return schedule;
-    } catch {
-      this._error.set('Failed to create schedule');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to create schedule';
+      this._error.set(message);
       return null;
     }
   }
 
   async deleteSchedule(id: string): Promise<void> {
     if (!this.restaurantId) return;
+    this._error.set(null);
     try {
       await firstValueFrom(
         this.http.delete(
@@ -179,8 +198,9 @@ export class ReportService {
         )
       );
       this._schedules.update(list => list.filter(s => s.id !== id));
-    } catch {
-      this._error.set('Failed to delete schedule');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to delete schedule';
+      this._error.set(message);
     }
   }
 
@@ -188,6 +208,7 @@ export class ReportService {
 
   async getHourlySales(dateRange: ReportDateRange): Promise<HourlySalesRow[]> {
     if (!this.restaurantId) return [];
+    this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<HourlySalesRow[]>(
@@ -196,13 +217,16 @@ export class ReportService {
         )
       );
       return rows ?? [];
-    } catch {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load hourly sales';
+      this._error.set(message);
       return [];
     }
   }
 
   async getSectionSales(dateRange: ReportDateRange): Promise<SectionSalesRow[]> {
     if (!this.restaurantId) return [];
+    this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<SectionSalesRow[]>(
@@ -211,13 +235,16 @@ export class ReportService {
         )
       );
       return rows ?? [];
-    } catch {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load section sales';
+      this._error.set(message);
       return [];
     }
   }
 
   async getChannelBreakdown(dateRange: ReportDateRange): Promise<ChannelBreakdownRow[]> {
     if (!this.restaurantId) return [];
+    this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<ChannelBreakdownRow[]>(
@@ -226,13 +253,16 @@ export class ReportService {
         )
       );
       return rows ?? [];
-    } catch {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load channel breakdown';
+      this._error.set(message);
       return [];
     }
   }
 
   async getDiscountReport(dateRange: ReportDateRange): Promise<DiscountReportRow[]> {
     if (!this.restaurantId) return [];
+    this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<DiscountReportRow[]>(
@@ -241,13 +271,16 @@ export class ReportService {
         )
       );
       return rows ?? [];
-    } catch {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load discount report';
+      this._error.set(message);
       return [];
     }
   }
 
   async getRefundReport(dateRange: ReportDateRange): Promise<RefundReportRow[]> {
     if (!this.restaurantId) return [];
+    this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<RefundReportRow[]>(
@@ -256,7 +289,9 @@ export class ReportService {
         )
       );
       return rows ?? [];
-    } catch {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load refund report';
+      this._error.set(message);
       return [];
     }
   }

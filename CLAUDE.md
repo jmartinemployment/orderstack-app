@@ -11,7 +11,7 @@
 This is the **canonical OrderStack** restaurant management SaaS application — a standalone Angular 21 app. This is the active, correct project for all OrderStack development.
 
 **Related Documentation:**
-- **`specs/`** — GOS-SPEC-01 through 11 (all Phase 1 complete; GOS-SPEC-03, 06, 08 have Phase 2-3 complete)
+- **`specs/`** — GOS-SPEC-01, 02, 04, 05, 07, 09, 10, 11 (Phase 1 complete; later phases pending). GOS-SPEC-03, 06, 08 fully delivered and deleted.
 
 **Predecessor:** `Get-Order-Stack-Restaurant-Frontend-Workspace/` (Angular Elements + WordPress — archived, do not use)
 
