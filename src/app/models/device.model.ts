@@ -188,6 +188,46 @@ export interface PeripheralConfig {
   customerDisplayMessage: string;
 }
 
+// --- Customer-Facing Display (GAP-R10) ---
+
+export type CustomerDisplayIdleMode = 'slideshow' | 'logo' | 'off';
+
+export interface CustomerDisplayConfig {
+  enabled: boolean;
+  idleMode: CustomerDisplayIdleMode;
+  slideshowImages: string[];
+  slideshowIntervalSeconds: number;
+  showTipPrompt: boolean;
+  tipPresets: number[];
+  showLoyaltyEnrollment: boolean;
+  brandingMessage: string;
+}
+
+export type CustomerDisplayMode = 'idle' | 'active' | 'tip' | 'complete';
+
+export interface CustomerDisplayMessage {
+  type: 'item-added' | 'item-removed' | 'totals-updated' | 'tip-prompt' | 'payment-complete' | 'reset';
+  items?: { name: string; quantity: number; price: number }[];
+  subtotal?: number;
+  tax?: number;
+  total?: number;
+  tipPresets?: number[];
+  brandingMessage?: string;
+}
+
+export function defaultCustomerDisplayConfig(): CustomerDisplayConfig {
+  return {
+    enabled: false,
+    idleMode: 'logo',
+    slideshowImages: [],
+    slideshowIntervalSeconds: 8,
+    showTipPrompt: true,
+    tipPresets: [15, 18, 20, 25],
+    showLoyaltyEnrollment: false,
+    brandingMessage: 'Thank you for your visit!',
+  };
+}
+
 // --- Device Health ---
 
 export interface DeviceHealthSummary {

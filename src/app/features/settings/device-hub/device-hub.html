@@ -712,6 +712,68 @@
     </div>
   }
 
+  <!-- ============ CUSTOMER DISPLAY CONFIG (GAP-R10) ============ -->
+  @if (activeTab() === 'peripherals') {
+    <div class="tab-content-section mt-3">
+      <details class="config-details">
+        <summary class="config-summary">
+          <i class="bi bi-display me-2"></i> Customer-Facing Display Settings
+        </summary>
+        <div class="config-body mt-3">
+          <div class="form-check mb-3">
+            <input type="checkbox" class="form-check-input" id="cfd-enabled"
+              [ngModel]="customerDisplayConfig().enabled"
+              (ngModelChange)="updateCustomerDisplayConfig('enabled', $event)" />
+            <label class="form-check-label" for="cfd-enabled">Enable Customer-Facing Display</label>
+            <div class="form-text">Opens a second browser window showing the customer their order in real-time.</div>
+          </div>
+
+          @if (customerDisplayConfig().enabled) {
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Idle Mode</label>
+                <select class="form-select form-select-sm"
+                  [ngModel]="customerDisplayConfig().idleMode"
+                  (ngModelChange)="updateCustomerDisplayConfig('idleMode', $event)">
+                  <option value="logo">Logo & Branding</option>
+                  <option value="slideshow">Slideshow</option>
+                  <option value="off">Off (blank)</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Branding Message</label>
+                <input type="text" class="form-control form-control-sm"
+                  [ngModel]="customerDisplayConfig().brandingMessage"
+                  (ngModelChange)="updateCustomerDisplayConfig('brandingMessage', $event)"
+                  placeholder="Thank you for your visit!" />
+              </div>
+            </div>
+
+            <div class="form-check mt-3">
+              <input type="checkbox" class="form-check-input" id="cfd-tip"
+                [ngModel]="customerDisplayConfig().showTipPrompt"
+                (ngModelChange)="updateCustomerDisplayConfig('showTipPrompt', $event)" />
+              <label class="form-check-label" for="cfd-tip">Show tip prompt on customer display</label>
+            </div>
+
+            <div class="mt-3">
+              <label class="form-label">Tip Presets (%)</label>
+              <div class="d-flex gap-2">
+                @for (preset of customerDisplayConfig().tipPresets; track $index; let i = $index) {
+                  <div class="input-group input-group-sm" style="max-width: 100px;">
+                    <input type="number" class="form-control" [value]="preset" min="0" max="100"
+                      (change)="updateTipPreset(i, $any($event.target).value)" />
+                    <span class="input-group-text">%</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </details>
+    </div>
+  }
+
   <!-- ============ KIOSK PROFILES TAB (Step 13 Enhanced) ============ -->
   @if (activeTab() === 'kiosk-profiles') {
     <div class="tab-content-section">

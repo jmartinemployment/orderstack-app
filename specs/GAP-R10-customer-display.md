@@ -1,6 +1,6 @@
 # GAP-R10: Customer-Facing Display (Second Screen)
 
-**Status:** NOT STARTED
+**Status:** Phase 1 COMPLETE
 **Priority:** 9
 **Square Reference:** Second screen shows customers their order building in real-time, marketing slides during idle, tip prompt. Configurable layout. Customer can input their own contact info for loyalty.
 

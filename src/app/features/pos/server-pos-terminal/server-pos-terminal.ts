@@ -270,6 +270,11 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     return check ? check.selections.length > 0 : false;
   });
 
+  // Customer-Facing Display (GAP-R10)
+  private customerDisplayChannel: BroadcastChannel | null = null;
+  private readonly _customerDisplayOpen = signal(false);
+  readonly customerDisplayOpen = this._customerDisplayOpen.asReadonly();
+
   private orderEventCleanup: (() => void) | null = null;
   private scanToPayCleanup: (() => void) | null = null;
 
@@ -310,6 +315,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.orderEventCleanup?.();
     this.scanToPayCleanup?.();
+    this.customerDisplayChannel?.close();
   }
 
   // --- Table selection ---
@@ -377,6 +383,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
 
     await this.checkService.addItemToCheck(order.guid, check.guid, request);
     this.orderService.loadOrders();
+    this.sendDisplayUpdate();
   }
 
   onModifierCancelled(): void {
@@ -405,6 +412,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
 
     await this.checkService.addItemToCheck(order.guid, check.guid, request);
     this.orderService.loadOrders();
+    this.sendDisplayUpdate();
   }
 
   // --- Order lifecycle ---
@@ -921,5 +929,53 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
 
   getCheckSubtotal(): number {
     return this.activeCheck()?.subtotal ?? 0;
+  }
+
+  // --- Customer-Facing Display (GAP-R10) ---
+
+  openCustomerDisplay(): void {
+    if (!this.customerDisplayChannel) {
+      this.customerDisplayChannel = new BroadcastChannel('orderstack-customer-display');
+    }
+    window.open('/customer-display', 'orderstack-customer-display', 'width=1024,height=768');
+    this._customerDisplayOpen.set(true);
+  }
+
+  sendDisplayUpdate(): void {
+    if (!this.customerDisplayChannel) return;
+    const check = this.activeCheck();
+    if (!check) return;
+
+    const items = check.selections.map(s => ({
+      name: s.menuItemName ?? 'Item',
+      quantity: s.quantity,
+      price: s.unitPrice,
+    }));
+
+    this.customerDisplayChannel.postMessage({
+      type: 'totals-updated',
+      items,
+      subtotal: check.subtotal ?? 0,
+      tax: check.taxAmount ?? 0,
+      total: check.totalAmount ?? 0,
+    });
+  }
+
+  sendDisplayTipPrompt(): void {
+    this.customerDisplayChannel?.postMessage({
+      type: 'tip-prompt',
+      tipPresets: [15, 18, 20, 25],
+    });
+  }
+
+  sendDisplayPaymentComplete(): void {
+    this.customerDisplayChannel?.postMessage({
+      type: 'payment-complete',
+      brandingMessage: 'Thank you for your visit!',
+    });
+  }
+
+  resetCustomerDisplay(): void {
+    this.customerDisplayChannel?.postMessage({ type: 'reset' });
   }
 }

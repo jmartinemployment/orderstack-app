@@ -462,6 +462,45 @@
   }
 }
 
+// Customer Display config section
+.config-details {
+  border: 1px solid var(--os-border, #e5e7eb);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.config-summary {
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  color: var(--os-text-primary, #1a1a2e);
+  background-color: var(--os-bg, #f9fafb);
+  list-style: none;
+
+  &::-webkit-details-marker {
+    display: none;
+  }
+
+  &::before {
+    content: '\25B6';
+    display: inline-block;
+    margin-right: 0.5rem;
+    font-size: 0.7rem;
+    transition: transform 0.2s;
+  }
+
+  details[open] > & {
+    &::before {
+      transform: rotate(90deg);
+    }
+  }
+}
+
+.config-body {
+  padding: 0 16px 16px;
+}
+
 // Animation
 @keyframes pulse {
   0%,

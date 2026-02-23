@@ -25,8 +25,10 @@ import {
   PeripheralDevice,
   KioskProfile,
   KioskProfileFormData,
+  CustomerDisplayConfig,
   defaultModeSettings,
   defaultModeSettingsForPosMode,
+  defaultCustomerDisplayConfig,
 } from '@models/index';
 import type { DevicePosMode } from '@models/index';
 
@@ -609,5 +611,24 @@ export class DeviceHub implements OnInit {
 
   clearError(): void {
     this.deviceService.clearError();
+  }
+
+  // --- Customer-Facing Display Config (GAP-R10) ---
+
+  private readonly _customerDisplayConfig = signal<CustomerDisplayConfig>(defaultCustomerDisplayConfig());
+  readonly customerDisplayConfig = this._customerDisplayConfig.asReadonly();
+
+  updateCustomerDisplayConfig(field: keyof CustomerDisplayConfig, value: unknown): void {
+    this._customerDisplayConfig.update(cfg => ({ ...cfg, [field]: value }));
+  }
+
+  updateTipPreset(index: number, value: string): void {
+    const num = Number(value);
+    if (Number.isNaN(num) || num < 0) return;
+    this._customerDisplayConfig.update(cfg => {
+      const presets = [...cfg.tipPresets];
+      presets[index] = num;
+      return { ...cfg, tipPresets: presets };
+    });
   }
 }
