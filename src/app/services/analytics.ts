@@ -143,6 +143,30 @@ export class AnalyticsService {
     this._upsellSuggestions.set([]);
   }
 
+  // === Today's Sales Stats (Home Dashboard) ===
+
+  async getTodaySalesStats(): Promise<{
+    netSales: number;
+    orderCount: number;
+    priorDayNetSales: number;
+    priorDayOrderCount: number;
+  } | null> {
+    if (!this.restaurantId) return null;
+
+    try {
+      return await firstValueFrom(
+        this.http.get<{
+          netSales: number;
+          orderCount: number;
+          priorDayNetSales: number;
+          priorDayOrderCount: number;
+        }>(`${this.apiUrl}/restaurant/${this.restaurantId}/analytics/today-stats`)
+      );
+    } catch {
+      return null;
+    }
+  }
+
   // === Menu Engineering ===
 
   async loadMenuEngineering(days = 30): Promise<void> {

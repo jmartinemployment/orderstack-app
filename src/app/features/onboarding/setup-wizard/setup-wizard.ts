@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   BusinessVertical,
-  BusinessVerticalConfig,
   BusinessAddress,
   PlatformComplexity,
   DevicePosMode,
@@ -11,7 +10,9 @@ import {
   TaxLocaleConfig,
   BusinessHoursDay,
   OnboardingPinData,
-  MenuTemplate,
+  BusinessCategory,
+  BUSINESS_CATEGORIES,
+  REVENUE_RANGES,
   BUSINESS_VERTICAL_CATALOG,
   DEVICE_POS_MODE_CATALOG,
   getModesForVerticals,
@@ -117,50 +118,6 @@ const MENU_SUGGESTIONS_AFTER_SIDES: SuggestionGroup[] = [
   },
 ];
 
-const COMBO_SUGGESTIONS: SuggestionGroup[] = [
-  {
-    category: 'Steak Combos',
-    items: [
-      { name: 'Steak & Baked Potato', price: 26.99, category: 'Combos', comboItems: 'Ribeye Steak, Baked Potato, Side Salad' },
-      { name: 'Steak & Mashed Potatoes', price: 25.99, category: 'Combos', comboItems: 'Ribeye Steak, Mashed Potatoes, Steamed Vegetables' },
-      { name: 'Steak & Fries', price: 24.99, category: 'Combos', comboItems: 'Ribeye Steak, French Fries, Coleslaw' },
-    ],
-  },
-  {
-    category: 'Burger Combos',
-    items: [
-      { name: 'Burger & Fries', price: 12.99, category: 'Combos', comboItems: 'Cheeseburger, French Fries, Soft Drink' },
-      { name: 'Burger & Onion Rings', price: 13.99, category: 'Combos', comboItems: 'Cheeseburger, Onion Rings, Soft Drink' },
-      { name: 'Double Burger & Fries', price: 15.99, category: 'Combos', comboItems: 'Double Cheeseburger, French Fries, Soft Drink' },
-    ],
-  },
-  {
-    category: 'Chicken Combos',
-    items: [
-      { name: 'Chicken & Rice', price: 15.99, category: 'Combos', comboItems: 'Grilled Chicken, Rice, Steamed Vegetables' },
-      { name: 'Chicken Tenders & Fries', price: 12.99, category: 'Combos', comboItems: 'Chicken Tenders, French Fries, Ranch' },
-      { name: 'Chicken Sandwich & Fries', price: 13.99, category: 'Combos', comboItems: 'Chicken Sandwich, French Fries, Soft Drink' },
-    ],
-  },
-  {
-    category: 'Seafood Combos',
-    items: [
-      { name: 'Salmon & Rice', price: 22.99, category: 'Combos', comboItems: 'Salmon Fillet, Rice, Steamed Vegetables' },
-      { name: 'Fish & Chips', price: 14.99, category: 'Combos', comboItems: 'Fried Fish, French Fries, Coleslaw' },
-      { name: 'Shrimp & Fries', price: 16.99, category: 'Combos', comboItems: 'Fried Shrimp, French Fries, Hush Puppies' },
-    ],
-  },
-  {
-    category: 'Kids Meals',
-    items: [
-      { name: 'Kids Burger & Fries', price: 7.99, category: 'Combos', comboItems: 'Mini Burger, Fries, Juice Box' },
-      { name: 'Kids Chicken Tenders & Fries', price: 7.99, category: 'Combos', comboItems: 'Chicken Tenders, Fries, Juice Box' },
-      { name: 'Kids Mac & Cheese', price: 6.99, category: 'Combos', comboItems: 'Mac & Cheese, Apple Slices, Juice Box' },
-      { name: 'Kids Grilled Cheese & Fries', price: 6.99, category: 'Combos', comboItems: 'Grilled Cheese, Fries, Juice Box' },
-    ],
-  },
-];
-
 const SIDE_SUGGESTIONS: string[] = [
   'French Fries', 'Sweet Potato Fries', 'Onion Rings', 'Coleslaw',
   'Side Salad', 'Baked Potato', 'Mashed Potatoes', 'Rice',
@@ -216,6 +173,22 @@ interface QuickAddItem {
   sideUpgrades?: string;
 }
 
+// --- Business type → mode mapping ---
+const BUSINESS_TYPE_MODE_MAP: Record<string, DevicePosMode> = {
+  'Fine Dining': 'full_service',
+  'Casual Dining': 'full_service',
+  'Club / Lounge': 'full_service',
+  'Fast Food Restaurant': 'quick_service',
+  'Counter Service Restaurant': 'quick_service',
+  'Food Truck / Cart': 'quick_service',
+  'Ghost / Virtual Kitchen': 'quick_service',
+  'Bakery / Pastry Shop': 'quick_service',
+  'Coffee / Tea Cafe': 'quick_service',
+  'Caterer': 'quick_service',
+  'Bar': 'bar',
+  'Brewery': 'bar',
+};
+
 @Component({
   selector: 'os-setup-wizard',
   standalone: true,
@@ -231,11 +204,10 @@ export class SetupWizard {
   private readonly router = inject(Router);
 
   readonly usStates = US_STATES;
-  readonly verticalCatalog = BUSINESS_VERTICAL_CATALOG.filter(c => c.vertical === 'food_and_drink');
+  readonly revenueRanges = REVENUE_RANGES;
   readonly totalSteps = TOTAL_STEPS;
   readonly menuSuggestionsBeforeSides = MENU_SUGGESTIONS_BEFORE_SIDES;
   readonly menuSuggestionsAfterSides = MENU_SUGGESTIONS_AFTER_SIDES;
-  readonly comboSuggestions = COMBO_SUGGESTIONS;
   readonly inventorySuggestions = INVENTORY_SUGGESTIONS;
   readonly sideSuggestions = SIDE_SUGGESTIONS;
 
@@ -247,34 +219,43 @@ export class SetupWizard {
     Math.round((this._currentStep() / TOTAL_STEPS) * 100)
   );
 
-  // --- Step 1: Business Info ---
+  // --- Step 1: Business Info + Address ---
   readonly _businessName = signal('');
+  readonly _businessAddress = signal('');
+  readonly _noPhysicalAddress = signal(false);
   readonly _address = signal<BusinessAddress>(defaultBusinessAddress());
   readonly _phone = signal('');
 
-  // --- Step 2: Verticals ---
-  readonly _selectedVerticals = signal<BusinessVertical[]>([]);
+  // --- Step 2: Business Type (replaces old verticals + primary) ---
+  readonly _businessTypeSearch = signal('');
+  readonly _selectedBusinessType = signal<BusinessCategory | null>(null);
 
-  // --- Step 3: Primary Vertical ---
-  readonly _primaryVertical = signal<BusinessVertical | null>(null);
+  // Filter to Food & Drink only for now (other verticals hidden)
+  private readonly enabledBusinessTypes = BUSINESS_CATEGORIES.filter(c => c.vertical === 'food_and_drink');
 
-  readonly showStep3 = computed(() => this._selectedVerticals().length > 1);
-
-  readonly effectivePrimaryVertical = computed<BusinessVertical>(() => {
-    const verticals = this._selectedVerticals();
-    if (verticals.length === 1) return verticals[0];
-    return this._primaryVertical() ?? verticals[0];
+  readonly filteredBusinessTypes = computed(() => {
+    const search = this._businessTypeSearch().toLowerCase().trim();
+    if (!search) return this.enabledBusinessTypes;
+    return this.enabledBusinessTypes.filter(c =>
+      c.name.toLowerCase().includes(search)
+    );
   });
+
+  // Derive vertical from business type selection
+  readonly effectivePrimaryVertical = computed<BusinessVertical>(() => {
+    const bt = this._selectedBusinessType();
+    return bt?.vertical ?? 'food_and_drink';
+  });
+
+  readonly selectedVerticals = computed<BusinessVertical[]>(() => {
+    return [this.effectivePrimaryVertical()];
+  });
+
+  // --- Step 3: Annual Revenue ---
+  readonly _selectedRevenue = signal<string | null>(null);
 
   // --- Step 4: Complexity ---
   readonly _complexity = signal<PlatformComplexity>('full');
-
-  // --- Step 5: Tax & Locale ---
-  readonly _taxLocale = signal<TaxLocaleConfig>(defaultTaxLocaleConfig());
-  readonly _isAutoDetecting = signal(false);
-
-  // --- Step 6: Business Hours ---
-  readonly _businessHours = signal<BusinessHoursDay[]>(defaultBusinessHours());
 
   // --- Step 5: Recommended Mode ---
   readonly _selectedMode = signal<DevicePosMode>('full_service');
@@ -283,16 +264,26 @@ export class SetupWizard {
   private readonly hiddenModes: DevicePosMode[] = ['retail', 'services'];
 
   readonly availableModes = computed<DevicePosModeConfig[]>(() => {
-    const modes = getModesForVerticals(this._selectedVerticals());
+    const modes = getModesForVerticals(this.selectedVerticals());
     return DEVICE_POS_MODE_CATALOG.filter(c => modes.includes(c.mode) && !this.hiddenModes.includes(c.mode));
   });
 
   readonly otherModes = computed<DevicePosModeConfig[]>(() => {
-    const modes = getModesForVerticals(this._selectedVerticals());
+    const modes = getModesForVerticals(this.selectedVerticals());
     return DEVICE_POS_MODE_CATALOG.filter(c => !modes.includes(c.mode) && !this.hiddenModes.includes(c.mode));
   });
 
   readonly recommendedMode = computed<DevicePosModeConfig | undefined>(() => {
+    // First: check business type → mode map
+    const bt = this._selectedBusinessType();
+    if (bt) {
+      const mappedMode = BUSINESS_TYPE_MODE_MAP[bt.name];
+      if (mappedMode) {
+        return DEVICE_POS_MODE_CATALOG.find(c => c.mode === mappedMode);
+      }
+    }
+
+    // Fallback: complexity-based logic
     const primary = this.effectivePrimaryVertical();
     const complexity = this._complexity();
     let mode: DevicePosMode = 'full_service';
@@ -309,6 +300,13 @@ export class SetupWizard {
     }
     return DEVICE_POS_MODE_CATALOG.find(c => c.mode === mode);
   });
+
+  // --- Step 6: Tax & Locale ---
+  readonly _taxLocale = signal<TaxLocaleConfig>(defaultTaxLocaleConfig());
+  readonly _isAutoDetecting = signal(false);
+
+  // --- Step 7: Business Hours ---
+  readonly _businessHours = signal<BusinessHoursDay[]>(defaultBusinessHours());
 
   // --- Step 8: Payment ---
   readonly _paymentProcessor = signal<PaymentProcessorType>('none');
@@ -340,7 +338,7 @@ export class SetupWizard {
     new Set(this._quickAddItems().map(i => i.name))
   );
 
-  // --- Step 10: Owner PIN ---
+  // --- Step 11: Owner PIN ---
   readonly _ownerName = signal('');
   readonly _ownerPin = signal('');
   readonly _ownerPinConfirm = signal('');
@@ -354,7 +352,7 @@ export class SetupWizard {
     return pin.length >= 4 && pin === confirm;
   });
 
-  // --- Step 11: Confirmation ---
+  // --- Step 12: Confirmation ---
   readonly _isSubmitting = signal(false);
   readonly _submitError = signal<string | null>(null);
   readonly _submitSuccess = signal(false);
@@ -367,8 +365,8 @@ export class SetupWizard {
     const step = this._currentStep();
     switch (step) {
       case 1: return this._businessName().trim().length > 0;
-      case 2: return this._selectedVerticals().length > 0;
-      case 3: return this._primaryVertical() !== null;
+      case 2: return this._selectedBusinessType() !== null;
+      case 3: return this._selectedRevenue() !== null;
       case 4: return true;
       case 5: return this._selectedMode() !== null;
       case 6: return this._taxLocale().taxRate > 0;
@@ -421,23 +419,20 @@ export class SetupWizard {
     this._address.update(a => ({ ...a, [field]: value }));
   }
 
-  // --- Step 2: Vertical selection ---
+  // --- Step 2: Business Type selection ---
 
-  toggleVertical(vertical: BusinessVertical): void {
-    this._selectedVerticals.update(vs => {
-      if (vs.includes(vertical)) {
-        return vs.filter(v => v !== vertical);
-      }
-      return [...vs, vertical];
-    });
+  selectBusinessType(type: BusinessCategory): void {
+    this._selectedBusinessType.set(type);
   }
 
-  isVerticalSelected(vertical: BusinessVertical): boolean {
-    return this._selectedVerticals().includes(vertical);
+  getVerticalLabel(vertical: BusinessVertical): string {
+    return BUSINESS_VERTICAL_CATALOG.find(c => c.vertical === vertical)?.label ?? vertical;
   }
 
-  getVerticalConfig(vertical: BusinessVertical): BusinessVerticalConfig | undefined {
-    return BUSINESS_VERTICAL_CATALOG.find(c => c.vertical === vertical);
+  // --- Step 3: Revenue selection ---
+
+  selectRevenue(id: string): void {
+    this._selectedRevenue.set(id);
   }
 
   // --- Step 6: Tax auto-detect ---
@@ -448,7 +443,6 @@ export class SetupWizard {
 
     this._isAutoDetecting.set(true);
 
-    // Try API first, fall back to state-based estimate
     let rate: number | null = null;
     if (address.state) {
       rate = await this.platformService.lookupTaxRate(address.state, address.zip);
@@ -481,7 +475,7 @@ export class SetupWizard {
     this._taxLocale.update(t => ({ ...t, [field]: value }));
   }
 
-  // --- Step 6: Business Hours ---
+  // --- Step 7: Business Hours ---
 
   updateHoursField(dayIndex: number, field: 'open' | 'close', value: string): void {
     this._businessHours.update(days => {
@@ -550,7 +544,6 @@ export class SetupWizard {
 
     if (!name || price <= 0) return;
 
-    // Build side upgrades string with upcharge if provided
     let sideUpgradesFinal = sideUpgrades;
     if (sideUpgrades && upcharge > 0) {
       sideUpgradesFinal = `${sideUpgrades} +$${upcharge.toFixed(2)}`;
@@ -584,7 +577,6 @@ export class SetupWizard {
       return;
     }
 
-    // Populate the form fields so user can review/edit before adding
     this._quickAddName.set(suggestion.name);
     this._quickAddPrice.set(suggestion.price);
     this._quickAddCategory.set(suggestion.category);
@@ -626,7 +618,7 @@ export class SetupWizard {
     return new Set(sides.split(',').map(s => s.trim()).filter(Boolean));
   });
 
-  // --- Step 10: PIN helpers ---
+  // --- Step 11: PIN helpers ---
 
   appendPinDigit(digit: string): void {
     const current = this._ownerPin();
@@ -656,7 +648,7 @@ export class SetupWizard {
     this._ownerPinConfirm.set('');
   }
 
-  // --- Step 11: Submit ---
+  // --- Step 12: Submit ---
 
   async submit(): Promise<void> {
     this._isSubmitting.set(true);
@@ -665,7 +657,7 @@ export class SetupWizard {
     const payload: OnboardingPayload = {
       businessName: this._businessName(),
       address: { ...this._address(), phone: this._phone() || null },
-      verticals: this._selectedVerticals(),
+      verticals: this.selectedVerticals(),
       primaryVertical: this.effectivePrimaryVertical(),
       complexity: this._complexity(),
       defaultDeviceMode: this._selectedMode(),
@@ -694,12 +686,10 @@ export class SetupWizard {
     }
   }
 
-  // --- Summary helpers for Step 11 ---
+  // --- Summary helpers for Step 12 ---
 
-  getVerticalLabels(): string {
-    return this._selectedVerticals()
-      .map(v => BUSINESS_VERTICAL_CATALOG.find(c => c.vertical === v)?.label ?? v)
-      .join(', ');
+  getBusinessTypeLabel(): string {
+    return this._selectedBusinessType()?.name ?? 'Not selected';
   }
 
   getModeLabel(): string {
@@ -722,13 +712,18 @@ export class SetupWizard {
     }
   }
 
+  getRevenueLabel(): string {
+    const id = this._selectedRevenue();
+    return REVENUE_RANGES.find(r => r.id === id)?.label ?? 'Not selected';
+  }
+
   getTemplateName(): string {
     const id = this._selectedTemplateId();
     if (!id) return 'Start from scratch';
     return this._menuTemplates()?.find(t => t.id === id)?.name ?? id;
   }
 
-  // --- Time generation for selects ---
+  // --- Time generation ---
 
   readonly timeOptions = this.generateTimeOptions();
 
@@ -758,7 +753,6 @@ export class SetupWizard {
   async goToDashboard(): Promise<void> {
     const defaultMode = this._selectedMode();
 
-    // Register this browser as a device via the backend
     const device = await this.deviceService.registerBrowserDevice(defaultMode);
     if (!device) {
       this._submitError.set(this.deviceService.error() ?? 'Failed to register device');
@@ -766,6 +760,6 @@ export class SetupWizard {
     }
 
     this.platformService.setDeviceModeFromDevice(defaultMode);
-    this.router.navigate(['/pos-login']);
+    this.router.navigate(['/home']);
   }
 }

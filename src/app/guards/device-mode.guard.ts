@@ -24,6 +24,6 @@ export const deviceModeRedirectGuard = () => {
     case 'services':
       return router.createUrlTree(['/invoicing']);
     default:
-      return router.createUrlTree(['/orders']);
+      return router.createUrlTree(['/home']);
   }
 };

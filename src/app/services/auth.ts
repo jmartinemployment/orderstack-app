@@ -2,7 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { User, UserRestaurant, LoginRequest, LoginResponse, Restaurant } from '../models';
+import { User, UserRestaurant, LoginRequest, LoginResponse, Restaurant, SignupData } from '../models';
 import { environment } from '@environments/environment';
 
 @Injectable({
@@ -106,6 +106,35 @@ export class AuthService {
       return true;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Login failed';
+      if (typeof err === 'object' && err !== null && 'error' in err) {
+        const httpErr = err as { error?: { message?: string; error?: string } };
+        this._error.set(httpErr.error?.message ?? httpErr.error?.error ?? message);
+      } else {
+        this._error.set(message);
+      }
+      return false;
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
+
+  async signup(data: SignupData): Promise<boolean> {
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    try {
+      const response = await firstValueFrom(
+        this.http.post<LoginResponse>(`${this.apiUrl}/auth/signup`, data)
+      );
+
+      this._token.set(response.token);
+      this._user.set(response.user);
+      this._restaurants.set(response.restaurants || []);
+      this.saveToStorage(response.token, response.user, response.restaurants || []);
+
+      return true;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Signup failed';
       if (typeof err === 'object' && err !== null && 'error' in err) {
         const httpErr = err as { error?: { message?: string; error?: string } };
         this._error.set(httpErr.error?.message ?? httpErr.error?.error ?? message);

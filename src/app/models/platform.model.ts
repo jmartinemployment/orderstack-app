@@ -866,3 +866,184 @@ export function defaultMerchantProfile(): MerchantProfile {
     createdAt: new Date().toISOString(),
   };
 }
+
+// --- Business Categories (Square-style business type selector) ---
+
+export interface BusinessCategory {
+  name: string;
+  vertical: BusinessVertical;
+}
+
+export const BUSINESS_CATEGORIES: BusinessCategory[] = [
+  // Food and Drink
+  { name: 'Caterer', vertical: 'food_and_drink' },
+  { name: 'Food Truck / Cart', vertical: 'food_and_drink' },
+  { name: 'Bakery / Pastry Shop', vertical: 'food_and_drink' },
+  { name: 'Bar', vertical: 'food_and_drink' },
+  { name: 'Coffee / Tea Cafe', vertical: 'food_and_drink' },
+  { name: 'Fine Dining', vertical: 'food_and_drink' },
+  { name: 'Casual Dining', vertical: 'food_and_drink' },
+  { name: 'Fast Food Restaurant', vertical: 'food_and_drink' },
+  { name: 'Counter Service Restaurant', vertical: 'food_and_drink' },
+  { name: 'Ghost / Virtual Kitchen', vertical: 'food_and_drink' },
+  { name: 'Brewery', vertical: 'food_and_drink' },
+  { name: 'Club / Lounge', vertical: 'food_and_drink' },
+  { name: 'Other Food & Drink', vertical: 'food_and_drink' },
+
+  // Retail
+  { name: 'Specialty Shop', vertical: 'retail' },
+  { name: 'Electronics', vertical: 'retail' },
+  { name: 'Clothing and Accessories', vertical: 'retail' },
+  { name: 'Outdoor Markets', vertical: 'retail' },
+  { name: 'Books / Mags / Music / Video', vertical: 'retail' },
+  { name: 'Jewelry and Watches', vertical: 'retail' },
+  { name: 'Beer / Wine Bottle Shops', vertical: 'retail' },
+  { name: 'Baby / Children\'s Goods', vertical: 'retail' },
+  { name: 'Sporting Goods', vertical: 'retail' },
+  { name: 'Antique Shop', vertical: 'retail' },
+  { name: 'Art / Photo / Film Shop', vertical: 'retail' },
+  { name: 'Beauty Supplies', vertical: 'retail' },
+  { name: 'Convenience Store', vertical: 'retail' },
+  { name: 'Eyewear', vertical: 'retail' },
+  { name: 'Flowers and Gifts', vertical: 'retail' },
+  { name: 'Furniture / Home Goods', vertical: 'retail' },
+  { name: 'Grocery / Market', vertical: 'retail' },
+  { name: 'Hobby / Toy / Game Shop', vertical: 'retail' },
+  { name: 'Pet Store', vertical: 'retail' },
+  { name: 'Other Retail', vertical: 'retail' },
+
+  // Professional Services
+  { name: 'Consulting', vertical: 'professional_services' },
+  { name: 'Software Development', vertical: 'professional_services' },
+  { name: 'Art and Design', vertical: 'professional_services' },
+  { name: 'Marketing / Advertising', vertical: 'professional_services' },
+  { name: 'Accounting', vertical: 'professional_services' },
+  { name: 'Architect', vertical: 'professional_services' },
+  { name: 'Photography', vertical: 'professional_services' },
+  { name: 'Printing Services', vertical: 'professional_services' },
+  { name: 'Real Estate', vertical: 'professional_services' },
+  { name: 'Interior Design', vertical: 'professional_services' },
+  { name: 'Child Care', vertical: 'professional_services' },
+  { name: 'Graphic Design', vertical: 'professional_services' },
+  { name: 'Car Washes', vertical: 'professional_services' },
+  { name: 'Delivery', vertical: 'professional_services' },
+  { name: 'Other Professional Services', vertical: 'professional_services' },
+
+  // Healthcare
+  { name: 'Audiology', vertical: 'healthcare' },
+  { name: 'Anesthesiology', vertical: 'healthcare' },
+  { name: 'Chiropractor', vertical: 'healthcare' },
+  { name: 'Cardiology', vertical: 'healthcare' },
+  { name: 'Dentistry', vertical: 'healthcare' },
+  { name: 'Emergency Medicine', vertical: 'healthcare' },
+  { name: 'Family Medicine', vertical: 'healthcare' },
+  { name: 'Nutrition / Dietetics', vertical: 'healthcare' },
+  { name: 'Obstetrics / Gynecology', vertical: 'healthcare' },
+  { name: 'Optometry / Eyewear', vertical: 'healthcare' },
+  { name: 'Pathology', vertical: 'healthcare' },
+  { name: 'Psychotherapy', vertical: 'healthcare' },
+  { name: 'Other Healthcare', vertical: 'healthcare' },
+
+  // Beauty and Personal Care
+  { name: 'Blow Dry Bar', vertical: 'beauty_wellness' },
+  { name: 'Brows / Lashes', vertical: 'beauty_wellness' },
+  { name: 'Ear / Body Piercing', vertical: 'beauty_wellness' },
+  { name: 'Hair Salon', vertical: 'beauty_wellness' },
+  { name: 'Makeup Artistry', vertical: 'beauty_wellness' },
+  { name: 'Nail Salon', vertical: 'beauty_wellness' },
+  { name: 'Skin Care / Esthetics', vertical: 'beauty_wellness' },
+  { name: 'Tanning Salon', vertical: 'beauty_wellness' },
+  { name: 'Body Grooming', vertical: 'beauty_wellness' },
+  { name: 'Day Spa', vertical: 'beauty_wellness' },
+  { name: 'Barber Shop', vertical: 'beauty_wellness' },
+  { name: 'Other Beauty & Personal Care', vertical: 'beauty_wellness' },
+
+  // Fitness
+  { name: 'Barre', vertical: 'sports_fitness' },
+  { name: 'Boxing Gym', vertical: 'sports_fitness' },
+  { name: 'Dance Studio', vertical: 'sports_fitness' },
+  { name: 'Fitness Studio', vertical: 'sports_fitness' },
+  { name: 'Gym / Health Club', vertical: 'sports_fitness' },
+  { name: 'Martial Arts', vertical: 'sports_fitness' },
+  { name: 'Pilates Studio', vertical: 'sports_fitness' },
+  { name: 'Swimming / Water Aerobics', vertical: 'sports_fitness' },
+  { name: 'Yoga Studio', vertical: 'sports_fitness' },
+  { name: 'Other Fitness', vertical: 'sports_fitness' },
+
+  // Home and Repair
+  { name: 'Automotive Services', vertical: 'home_repair' },
+  { name: 'Cleaning', vertical: 'home_repair' },
+  { name: 'Clothing / Shoe Repair / Alterations', vertical: 'home_repair' },
+  { name: 'Computer / Electronics / Appliances', vertical: 'home_repair' },
+  { name: 'Flooring', vertical: 'home_repair' },
+  { name: 'Heating and Air Conditioning', vertical: 'home_repair' },
+  { name: 'Installation Services', vertical: 'home_repair' },
+  { name: 'Locksmith Services', vertical: 'home_repair' },
+  { name: 'Moving and Storage', vertical: 'home_repair' },
+  { name: 'Plumbing', vertical: 'home_repair' },
+  { name: 'Towing Services', vertical: 'home_repair' },
+  { name: 'Other Home & Repair', vertical: 'home_repair' },
+
+  // Leisure and Entertainment
+  { name: 'Events / Festivals', vertical: 'professional_services' },
+  { name: 'Movies / Film', vertical: 'professional_services' },
+  { name: 'Museum / Cultural', vertical: 'professional_services' },
+  { name: 'Music', vertical: 'professional_services' },
+  { name: 'Performing Arts', vertical: 'professional_services' },
+  { name: 'Sports Recreation', vertical: 'professional_services' },
+  { name: 'Tourism', vertical: 'professional_services' },
+  { name: 'Other Leisure & Entertainment', vertical: 'professional_services' },
+
+  // Charities, Education and Membership
+  { name: 'Charitable Organization', vertical: 'professional_services' },
+  { name: 'Instructor / Teacher', vertical: 'professional_services' },
+  { name: 'Membership Organization', vertical: 'professional_services' },
+  { name: 'School', vertical: 'professional_services' },
+  { name: 'Tutor', vertical: 'professional_services' },
+  { name: 'Other Education & Membership', vertical: 'professional_services' },
+
+  // Pet Care
+  { name: 'Pet Boarding / Daycare', vertical: 'professional_services' },
+  { name: 'Pet Sitting', vertical: 'professional_services' },
+  { name: 'Pet Store (Services)', vertical: 'professional_services' },
+  { name: 'Other Pet Care', vertical: 'professional_services' },
+
+  // Transportation
+  { name: 'Bus', vertical: 'professional_services' },
+  { name: 'Delivery Service', vertical: 'professional_services' },
+  { name: 'Private Shuttle', vertical: 'professional_services' },
+  { name: 'Taxi', vertical: 'professional_services' },
+  { name: 'Town Car', vertical: 'professional_services' },
+  { name: 'Other Transportation', vertical: 'professional_services' },
+
+  // Casual Use
+  { name: 'Miscellaneous Goods', vertical: 'retail' },
+  { name: 'Miscellaneous Services', vertical: 'professional_services' },
+  { name: 'Other', vertical: 'professional_services' },
+];
+
+// --- Revenue Ranges ---
+
+export interface RevenueRange {
+  id: string;
+  label: string;
+  description: string;
+}
+
+export const REVENUE_RANGES: RevenueRange[] = [
+  { id: 'under_100k', label: 'Less than $100K', description: 'Just getting started or small operation' },
+  { id: '100k_250k', label: '$100K – $250K', description: 'Growing business' },
+  { id: '250k_1m', label: '$250K – $1M', description: 'Established business' },
+  { id: '1m_5m', label: '$1M – $5M', description: 'Multi-unit or high-volume' },
+  { id: 'over_5m', label: '$5M+', description: 'Enterprise' },
+  { id: 'not_sure', label: 'Not sure yet', description: 'We\'ll figure it out together' },
+];
+
+// --- Signup Data ---
+
+export interface SignupData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}

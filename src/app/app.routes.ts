@@ -9,6 +9,13 @@ import { AuthLayoutComponent } from './layouts/auth-layout.component';
 export const routes: Routes = [
   // Public routes (no auth)
   {
+    path: 'signup',
+    component: AuthLayoutComponent,
+    children: [
+      { path: '', loadComponent: () => import('./features/auth/login/login').then(m => m.Login) },
+    ],
+  },
+  {
     path: 'login',
     component: AuthLayoutComponent,
     children: [
@@ -72,6 +79,9 @@ export const routes: Routes = [
     resolve: { deviceInit: deviceInitResolver },
     children: [
 
+      // Home
+      { path: 'home', loadComponent: () => import('./features/home/home-dashboard/home-dashboard').then(m => m.HomeDashboard) },
+
       // Orders
       { path: 'orders', loadComponent: () => import('./features/orders/pending-orders/pending-orders').then(m => m.PendingOrders) },
       { path: 'order-history', loadComponent: () => import('./features/orders/order-history/order-history').then(m => m.OrderHistory) },
@@ -124,11 +134,11 @@ export const routes: Routes = [
       { path: 'multi-location', loadComponent: () => import('./features/multi-location/multi-location-dashboard/multi-location-dashboard').then(m => m.MultiLocationDashboard) },
       { path: 'settings', loadComponent: () => import('./features/settings/control-panel/control-panel').then(m => m.ControlPanel) },
 
-      // Default — mode-aware redirect
-      { path: '', canActivate: [deviceModeRedirectGuard], children: [] },
+      // Default — redirect to home
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
     ],
   },
 
   // Wildcard
-  { path: '**', redirectTo: 'login' },
+  { path: '**', redirectTo: 'signup' },
 ];

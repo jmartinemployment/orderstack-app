@@ -27,7 +27,7 @@
     </div>
 
     <div class="wizard-body">
-      <!-- ============ STEP 1: Welcome + Business Name ============ -->
+      <!-- ============ STEP 1: Welcome + Business Name + Address ============ -->
       @if (currentStep() === 1) {
         <div class="step-content welcome-step">
           <h2>Welcome to OrderStack!</h2>
@@ -44,49 +44,88 @@
               (ngModelChange)="_businessName.set($event)" />
             <p class="field-hint">This is how we'll identify you on emails, receipts, and messages to your customers.</p>
           </div>
+
+          <div class="address-section">
+            <label>Business address</label>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Street address"
+              [ngModel]="_businessAddress()"
+              (ngModelChange)="_businessAddress.set($event)"
+              [disabled]="_noPhysicalAddress()" />
+
+            <div class="no-address-check">
+              <input
+                type="checkbox"
+                id="noAddress"
+                class="form-check-input"
+                [ngModel]="_noPhysicalAddress()"
+                (ngModelChange)="_noPhysicalAddress.set($event)" />
+              <label for="noAddress" class="form-check-label">I don't have a permanent business address</label>
+            </div>
+          </div>
         </div>
       }
 
-      <!-- ============ STEP 2: Verticals ============ -->
+      <!-- ============ STEP 2: Business Type ============ -->
       @if (currentStep() === 2) {
         <div class="step-content">
-          <h2>What do you sell at {{ _businessName() || 'your business' }}?</h2>
-          <p class="step-subtitle">Select all that apply. This determines which features are available.</p>
+          <h2>What kind of business best describes <strong>{{ _businessName() || 'your business' }}</strong>?</h2>
+          <p class="step-subtitle">This helps us set up the right features for you.</p>
 
-          <div class="vertical-grid">
-            @for (v of verticalCatalog; track v.vertical) {
+          <div class="business-type-search">
+            <i class="bi bi-search search-icon"></i>
+            <input
+              type="text"
+              class="form-control search-input"
+              placeholder="Search business types..."
+              [ngModel]="_businessTypeSearch()"
+              (ngModelChange)="_businessTypeSearch.set($event)" />
+          </div>
+
+          <div class="business-type-list">
+            @for (type of filteredBusinessTypes(); track type.name) {
               <button
-                class="vertical-pill"
-                [class.selected]="isVerticalSelected(v.vertical)"
-                (click)="toggleVertical(v.vertical)">
-                <i class="{{ v.icon }} vertical-icon"></i>
-                <span class="vertical-label">{{ v.label }}</span>
-                <span class="vertical-desc">{{ v.description }}</span>
-                @if (isVerticalSelected(v.vertical)) {
-                  <i class="bi bi-check-circle-fill check-icon"></i>
+                type="button"
+                class="business-type-item"
+                [class.selected]="_selectedBusinessType()?.name === type.name"
+                (click)="selectBusinessType(type)">
+                <div class="bt-info">
+                  <span class="bt-name">{{ type.name }}</span>
+                  <span class="bt-vertical">{{ getVerticalLabel(type.vertical) }}</span>
+                </div>
+                @if (_selectedBusinessType()?.name === type.name) {
+                  <i class="bi bi-check-circle-fill bt-check"></i>
                 }
               </button>
+            }
+            @if (filteredBusinessTypes().length === 0) {
+              <div class="bt-empty">
+                <p>No results for "{{ _businessTypeSearch() }}"</p>
+              </div>
             }
           </div>
         </div>
       }
 
-      <!-- ============ STEP 3: Primary Vertical ============ -->
+      <!-- ============ STEP 3: Annual Revenue ============ -->
       @if (currentStep() === 3) {
         <div class="step-content">
-          <h2>What's your primary focus?</h2>
-          <p class="step-subtitle">We'll use this information to tailor the settings on the point of sale.</p>
+          <h2>What's your annual revenue?</h2>
+          <p class="step-subtitle">This helps us recommend the right plan and features. No judgment — we serve businesses of all sizes.</p>
 
-          <div class="primary-vertical-list">
-            @for (v of _selectedVerticals(); track v) {
+          <div class="revenue-cards">
+            @for (range of revenueRanges; track range.id) {
               <button
-                class="primary-option"
-                [class.selected]="_primaryVertical() === v"
-                (click)="_primaryVertical.set(v)">
-                <i class="{{ getVerticalConfig(v)?.icon }} option-icon"></i>
-                <span>{{ getVerticalConfig(v)?.label }}</span>
-                @if (_primaryVertical() === v) {
-                  <i class="bi bi-check-circle-fill"></i>
+                type="button"
+                class="revenue-card"
+                [class.selected]="_selectedRevenue() === range.id"
+                (click)="selectRevenue(range.id)">
+                <span class="revenue-label">{{ range.label }}</span>
+                <span class="revenue-desc">{{ range.description }}</span>
+                @if (_selectedRevenue() === range.id) {
+                  <i class="bi bi-check-circle-fill revenue-check"></i>
                 }
               </button>
             }
@@ -752,8 +791,14 @@
             </div>
 
             <div class="review-section" (click)="goToStep(2)">
-              <div class="review-label">Industry</div>
-              <div class="review-value">{{ getVerticalLabels() }}</div>
+              <div class="review-label">Business Type</div>
+              <div class="review-value">{{ getBusinessTypeLabel() }}</div>
+              <i class="bi bi-pencil edit-icon"></i>
+            </div>
+
+            <div class="review-section" (click)="goToStep(3)">
+              <div class="review-label">Annual Revenue</div>
+              <div class="review-value">{{ getRevenueLabel() }}</div>
               <i class="bi bi-pencil edit-icon"></i>
             </div>
 

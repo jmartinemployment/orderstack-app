@@ -32,6 +32,9 @@ export class MainLayoutComponent {
   readonly selectedRestaurantName = this.auth.selectedRestaurantName;
 
   private readonly allNavItems: NavItem[] = [
+    // Home — always visible
+    { label: 'Home', icon: 'bi-house', route: '/home', group: 'Home' },
+
     // Orders — always visible
     { label: 'Orders', icon: 'bi-receipt', route: '/orders', group: 'Orders' },
     { label: 'Order Pad', icon: 'bi-pencil-square', route: '/order-pad', group: 'Orders' },

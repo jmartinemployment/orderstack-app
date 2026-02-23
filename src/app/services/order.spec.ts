@@ -28,6 +28,7 @@ function createHarness(): OrderHarness {
     connect: vi.fn(),
     disconnect: vi.fn(),
     onOrderEvent: vi.fn(),
+    onCustomEvent: vi.fn(),
     isOnline: signal(true),
   };
 

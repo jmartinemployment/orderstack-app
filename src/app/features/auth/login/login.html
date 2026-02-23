@@ -1,81 +1,261 @@
-<div class="login-card">
-  <div class="text-center mb-4">
-    <h2 class="card-title mb-1">Sign in</h2>
-    <p class="text-muted">Enter your credentials to continue</p>
-  </div>
+@if (isSignUp()) {
+  <!-- ============ SIGN UP VIEW ============ -->
+  <div class="signup-layout">
+    <div class="signup-form-panel">
+      <div class="signup-form-inner">
+        <div class="brand-mark">
+          <i class="bi bi-stack"></i>
+          <span>OrderStack</span>
+        </div>
 
-  @if (sessionExpiredMessage()) {
-    <div class="alert alert-warning d-flex align-items-center gap-2 mb-3" role="alert">
-      <i class="bi bi-clock-history"></i>
-      {{ sessionExpiredMessage() }}
-    </div>
-  }
+        <h1 class="signup-heading">
+          <span class="highlight">Let's</span> create your account
+        </h1>
+        <p class="signup-subtitle">Start accepting orders in minutes — no commitments or long-term contracts.</p>
 
-  @if (error()) {
-    <os-error-display
-      [message]="error()!"
-      title="Login Failed"
-      (dismissed)="clearError()"
-    />
-  }
+        @if (error()) {
+          <os-error-display
+            [message]="error()!"
+            title="Signup Failed"
+            (dismissed)="clearError()"
+          />
+        }
 
-  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-    <div class="mb-3">
-      <label for="email" class="form-label">Email address</label>
-      <input
-        type="email"
-        class="form-control"
-        id="email"
-        formControlName="email"
-        placeholder="name@example.com"
-        [class.is-invalid]="emailControl?.touched && emailControl?.invalid"
-      />
-      @if (emailControl?.touched && emailControl?.errors?.['required']) {
-        <div class="invalid-feedback d-block">Email is required</div>
-      }
-      @if (emailControl?.touched && emailControl?.errors?.['email']) {
-        <div class="invalid-feedback d-block">Please enter a valid email</div>
-      }
-    </div>
+        <form [formGroup]="signupForm" (ngSubmit)="onSignUp()">
+          <div class="name-row">
+            <div class="form-group">
+              <label for="firstName">First name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="firstName"
+                formControlName="firstName"
+                placeholder="First name"
+                [class.is-invalid]="signupFirstName?.touched && signupFirstName?.invalid"
+              />
+              @if (signupFirstName?.touched && signupFirstName?.errors?.['required']) {
+                <div class="invalid-feedback d-block">Required</div>
+              }
+            </div>
+            <div class="form-group">
+              <label for="lastName">Last name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="lastName"
+                formControlName="lastName"
+                placeholder="Last name"
+                [class.is-invalid]="signupLastName?.touched && signupLastName?.invalid"
+              />
+              @if (signupLastName?.touched && signupLastName?.errors?.['required']) {
+                <div class="invalid-feedback d-block">Required</div>
+              }
+            </div>
+          </div>
 
-    <div class="mb-3">
-      <label for="password" class="form-label">Password</label>
-      <div class="input-group">
-        <input
-          [type]="showPassword() ? 'text' : 'password'"
-          class="form-control"
-          id="password"
-          formControlName="password"
-          placeholder="Enter your password"
-          [class.is-invalid]="passwordControl?.touched && passwordControl?.invalid"
-        />
-        <button
-          type="button"
-          class="btn btn-outline-secondary"
-          (click)="togglePasswordVisibility()"
-        >
-          {{ showPassword() ? 'Hide' : 'Show' }}
-        </button>
+          <div class="form-group">
+            <label for="signupEmail">Email address</label>
+            <input
+              type="email"
+              class="form-control"
+              id="signupEmail"
+              formControlName="email"
+              placeholder="name@example.com"
+              [class.is-invalid]="signupEmail?.touched && signupEmail?.invalid"
+            />
+            @if (signupEmail?.touched && signupEmail?.errors?.['required']) {
+              <div class="invalid-feedback d-block">Email is required</div>
+            }
+            @if (signupEmail?.touched && signupEmail?.errors?.['email']) {
+              <div class="invalid-feedback d-block">Please enter a valid email</div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="signupPassword">Password</label>
+            <div class="input-group">
+              <input
+                [type]="showPassword() ? 'text' : 'password'"
+                class="form-control"
+                id="signupPassword"
+                formControlName="password"
+                placeholder="Min 6 characters"
+                [class.is-invalid]="signupPassword?.touched && signupPassword?.invalid"
+              />
+              <button
+                type="button"
+                class="btn-toggle-pw"
+                (click)="togglePasswordVisibility()"
+              >
+                <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
+              </button>
+            </div>
+            @if (signupPassword?.touched && signupPassword?.errors?.['required']) {
+              <div class="invalid-feedback d-block">Password is required</div>
+            }
+            @if (signupPassword?.touched && signupPassword?.errors?.['minlength']) {
+              <div class="invalid-feedback d-block">Min 6 characters</div>
+            }
+          </div>
+
+          <div class="terms-check">
+            <input
+              type="checkbox"
+              id="terms"
+              class="form-check-input"
+              [checked]="agreedToTerms()"
+              (change)="toggleTerms()"
+            />
+            <label for="terms" class="terms-label">
+              I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary btn-create"
+            [disabled]="isLoading() || !agreedToTerms()"
+          >
+            @if (isLoading()) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Creating account...
+            } @else {
+              Create account
+            }
+          </button>
+        </form>
+
+        <p class="switch-link">
+          Already have an account? <button type="button" class="link-btn" (click)="switchToSignIn()">Sign in</button>
+        </p>
       </div>
-      @if (passwordControl?.touched && passwordControl?.errors?.['required']) {
-        <div class="invalid-feedback d-block">Password is required</div>
-      }
-      @if (passwordControl?.touched && passwordControl?.errors?.['minlength']) {
-        <div class="invalid-feedback d-block">Password must be at least 6 characters</div>
-      }
     </div>
 
-    <button
-      type="submit"
-      class="btn btn-primary w-100"
-      [disabled]="isLoading()"
-    >
-      @if (isLoading()) {
-        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-        Signing in...
-      } @else {
-        Sign In
-      }
-    </button>
-  </form>
-</div>
+    <div class="signup-promo-panel">
+      <div class="promo-inner">
+        <div class="promo-brand">
+          <i class="bi bi-stack"></i> OrderStack
+        </div>
+        <h2 class="promo-heading">Everything you need to run your restaurant</h2>
+        <div class="promo-features">
+          <div class="promo-feature">
+            <div class="promo-feature-icon"><i class="bi bi-tv"></i></div>
+            <div>
+              <strong>Point of Sale</strong>
+              <span>Fast checkout with mode-aware POS terminals</span>
+            </div>
+          </div>
+          <div class="promo-feature">
+            <div class="promo-feature-icon"><i class="bi bi-display"></i></div>
+            <div>
+              <strong>Kitchen Display</strong>
+              <span>Real-time order routing to kitchen stations</span>
+            </div>
+          </div>
+          <div class="promo-feature">
+            <div class="promo-feature-icon"><i class="bi bi-globe"></i></div>
+            <div>
+              <strong>Online Ordering</strong>
+              <span>Your own branded ordering page, no commissions</span>
+            </div>
+          </div>
+          <div class="promo-feature">
+            <div class="promo-feature-icon"><i class="bi bi-graph-up"></i></div>
+            <div>
+              <strong>Analytics</strong>
+              <span>Sales, labor, menu engineering — all in one place</span>
+            </div>
+          </div>
+        </div>
+        <p class="promo-tagline">Trusted by restaurants, cafes, and food trucks.</p>
+      </div>
+    </div>
+  </div>
+} @else {
+  <!-- ============ SIGN IN VIEW ============ -->
+  <div class="login-card">
+    <div class="text-center mb-4">
+      <h2 class="card-title mb-1">Sign in</h2>
+      <p class="text-muted">Enter your credentials to continue</p>
+    </div>
+
+    @if (sessionExpiredMessage()) {
+      <div class="alert alert-warning d-flex align-items-center gap-2 mb-3" role="alert">
+        <i class="bi bi-clock-history"></i>
+        {{ sessionExpiredMessage() }}
+      </div>
+    }
+
+    @if (error()) {
+      <os-error-display
+        [message]="error()!"
+        title="Login Failed"
+        (dismissed)="clearError()"
+      />
+    }
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSignIn()">
+      <div class="mb-3">
+        <label for="email" class="form-label">Email address</label>
+        <input
+          type="email"
+          class="form-control"
+          id="email"
+          formControlName="email"
+          placeholder="name@example.com"
+          [class.is-invalid]="emailControl?.touched && emailControl?.invalid"
+        />
+        @if (emailControl?.touched && emailControl?.errors?.['required']) {
+          <div class="invalid-feedback d-block">Email is required</div>
+        }
+        @if (emailControl?.touched && emailControl?.errors?.['email']) {
+          <div class="invalid-feedback d-block">Please enter a valid email</div>
+        }
+      </div>
+
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-group">
+          <input
+            [type]="showPassword() ? 'text' : 'password'"
+            class="form-control"
+            id="password"
+            formControlName="password"
+            placeholder="Enter your password"
+            [class.is-invalid]="passwordControl?.touched && passwordControl?.invalid"
+          />
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            (click)="togglePasswordVisibility()"
+          >
+            {{ showPassword() ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+        @if (passwordControl?.touched && passwordControl?.errors?.['required']) {
+          <div class="invalid-feedback d-block">Password is required</div>
+        }
+        @if (passwordControl?.touched && passwordControl?.errors?.['minlength']) {
+          <div class="invalid-feedback d-block">Password must be at least 6 characters</div>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary w-100"
+        [disabled]="isLoading()"
+      >
+        @if (isLoading()) {
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          Signing in...
+        } @else {
+          Sign In
+        }
+      </button>
+    </form>
+
+    <p class="switch-link mt-3">
+      Don't have an account? <button type="button" class="link-btn" (click)="switchToSignUp()">Sign up</button>
+    </p>
+  </div>
+}

@@ -63,6 +63,7 @@ orderstack-app/
 │   │   │   ├── auth/           # login, restaurant-select, pos-login
 │   │   │   ├── crm/
 │   │   │   ├── food-cost/
+│   │   │   ├── home/            # home-dashboard
 │   │   │   ├── inventory/
 │   │   │   ├── invoicing/
 │   │   │   ├── kds/            # kds-display, order-card, status-badge
@@ -105,7 +106,8 @@ orderstack-app/
 
 | Path | Component | Notes |
 |------|-----------|-------|
-| `/login` | Login | Email/password auth |
+| `/signup` | Login (signup view) | Account creation — default entry point |
+| `/login` | Login (signin view) | Returning user sign-in |
 | `/setup` | SetupWizard | Onboarding wizard |
 | `/order/:restaurantSlug` | OnlineOrderPortal | Customer-facing ordering |
 | `/kiosk/:restaurantSlug` | KioskTerminal | Self-service kiosk |
@@ -115,6 +117,7 @@ orderstack-app/
 
 | Path | Component | Domain |
 |------|-----------|--------|
+| `/home` | HomeDashboard | Home |
 | `/orders` | PendingOrders | Orders |
 | `/order-history` | OrderHistory | Orders |
 | `/order-pad` | OrderPad | Orders |
@@ -626,4 +629,19 @@ ng build --configuration=production
 - **Build: zero errors**
 - Next: GAP-R01 Phase 2 (Split Pay, Apple/Google Pay, settings). GAP-R03 (Course-Based Firing). End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 28)*
+**[February 23, 2026] (Session 29) — Square-Style Onboarding Overhaul (Signup, Business Type, Revenue, Home Dashboard):**
+- **Plan COMPLETE** — 6-step onboarding overhaul implementing Square-style signup flow, enhanced wizard, and home dashboard
+- **Step 1 (Login → Sign Up + Sign In):** Rewrote `login.ts` as dual-view component with `isSignUp` signal (default `true`). Route-aware: `/signup` shows signup, `/login` shows signin. `login.html` split layout for signup (form panel + dark promo panel with feature highlights) and centered card for signin. `login.scss` full rewrite with both layouts. Added `signup()` method to `AuthService`.
+- **Step 2 (Business Type + Revenue):** Replaced old verticals/primary-vertical steps (2+3) with searchable business type selector and annual revenue step. Added `BusinessCategory`, `BUSINESS_CATEGORIES` (~120 types across 12 verticals), `REVENUE_RANGES` to `platform.model.ts`. `setup-wizard.ts` fully rewritten with `_businessTypeSearch`, `_selectedBusinessType`, `_businessAddress`, `_noPhysicalAddress`, `_selectedRevenue` signals. `filteredBusinessTypes` computed. New SCSS: `.business-type-search`, `.business-type-list`, `.business-type-item`, `.revenue-cards`, `.revenue-card`, `.address-section`.
+- **Step 3 (Auto-Map):** `BUSINESS_TYPE_MODE_MAP` maps business types to device modes (Fine Dining → full_service, Fast Food → quick_service, Bar → bar, etc.). `recommendedMode` computed checks map first, falls back to complexity logic.
+- **Step 4 (Home Dashboard):** Created `features/home/home-dashboard/` (ts, html, scss). Getting Started checklist (menu, payments, team, first order), performance KPIs (net sales, orders, avg ticket with vs-yesterday %), quick action buttons. Added `getTodaySalesStats()` to `AnalyticsService`.
+- **Step 5 (Wire Flow):** `app.routes.ts` — `/signup` route (default entry), `/login` route, `/home` route under MainLayout, wildcard → `signup`, default authenticated path → `home`. `device-mode.guard.ts` default → `/home`. `main-layout.component.ts` — Home as first nav item (`bi-house`). Setup wizard `goToDashboard()` → `/home`.
+- **Step 6 (Build):** `ng build --configuration=production` — zero errors
+- **Domain note:** getorderstack.com is live on Vercel
+- **Files created:** `features/home/home-dashboard/` (ts, html, scss)
+- **Files modified:** `login.ts`, `login.html`, `login.scss`, `services/auth.ts`, `models/platform.model.ts`, `setup-wizard.ts`, `setup-wizard.html`, `setup-wizard.scss`, `services/analytics.ts`, `app.routes.ts`, `guards/device-mode.guard.ts`, `layouts/main-layout.component.ts`
+- **Build: zero errors**
+- **Deleted specs:** GAP-R04 (auto-progression), GAP-R10 (customer display) — 100% complete from prior sessions
+- Next: GAP-R01 Phase 2 (Split Pay, Apple/Google Pay). GAP-R03 (Course-Based Firing). End-to-end test with live backend.
+
+*Last Updated: February 23, 2026 (Session 29)*

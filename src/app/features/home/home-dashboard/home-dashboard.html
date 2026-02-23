@@ -1,0 +1,101 @@
+<div class="home-dashboard">
+  <!-- Header -->
+  <div class="home-header">
+    <div>
+      <h1 class="home-title">Home</h1>
+      <p class="home-date">{{ todayDate() | date:'EEEE, MMMM d, y' }}</p>
+    </div>
+  </div>
+
+  <div class="home-grid">
+    <!-- Main Column -->
+    <div class="home-main">
+
+      <!-- Getting Started Banner -->
+      @if (!isSetupComplete()) {
+        <div class="getting-started-card">
+          <div class="gs-header">
+            <div>
+              <h2 class="gs-title">Let's get growing, {{ businessName() }}</h2>
+              <p class="gs-subtitle">Complete these steps to start accepting orders.</p>
+            </div>
+            <div class="gs-progress-ring">
+              <span class="gs-progress-value">{{ setupProgress() }}%</span>
+            </div>
+          </div>
+
+          <div class="gs-checklist">
+            @for (item of setupChecklist(); track item.label) {
+              <button type="button" class="gs-check-item" [class.done]="item.done" (click)="navigateTo(item.route)">
+                <div class="gs-check-icon">
+                  @if (item.done) {
+                    <i class="bi bi-check-circle-fill"></i>
+                  } @else {
+                    <i class="bi bi-circle"></i>
+                  }
+                </div>
+                <div class="gs-check-info">
+                  <span class="gs-check-label">{{ item.label }}</span>
+                  <span class="gs-check-desc">{{ item.description }}</span>
+                </div>
+                <i class="bi bi-chevron-right gs-check-arrow"></i>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Performance Section -->
+      <div class="performance-section">
+        <div class="section-header">
+          <h3>Today's Performance</h3>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-label">Net Sales</span>
+            <span class="kpi-value">{{ formatCurrency(_todayNetSales()) }}</span>
+            @if (_yesterdayNetSales() > 0) {
+              <span class="kpi-change" [class.positive]="salesChangePercent() >= 0" [class.negative]="salesChangePercent() < 0">
+                <i class="bi" [class.bi-arrow-up-short]="salesChangePercent() >= 0" [class.bi-arrow-down-short]="salesChangePercent() < 0"></i>
+                {{ formatPercent(salesChangePercent()) }} vs yesterday
+              </span>
+            }
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Orders</span>
+            <span class="kpi-value">{{ _todayOrderCount() }}</span>
+            @if (_yesterdayOrderCount() > 0) {
+              <span class="kpi-change" [class.positive]="ordersChangePercent() >= 0" [class.negative]="ordersChangePercent() < 0">
+                <i class="bi" [class.bi-arrow-up-short]="ordersChangePercent() >= 0" [class.bi-arrow-down-short]="ordersChangePercent() < 0"></i>
+                {{ formatPercent(ordersChangePercent()) }} vs yesterday
+              </span>
+            }
+          </div>
+
+          <div class="kpi-card">
+            <span class="kpi-label">Avg. Ticket</span>
+            <span class="kpi-value">{{ formatCurrency(todayAvgTicket()) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="home-sidebar">
+      <!-- Quick Actions -->
+      <div class="quick-actions-card">
+        <h3 class="qa-title">Quick Actions</h3>
+        <div class="qa-grid">
+          @for (action of quickActions; track action.label) {
+            <button type="button" class="qa-btn" [class]="'qa-btn qa-' + action.color" (click)="navigateTo(action.route)">
+              <i class="bi {{ action.icon }}"></i>
+              <span>{{ action.label }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
