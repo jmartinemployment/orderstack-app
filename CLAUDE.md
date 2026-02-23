@@ -11,7 +11,9 @@
 This is the **canonical OrderStack** restaurant management SaaS application — a standalone Angular 21 app. This is the active, correct project for all OrderStack development.
 
 **Related Documentation:**
-- **`specs/`** — GOS-SPEC-11 (Phases 1-3). GOS-SPEC-01, 02, 03, 04, 05, 06, 07, 08, 09, 10 fully delivered and deleted.
+- **`specs/`** — GOS-SPEC-11 (Phases 1-3). GOS-SPEC-01 through 10 fully delivered and deleted.
+- **`specs/GAP-R01..R10`** — 10 restaurant POS gap specs (Square parity features missing from OrderStack)
+- **`specs/GOS-SPEC-20..24`** — 5 retail vertical specs (new vertical: catalog, POS, inventory, reporting, ecommerce)
 
 **Predecessor:** `Get-Order-Stack-Restaurant-Frontend-Workspace/` (Angular Elements + WordPress — archived, do not use)
 
@@ -585,4 +587,30 @@ ng build --configuration=production
 - **Remaining specs:** GOS-SPEC-11 (Phase 4 — undefined placeholder only). All other specs 100% complete.
 - Next: End-to-end test with live backend. Evaluate GOS-SPEC-11 Phase 4 scope.
 
-*Last Updated: February 23, 2026 (Session 26)*
+**[February 23, 2026] (Session 27) — Square Parity Gap Analysis + Retail Vertical Specs:**
+- **Created 15 spec files** in `specs/` directory — comprehensive gap analysis + retail vertical planning
+- **10 Restaurant POS Gap Specs (GAP-R01 through GAP-R10):**
+  - GAP-R01: Scan to Pay (QR Code Table Payment) — Priority 1
+  - GAP-R02: Conversational AI Dashboard — Priority 7
+  - GAP-R03: Course-Based Firing (Multi-Course Meals) — Priority 2
+  - GAP-R04: Auto-Progression POS (Quick Service Speed) — Priority 6
+  - GAP-R05: Kitchen Prep Time Estimates — Priority 5
+  - GAP-R06: Cash Management (Drawer Reconciliation) — Priority 3
+  - GAP-R07: Menu Scheduling (Daypart Menus) — Priority 4
+  - GAP-R08: Integrated Delivery Dispatch — Priority 10
+  - GAP-R09: Menu Item Photos + AI Description Generation — Priority 8
+  - GAP-R10: Customer-Facing Display (Second Screen) — Priority 9
+- **5 Retail Vertical Specs (GOS-SPEC-20 through GOS-SPEC-24):**
+  - GOS-SPEC-20: Retail Catalog & Variations (3 phases, 14 steps) — variations, option sets, bundles
+  - GOS-SPEC-21: Retail POS Checkout (3 phases, 15 steps) — barcode scanning, returns & exchanges
+  - GOS-SPEC-22: Retail Inventory Management (3 phases, 15 steps) — FIFO, POs, vendors, smart reorder
+  - GOS-SPEC-23: Retail Reporting & Analytics (3 phases, 14 steps) — COGS, sell-through, aging inventory
+  - GOS-SPEC-24: Retail Ecommerce Integration (3 phases, 14 steps) — online store, fulfillment, channel sync
+- **Square for Retail research completed** — comprehensive feature inventory covering 17 categories, all plan tiers
+- **Implementation priority established:** Phase A (restaurant gaps, highest value) → Phase B (retail vertical, new revenue)
+- **Shared infrastructure identified:** Auth, multi-location, CRM, loyalty, payments, staff all reusable. Retail needs: barcode scanner + label printer profiles in hardware.
+- **Files created (15):** All in `specs/` directory
+- **No code changes** — specs only session
+- Next: Begin GAP-R01 (Scan to Pay) or GAP-R03 (Course-Based Firing) implementation. End-to-end test with live backend.
+
+*Last Updated: February 23, 2026 (Session 27)*

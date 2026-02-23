@@ -261,7 +261,24 @@
                       }
                     }
                   }
+                  @if (item.selection.isRemake) {
+                    <span class="badge bg-info remake-badge">Remade</span>
+                  }
                 </div>
+                @if (canRemake()) {
+                  <button
+                    type="button"
+                    class="btn btn-xs remake-btn"
+                    [class.remake-confirm]="remakeConfirmGuid() === item.selection.guid"
+                    (click)="onRemakeItem(item.selection.guid)"
+                    title="Remake item">
+                    @if (remakeConfirmGuid() === item.selection.guid) {
+                      Confirm?
+                    } @else {
+                      <i class="bi bi-arrow-repeat"></i>
+                    }
+                  </button>
+                }
               </li>
             }
           </ul>
@@ -287,7 +304,24 @@
                   <small class="text-warning fst-italic">{{ sel.specialInstructions }}</small>
                 </div>
               }
+              @if (sel.isRemake) {
+                <span class="badge bg-info remake-badge">Remade</span>
+              }
             </div>
+            @if (canRemake()) {
+              <button
+                type="button"
+                class="btn btn-xs remake-btn"
+                [class.remake-confirm]="remakeConfirmGuid() === sel.guid"
+                (click)="onRemakeItem(sel.guid)"
+                title="Remake item">
+                @if (remakeConfirmGuid() === sel.guid) {
+                  Confirm?
+                } @else {
+                  <i class="bi bi-arrow-repeat"></i>
+                }
+              </button>
+            }
           </li>
         }
       </ul>

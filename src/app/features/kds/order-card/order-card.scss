@@ -401,6 +401,42 @@
   font-weight: 600;
 }
 
+// Remake button
+.remake-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 0.7rem;
+  color: var(--os-text-secondary);
+  border: 1px solid var(--os-border);
+  border-radius: 0.25rem;
+  background: transparent;
+  align-self: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+
+  &:hover {
+    color: var(--os-primary);
+    border-color: var(--os-primary);
+  }
+
+  &.remake-confirm {
+    background-color: var(--os-warning);
+    border-color: var(--os-warning);
+    color: #000;
+    font-weight: 600;
+    width: auto;
+    padding: 0 0.5rem;
+    font-size: 0.65rem;
+  }
+}
+
+.remake-badge {
+  font-size: 0.6rem;
+  margin-left: 0.25rem;
+  vertical-align: middle;
+}
+
 // Partial order badge (station filtering)
 .bg-partial-order {
   background-color: #0dcaf0;

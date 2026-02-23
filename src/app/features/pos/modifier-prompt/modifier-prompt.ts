@@ -15,10 +15,17 @@ export interface ModifierSelection {
   modifiers: Modifier[];
 }
 
+export interface TextModifierEntry {
+  groupId: string;
+  label: string;
+  value: string;
+}
+
 export interface ModifierPromptResult {
   menuItem: MenuItem;
   quantity: number;
   selectedModifiers: Modifier[];
+  textModifiers?: TextModifierEntry[];
   seatNumber?: number;
   specialInstructions?: string;
 }
@@ -40,6 +47,7 @@ export class ModifierPrompt {
 
   private readonly _currentGroupIndex = signal(0);
   private readonly _selections = signal<Map<string, Modifier[]>>(new Map());
+  private readonly _textModifierValues = signal<Map<string, string>>(new Map());
   private readonly _quantity = signal(1);
   private readonly _seatNumber = signal<number | undefined>(undefined);
   private readonly _specialInstructions = signal('');
@@ -79,6 +87,12 @@ export class ModifierPrompt {
     const group = this.currentGroup();
     if (!group) return [];
     return this._selections().get(group.id) ?? [];
+  });
+
+  readonly currentTextValue = computed(() => {
+    const group = this.currentGroup();
+    if (!group) return '';
+    return this._textModifierValues().get(group.id) ?? '';
   });
 
   readonly allSelectedModifiers = computed(() => {
@@ -137,6 +151,14 @@ export class ModifierPrompt {
     this._selections.update(map => {
       const updated = new Map(map);
       updated.set(group.id, current);
+      return updated;
+    });
+  }
+
+  onTextModifierInput(groupId: string, value: string): void {
+    this._textModifierValues.update(map => {
+      const updated = new Map(map);
+      updated.set(groupId, value);
       return updated;
     });
   }
@@ -203,10 +225,26 @@ export class ModifierPrompt {
   }
 
   private emitResult(): void {
+    // Collect non-empty text modifier values
+    const textModifiers: TextModifierEntry[] = [];
+    for (const group of this.groups()) {
+      if (group.allowTextModifier) {
+        const value = (this._textModifierValues().get(group.id) ?? '').trim();
+        if (value) {
+          textModifiers.push({
+            groupId: group.id,
+            label: group.textModifierLabel ?? group.name,
+            value,
+          });
+        }
+      }
+    }
+
     this.confirmed.emit({
       menuItem: this.menuItem(),
       quantity: this._quantity(),
       selectedModifiers: this.allSelectedModifiers(),
+      textModifiers: textModifiers.length > 0 ? textModifiers : undefined,
       seatNumber: this._seatNumber(),
       specialInstructions: this._specialInstructions() || undefined,
     });

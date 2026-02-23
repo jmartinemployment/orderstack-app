@@ -994,3 +994,80 @@ $border: #252545;
 .text-muted {
   color: $text-muted !important;
 }
+
+// Templates modal
+.templates-modal,
+.save-template-modal {
+  background: $bg-card;
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 420px;
+  max-width: 95vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  color: $text-primary;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 50vh;
+}
+
+.template-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border: 1px solid $border;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.template-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.template-name {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.template-count {
+  font-size: 0.8rem;
+  color: $text-muted;
+}
+
+.template-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.template-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.template-modal-footer {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.save-template-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.action-templates {
+  color: $text-muted;
+  &:hover { color: $text-primary; }
+}

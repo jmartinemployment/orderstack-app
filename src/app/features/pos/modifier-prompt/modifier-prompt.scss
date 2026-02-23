@@ -1,19 +1,8 @@
-@use 'sass:color';
-
-$bg-dark: #1a1a2e;
-$bg-card: #16213e;
-$accent: #7c5cfc;
-$success: #2ecc71;
-$danger: #e74c3c;
-$text-primary: #e0e0e0;
-$text-muted: #8892b0;
-$border: #2a2a4a;
-
 .modifier-overlay {
   position: fixed;
   inset: 0;
   z-index: 1050;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -21,21 +10,22 @@ $border: #2a2a4a;
 }
 
 .modifier-panel {
-  background: $bg-card;
+  background: var(--os-bg-card);
+  border: 1px solid var(--os-border);
   border-radius: 16px;
   width: 440px;
   max-width: 95vw;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  color: $text-primary;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  color: var(--os-text-primary);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   overflow: hidden;
 }
 
 .modifier-header {
   padding: 1.25rem 1.5rem 0.75rem;
-  border-bottom: 1px solid $border;
+  border-bottom: 1px solid var(--os-border);
 
   .header-top {
     display: flex;
@@ -47,27 +37,27 @@ $border: #2a2a4a;
   h5 {
     margin: 0;
     font-weight: 600;
-    color: #fff;
+    color: var(--os-text-primary);
   }
 }
 
 .progress-bar-track {
   height: 4px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--os-border);
   border-radius: 2px;
   margin-bottom: 0.5rem;
 }
 
 .progress-bar-fill {
   height: 100%;
-  background: $accent;
+  background: var(--os-primary);
   border-radius: 2px;
   transition: width 0.3s ease;
 }
 
 .group-indicator {
   font-size: 0.75rem;
-  color: $text-muted;
+  color: var(--os-text-secondary);
   text-align: center;
 }
 
@@ -86,7 +76,7 @@ $border: #2a2a4a;
   h6 {
     margin: 0;
     font-weight: 600;
-    color: #fff;
+    color: var(--os-text-primary);
     font-size: 1.05rem;
   }
 }
@@ -95,13 +85,13 @@ $border: #2a2a4a;
   font-size: 0.75rem;
   padding: 0.25rem 0.65rem;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
-  color: $text-muted;
+  background: var(--os-bg);
+  color: var(--os-text-secondary);
   font-weight: 500;
 
   &.required {
-    background: rgba($accent, 0.15);
-    color: $accent;
+    background: rgba(0, 106, 255, 0.08);
+    color: var(--os-primary);
   }
 }
 
@@ -121,26 +111,26 @@ $border: #2a2a4a;
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  border: 1px solid $border;
+  border: 1px solid var(--os-border);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
-  color: $text-primary;
+  background: var(--os-bg-card);
+  color: var(--os-text-primary);
   cursor: pointer;
   transition: all 0.15s ease;
   width: 100%;
   text-align: left;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: #4a4a6a;
+    background: var(--os-bg);
+    border-color: var(--os-text-secondary);
   }
 
   &.selected {
-    background: rgba($accent, 0.1);
-    border-color: $accent;
+    background: rgba(0, 106, 255, 0.06);
+    border-color: var(--os-primary);
 
     .mod-check {
-      color: $accent;
+      color: var(--os-primary);
     }
   }
 }
@@ -157,23 +147,61 @@ $border: #2a2a4a;
 
 .mod-price {
   font-size: 0.85rem;
-  color: $text-muted;
+  color: var(--os-text-secondary);
 
   &.mod-discount {
-    color: $success;
+    color: var(--os-success);
   }
 }
 
 .mod-check {
   font-size: 1.2rem;
-  color: #4a4a6a;
+  color: var(--os-border);
 }
 
 .modifier-error {
   margin-top: 0.75rem;
-  color: $danger;
+  color: var(--os-danger);
   font-size: 0.85rem;
   font-weight: 500;
+}
+
+// Text modifier input
+.text-modifier-input {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--os-border);
+}
+
+.text-modifier-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--os-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.35rem;
+  font-weight: 500;
+}
+
+.text-modifier-field {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--os-border);
+  border-radius: 8px;
+  background: var(--os-bg);
+  color: var(--os-text-primary);
+  font-size: 0.9rem;
+
+  &::placeholder {
+    color: var(--os-text-secondary);
+    opacity: 0.6;
+  }
+
+  &:focus {
+    border-color: var(--os-primary);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 106, 255, 0.1);
+  }
 }
 
 .extras-row {
@@ -181,13 +209,13 @@ $border: #2a2a4a;
   align-items: center;
   gap: 16px;
   padding: 0.75rem 1.5rem;
-  border-top: 1px solid $border;
-  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid var(--os-border);
+  background: var(--os-bg);
 
   label {
     display: block;
     font-size: 0.7rem;
-    color: $text-muted;
+    color: var(--os-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 2px;
@@ -208,10 +236,10 @@ $border: #2a2a4a;
 .qty-btn {
   width: 32px;
   height: 32px;
-  border: 1px solid $border;
+  border: 1px solid var(--os-border);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  color: $text-primary;
+  background: var(--os-bg-card);
+  color: var(--os-text-primary);
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
@@ -220,7 +248,7 @@ $border: #2a2a4a;
   justify-content: center;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--os-border);
   }
 }
 
@@ -236,14 +264,14 @@ $border: #2a2a4a;
     width: 48px;
     height: 32px;
     text-align: center;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid $border;
+    background: var(--os-bg-card);
+    border: 1px solid var(--os-border);
     border-radius: 8px;
-    color: $text-primary;
+    color: var(--os-text-primary);
     font-size: 0.9rem;
 
     &:focus {
-      border-color: $accent;
+      border-color: var(--os-primary);
       outline: none;
     }
   }
@@ -253,14 +281,14 @@ $border: #2a2a4a;
   margin-left: auto;
   font-size: 1.2rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--os-text-primary);
 }
 
 .modifier-footer {
   display: flex;
   gap: 10px;
   padding: 1rem 1.5rem;
-  border-top: 1px solid $border;
+  border-top: 1px solid var(--os-border);
 
   .btn {
     border-radius: 10px;
@@ -272,20 +300,21 @@ $border: #2a2a4a;
   }
 
   .btn-primary {
-    background: $accent;
-    border-color: $accent;
+    background: var(--os-primary);
+    border-color: var(--os-primary);
+    color: #fff;
 
     &:hover {
-      background: color.adjust($accent, $lightness: -8%);
+      background: var(--os-primary-hover);
     }
   }
 
   .btn-outline-secondary {
-    border-color: $border;
-    color: $text-muted;
+    border-color: var(--os-border);
+    color: var(--os-text-secondary);
 
     &:hover {
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--os-bg);
     }
   }
 }

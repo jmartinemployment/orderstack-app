@@ -5,7 +5,7 @@
       <div class="modifier-header">
         <div class="header-top">
           <h5>{{ menuItem().name }}</h5>
-          <button type="button" class="btn-close btn-close-white" (click)="onCancel()"></button>
+          <button type="button" class="btn-close" (click)="onCancel()"></button>
         </div>
         <!-- Progress bar -->
         <div class="progress-bar-track">
@@ -57,6 +57,19 @@
             }
           }
         </div>
+
+        @if (group.allowTextModifier) {
+          <div class="text-modifier-input">
+            <label class="text-modifier-label">{{ group.textModifierLabel ?? 'Special Instructions' }}</label>
+            <input
+              type="text"
+              class="text-modifier-field"
+              [placeholder]="group.textModifierLabel ?? 'Enter custom modifier...'"
+              [maxLength]="group.textModifierMaxLength ?? 100"
+              [value]="currentTextValue()"
+              (input)="onTextModifierInput(group.id, $any($event.target).value)">
+          </div>
+        }
 
         @if (error()) {
           <div class="modifier-error">{{ error() }}</div>

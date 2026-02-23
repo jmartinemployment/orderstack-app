@@ -474,6 +474,10 @@ export class KdsDisplay implements OnInit, OnDestroy {
     this.orderService.recallOrder(orderId);
   }
 
+  onRemakeItem(event: { orderId: string; checkGuid: string; selectionGuid: string }): void {
+    void this.orderService.remakeItem(event.orderId, event.checkGuid, event.selectionGuid, 'Remake requested from KDS');
+  }
+
   onReleaseThrottle(orderId: string): void {
     void this.orderService.releaseOrderFromThrottling(orderId).then(success => {
       if (success) void this.loadOrderThrottlingStatus();

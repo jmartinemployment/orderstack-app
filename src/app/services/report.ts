@@ -409,7 +409,10 @@ export class ReportService {
           `${this.apiUrl}/restaurant/${this.restaurantId}/reports/realtime-kpis`
         )
       );
-    } catch {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load real-time KPIs';
+      console.error('[ReportService] getRealTimeKpis failed:', message);
+      this._error.set(message);
       return null;
     }
   }

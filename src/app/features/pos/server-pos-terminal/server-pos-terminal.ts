@@ -27,9 +27,11 @@ import {
   MenuItem,
   MenuCategory,
   GuestOrderStatus,
+  OrderTemplate,
+  OrderTemplateItem,
 } from '@models/index';
 
-type PosModal = 'none' | 'modifier' | 'discount' | 'void' | 'comp' | 'split' | 'transfer' | 'tab';
+type PosModal = 'none' | 'modifier' | 'discount' | 'void' | 'comp' | 'split' | 'transfer' | 'tab' | 'templates' | 'save-template';
 
 @Component({
   selector: 'os-pos-terminal',
@@ -189,6 +191,19 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   private readonly _currentSeat = signal<number | undefined>(undefined);
   readonly currentSeat = this._currentSeat.asReadonly();
 
+  // Order Templates
+  readonly templates = this.orderService.templates;
+  private readonly _templateName = signal('');
+  private readonly _isApplyingTemplate = signal(false);
+
+  readonly templateName = this._templateName.asReadonly();
+  readonly isApplyingTemplate = this._isApplyingTemplate.asReadonly();
+
+  readonly hasCheckItems = computed(() => {
+    const check = this.activeCheck();
+    return check ? check.selections.length > 0 : false;
+  });
+
   private orderEventCleanup: (() => void) | null = null;
 
   ngOnInit(): void {
@@ -197,6 +212,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
       this.tableService.loadTables();
     }
     this.orderService.loadOrders();
+    this.orderService.loadTemplates();
 
     // Subscribe to menu loaded
     const checkMenu = setInterval(() => {
@@ -588,6 +604,78 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     const check = this.activeCheck();
     if (!check?.tabOpenedAt) return 0;
     return Math.floor((Date.now() - check.tabOpenedAt.getTime()) / 60000);
+  }
+
+  // --- Order Templates ---
+
+  openTemplatesModal(): void {
+    this._activeModal.set('templates');
+  }
+
+  openSaveTemplateModal(): void {
+    this._templateName.set('');
+    this._activeModal.set('save-template');
+  }
+
+  setTemplateName(name: string): void {
+    this._templateName.set(name);
+  }
+
+  async applyTemplate(templateId: string): Promise<void> {
+    const order = this.activeOrder();
+    const check = this.activeCheck();
+
+    if (!order || !check) {
+      await this.createNewOrder();
+      setTimeout(() => this.applyTemplate(templateId), 300);
+      return;
+    }
+
+    this._isApplyingTemplate.set(true);
+
+    try {
+      const items = await this.orderService.applyOrderTemplate(templateId);
+
+      for (const item of items) {
+        const menuItem = this.menuService.allItems().find(mi => mi.id === item.menuItemId);
+        if (!menuItem || menuItem.eightySixed) continue;
+
+        const request = this.checkService.buildAddItemRequest(
+          menuItem,
+          item.quantity,
+          [],
+          this._currentSeat()
+        );
+
+        await this.checkService.addItemToCheck(order.guid, check.guid, request);
+      }
+
+      this.orderService.loadOrders();
+      this._activeModal.set('none');
+    } finally {
+      this._isApplyingTemplate.set(false);
+    }
+  }
+
+  async saveCurrentAsTemplate(): Promise<void> {
+    const name = this._templateName().trim();
+    const check = this.activeCheck();
+    if (!name || !check) return;
+
+    const items = check.selections.map(sel => ({
+      menuItemId: sel.menuItemGuid,
+      quantity: sel.quantity,
+      modifiers: sel.modifiers.map(m => m.guid),
+    }));
+
+    const success = await this.orderService.saveTemplate(name, items);
+    if (success) {
+      this._activeModal.set('none');
+    }
+  }
+
+  async deleteTemplate(templateId: string): Promise<void> {
+    await this.orderService.deleteTemplate(templateId);
   }
 
   // --- Payment ---

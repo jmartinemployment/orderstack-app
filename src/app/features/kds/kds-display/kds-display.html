@@ -216,6 +216,7 @@
               (fireItemNow)="onFireItemNow($event)"
               (retryPrint)="onRetryPrint($event)"
               (recallOrder)="onRecall($event)"
+              (remakeItem)="onRemakeItem($event)"
             />
           } @empty {
             <div class="empty-state text-center p-4">
@@ -258,6 +259,7 @@
               (fireItemNow)="onFireItemNow($event)"
               (retryPrint)="onRetryPrint($event)"
               (recallOrder)="onRecall($event)"
+              (remakeItem)="onRemakeItem($event)"
             />
           } @empty {
             <div class="empty-state text-center p-4">
@@ -303,6 +305,7 @@
                 (retryPrint)="onRetryPrint($event)"
                 (recallOrder)="onRecall($event)"
                 (dispatchDriver)="onDispatchDriver($event)"
+                (remakeItem)="onRemakeItem($event)"
               />
             } @empty {
               <div class="empty-state text-center p-4">
@@ -347,6 +350,7 @@
               (retryPrint)="onRetryPrint($event)"
               (recallOrder)="onRecall($event)"
               (dispatchDriver)="onDispatchDriver($event)"
+              (remakeItem)="onRemakeItem($event)"
             />
           } @empty {
             <div class="empty-state text-center p-4">

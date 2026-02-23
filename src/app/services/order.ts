@@ -25,6 +25,7 @@ import {
   OrderNote,
   OrderNoteType,
   OrderTemplate,
+  OrderTemplateItem,
 } from '../models';
 import { getDiningOption, DiningOptionType } from '../models/dining-option.model';
 import { AuthService } from './auth';
@@ -934,6 +935,12 @@ export class OrderService implements OnDestroy {
     } catch {
       return false;
     }
+  }
+
+  async applyOrderTemplate(templateId: string): Promise<OrderTemplateItem[]> {
+    const template = this._templates().find(t => t.id === templateId);
+    if (!template) return [];
+    return template.items;
   }
 
   getOrderById(orderId: string): Order | undefined {

@@ -90,6 +90,15 @@ export class OrderCard implements OnInit, OnDestroy {
   releaseThrottle = output<string>();
   retryPrint = output<string>();
   recallOrder = output<string>();
+  remakeItem = output<{ orderId: string; checkGuid: string; selectionGuid: string }>();
+
+  private readonly _remakeConfirmGuid = signal<string | null>(null);
+  readonly remakeConfirmGuid = this._remakeConfirmGuid.asReadonly();
+
+  readonly canRemake = computed(() => {
+    const status = this.order().guestOrderStatus;
+    return status === 'IN_PREPARATION' || status === 'READY_FOR_PICKUP';
+  });
 
   private timerInterval: ReturnType<typeof setInterval> | null = null;
   private readonly _elapsedMinutes = signal(0);
@@ -748,6 +757,30 @@ export class OrderCard implements OnInit, OnDestroy {
       this._autoFiredCourses.set(new Set());
       this._autoFireCountdowns.set(new Map());
       this._autoFireDelayBreakdowns.set(new Map());
+    }
+  }
+
+  onRemakeItem(selectionGuid: string): void {
+    if (this._remakeConfirmGuid() === selectionGuid) {
+      // Second tap — emit
+      const checkGuid = this.order().checks[0]?.guid;
+      if (checkGuid) {
+        this.remakeItem.emit({
+          orderId: this.order().guid,
+          checkGuid,
+          selectionGuid,
+        });
+      }
+      this._remakeConfirmGuid.set(null);
+    } else {
+      // First tap — enter confirm state
+      this._remakeConfirmGuid.set(selectionGuid);
+      // Auto-reset after 3 seconds
+      setTimeout(() => {
+        if (this._remakeConfirmGuid() === selectionGuid) {
+          this._remakeConfirmGuid.set(null);
+        }
+      }, 3000);
     }
   }
 }
