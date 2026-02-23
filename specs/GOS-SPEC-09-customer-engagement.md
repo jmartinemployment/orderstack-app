@@ -5,7 +5,7 @@
 | Phase | Status |
 |-------|--------|
 | Phase 1 (Steps 1-5) | ✅ COMPLETE — customer model enrichment, merge/dedup, notes, consent, insights |
-| Phase 2+ | NOT STARTED — future work |
+| Phase 2 (Steps 6-10) | ✅ COMPLETE — marketing automations, referral program, feedback/NPS, physical gift cards, customer portal |
 
 **Implemented in:** `orderstack-app/` (standalone Angular 21 SaaS)
 **Depends on:** GOS-SPEC-01 (vertical-specific segment labels, loyalty triggers)

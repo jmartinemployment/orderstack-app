@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { Customer, CustomerSegment, CustomerSegmentInfo, SavedAddress, SavedAddressFormData } from '../models';
+import { Customer, CustomerSegment, CustomerSegmentInfo, SavedAddress, SavedAddressFormData, FeedbackRequest, Referral, ReferralConfig } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
 
@@ -17,11 +17,17 @@ export class CustomerService {
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
   private readonly _savedAddresses = signal<SavedAddress[]>([]);
+  private readonly _feedback = signal<FeedbackRequest[]>([]);
+  private readonly _referrals = signal<Referral[]>([]);
+  private readonly _referralConfig = signal<ReferralConfig | null>(null);
 
   readonly customers = this._customers.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
   readonly savedAddresses = this._savedAddresses.asReadonly();
+  readonly feedback = this._feedback.asReadonly();
+  readonly referrals = this._referrals.asReadonly();
+  readonly referralConfig = this._referralConfig.asReadonly();
 
   readonly customerCount = computed(() => this._customers().length);
 
@@ -29,9 +35,27 @@ export class CustomerService {
     this._savedAddresses().find(a => a.isDefault) ?? null
   );
 
+  readonly averageNps = computed(() => {
+    const scored = this._feedback().filter(f => f.npsScore !== null);
+    if (scored.length === 0) return null;
+    return Math.round(scored.reduce((sum, f) => sum + (f.npsScore ?? 0), 0) / scored.length * 10) / 10;
+  });
+
+  readonly averageRating = computed(() => {
+    const rated = this._feedback().filter(f => f.rating !== null);
+    if (rated.length === 0) return null;
+    return Math.round(rated.reduce((sum, f) => sum + (f.rating ?? 0), 0) / rated.length * 10) / 10;
+  });
+
+  readonly negativeFeedback = computed(() =>
+    this._feedback().filter(f => (f.npsScore !== null && f.npsScore <= 6) || (f.rating !== null && f.rating <= 2))
+  );
+
   private get restaurantId(): string | null {
     return this.authService.selectedRestaurantId();
   }
+
+  // --- Customers ---
 
   async loadCustomers(): Promise<void> {
     if (!this.restaurantId) return;
@@ -149,6 +173,121 @@ export class CustomerService {
     this._savedAddresses.set([]);
   }
 
+  // --- Feedback ---
+
+  async sendFeedbackRequest(orderId: string): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    try {
+      await firstValueFrom(
+        this.http.post(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/feedback/request`,
+          { orderId }
+        )
+      );
+      return true;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to send feedback request';
+      this._error.set(message);
+      return false;
+    }
+  }
+
+  async loadFeedback(dateFrom?: string, dateTo?: string): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      let url = `${this.apiUrl}/restaurant/${this.restaurantId}/customers/feedback`;
+      const params: string[] = [];
+      if (dateFrom) params.push(`dateFrom=${encodeURIComponent(dateFrom)}`);
+      if (dateTo) params.push(`dateTo=${encodeURIComponent(dateTo)}`);
+      if (params.length > 0) url += `?${params.join('&')}`;
+
+      const data = await firstValueFrom(
+        this.http.get<FeedbackRequest[]>(url)
+      );
+      this._feedback.set(data ?? []);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load feedback';
+      this._error.set(message);
+    }
+  }
+
+  async respondToFeedback(feedbackId: string, response: string): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    try {
+      const updated = await firstValueFrom(
+        this.http.post<FeedbackRequest>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/feedback/${feedbackId}/respond`,
+          { response }
+        )
+      );
+      this._feedback.update(list =>
+        list.map(f => f.id === feedbackId ? updated : f)
+      );
+      return true;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to respond to feedback';
+      this._error.set(message);
+      return false;
+    }
+  }
+
+  // --- Referrals ---
+
+  async loadReferralConfig(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const config = await firstValueFrom(
+        this.http.get<ReferralConfig>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/referrals/config`
+        )
+      );
+      this._referralConfig.set(config);
+    } catch {
+      this._referralConfig.set(null);
+    }
+  }
+
+  async saveReferralConfig(config: ReferralConfig): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    try {
+      const saved = await firstValueFrom(
+        this.http.put<ReferralConfig>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/referrals/config`,
+          config
+        )
+      );
+      this._referralConfig.set(saved);
+      return true;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to save referral config';
+      this._error.set(message);
+      return false;
+    }
+  }
+
+  async loadReferrals(customerId?: string): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      let url = `${this.apiUrl}/restaurant/${this.restaurantId}/referrals`;
+      if (customerId) url += `?customerId=${encodeURIComponent(customerId)}`;
+
+      const data = await firstValueFrom(
+        this.http.get<Referral[]>(url)
+      );
+      this._referrals.set(data ?? []);
+    } catch {
+      this._referrals.set([]);
+    }
+  }
+
+  // --- Segments ---
+
   getSegment(customer: Customer): CustomerSegmentInfo {
     const daysSinceOrder = customer.lastOrderDate
       ? Math.floor((Date.now() - new Date(customer.lastOrderDate).getTime()) / (1000 * 60 * 60 * 24))
@@ -167,6 +306,66 @@ export class CustomerService {
       return { segment: 'new', label: 'New', cssClass: 'segment-new', description: 'Recent first-time customer' };
     }
     return { segment: 'regular', label: 'Regular', cssClass: 'segment-regular', description: 'Active customer' };
+  }
+
+  // --- Customer Portal (public, unauthenticated) ---
+
+  async sendOtp(phone: string, restaurantSlug: string): Promise<boolean> {
+    try {
+      await firstValueFrom(
+        this.http.post(`${this.apiUrl}/public/restaurant/${restaurantSlug}/customers/otp/send`, { phone })
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async verifyOtp(phone: string, code: string, restaurantSlug: string): Promise<Customer | null> {
+    try {
+      return await firstValueFrom(
+        this.http.post<Customer>(
+          `${this.apiUrl}/public/restaurant/${restaurantSlug}/customers/otp/verify`,
+          { phone, code }
+        )
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  async getCustomerOrders(customerId: string): Promise<unknown[]> {
+    if (!this.restaurantId) return [];
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<unknown[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/orders`
+        )
+      );
+      return data ?? [];
+    } catch {
+      return [];
+    }
+  }
+
+  async updateCustomerProfile(customerId: string, updates: { firstName?: string; lastName?: string; email?: string | null }): Promise<Customer | null> {
+    if (!this.restaurantId) return null;
+
+    try {
+      const updated = await firstValueFrom(
+        this.http.patch<Customer>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}`,
+          updates
+        )
+      );
+      this._customers.update(list =>
+        list.map(c => c.id === customerId ? updated : c)
+      );
+      return updated;
+    } catch {
+      return null;
+    }
   }
 
   clearError(): void {

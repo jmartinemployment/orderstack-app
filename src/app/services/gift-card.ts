@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { GiftCard, GiftCardFormData, GiftCardBalanceCheck, GiftCardRedemption } from '../models';
+import { GiftCard, GiftCardFormData, GiftCardBalanceCheck, GiftCardRedemption, GiftCardActivation } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
 
@@ -23,6 +23,14 @@ export class GiftCardService {
 
   readonly activeCards = computed(() =>
     this._giftCards().filter(c => c.status === 'active' && c.currentBalance > 0)
+  );
+
+  readonly physicalCards = computed(() =>
+    this._giftCards().filter(c => c.type === 'physical')
+  );
+
+  readonly digitalCards = computed(() =>
+    this._giftCards().filter(c => c.type === 'digital')
   );
 
   readonly totalOutstandingBalance = computed(() =>
@@ -99,7 +107,6 @@ export class GiftCardService {
           { code, amount, orderId }
         )
       );
-      // Refresh the card list to reflect updated balance
       await this.loadGiftCards();
       return redemption;
     } catch (err: unknown) {
@@ -139,6 +146,43 @@ export class GiftCardService {
       );
     } catch {
       return [];
+    }
+  }
+
+  // --- Physical Card Activation ---
+
+  async activatePhysicalCard(activation: GiftCardActivation): Promise<GiftCard | null> {
+    if (!this.restaurantId) return null;
+
+    try {
+      const card = await firstValueFrom(
+        this.http.post<GiftCard>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/gift-cards/activate`,
+          activation
+        )
+      );
+      this._giftCards.update(list => [card, ...list]);
+      return card;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to activate physical card';
+      this._error.set(message);
+      return null;
+    }
+  }
+
+  async lookupByCardNumber(cardNumber: string): Promise<GiftCardBalanceCheck | null> {
+    if (!this.restaurantId) return null;
+
+    try {
+      return await firstValueFrom(
+        this.http.get<GiftCardBalanceCheck>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/gift-cards/lookup?cardNumber=${encodeURIComponent(cardNumber)}`
+        )
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Card not found';
+      this._error.set(message);
+      return null;
     }
   }
 

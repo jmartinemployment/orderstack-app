@@ -1,9 +1,14 @@
 <div class="gift-card-management">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="mb-0">Gift Cards</h5>
-    <button type="button" class="btn btn-primary btn-sm" (click)="openCreateForm()">
-      + Create Gift Card
-    </button>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="openActivateForm()">
+        <i class="bi bi-credit-card me-1"></i>Activate Physical Card
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" (click)="openCreateForm()">
+        + Create Gift Card
+      </button>
+    </div>
   </div>
 
   <!-- KPI Strip -->
@@ -74,7 +79,7 @@
             <div>
               <code class="gc-code">{{ card.code }}</code>
               <span class="badge ms-2" [class]="getStatusClass(card.status)">{{ card.status }}</span>
-              <span class="badge bg-secondary ms-1">{{ card.type }}</span>
+              <span class="badge ms-1" [class.bg-secondary]="card.type === 'digital'" [class.bg-info]="card.type === 'physical'">{{ card.type }}</span>
             </div>
             <div class="text-end">
               <div class="gc-balance">{{ card.currentBalance | currency }}</div>
@@ -225,7 +230,7 @@
             <code class="gc-code-large">{{ card.code }}</code>
             <div class="mt-2">
               <span class="badge" [class]="getStatusClass(card.status)">{{ card.status }}</span>
-              <span class="badge bg-secondary ms-1">{{ card.type }}</span>
+              <span class="badge ms-1" [class.bg-secondary]="card.type === 'digital'" [class.bg-info]="card.type === 'physical'">{{ card.type }}</span>
             </div>
           </div>
 
@@ -262,6 +267,18 @@
                 <span>{{ card.message }}</span>
               </div>
             }
+            @if (card.physicalCardNumber) {
+              <div class="gc-detail-item">
+                <span class="gc-detail-label">Physical Card #</span>
+                <code>{{ card.physicalCardNumber }}</code>
+              </div>
+            }
+            @if (card.activatedAt) {
+              <div class="gc-detail-item">
+                <span class="gc-detail-label">Activated</span>
+                <span>{{ card.activatedAt | date:'medium' }}</span>
+              </div>
+            }
             @if (card.expiresAt) {
               <div class="gc-detail-item">
                 <span class="gc-detail-label">Expires</span>
@@ -295,6 +312,62 @@
               </button>
             </div>
           }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Activate Physical Card Modal -->
+  @if (showActivateForm()) {
+    <div class="gc-modal-overlay" (click)="closeActivateForm()">
+      <div class="gc-modal" (click)="$event.stopPropagation()">
+        <div class="gc-modal-header">
+          <h5 class="mb-0">Activate Physical Card</h5>
+          <button type="button" class="btn-close" (click)="closeActivateForm()"></button>
+        </div>
+        <div class="gc-modal-body">
+          <p class="small text-muted mb-3">Scan or enter the card number printed on the physical gift card to activate it.</p>
+
+          @if (activateError()) {
+            <div class="alert alert-danger small mb-3">{{ activateError() }}</div>
+          }
+
+          <div class="mb-3">
+            <label class="form-label small">Card Number</label>
+            <input
+              type="text"
+              class="form-control gc-input"
+              placeholder="Scan or enter card number"
+              [value]="activateCardNumber()"
+              (input)="onActivateField('cardNumber', $event)"
+              autofocus
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small">Amount to Load</label>
+            <div class="d-flex flex-wrap gap-2">
+              @for (amt of amounts; track amt) {
+                <button type="button" class="btn btn-sm gc-amount-btn"
+                  [class.active]="activateAmount() === amt"
+                  (click)="selectActivateAmount(amt)">
+                  {{ amt | currency:'USD':'symbol':'1.0-0' }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+        <div class="gc-modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="closeActivateForm()">Cancel</button>
+          <button type="button" class="btn btn-primary btn-sm"
+            [disabled]="!activateCardNumber().trim() || activateAmount() <= 0 || isActivating()"
+            (click)="activateCard()">
+            @if (isActivating()) {
+              <span class="spinner-border spinner-border-sm me-1"></span> Activating...
+            } @else {
+              Activate {{ activateAmount() | currency }}
+            }
+          </button>
         </div>
       </div>
     </div>

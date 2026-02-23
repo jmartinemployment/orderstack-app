@@ -213,6 +213,20 @@ export class LoyaltyService {
     }
   }
 
+  async getAvailableRewards(customerId: string): Promise<LoyaltyReward[]> {
+    if (!this.restaurantId) return [];
+
+    try {
+      return await firstValueFrom(
+        this.http.get<LoyaltyReward[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/loyalty/rewards`
+        )
+      );
+    } catch {
+      return [];
+    }
+  }
+
   // --- Local computation ---
 
   calculatePointsForOrder(subtotal: number): number {

@@ -15,6 +15,9 @@ export interface GiftCard {
   recipientEmail: string | null;
   message: string | null;
   expiresAt: string | null;
+  physicalCardNumber: string | null;
+  activatedAt: string | null;
+  activatedBy: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -45,6 +48,11 @@ export interface GiftCardBalanceCheck {
   status: GiftCardStatus;
   originalBalance: number;
   expiresAt: string | null;
+}
+
+export interface GiftCardActivation {
+  cardNumber: string;
+  amount: number;
 }
 
 export const GIFT_CARD_AMOUNTS = [10, 25, 50, 75, 100, 150, 200];

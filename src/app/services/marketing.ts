@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
-import { Campaign, CampaignFormData, CampaignPerformance } from '../models';
+import { Campaign, CampaignFormData, CampaignPerformance, MarketingAutomation, MarketingAutomationFormData } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class MarketingService {
@@ -11,10 +11,12 @@ export class MarketingService {
   private readonly authService = inject(AuthService);
 
   private readonly _campaigns = signal<Campaign[]>([]);
+  private readonly _automations = signal<MarketingAutomation[]>([]);
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
 
   readonly campaigns = this._campaigns.asReadonly();
+  readonly automations = this._automations.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
 
@@ -46,6 +48,14 @@ export class MarketingService {
     this._campaigns().reduce((sum, c) => sum + c.performance.revenueAttributed, 0)
   );
 
+  readonly activeAutomations = computed(() =>
+    this._automations().filter(a => a.isActive)
+  );
+
+  readonly totalAutomationsSent = computed(() =>
+    this._automations().reduce((sum, a) => sum + a.sentCount, 0)
+  );
+
   private get restaurantId(): string {
     return this.authService.selectedRestaurantId() ?? '';
   }
@@ -53,6 +63,8 @@ export class MarketingService {
   private get baseUrl(): string {
     return `${environment.apiUrl}/restaurant/${this.restaurantId}`;
   }
+
+  // --- Campaigns ---
 
   async loadCampaigns(): Promise<void> {
     if (!this.restaurantId) return;
@@ -156,6 +168,78 @@ export class MarketingService {
       return result.estimatedRecipients;
     } catch {
       return 0;
+    }
+  }
+
+  // --- Automations ---
+
+  async loadAutomations(): Promise<void> {
+    if (!this.restaurantId) return;
+    this._isLoading.set(true);
+    this._error.set(null);
+    try {
+      const automations = await firstValueFrom(
+        this.http.get<MarketingAutomation[]>(`${this.baseUrl}/marketing/automations`)
+      );
+      this._automations.set(automations);
+    } catch {
+      this._error.set('Failed to load automations');
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
+
+  async createAutomation(data: MarketingAutomationFormData): Promise<MarketingAutomation | null> {
+    this._error.set(null);
+    try {
+      const automation = await firstValueFrom(
+        this.http.post<MarketingAutomation>(`${this.baseUrl}/marketing/automations`, data)
+      );
+      this._automations.update(list => [automation, ...list]);
+      return automation;
+    } catch {
+      this._error.set('Failed to create automation');
+      return null;
+    }
+  }
+
+  async updateAutomation(automationId: string, data: Partial<MarketingAutomationFormData>): Promise<void> {
+    this._error.set(null);
+    try {
+      const updated = await firstValueFrom(
+        this.http.patch<MarketingAutomation>(`${this.baseUrl}/marketing/automations/${automationId}`, data)
+      );
+      this._automations.update(list =>
+        list.map(a => a.id === automationId ? updated : a)
+      );
+    } catch {
+      this._error.set('Failed to update automation');
+    }
+  }
+
+  async toggleAutomation(automationId: string, isActive: boolean): Promise<void> {
+    this._error.set(null);
+    try {
+      const updated = await firstValueFrom(
+        this.http.patch<MarketingAutomation>(`${this.baseUrl}/marketing/automations/${automationId}/toggle`, { isActive })
+      );
+      this._automations.update(list =>
+        list.map(a => a.id === automationId ? updated : a)
+      );
+    } catch {
+      this._error.set('Failed to toggle automation');
+    }
+  }
+
+  async deleteAutomation(automationId: string): Promise<void> {
+    this._error.set(null);
+    try {
+      await firstValueFrom(
+        this.http.delete(`${this.baseUrl}/marketing/automations/${automationId}`)
+      );
+      this._automations.update(list => list.filter(a => a.id !== automationId));
+    } catch {
+      this._error.set('Failed to delete automation');
     }
   }
 

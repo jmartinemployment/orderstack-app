@@ -45,6 +45,14 @@
         Segments
       </button>
     </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab() === 'insights'" (click)="setTab('insights')">
+        Insights
+        @if (negativeFeedback().length > 0) {
+          <span class="badge bg-danger ms-1">{{ negativeFeedback().length }}</span>
+        }
+      </button>
+    </li>
   </ul>
 
   @if (isLoading()) {
@@ -212,6 +220,146 @@
         </div>
       </div>
     }
+
+    <!-- INSIGHTS TAB -->
+    @if (activeTab() === 'insights') {
+      @if (isLoadingFeedback()) {
+        <div class="d-flex justify-content-center p-4">
+          <os-loading-spinner message="Loading feedback..." />
+        </div>
+      } @else {
+        <!-- Feedback KPIs -->
+        <div class="feedback-kpis mb-4">
+          <div class="kpi-card">
+            <span class="kpi-label">Avg NPS</span>
+            <span class="kpi-value" [class]="averageNps() !== null && averageNps()! >= 7 ? 'text-success' : averageNps() !== null && averageNps()! >= 5 ? 'text-warning' : 'text-danger'">
+              {{ averageNps() !== null ? averageNps() : '--' }}
+            </span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Avg Rating</span>
+            <span class="kpi-value">
+              @if (averageRating() !== null) {
+                {{ averageRating() }} <i class="bi bi-star-fill text-warning" style="font-size: 0.85rem;"></i>
+              } @else {
+                --
+              }
+            </span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Total Feedback</span>
+            <span class="kpi-value">{{ feedback().length }}</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-label">Needs Attention</span>
+            <span class="kpi-value text-danger">{{ negativeFeedback().length }}</span>
+          </div>
+        </div>
+
+        <!-- Star Rating Distribution -->
+        @if (feedback().length > 0) {
+          <div class="rating-distribution mb-4">
+            <h6>Rating Distribution</h6>
+            <div class="rating-bars">
+              @for (count of ratingDistribution(); track $index) {
+                <div class="rating-bar-row">
+                  <span class="rating-label">{{ $index + 1 }} <i class="bi bi-star-fill text-warning"></i></span>
+                  <div class="rating-bar-track">
+                    <div class="rating-bar-fill" [style.width.%]="(count / ratingDistributionMax()) * 100"></div>
+                  </div>
+                  <span class="rating-count">{{ count }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Negative Feedback Alert -->
+        @if (negativeFeedback().length > 0) {
+          <div class="alert alert-danger mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span>{{ negativeFeedback().length }} negative review{{ negativeFeedback().length > 1 ? 's' : '' }} need{{ negativeFeedback().length === 1 ? 's' : '' }} attention</span>
+          </div>
+        }
+
+        <!-- Recent Feedback List -->
+        <h6 class="mb-2">Recent Feedback</h6>
+        @if (feedback().length === 0) {
+          <div class="empty-state text-center py-4">
+            <div class="empty-icon mb-2"><i class="bi bi-chat-square-text"></i></div>
+            <p class="text-muted">No feedback received yet. Feedback is collected after orders via email or SMS.</p>
+          </div>
+        } @else {
+          <div class="feedback-list">
+            @for (f of feedback(); track f.id) {
+              <div class="feedback-card" [class.feedback-negative]="isFeedbackNegative(f)">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    @if (f.rating !== null) {
+                      <span class="feedback-stars">
+                        @for (star of getStarArray(f.rating); track $index) {
+                          <i class="bi" [class.bi-star-fill]="star" [class.bi-star]="!star" [class.text-warning]="star"></i>
+                        }
+                      </span>
+                    }
+                    @if (f.npsScore !== null) {
+                      <span class="badge ms-2" [class]="getNpsClass(f.npsScore)">
+                        NPS: {{ f.npsScore }} ({{ getNpsLabel(f.npsScore) }})
+                      </span>
+                    }
+                  </div>
+                  <span class="small text-muted">{{ f.createdAt | date:'mediumDate' }}</span>
+                </div>
+
+                @if (f.comment) {
+                  <div class="feedback-comment mb-2">{{ f.comment }}</div>
+                }
+
+                @if (f.categories.length > 0) {
+                  <div class="d-flex gap-1 flex-wrap mb-2">
+                    @for (cat of f.categories; track cat) {
+                      <span class="badge badge-outline">{{ cat }}</span>
+                    }
+                  </div>
+                }
+
+                @if (f.respondedAt) {
+                  <div class="feedback-response">
+                    <div class="small fw-semibold text-muted mb-1">Your response ({{ f.respondedAt | date:'shortDate' }}):</div>
+                    <div class="small">{{ f.responseMessage }}</div>
+                  </div>
+                } @else {
+                  @if (feedbackResponseId() === f.id) {
+                    <div class="feedback-respond-form mt-2">
+                      <textarea
+                        class="form-control form-control-sm mb-2"
+                        rows="2"
+                        placeholder="Write a response..."
+                        [value]="feedbackResponseText()"
+                        (input)="onFeedbackResponseInput($event)"
+                      ></textarea>
+                      <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary btn-sm" [disabled]="!feedbackResponseText().trim() || isRespondingFeedback()" (click)="submitFeedbackResponse()">
+                          @if (isRespondingFeedback()) {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                          }
+                          Send
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="closeFeedbackResponse()">Cancel</button>
+                      </div>
+                    </div>
+                  } @else {
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-1" (click)="openFeedbackResponse(f.id)">
+                      <i class="bi bi-reply me-1"></i>Respond
+                    </button>
+                  }
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+    }
   }
 
   <!-- Customer Detail Side Panel -->
@@ -220,7 +368,7 @@
       <div class="detail-panel" (click)="$event.stopPropagation()">
         <div class="detail-header d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">{{ getCustomerName(customer) }}</h4>
-          <button type="button" class="btn-close btn-close-white" (click)="closeDetail()"></button>
+          <button type="button" class="btn-close" (click)="closeDetail()"></button>
         </div>
 
         <div class="mb-3">
@@ -377,7 +525,7 @@
 <div class="auth-required d-flex align-items-center justify-content-center p-5">
   <div class="text-center">
     <h3 class="text-warning mb-3">Authentication Required</h3>
-    <p class="text-light">Please log in to access customer intelligence.</p>
+    <p>Please log in to access customer intelligence.</p>
   </div>
 </div>
 }

@@ -6,9 +6,15 @@
   } @else {
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2 class="mb-0">Marketing Campaigns</h2>
-      <button type="button" class="btn btn-primary btn-sm" (click)="openNewCampaign()">
-        <i class="bi bi-plus-lg me-1"></i>New Campaign
-      </button>
+      @if (activeTab() === 'automations') {
+        <button type="button" class="btn btn-primary btn-sm" (click)="openNewAutomation()">
+          <i class="bi bi-plus-lg me-1"></i>New Automation
+        </button>
+      } @else {
+        <button type="button" class="btn btn-primary btn-sm" (click)="openNewCampaign()">
+          <i class="bi bi-plus-lg me-1"></i>New Campaign
+        </button>
+      }
     </div>
 
     @if (error()) {
@@ -41,6 +47,14 @@
         <button class="nav-link" [class.active]="activeTab() === 'campaigns'" (click)="setTab('campaigns')">Campaigns</button>
       </li>
       <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab() === 'automations'" (click)="setTab('automations')">
+          Automations
+          @if (activeAutomations().length > 0) {
+            <span class="tab-badge">{{ activeAutomations().length }}</span>
+          }
+        </button>
+      </li>
+      <li class="nav-item">
         <button class="nav-link" [class.active]="activeTab() === 'templates'" (click)="setTab('templates')">Templates</button>
       </li>
       <li class="nav-item">
@@ -50,14 +64,13 @@
 
     <!-- CAMPAIGNS TAB -->
     @if (activeTab() === 'campaigns') {
-      <!-- Status Filter -->
       <div class="d-flex gap-2 mb-3 flex-wrap">
         @for (status of ['all', 'draft', 'scheduled', 'sent', 'failed']; track status) {
           <button
             type="button"
             class="btn btn-sm"
             [class.btn-primary]="statusFilter() === status"
-            [class.btn-outline-light]="statusFilter() !== status"
+            [class.btn-outline-secondary]="statusFilter() !== status"
             (click)="setStatusFilter($any(status))"
           >{{ status === 'all' ? 'All' : (status | titlecase) }}</button>
         }
@@ -81,7 +94,7 @@
                   <div class="campaign-name">{{ campaign.name }}</div>
                   <div class="campaign-meta">
                     <span class="badge" [class]="getStatusClass(campaign.status)">{{ campaign.status }}</span>
-                    <span class="badge bg-outline">{{ getTypeLabel(campaign.type) }}</span>
+                    <span class="badge badge-outline">{{ getTypeLabel(campaign.type) }}</span>
                     <span class="channel-icon">
                       @if (campaign.channel === 'email' || campaign.channel === 'both') {
                         <i class="bi bi-envelope"></i>
@@ -94,7 +107,7 @@
                 </div>
                 <div class="campaign-actions d-flex gap-1">
                   @if (campaign.status === 'draft') {
-                    <button type="button" class="btn btn-sm btn-outline-light" (click)="openEditCampaign(campaign); $event.stopPropagation()">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="openEditCampaign(campaign); $event.stopPropagation()">
                       <i class="bi bi-pencil"></i>
                     </button>
                     <button type="button" class="btn btn-sm btn-primary" [disabled]="isSending()" (click)="sendNow(campaign); $event.stopPropagation()">
@@ -134,16 +147,94 @@
       }
     }
 
+    <!-- AUTOMATIONS TAB -->
+    @if (activeTab() === 'automations') {
+      @if (isLoading()) {
+        <os-loading-spinner message="Loading automations..." />
+      } @else if (automations().length === 0) {
+        <div class="empty-state text-center py-5">
+          <div class="empty-icon mb-3"><i class="bi bi-robot"></i></div>
+          <h5>No automations yet</h5>
+          <p class="text-muted">Set up automated campaigns that trigger based on customer actions.</p>
+          <button type="button" class="btn btn-primary btn-sm" (click)="openNewAutomation()">Create Automation</button>
+        </div>
+      } @else {
+        <div class="automation-summary mb-3">
+          <div class="kpi-card kpi-sm">
+            <div class="kpi-value">{{ automations().length }}</div>
+            <div class="kpi-label">Total</div>
+          </div>
+          <div class="kpi-card kpi-sm">
+            <div class="kpi-value">{{ activeAutomations().length }}</div>
+            <div class="kpi-label">Active</div>
+          </div>
+          <div class="kpi-card kpi-sm">
+            <div class="kpi-value">{{ totalAutomationsSent() | number }}</div>
+            <div class="kpi-label">Messages Sent</div>
+          </div>
+        </div>
+
+        <div class="automation-list">
+          @for (auto of automations(); track auto.id) {
+            <div class="automation-card" [class.automation-inactive]="!auto.isActive">
+              <div class="d-flex justify-content-between align-items-start">
+                <div class="d-flex gap-3 align-items-start">
+                  <div class="trigger-icon">
+                    <i class="bi" [class]="getTriggerIcon(auto.trigger)"></i>
+                  </div>
+                  <div>
+                    <div class="automation-name">{{ auto.name }}</div>
+                    <div class="automation-meta">
+                      <span class="badge badge-outline">{{ getTriggerLabel(auto.trigger) }}</span>
+                      <span class="channel-icon">
+                        @if (auto.channel === 'email' || auto.channel === 'both') {
+                          <i class="bi bi-envelope"></i>
+                        }
+                        @if (auto.channel === 'sms' || auto.channel === 'both') {
+                          <i class="bi bi-chat-dots"></i>
+                        }
+                      </span>
+                      <span class="delay-badge">
+                        <i class="bi bi-clock me-1"></i>{{ formatDelay(auto.delayMinutes) }}
+                      </span>
+                      <span class="sent-count">{{ auto.sentCount | number }} sent</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                  <div class="form-check form-switch">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      [checked]="auto.isActive"
+                      [disabled]="isTogglingAutomation()"
+                      (change)="toggleAutomationActive(auto)"
+                    />
+                  </div>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="openEditAutomation(auto)">
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteAutomation(auto)">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
     <!-- TEMPLATES TAB -->
     @if (activeTab() === 'templates') {
       <div class="template-grid">
         @for (template of templates; track template.id) {
           <div class="template-card">
-            <div class="template-type badge bg-outline mb-2">{{ getTypeLabel(template.type) }}</div>
+            <div class="template-type badge badge-outline mb-2">{{ getTypeLabel(template.type) }}</div>
             <h6 class="template-name">{{ template.name }}</h6>
             <div class="template-subject small mb-2">{{ template.subject }}</div>
             <div class="template-preview small text-muted mb-3">{{ template.body | slice:0:100 }}...</div>
-            <button type="button" class="btn btn-sm btn-outline-light w-100" (click)="applyTemplate(template); openNewCampaign()">
+            <button type="button" class="btn btn-sm btn-outline-secondary w-100" (click)="applyTemplate(template); openNewCampaign()">
               Use Template
             </button>
           </div>
@@ -159,7 +250,7 @@
         </div>
       } @else {
         <div class="performance-table">
-          <table class="table table-dark table-hover">
+          <table class="table">
             <thead>
               <tr>
                 <th>Campaign</th>
@@ -196,10 +287,10 @@
             <h4 class="mb-1">{{ detail.name }}</h4>
             <div class="d-flex gap-2 align-items-center">
               <span class="badge" [class]="getStatusClass(detail.status)">{{ detail.status }}</span>
-              <span class="badge bg-outline">{{ getTypeLabel(detail.type) }}</span>
+              <span class="badge badge-outline">{{ getTypeLabel(detail.type) }}</span>
             </div>
           </div>
-          <button type="button" class="btn-close btn-close-white" (click)="closeDetail()"></button>
+          <button type="button" class="btn-close" (click)="closeDetail()"></button>
         </div>
 
         <div class="detail-section">
@@ -228,10 +319,10 @@
           <label class="detail-label">Audience</label>
           <div class="d-flex gap-1 flex-wrap">
             @for (seg of detail.audience.segments; track seg) {
-              <span class="badge bg-outline">{{ seg }}</span>
+              <span class="badge badge-outline">{{ seg }}</span>
             }
             @for (tier of detail.audience.loyaltyTiers; track tier) {
-              <span class="badge bg-outline">{{ tier }}</span>
+              <span class="badge badge-outline">{{ tier }}</span>
             }
             @if (detail.audience.segments.length === 0 && detail.audience.loyaltyTiers.length === 0) {
               <span class="text-muted">All customers</span>
@@ -275,20 +366,20 @@
         <div class="d-flex gap-2 mt-3">
           @if (detail.status === 'draft') {
             <button type="button" class="btn btn-primary btn-sm" (click)="sendNow(detail)">Send Now</button>
-            <button type="button" class="btn btn-outline-light btn-sm" (click)="closeDetail(); openEditCampaign(detail)">Edit</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="closeDetail(); openEditCampaign(detail)">Edit</button>
           }
           <button type="button" class="btn btn-outline-danger btn-sm ms-auto" (click)="deleteCampaign(detail)">Delete</button>
         </div>
       </div>
     }
 
-    <!-- CREATE/EDIT FORM MODAL -->
+    <!-- CREATE/EDIT CAMPAIGN FORM MODAL -->
     @if (showForm()) {
       <div class="modal-backdrop" (click)="closeForm()"></div>
       <div class="form-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">{{ editingCampaign() ? 'Edit Campaign' : 'New Campaign' }}</h4>
-          <button type="button" class="btn-close btn-close-white" (click)="closeForm()"></button>
+          <button type="button" class="btn-close" (click)="closeForm()"></button>
         </div>
 
         <div class="mb-3">
@@ -315,7 +406,6 @@
           </div>
         </div>
 
-        <!-- Audience -->
         <div class="mb-3">
           <label class="form-label">Target Segments</label>
           <div class="d-flex gap-2 flex-wrap">
@@ -324,7 +414,7 @@
                 type="button"
                 class="btn btn-sm"
                 [class.btn-primary]="isSegmentSelected(seg.key)"
-                [class.btn-outline-light]="!isSegmentSelected(seg.key)"
+                [class.btn-outline-secondary]="!isSegmentSelected(seg.key)"
                 (click)="toggleSegment(seg.key)"
               >{{ seg.label }}</button>
             }
@@ -339,7 +429,7 @@
                 type="button"
                 class="btn btn-sm"
                 [class.btn-primary]="isTierSelected(tier.key)"
-                [class.btn-outline-light]="!isTierSelected(tier.key)"
+                [class.btn-outline-secondary]="!isTierSelected(tier.key)"
                 (click)="toggleTier(tier.key)"
               >{{ tier.label }}</button>
             }
@@ -381,7 +471,97 @@
             }
             {{ editingCampaign() ? 'Update' : 'Save as Draft' }}
           </button>
-          <button type="button" class="btn btn-outline-light" (click)="closeForm()">Cancel</button>
+          <button type="button" class="btn btn-outline-secondary" (click)="closeForm()">Cancel</button>
+        </div>
+      </div>
+    }
+
+    <!-- CREATE/EDIT AUTOMATION FORM MODAL -->
+    @if (showAutomationForm()) {
+      <div class="modal-backdrop" (click)="closeAutomationForm()"></div>
+      <div class="form-modal" (click)="$event.stopPropagation()">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="mb-0">{{ editingAutomation() ? 'Edit Automation' : 'New Automation' }}</h4>
+          <button type="button" class="btn-close" (click)="closeAutomationForm()"></button>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Automation Name *</label>
+          <input type="text" class="form-control" [value]="autoName()" (input)="onAutoField('name', $event)" placeholder="e.g., Welcome Series" />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Trigger</label>
+          <div class="trigger-grid">
+            @for (trigger of triggerTypes; track trigger.key) {
+              <button
+                type="button"
+                class="trigger-option"
+                [class.trigger-selected]="autoTrigger() === trigger.key"
+                (click)="selectTrigger(trigger.key)"
+              >
+                <i class="bi" [class]="trigger.icon"></i>
+                <span class="trigger-option-label">{{ trigger.label }}</span>
+                <span class="trigger-option-desc">{{ trigger.description }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (triggerConfigLabel(); as configLabel) {
+          <div class="mb-3">
+            <label class="form-label">{{ configLabel }}</label>
+            <input
+              type="number"
+              class="form-control"
+              min="1"
+              [value]="triggerConfigValue()"
+              (input)="onTriggerConfigValue($event)"
+            />
+          </div>
+        }
+
+        <div class="row mb-3">
+          <div class="col-6">
+            <label class="form-label">Channel</label>
+            <select class="form-select" [value]="autoChannel()" (change)="onAutoField('channel', $event)">
+              <option value="email">Email</option>
+              <option value="sms">SMS</option>
+              <option value="both">Email + SMS</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Delay (minutes)</label>
+            <input type="number" class="form-control" min="0" [value]="autoDelayMinutes()" (input)="onAutoField('delayMinutes', $event)" />
+            <small class="form-text text-muted">{{ formatDelay(autoDelayMinutes()) }} after trigger</small>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Template (optional)</label>
+          <select class="form-select" [value]="autoTemplateId() ?? ''" (change)="onAutoField('templateId', $event)">
+            <option value="">No template</option>
+            @for (template of templates; track template.id) {
+              <option [value]="template.id">{{ template.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="mb-3 d-flex align-items-center gap-2">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" [checked]="autoIsActive()" (change)="onAutoActiveToggle()" />
+            <label class="form-check-label">Active immediately</label>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-primary" [disabled]="!canSaveAutomation() || isSaving()" (click)="saveAutomation()">
+            @if (isSaving()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            {{ editingAutomation() ? 'Update' : 'Create Automation' }}
+          </button>
+          <button type="button" class="btn btn-outline-secondary" (click)="closeAutomationForm()">Cancel</button>
         </div>
       </div>
     }

@@ -104,4 +104,39 @@ export const CAMPAIGN_TEMPLATES: CampaignTemplate[] = [
   },
 ];
 
-export type MarketingTab = 'campaigns' | 'templates' | 'performance';
+// --- Marketing Automations ---
+
+export type AutomationTrigger =
+  | 'welcome'
+  | 'win_back'
+  | 'birthday'
+  | 'anniversary'
+  | 'loyalty_tier_up'
+  | 'post_visit'
+  | 'abandoned_cart';
+
+export interface MarketingAutomation {
+  id: string;
+  restaurantId: string;
+  trigger: AutomationTrigger;
+  name: string;
+  campaignTemplateId: string | null;
+  channel: CampaignChannel;
+  delayMinutes: number;
+  isActive: boolean;
+  triggerConfig: Record<string, number>;
+  sentCount: number;
+  createdAt: string;
+}
+
+export interface MarketingAutomationFormData {
+  trigger: AutomationTrigger;
+  name: string;
+  campaignTemplateId: string | null;
+  channel: CampaignChannel;
+  delayMinutes: number;
+  isActive: boolean;
+  triggerConfig: Record<string, number>;
+}
+
+export type MarketingTab = 'campaigns' | 'templates' | 'performance' | 'automations';

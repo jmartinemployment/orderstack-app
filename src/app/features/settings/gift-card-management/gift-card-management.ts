@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@a
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { GiftCardService } from '@services/gift-card';
 import { AuthService } from '@services/auth';
-import { GiftCard, GiftCardFormData, GiftCardType, GiftCardRedemption, GIFT_CARD_AMOUNTS } from '@models/index';
+import { GiftCard, GiftCardFormData, GiftCardType, GiftCardRedemption, GiftCardActivation, GIFT_CARD_AMOUNTS } from '@models/index';
 
 @Component({
   selector: 'os-gift-card-management',
@@ -76,11 +76,27 @@ export class GiftCardManagement {
   });
 
   readonly totalCards = computed(() => this.giftCards().length);
+  readonly physicalCards = this.giftCardService.physicalCards;
+  readonly digitalCards = this.giftCardService.digitalCards;
+
   readonly totalRedeemed = computed(() =>
     this.giftCards()
       .filter(c => c.status === 'redeemed' || c.currentBalance < c.originalBalance)
       .reduce((sum, c) => sum + (c.originalBalance - c.currentBalance), 0)
   );
+
+  // Physical activation
+  private readonly _showActivateForm = signal(false);
+  private readonly _activateCardNumber = signal('');
+  private readonly _activateAmount = signal(25);
+  private readonly _isActivating = signal(false);
+  private readonly _activateError = signal<string | null>(null);
+
+  readonly showActivateForm = this._showActivateForm.asReadonly();
+  readonly activateCardNumber = this._activateCardNumber.asReadonly();
+  readonly activateAmount = this._activateAmount.asReadonly();
+  readonly isActivating = this._isActivating.asReadonly();
+  readonly activateError = this._activateError.asReadonly();
 
   constructor() {
     if (this.authService.isAuthenticated() && this.authService.selectedRestaurantId()) {
@@ -211,5 +227,50 @@ export class GiftCardManagement {
   getBalancePercent(card: GiftCard): number {
     if (card.originalBalance === 0) return 0;
     return (card.currentBalance / card.originalBalance) * 100;
+  }
+
+  // --- Physical Card Activation ---
+
+  openActivateForm(): void {
+    this._activateCardNumber.set('');
+    this._activateAmount.set(25);
+    this._activateError.set(null);
+    this._showActivateForm.set(true);
+  }
+
+  closeActivateForm(): void {
+    this._showActivateForm.set(false);
+    this._activateError.set(null);
+  }
+
+  onActivateField(field: string, event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    if (field === 'cardNumber') this._activateCardNumber.set(value);
+    if (field === 'amount') this._activateAmount.set(Number.parseFloat(value) || 0);
+  }
+
+  selectActivateAmount(amount: number): void {
+    this._activateAmount.set(amount);
+  }
+
+  async activateCard(): Promise<void> {
+    const cardNumber = this._activateCardNumber().trim();
+    const amount = this._activateAmount();
+    if (!cardNumber || amount <= 0 || this._isActivating()) return;
+
+    this._isActivating.set(true);
+    this._activateError.set(null);
+
+    const activation: GiftCardActivation = { cardNumber, amount };
+    const card = await this.giftCardService.activatePhysicalCard(activation);
+
+    this._isActivating.set(false);
+
+    if (card) {
+      this.closeActivateForm();
+      this._showDetail.set(card);
+    } else {
+      this._activateError.set(this.giftCardService.error() ?? 'Activation failed');
+    }
   }
 }

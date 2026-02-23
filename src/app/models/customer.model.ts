@@ -51,5 +51,47 @@ export interface SavedAddressFormData {
   isDefault?: boolean;
 }
 
+// --- Referral Program ---
+
+export interface ReferralReward {
+  type: 'points' | 'discount_percentage' | 'discount_flat' | 'free_item';
+  value: number;
+  freeItemId: string | null;
+}
+
+export interface ReferralConfig {
+  enabled: boolean;
+  referrerReward: ReferralReward;
+  refereeReward: ReferralReward;
+  maxReferrals: number | null;
+}
+
+export interface Referral {
+  id: string;
+  referrerCustomerId: string;
+  refereeCustomerId: string;
+  referralCode: string;
+  rewardFulfilled: boolean;
+  createdAt: string;
+}
+
+// --- Post-Visit Feedback ---
+
+export type FeedbackCategory = 'food' | 'service' | 'ambiance' | 'speed' | 'value';
+
+export interface FeedbackRequest {
+  id: string;
+  orderId: string;
+  customerId: string;
+  npsScore: number | null;
+  rating: number | null;
+  comment: string | null;
+  categories: FeedbackCategory[];
+  isPublic: boolean;
+  respondedAt: string | null;
+  responseMessage: string | null;
+  createdAt: string;
+}
+
 export type CrmTab = 'customers' | 'segments' | 'insights';
 export type CrmSortField = 'name' | 'totalSpent' | 'totalOrders' | 'lastOrderDate' | 'loyaltyPoints';

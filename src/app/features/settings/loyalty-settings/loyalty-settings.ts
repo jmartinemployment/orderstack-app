@@ -1,7 +1,8 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LoyaltyService } from '@services/loyalty';
-import { LoyaltyConfig } from '@models/index';
+import { CustomerService } from '@services/customer';
+import { LoyaltyConfig, ReferralConfig, ReferralReward } from '@models/index';
 import { RewardsManagement } from '../rewards-management';
 
 @Component({
@@ -13,6 +14,7 @@ import { RewardsManagement } from '../rewards-management';
 })
 export class LoyaltySettings implements OnInit {
   private readonly loyaltyService = inject(LoyaltyService);
+  private readonly customerService = inject(CustomerService);
 
   private readonly _enabled = signal(false);
   private readonly _pointsPerDollar = signal(1);
@@ -26,6 +28,16 @@ export class LoyaltySettings implements OnInit {
   private readonly _saved = signal(false);
   private readonly _isSaving = signal(false);
 
+  // Referral program
+  private readonly _referralEnabled = signal(false);
+  private readonly _referrerRewardType = signal<ReferralReward['type']>('points');
+  private readonly _referrerRewardValue = signal(100);
+  private readonly _refereeRewardType = signal<ReferralReward['type']>('discount_percentage');
+  private readonly _refereeRewardValue = signal(10);
+  private readonly _maxReferrals = signal<number | null>(null);
+  private readonly _referralSaved = signal(false);
+  private readonly _isReferralSaving = signal(false);
+
   readonly enabled = this._enabled.asReadonly();
   readonly pointsPerDollar = this._pointsPerDollar.asReadonly();
   readonly pointsRedemptionRate = this._pointsRedemptionRate.asReadonly();
@@ -38,6 +50,15 @@ export class LoyaltySettings implements OnInit {
   readonly saved = this._saved.asReadonly();
   readonly isSaving = this._isSaving.asReadonly();
   readonly isLoading = this.loyaltyService.isLoading;
+
+  readonly referralEnabled = this._referralEnabled.asReadonly();
+  readonly referrerRewardType = this._referrerRewardType.asReadonly();
+  readonly referrerRewardValue = this._referrerRewardValue.asReadonly();
+  readonly refereeRewardType = this._refereeRewardType.asReadonly();
+  readonly refereeRewardValue = this._refereeRewardValue.asReadonly();
+  readonly maxReferrals = this._maxReferrals.asReadonly();
+  readonly referralSaved = this._referralSaved.asReadonly();
+  readonly isReferralSaving = this._isReferralSaving.asReadonly();
 
   readonly redemptionPreview = computed(() => {
     const rate = this._pointsRedemptionRate();
@@ -59,6 +80,7 @@ export class LoyaltySettings implements OnInit {
 
   ngOnInit(): void {
     this.loyaltyService.loadConfig().then(() => this.syncFromConfig());
+    this.customerService.loadReferralConfig().then(() => this.syncReferralConfig());
   }
 
   private syncFromConfig(): void {
@@ -118,5 +140,58 @@ export class LoyaltySettings implements OnInit {
   discard(): void {
     this.syncFromConfig();
     this._saved.set(false);
+  }
+
+  // --- Referral Program ---
+
+  private syncReferralConfig(): void {
+    const config = this.customerService.referralConfig();
+    if (!config) return;
+    this._referralEnabled.set(config.enabled);
+    this._referrerRewardType.set(config.referrerReward.type);
+    this._referrerRewardValue.set(config.referrerReward.value);
+    this._refereeRewardType.set(config.refereeReward.type);
+    this._refereeRewardValue.set(config.refereeReward.value);
+    this._maxReferrals.set(config.maxReferrals);
+  }
+
+  onReferralToggle(event: Event): void {
+    this._referralEnabled.set((event.target as HTMLInputElement).checked);
+    this._referralSaved.set(false);
+  }
+
+  onReferralField(field: string, event: Event): void {
+    const value = (event.target as HTMLInputElement | HTMLSelectElement).value;
+    switch (field) {
+      case 'referrerRewardType': this._referrerRewardType.set(value as ReferralReward['type']); break;
+      case 'referrerRewardValue': this._referrerRewardValue.set(Number(value) || 0); break;
+      case 'refereeRewardType': this._refereeRewardType.set(value as ReferralReward['type']); break;
+      case 'refereeRewardValue': this._refereeRewardValue.set(Number(value) || 0); break;
+      case 'maxReferrals': this._maxReferrals.set(value ? Number.parseInt(value, 10) : null); break;
+    }
+    this._referralSaved.set(false);
+  }
+
+  async saveReferral(): Promise<void> {
+    this._isReferralSaving.set(true);
+    const config: ReferralConfig = {
+      enabled: this._referralEnabled(),
+      referrerReward: {
+        type: this._referrerRewardType(),
+        value: this._referrerRewardValue(),
+        freeItemId: null,
+      },
+      refereeReward: {
+        type: this._refereeRewardType(),
+        value: this._refereeRewardValue(),
+        freeItemId: null,
+      },
+      maxReferrals: this._maxReferrals(),
+    };
+    const success = await this.customerService.saveReferralConfig(config);
+    this._isReferralSaving.set(false);
+    if (success) {
+      this._referralSaved.set(true);
+    }
   }
 }

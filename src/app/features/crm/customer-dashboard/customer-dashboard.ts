@@ -5,7 +5,7 @@ import { AuthService } from '@services/auth';
 import { LoyaltyService } from '@services/loyalty';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
-import { Customer, CustomerSegment, CrmTab, CrmSortField, LoyaltyTransaction, getTierLabel, getTierColor } from '@models/index';
+import { Customer, CustomerSegment, CrmTab, CrmSortField, LoyaltyTransaction, FeedbackRequest, getTierLabel, getTierColor } from '@models/index';
 
 @Component({
   selector: 'os-crm',
@@ -35,6 +35,12 @@ export class CustomerDashboard {
   private readonly _adjustReason = signal('');
   private readonly _isAdjusting = signal(false);
 
+  // Feedback
+  private readonly _isLoadingFeedback = signal(false);
+  private readonly _feedbackResponseId = signal<string | null>(null);
+  private readonly _feedbackResponseText = signal('');
+  private readonly _isRespondingFeedback = signal(false);
+
   readonly activeTab = this._activeTab.asReadonly();
   readonly searchTerm = this._searchTerm.asReadonly();
   readonly segmentFilter = this._segmentFilter.asReadonly();
@@ -47,6 +53,15 @@ export class CustomerDashboard {
   readonly adjustReason = this._adjustReason.asReadonly();
   readonly isAdjusting = this._isAdjusting.asReadonly();
   readonly loyaltyConfig = this.loyaltyService.config;
+
+  readonly isLoadingFeedback = this._isLoadingFeedback.asReadonly();
+  readonly feedback = this.customerService.feedback;
+  readonly averageNps = this.customerService.averageNps;
+  readonly averageRating = this.customerService.averageRating;
+  readonly negativeFeedback = this.customerService.negativeFeedback;
+  readonly feedbackResponseId = this._feedbackResponseId.asReadonly();
+  readonly feedbackResponseText = this._feedbackResponseText.asReadonly();
+  readonly isRespondingFeedback = this._isRespondingFeedback.asReadonly();
 
   readonly customers = this.customerService.customers;
   readonly isLoading = this.customerService.isLoading;
@@ -118,6 +133,20 @@ export class CustomerDashboard {
     this.customers().reduce((sum, c) => sum + c.loyaltyPoints, 0)
   );
 
+  readonly ratingDistribution = computed(() => {
+    const dist = [0, 0, 0, 0, 0];
+    for (const f of this.feedback()) {
+      if (f.rating !== null && f.rating >= 1 && f.rating <= 5) {
+        dist[f.rating - 1]++;
+      }
+    }
+    return dist;
+  });
+
+  readonly ratingDistributionMax = computed(() =>
+    Math.max(1, ...this.ratingDistribution())
+  );
+
   constructor() {
     effect(() => {
       if (this.isAuthenticated() && this.authService.selectedRestaurantId()) {
@@ -129,6 +158,9 @@ export class CustomerDashboard {
 
   setTab(tab: CrmTab): void {
     this._activeTab.set(tab);
+    if (tab === 'insights' && this.feedback().length === 0) {
+      this.loadFeedback();
+    }
   }
 
   onSearch(event: Event): void {
@@ -228,6 +260,69 @@ export class CustomerDashboard {
       this._isLoadingLoyalty.set(false);
     }
   }
+
+  // --- Feedback ---
+
+  async loadFeedback(): Promise<void> {
+    this._isLoadingFeedback.set(true);
+    try {
+      await this.customerService.loadFeedback();
+    } finally {
+      this._isLoadingFeedback.set(false);
+    }
+  }
+
+  getNpsLabel(score: number): string {
+    if (score >= 9) return 'Promoter';
+    if (score >= 7) return 'Passive';
+    return 'Detractor';
+  }
+
+  getNpsClass(score: number): string {
+    if (score >= 9) return 'text-success';
+    if (score >= 7) return 'text-warning';
+    return 'text-danger';
+  }
+
+  getStarArray(rating: number): boolean[] {
+    return Array.from({ length: 5 }, (_, i) => i < rating);
+  }
+
+  openFeedbackResponse(feedbackId: string): void {
+    this._feedbackResponseId.set(feedbackId);
+    this._feedbackResponseText.set('');
+  }
+
+  closeFeedbackResponse(): void {
+    this._feedbackResponseId.set(null);
+    this._feedbackResponseText.set('');
+  }
+
+  onFeedbackResponseInput(event: Event): void {
+    this._feedbackResponseText.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  async submitFeedbackResponse(): Promise<void> {
+    const id = this._feedbackResponseId();
+    const text = this._feedbackResponseText().trim();
+    if (!id || !text) return;
+
+    this._isRespondingFeedback.set(true);
+    try {
+      const success = await this.customerService.respondToFeedback(id, text);
+      if (success) {
+        this.closeFeedbackResponse();
+      }
+    } finally {
+      this._isRespondingFeedback.set(false);
+    }
+  }
+
+  isFeedbackNegative(f: FeedbackRequest): boolean {
+    return (f.npsScore !== null && f.npsScore <= 6) || (f.rating !== null && f.rating <= 2);
+  }
+
+  // --- Utility ---
 
   getSegment(customer: Customer) {
     return this.customerService.getSegment(customer);

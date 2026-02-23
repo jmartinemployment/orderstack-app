@@ -285,6 +285,21 @@ export class ReservationService {
     }
   }
 
+  async getCustomerReservations(customerId: string): Promise<Reservation[]> {
+    if (!this.restaurantId) return [];
+
+    try {
+      const data = await firstValueFrom(
+        this.http.get<Reservation[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/reservations?customerId=${encodeURIComponent(customerId)}`
+        )
+      );
+      return data ?? [];
+    } catch {
+      return [];
+    }
+  }
+
   clearError(): void {
     this._error.set(null);
   }
