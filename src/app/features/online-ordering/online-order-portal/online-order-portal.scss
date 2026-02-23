@@ -795,6 +795,18 @@
   font-size: 2rem;
 }
 
+.ready-time-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 106, 255, 0.06);
+  border: 1px solid rgba(0, 106, 255, 0.15);
+  border-radius: 10px;
+  color: var(--os-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
 // Order Tracking
 .tracking-section {
   background: var(--os-bg-card);

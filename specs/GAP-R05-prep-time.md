@@ -1,6 +1,6 @@
 # GAP-R05: Kitchen Prep Time Estimates
 
-**Status:** NOT STARTED
+**Status:** Phase 1 COMPLETE
 **Priority:** 5
 **Square Reference:** Estimated prep time per item. KDS shows total time. Online ordering shows estimated ready time.
 

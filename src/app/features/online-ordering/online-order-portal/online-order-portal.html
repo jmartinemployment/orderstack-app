@@ -914,6 +914,12 @@
             Your order has been placed. Please take a seat.
           }
         </p>
+        @if (estimatedReadyMinutes() > 0) {
+          <div class="ready-time-badge">
+            <i class="bi bi-clock me-1"></i>
+            Estimated ready in ~{{ estimatedReadyMinutes() }} minutes
+          </div>
+        }
 
         <!-- Order Tracking -->
         @if (submittedOrder(); as tracked) {

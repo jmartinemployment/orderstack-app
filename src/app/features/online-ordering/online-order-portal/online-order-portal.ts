@@ -275,6 +275,15 @@ export class OnlineOrderPortal implements OnDestroy {
     this.cartItems().some(i => i.menuItem.requiresAgeVerification)
   );
 
+  // Estimated ready time from cart items' prep times
+  readonly estimatedReadyMinutes = computed(() => {
+    const items = this.cartItems();
+    if (items.length === 0) return 0;
+    const maxPrep = Math.max(0, ...items.map(i => i.menuItem.prepTimeMinutes ?? 0));
+    const buffer = 5; // 5-minute buffer for queue/packaging
+    return maxPrep > 0 ? maxPrep + buffer : 0;
+  });
+
   // Track customer ID for saved address operations
   private readonly _identifiedCustomerId = signal<string | null>(null);
   readonly identifiedCustomerId = this._identifiedCustomerId.asReadonly();
