@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } 
 import { AuthService } from '@services/auth';
 import { MenuService } from '@services/menu';
 import { CartService } from '@services/cart';
-import { MenuItem, Modifier } from '@models/index';
+import { MenuItem, Modifier, isItemAvailable } from '@models/index';
 import { MenuItemCard } from '../menu-item-card/menu-item-card';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
@@ -57,7 +57,9 @@ export class MenuDisplay {
         }
       }
     }
-    return items;
+    return items.filter(i =>
+      i.isActive !== false && !i.eightySixed && isItemAvailable(i) && this.menuService.isItemInActiveDaypart(i)
+    );
   });
 
   constructor() {

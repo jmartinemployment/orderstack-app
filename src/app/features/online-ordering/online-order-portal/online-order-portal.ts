@@ -213,7 +213,9 @@ export class OnlineOrderPortal implements OnDestroy {
   readonly allAllergenTypes: AllergenType[] = ['milk', 'eggs', 'fish', 'shellfish', 'tree_nuts', 'peanuts', 'wheat', 'soy', 'sesame'];
 
   readonly filteredItems = computed(() => {
-    let items = this.menuService.allItems().filter(i => i.isActive !== false && !i.eightySixed);
+    let items = this.menuService.allItems().filter(i =>
+      i.isActive !== false && !i.eightySixed && isItemAvailable(i) && this.menuService.isItemInActiveDaypart(i)
+    );
     const catId = this._selectedCategory();
     const search = this._searchTerm().toLowerCase();
     const excluded = this._excludeAllergens();

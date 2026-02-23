@@ -62,6 +62,9 @@ export interface MenuItem {
   optionSetIds?: string[];
   hasVariations?: boolean;
 
+  // --- Menu scheduling (GAP-R07) ---
+  daypartIds?: string[];         // Daypart IDs; empty/missing = always available
+
   // --- Age verification (GOS-SPEC-07) ---
   requiresAgeVerification?: boolean;
   minimumAge?: number;
@@ -210,6 +213,50 @@ export interface ItemOptionSet {
   restaurantId: string;
   name: string;
   values: string[];
+}
+
+// --- Menu Scheduling / Dayparts (GAP-R07) ---
+
+export interface Daypart {
+  id: string;
+  name: string;                // e.g. 'Breakfast', 'Lunch', 'Happy Hour'
+  startTime: string;           // 'HH:mm' (24h)
+  endTime: string;             // 'HH:mm' (24h)
+  daysOfWeek: number[];        // 0=Sun, 1=Mon, ..., 6=Sat
+  isActive: boolean;
+  displayOrder: number;
+}
+
+export interface MenuSchedule {
+  id: string;
+  restaurantId: string;
+  name: string;
+  dayparts: Daypart[];
+  isDefault: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface MenuScheduleFormData {
+  name: string;
+  dayparts: Omit<Daypart, 'id'>[];
+  isDefault: boolean;
+}
+
+export function isDaypartActive(daypart: Daypart, now: Date = new Date()): boolean {
+  if (!daypart.isActive) return false;
+  const dayOfWeek = now.getDay();
+  if (!daypart.daysOfWeek.includes(dayOfWeek)) return false;
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const [startH, startM] = daypart.startTime.split(':').map(Number);
+  const [endH, endM] = daypart.endTime.split(':').map(Number);
+  const start = startH * 60 + startM;
+  const end = endH * 60 + endM;
+  return currentMinutes >= start && currentMinutes <= end;
+}
+
+export function getDaypartLabel(dayOfWeek: number): string {
+  return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][dayOfWeek] ?? '';
 }
 
 // --- CSV Import ---

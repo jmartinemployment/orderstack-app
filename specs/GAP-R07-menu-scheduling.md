@@ -1,6 +1,6 @@
 # GAP-R07: Menu Scheduling (Daypart Menus)
 
-**Status:** NOT STARTED
+**Status:** Phase 1 COMPLETE
 **Priority:** 4
 **Square Reference:** Different menus active at different times. Breakfast 6am-11am, lunch 11am-4pm, dinner 4pm-close. Items auto appear/disappear. Kiosk and online ordering respect schedules. Multiple time periods per day supported.
 

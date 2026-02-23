@@ -1,0 +1,250 @@
+<div class="schedule-mgmt">
+  @if (!showForm()) {
+    <!-- Schedule List -->
+    <div class="schedule-header">
+      <h6>Menu Schedules</h6>
+      <button type="button" class="btn btn-sm btn-primary" (click)="openNewForm()">
+        <i class="bi bi-plus-lg me-1"></i> New Schedule
+      </button>
+    </div>
+
+    <p class="schedule-hint">
+      Define dayparts (Breakfast, Lunch, Dinner, Happy Hour) to control when menu items appear.
+      Assign items to dayparts in the Items tab.
+    </p>
+
+    <!-- Active schedule selector -->
+    @if (schedules().length > 0) {
+      <div class="active-schedule-selector">
+        <label class="form-label">Active Schedule</label>
+        <div class="schedule-chips">
+          <button
+            type="button"
+            class="schedule-chip"
+            [class.active]="activeScheduleId() === null"
+            (click)="setActiveSchedule(null)">
+            None (all items visible)
+          </button>
+          @for (schedule of schedules(); track schedule.id) {
+            <button
+              type="button"
+              class="schedule-chip"
+              [class.active]="activeScheduleId() === schedule.id"
+              (click)="setActiveSchedule(schedule.id)">
+              {{ schedule.name }}
+              @if (schedule.isDefault) {
+                <span class="chip-default">Default</span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    @for (schedule of schedules(); track schedule.id) {
+      <div class="schedule-card">
+        <div class="schedule-card-header">
+          <div class="schedule-card-title">
+            <h6>{{ schedule.name }}</h6>
+            @if (schedule.isDefault) {
+              <span class="badge-default">Default</span>
+            }
+            @if (activeScheduleId() === schedule.id) {
+              <span class="badge-active">Active</span>
+            }
+          </div>
+          <div class="schedule-card-actions">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="openEditForm(schedule)">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteSchedule(schedule)">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Timeline visualization -->
+        <div class="timeline-visual">
+          <div class="timeline-hours">
+            @for (hour of timelineHours; track hour) {
+              @if (hour % 3 === 0) {
+                <span class="timeline-hour-label" [style.left.%]="(hour / 24) * 100">
+                  {{ hour === 0 ? '12a' : hour < 12 ? hour + 'a' : hour === 12 ? '12p' : (hour - 12) + 'p' }}
+                </span>
+              }
+            }
+          </div>
+          <div class="timeline-track">
+            @for (dp of schedule.dayparts; track dp.id) {
+              @if (dp.isActive) {
+                <div
+                  class="timeline-block"
+                  [class.currently-active]="isDaypartCurrentlyActive(dp)"
+                  [style.left.%]="getTimelineLeft(dp)"
+                  [style.width.%]="getTimelineWidth(dp)">
+                  <span class="timeline-block-label">{{ dp.name }}</span>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- Daypart list -->
+        <div class="daypart-list">
+          @for (dp of schedule.dayparts; track dp.id) {
+            <div class="daypart-row" [class.inactive]="!dp.isActive">
+              <span class="daypart-name">{{ dp.name }}</span>
+              <span class="daypart-time">{{ formatTime(dp.startTime) }} — {{ formatTime(dp.endTime) }}</span>
+              <span class="daypart-days">
+                @for (day of dp.daysOfWeek; track day) {
+                  <span class="day-chip">{{ getDayLabel(day) }}</span>
+                }
+              </span>
+              @if (isDaypartCurrentlyActive(dp)) {
+                <span class="daypart-live">Live</span>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-state">
+        <i class="bi bi-clock-history"></i>
+        <p>No menu schedules configured</p>
+        <p class="text-muted">All menu items are visible at all times</p>
+        <button type="button" class="btn btn-primary" (click)="openNewForm()">Create Schedule</button>
+      </div>
+    }
+  } @else {
+    <!-- Schedule Form -->
+    <div class="schedule-form">
+      <h6>{{ editingScheduleId() ? 'Edit Schedule' : 'New Schedule' }}</h6>
+
+      <div class="mb-3">
+        <label class="form-label">Schedule Name</label>
+        <input
+          type="text"
+          class="form-control"
+          placeholder="e.g., Standard Menu Schedule"
+          [value]="formName()"
+          (input)="setFormName($any($event.target).value)">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-check">
+          <input
+            type="checkbox"
+            class="form-check-input"
+            [checked]="formIsDefault()"
+            (change)="setFormIsDefault($any($event.target).checked)">
+          <span class="form-check-label">Set as default schedule</span>
+        </label>
+      </div>
+
+      <!-- Dayparts -->
+      <div class="dayparts-section">
+        <div class="dayparts-header">
+          <label class="form-label mb-0">Dayparts</label>
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="addDaypart()">
+            <i class="bi bi-plus-lg me-1"></i> Add Daypart
+          </button>
+        </div>
+
+        @for (dp of formDayparts(); track $index; let i = $index) {
+          <div class="daypart-form-card">
+            <div class="daypart-form-header">
+              <input
+                type="text"
+                class="form-control form-control-sm daypart-name-input"
+                placeholder="Daypart name"
+                [value]="dp.name"
+                (input)="setDaypartName(i, $any($event.target).value)">
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="toggleDaypartActive(i)">
+                @if (dp.isActive) {
+                  <i class="bi bi-eye"></i>
+                } @else {
+                  <i class="bi bi-eye-slash"></i>
+                }
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeDaypart(i)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+
+            <div class="daypart-times">
+              <div class="time-field">
+                <label class="form-label">Start</label>
+                <input
+                  type="time"
+                  class="form-control form-control-sm"
+                  [value]="dp.startTime"
+                  (input)="setDaypartStartTime(i, $any($event.target).value)">
+              </div>
+              <span class="time-separator">—</span>
+              <div class="time-field">
+                <label class="form-label">End</label>
+                <input
+                  type="time"
+                  class="form-control form-control-sm"
+                  [value]="dp.endTime"
+                  (input)="setDaypartEndTime(i, $any($event.target).value)">
+              </div>
+            </div>
+
+            <div class="daypart-day-selector">
+              <label class="form-label">Days</label>
+              <div class="day-toggles">
+                @for (day of allDays; track day) {
+                  <button
+                    type="button"
+                    class="day-toggle"
+                    [class.active]="dp.daysOfWeek.includes(day)"
+                    (click)="toggleDaypartDay(i, day)">
+                    {{ getDayLabel(day) }}
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Timeline preview -->
+      @if (formDayparts().length > 0) {
+        <div class="timeline-preview">
+          <label class="form-label">Preview</label>
+          <div class="timeline-visual">
+            <div class="timeline-hours">
+              @for (hour of timelineHours; track hour) {
+                @if (hour % 3 === 0) {
+                  <span class="timeline-hour-label" [style.left.%]="(hour / 24) * 100">
+                    {{ hour === 0 ? '12a' : hour < 12 ? hour + 'a' : hour === 12 ? '12p' : (hour - 12) + 'p' }}
+                  </span>
+                }
+              }
+            </div>
+            <div class="timeline-track">
+              @for (dp of formDayparts(); track $index) {
+                @if (dp.isActive && dp.name.trim()) {
+                  <div
+                    class="timeline-block"
+                    [style.left.%]="getTimelineLeft(dp)"
+                    [style.width.%]="getTimelineWidth(dp)">
+                    <span class="timeline-block-label">{{ dp.name }}</span>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline-secondary" (click)="closeForm()">Cancel</button>
+        <button type="button" class="btn btn-primary" [disabled]="!canSave()" (click)="saveSchedule()">
+          {{ editingScheduleId() ? 'Update Schedule' : 'Create Schedule' }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

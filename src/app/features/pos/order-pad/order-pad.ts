@@ -22,6 +22,7 @@ import {
   Selection,
   MenuItem,
   MenuCategory,
+  isItemAvailable,
 } from '@models/index';
 
 @Component({
@@ -66,7 +67,9 @@ export class OrderPad implements OnInit, OnDestroy {
       items = cats.flatMap(c => c.items ?? []);
     }
 
-    return items.filter(i => i.isActive !== false && !i.eightySixed);
+    return items.filter(i =>
+      i.isActive !== false && !i.eightySixed && isItemAvailable(i) && this.menuService.isItemInActiveDaypart(i)
+    );
   });
 
   // Table / Order state

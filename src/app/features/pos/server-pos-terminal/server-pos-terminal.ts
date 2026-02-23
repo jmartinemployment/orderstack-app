@@ -28,6 +28,7 @@ import {
   MenuCategory,
   GuestOrderStatus,
   OrderTemplate,
+  isItemAvailable,
   OrderTemplateItem,
   Course,
   CourseFireStatus,
@@ -110,7 +111,9 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
       );
     }
 
-    return items.filter(i => i.isActive !== false && !i.eightySixed);
+    return items.filter(i =>
+      i.isActive !== false && !i.eightySixed && isItemAvailable(i) && this.menuService.isItemInActiveDaypart(i)
+    );
   });
 
   // Table/Order state

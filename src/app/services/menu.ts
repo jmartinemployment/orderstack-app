@@ -10,7 +10,11 @@ import {
   ReportingCategory,
   ItemOptionSet,
   CsvImportResult,
+  MenuSchedule,
+  MenuScheduleFormData,
+  Daypart,
   isItemAvailable,
+  isDaypartActive,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -37,6 +41,10 @@ export class MenuService {
   // Option sets
   private readonly _optionSets = signal<ItemOptionSet[]>([]);
 
+  // Menu schedules (GAP-R07)
+  private readonly _menuSchedules = signal<MenuSchedule[]>([]);
+  private readonly _activeScheduleId = signal<string | null>(null);
+
   // Public readonly signals
   readonly categories = this._categories.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
@@ -45,6 +53,25 @@ export class MenuService {
   readonly crudSupported = this._crudSupported.asReadonly();
   readonly reportingCategories = this._reportingCategories.asReadonly();
   readonly optionSets = this._optionSets.asReadonly();
+  readonly menuSchedules = this._menuSchedules.asReadonly();
+  readonly activeScheduleId = this._activeScheduleId.asReadonly();
+
+  readonly activeSchedule = computed(() => {
+    const id = this._activeScheduleId();
+    if (!id) return null;
+    return this._menuSchedules().find(s => s.id === id) ?? null;
+  });
+
+  readonly activeDayparts = computed(() => {
+    const schedule = this.activeSchedule();
+    if (!schedule) return [];
+    const now = new Date();
+    return schedule.dayparts.filter(dp => isDaypartActive(dp, now));
+  });
+
+  readonly activeDaypartIds = computed(() =>
+    this.activeDayparts().map(dp => dp.id)
+  );
 
   // Computed signals
   readonly activeCategories = computed(() =>
@@ -67,9 +94,15 @@ export class MenuService {
     return items;
   });
 
-  readonly availableItems = computed(() =>
-    this.allItems().filter(item => isItemAvailable(item))
-  );
+  readonly availableItems = computed(() => {
+    const activeDpIds = this.activeDaypartIds();
+    return this.allItems().filter(item => {
+      if (!isItemAvailable(item)) return false;
+      if (activeDpIds.length === 0) return true;
+      if (!item.daypartIds || item.daypartIds.length === 0) return true;
+      return item.daypartIds.some(id => activeDpIds.includes(id));
+    });
+  });
 
   readonly popularItems = computed(() =>
     this.allItems().filter(item => item.popular || item.isPopular)
@@ -640,6 +673,193 @@ export class MenuService {
 
   clearError(): void {
     this._error.set(null);
+  }
+
+  // --- Menu Schedule CRUD (GAP-R07) ---
+
+  async loadMenuSchedules(): Promise<void> {
+    if (!this.restaurantId) return;
+    try {
+      const schedules = await firstValueFrom(
+        this.http.get<MenuSchedule[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/schedules`
+        )
+      );
+      this._menuSchedules.set(schedules);
+      const def = schedules.find(s => s.isDefault);
+      if (def) this._activeScheduleId.set(def.id);
+    } catch {
+      this.restoreSchedulesFromStorage();
+    }
+  }
+
+  async createMenuSchedule(data: MenuScheduleFormData): Promise<MenuSchedule | null> {
+    const id = crypto.randomUUID();
+    const schedule: MenuSchedule = {
+      id,
+      restaurantId: this.restaurantId ?? '',
+      name: data.name,
+      dayparts: data.dayparts.map(dp => ({ ...dp, id: crypto.randomUUID() })),
+      isDefault: data.isDefault,
+    };
+
+    if (data.isDefault) {
+      this._menuSchedules.update(list =>
+        list.map(s => ({ ...s, isDefault: false }))
+      );
+      this._activeScheduleId.set(id);
+    }
+
+    this._menuSchedules.update(list => [...list, schedule]);
+    this.persistSchedules();
+
+    try {
+      await firstValueFrom(
+        this.http.post<MenuSchedule>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/schedules`,
+          data
+        )
+      );
+    } catch {
+      // Local-first: schedule persisted in localStorage
+    }
+
+    return schedule;
+  }
+
+  async updateMenuSchedule(scheduleId: string, data: MenuScheduleFormData): Promise<boolean> {
+    this._menuSchedules.update(list =>
+      list.map(s => {
+        if (s.id === scheduleId) {
+          return {
+            ...s,
+            name: data.name,
+            dayparts: data.dayparts.map((dp, i) => ({
+              ...dp,
+              id: s.dayparts[i]?.id ?? crypto.randomUUID(),
+            })),
+            isDefault: data.isDefault,
+          };
+        }
+        if (data.isDefault) {
+          return { ...s, isDefault: false };
+        }
+        return s;
+      })
+    );
+
+    if (data.isDefault) this._activeScheduleId.set(scheduleId);
+    this.persistSchedules();
+
+    try {
+      await firstValueFrom(
+        this.http.put(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/schedules/${scheduleId}`,
+          data
+        )
+      );
+    } catch {
+      // Local-first
+    }
+
+    return true;
+  }
+
+  async deleteMenuSchedule(scheduleId: string): Promise<boolean> {
+    this._menuSchedules.update(list => list.filter(s => s.id !== scheduleId));
+    if (this._activeScheduleId() === scheduleId) {
+      this._activeScheduleId.set(null);
+    }
+    this.persistSchedules();
+
+    try {
+      await firstValueFrom(
+        this.http.delete(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/schedules/${scheduleId}`
+        )
+      );
+    } catch {
+      // Local-first
+    }
+
+    return true;
+  }
+
+  setActiveSchedule(scheduleId: string | null): void {
+    this._activeScheduleId.set(scheduleId);
+    this.persistSchedules();
+  }
+
+  async assignItemsToDaypart(itemIds: string[], daypartId: string): Promise<void> {
+    this._categories.update(cats =>
+      cats.map(cat => ({
+        ...cat,
+        items: cat.items?.map(item => {
+          if (!itemIds.includes(item.id)) return item;
+          const existing = item.daypartIds ?? [];
+          if (existing.includes(daypartId)) return item;
+          return { ...item, daypartIds: [...existing, daypartId] };
+        }),
+        subcategories: cat.subcategories?.map(sub => ({
+          ...sub,
+          items: sub.items?.map(item => {
+            if (!itemIds.includes(item.id)) return item;
+            const existing = item.daypartIds ?? [];
+            if (existing.includes(daypartId)) return item;
+            return { ...item, daypartIds: [...existing, daypartId] };
+          }),
+        })),
+      }))
+    );
+  }
+
+  async removeItemsFromDaypart(itemIds: string[], daypartId: string): Promise<void> {
+    this._categories.update(cats =>
+      cats.map(cat => ({
+        ...cat,
+        items: cat.items?.map(item => {
+          if (!itemIds.includes(item.id)) return item;
+          return { ...item, daypartIds: (item.daypartIds ?? []).filter(id => id !== daypartId) };
+        }),
+        subcategories: cat.subcategories?.map(sub => ({
+          ...sub,
+          items: sub.items?.map(item => {
+            if (!itemIds.includes(item.id)) return item;
+            return { ...item, daypartIds: (item.daypartIds ?? []).filter(id => id !== daypartId) };
+          }),
+        })),
+      }))
+    );
+  }
+
+  isItemInActiveDaypart(item: MenuItem): boolean {
+    const activeDpIds = this.activeDaypartIds();
+    if (activeDpIds.length === 0) return true;
+    if (!item.daypartIds || item.daypartIds.length === 0) return true;
+    return item.daypartIds.some(id => activeDpIds.includes(id));
+  }
+
+  private persistSchedules(): void {
+    const key = `menu-schedules-${this.restaurantId ?? 'unknown'}`;
+    const data = {
+      schedules: this._menuSchedules(),
+      activeId: this._activeScheduleId(),
+    };
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  private restoreSchedulesFromStorage(): void {
+    const key = `menu-schedules-${this.restaurantId ?? 'unknown'}`;
+    try {
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        const data = JSON.parse(stored) as { schedules: MenuSchedule[]; activeId: string | null };
+        this._menuSchedules.set(data.schedules ?? []);
+        this._activeScheduleId.set(data.activeId ?? null);
+      }
+    } catch {
+      // Ignore corrupted storage
+    }
   }
 
   private normalizeMenuData(categories: MenuCategory[]): MenuCategory[] {
