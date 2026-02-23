@@ -11,6 +11,13 @@ import {
   MenuSyncHistory,
   SettingsPropagation,
   OnlineLocation,
+  CrossLocationStaffMember,
+  StaffTransfer,
+  CrossLocationInventoryItem,
+  InventoryTransfer,
+  InventoryTransferFormData,
+  LocationHealth,
+  GroupCampaign,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -33,6 +40,17 @@ export class MultiLocationService {
   private readonly _isPropagating = signal(false);
   private readonly _error = signal<string | null>(null);
 
+  // Phase 2 signals
+  private readonly _crossLocationStaff = signal<CrossLocationStaffMember[]>([]);
+  private readonly _staffTransfers = signal<StaffTransfer[]>([]);
+  private readonly _crossLocationInventory = signal<CrossLocationInventoryItem[]>([]);
+  private readonly _inventoryTransfers = signal<InventoryTransfer[]>([]);
+  private readonly _locationHealth = signal<LocationHealth[]>([]);
+  private readonly _groupCampaigns = signal<GroupCampaign[]>([]);
+  private readonly _isLoadingStaff = signal(false);
+  private readonly _isLoadingInventory = signal(false);
+  private readonly _isLoadingHealth = signal(false);
+
   readonly groups = this._groups.asReadonly();
   readonly groupMembers = this._groupMembers.asReadonly();
   readonly crossLocationReport = this._crossLocationReport.asReadonly();
@@ -43,7 +61,25 @@ export class MultiLocationService {
   readonly isPropagating = this._isPropagating.asReadonly();
   readonly error = this._error.asReadonly();
 
+  readonly crossLocationStaff = this._crossLocationStaff.asReadonly();
+  readonly staffTransfers = this._staffTransfers.asReadonly();
+  readonly crossLocationInventory = this._crossLocationInventory.asReadonly();
+  readonly inventoryTransfers = this._inventoryTransfers.asReadonly();
+  readonly locationHealth = this._locationHealth.asReadonly();
+  readonly groupCampaigns = this._groupCampaigns.asReadonly();
+  readonly isLoadingStaff = this._isLoadingStaff.asReadonly();
+  readonly isLoadingInventory = this._isLoadingInventory.asReadonly();
+  readonly isLoadingHealth = this._isLoadingHealth.asReadonly();
+
   readonly groupCount = computed(() => this._groups().length);
+
+  readonly lowStockItems = computed(() =>
+    this._crossLocationInventory().filter(item => item.isLowStockAnywhere)
+  );
+
+  readonly offlineLocations = computed(() =>
+    this._locationHealth().filter(loc => loc.status !== 'online')
+  );
 
   private get groupId(): string | null {
     return this.authService.user()?.restaurantGroupId ?? null;
@@ -285,7 +321,153 @@ export class MultiLocationService {
     this._error.set(null);
   }
 
-  // --- Online Ordering Multi-Location (GOS-SPEC-07 Phase 2.5) ---
+  // ── Cross-Location Staff (Phase 2) ──
+
+  async loadCrossLocationStaff(lgId: string): Promise<void> {
+    if (!this.groupId) return;
+    this._isLoadingStaff.set(true);
+    this._error.set(null);
+    try {
+      const staff = await firstValueFrom(
+        this.http.get<CrossLocationStaffMember[]>(
+          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/staff`
+        )
+      );
+      this._crossLocationStaff.set(staff);
+    } catch {
+      this._error.set('Failed to load cross-location staff');
+    } finally {
+      this._isLoadingStaff.set(false);
+    }
+  }
+
+  async transferStaff(lgId: string, teamMemberId: string, fromId: string, toId: string): Promise<void> {
+    if (!this.groupId) return;
+    this._error.set(null);
+    try {
+      const transfer = await firstValueFrom(
+        this.http.post<StaffTransfer>(
+          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/staff/transfer`,
+          { teamMemberId, fromRestaurantId: fromId, toRestaurantId: toId }
+        )
+      );
+      this._staffTransfers.update(list => [transfer, ...list]);
+      this._crossLocationStaff.update(list =>
+        list.map(s => s.teamMemberId === teamMemberId
+          ? { ...s, primaryLocationId: toId, primaryLocationName: transfer.toRestaurantName }
+          : s
+        )
+      );
+    } catch {
+      this._error.set('Failed to transfer staff member');
+    }
+  }
+
+  // ── Cross-Location Inventory (Phase 2) ──
+
+  async loadCrossLocationInventory(lgId: string): Promise<void> {
+    if (!this.groupId) return;
+    this._isLoadingInventory.set(true);
+    this._error.set(null);
+    try {
+      const inventory = await firstValueFrom(
+        this.http.get<CrossLocationInventoryItem[]>(
+          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/inventory`
+        )
+      );
+      this._crossLocationInventory.set(inventory);
+    } catch {
+      this._error.set('Failed to load cross-location inventory');
+    } finally {
+      this._isLoadingInventory.set(false);
+    }
+  }
+
+  async createInventoryTransfer(lgId: string, data: InventoryTransferFormData): Promise<void> {
+    if (!this.groupId) return;
+    this._error.set(null);
+    try {
+      const transfer = await firstValueFrom(
+        this.http.post<InventoryTransfer>(
+          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/inventory/transfer`,
+          data
+        )
+      );
+      this._inventoryTransfers.update(list => [transfer, ...list]);
+    } catch {
+      this._error.set('Failed to create inventory transfer');
+    }
+  }
+
+  async loadInventoryTransfers(lgId: string): Promise<void> {
+    if (!this.groupId) return;
+    this._error.set(null);
+    try {
+      const transfers = await firstValueFrom(
+        this.http.get<InventoryTransfer[]>(
+          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/inventory/transfers`
+        )
+      );
+      this._inventoryTransfers.set(transfers);
+    } catch {
+      this._error.set('Failed to load inventory transfers');
+    }
+  }
+
+  // ── Location Health (Phase 2) ──
+
+  async loadLocationHealth(lgId: string): Promise<void> {
+    if (!this.groupId) return;
+    this._isLoadingHealth.set(true);
+    this._error.set(null);
+    try {
+      const health = await firstValueFrom(
+        this.http.get<LocationHealth[]>(
+          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/health`
+        )
+      );
+      this._locationHealth.set(health);
+    } catch {
+      this._error.set('Failed to load location health');
+    } finally {
+      this._isLoadingHealth.set(false);
+    }
+  }
+
+  // ── Group Campaigns (Phase 2) ──
+
+  async loadGroupCampaigns(lgId: string): Promise<void> {
+    if (!this.groupId) return;
+    this._error.set(null);
+    try {
+      const campaigns = await firstValueFrom(
+        this.http.get<GroupCampaign[]>(
+          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/campaigns`
+        )
+      );
+      this._groupCampaigns.set(campaigns);
+    } catch {
+      this._error.set('Failed to load group campaigns');
+    }
+  }
+
+  async createGroupCampaign(lgId: string, data: { name: string; targetLocationIds: string[] }): Promise<void> {
+    if (!this.groupId) return;
+    this._error.set(null);
+    try {
+      const campaign = await firstValueFrom(
+        this.http.post<GroupCampaign>(
+          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/campaigns`,
+          data
+        )
+      );
+      this._groupCampaigns.update(list => [campaign, ...list]);
+    } catch {
+      this._error.set('Failed to create group campaign');
+    }
+  }
+
+  // ── Online Ordering Multi-Location (GOS-SPEC-07 Phase 2.5) ──
 
   private readonly _onlineLocations = signal<OnlineLocation[]>([]);
   private readonly _isLoadingLocations = signal(false);

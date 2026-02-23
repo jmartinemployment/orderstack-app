@@ -1,6 +1,7 @@
 import {
   Component,
   ChangeDetectionStrategy,
+  DestroyRef,
   inject,
   signal,
   computed,
@@ -14,8 +15,10 @@ import {
   LocationGroup,
   LocationGroupFormData,
   LocationGroupMember,
-  LocationKpi,
-  MenuSyncResult,
+  PropagationSettingType,
+  CrossLocationStaffMember,
+  CrossLocationInventoryItem,
+  LocationHealth,
   UserRestaurant,
 } from '@models/index';
 
@@ -30,6 +33,9 @@ import {
 export class MultiLocationDashboard implements OnInit {
   private readonly mlService = inject(MultiLocationService);
   private readonly authService = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  private healthInterval: ReturnType<typeof setInterval> | null = null;
 
   readonly activeTab = signal<MultiLocationTab>('overview');
   readonly groups = this.mlService.groups;
@@ -45,6 +51,19 @@ export class MultiLocationDashboard implements OnInit {
   readonly restaurants = this.authService.restaurants;
   readonly currentRestaurantId = this.authService.selectedRestaurantId;
   readonly currentRestaurantName = this.authService.selectedRestaurantName;
+
+  // Phase 2 signals from service
+  readonly crossLocationStaff = this.mlService.crossLocationStaff;
+  readonly staffTransfers = this.mlService.staffTransfers;
+  readonly crossLocationInventory = this.mlService.crossLocationInventory;
+  readonly inventoryTransfers = this.mlService.inventoryTransfers;
+  readonly locationHealth = this.mlService.locationHealth;
+  readonly groupCampaigns = this.mlService.groupCampaigns;
+  readonly isLoadingStaff = this.mlService.isLoadingStaff;
+  readonly isLoadingInventory = this.mlService.isLoadingInventory;
+  readonly isLoadingHealth = this.mlService.isLoadingHealth;
+  readonly lowStockItems = this.mlService.lowStockItems;
+  readonly offlineLocations = this.mlService.offlineLocations;
 
   // Report period
   readonly reportDays = signal(30);
@@ -70,6 +89,54 @@ export class MultiLocationDashboard implements OnInit {
   readonly propagateSourceId = signal('');
   readonly propagateTargetIds = signal<Set<string>>(new Set());
   readonly propagateOverride = signal(false);
+
+  // Staff tab
+  readonly staffLocationFilter = signal('');
+  readonly staffSearch = signal('');
+  readonly showTransferModal = signal(false);
+  readonly transferMemberId = signal('');
+  readonly transferTargetId = signal('');
+
+  readonly filteredStaff = computed(() => {
+    let staff = this.crossLocationStaff();
+    const locFilter = this.staffLocationFilter();
+    const search = this.staffSearch().toLowerCase();
+    if (locFilter) {
+      staff = staff.filter(s => s.primaryLocationId === locFilter || s.assignedLocationIds.includes(locFilter));
+    }
+    if (search) {
+      staff = staff.filter(s =>
+        s.name.toLowerCase().includes(search) ||
+        s.email.toLowerCase().includes(search) ||
+        s.jobTitle.toLowerCase().includes(search)
+      );
+    }
+    return staff;
+  });
+
+  readonly transferMember = computed(() =>
+    this.crossLocationStaff().find(s => s.teamMemberId === this.transferMemberId()) ?? null
+  );
+
+  // Inventory tab
+  readonly inventorySearch = signal('');
+  readonly inventoryLowStockOnly = signal(false);
+  readonly showInventoryTransferForm = signal(false);
+  readonly invTransferFromId = signal('');
+  readonly invTransferToId = signal('');
+  readonly invTransferItems = signal<{ itemId: string; quantity: number }[]>([]);
+
+  readonly filteredInventory = computed(() => {
+    let items = this.crossLocationInventory();
+    if (this.inventoryLowStockOnly()) {
+      items = items.filter(i => i.isLowStockAnywhere);
+    }
+    const search = this.inventorySearch().toLowerCase();
+    if (search) {
+      items = items.filter(i => i.itemName.toLowerCase().includes(search));
+    }
+    return items;
+  });
 
   // Sorted location KPIs
   readonly sortField = signal<string>('revenue');
@@ -104,10 +171,46 @@ export class MultiLocationDashboard implements OnInit {
       this.mlService.loadCrossLocationReport(this.reportDays()),
       this.mlService.loadSyncHistory(),
     ]);
+
+    // Load health data for overview and start auto-refresh
+    const firstGroup = this.groups().at(0);
+    if (firstGroup) {
+      await this.mlService.loadLocationHealth(firstGroup.id);
+      this.startHealthRefresh(firstGroup.id);
+    }
+
+    this.destroyRef.onDestroy(() => {
+      this.clearHealthRefresh();
+    });
   }
 
-  setTab(tab: MultiLocationTab): void {
+  private startHealthRefresh(lgId: string): void {
+    this.clearHealthRefresh();
+    this.healthInterval = setInterval(() => {
+      this.mlService.loadLocationHealth(lgId);
+    }, 30_000);
+  }
+
+  private clearHealthRefresh(): void {
+    if (this.healthInterval !== null) {
+      clearInterval(this.healthInterval);
+      this.healthInterval = null;
+    }
+  }
+
+  async setTab(tab: MultiLocationTab): Promise<void> {
     this.activeTab.set(tab);
+    const firstGroup = this.groups().at(0);
+    if (!firstGroup) return;
+
+    if (tab === 'staff' && this.crossLocationStaff().length === 0) {
+      await this.mlService.loadCrossLocationStaff(firstGroup.id);
+    } else if (tab === 'inventory' && this.crossLocationInventory().length === 0) {
+      await Promise.all([
+        this.mlService.loadCrossLocationInventory(firstGroup.id),
+        this.mlService.loadInventoryTransfers(firstGroup.id),
+      ]);
+    }
   }
 
   dismissError(): void {
@@ -140,6 +243,18 @@ export class MultiLocationDashboard implements OnInit {
     if (value <= 28) return 'kpi-good';
     if (value <= 35) return 'kpi-warning';
     return 'kpi-danger';
+  }
+
+  getHealthDotClass(status: string): string {
+    if (status === 'online') return 'health-dot online';
+    if (status === 'degraded') return 'health-dot degraded';
+    return 'health-dot offline';
+  }
+
+  getHealthStatusLabel(status: string): string {
+    if (status === 'online') return 'Online';
+    if (status === 'degraded') return 'Degraded';
+    return 'Offline';
   }
 
   // ── Groups ──
@@ -298,7 +413,7 @@ export class MultiLocationDashboard implements OnInit {
   async propagateSettings(): Promise<void> {
     if (!this.canPropagate) return;
     await this.mlService.propagateSettings({
-      settingType: this.propagateType() as 'ai' | 'pricing' | 'loyalty' | 'delivery' | 'payment',
+      settingType: this.propagateType() as PropagationSettingType,
       sourceRestaurantId: this.propagateSourceId(),
       targetRestaurantIds: [...this.propagateTargetIds()],
       overrideExisting: this.propagateOverride(),
@@ -316,7 +431,111 @@ export class MultiLocationDashboard implements OnInit {
       case 'loyalty': return 'Loyalty Config';
       case 'delivery': return 'Delivery Settings';
       case 'payment': return 'Payment Settings';
+      case 'tip_management': return 'Tip Management';
+      case 'stations': return 'Stations';
+      case 'break_types': return 'Break Types';
+      case 'workweek': return 'Workweek';
+      case 'timeclock': return 'Time Clock';
+      case 'auto_gratuity': return 'Auto Gratuity';
+      case 'business_hours': return 'Business Hours';
       default: return type;
+    }
+  }
+
+  // ── Staff Tab ──
+
+  openTransferModal(member: CrossLocationStaffMember): void {
+    this.transferMemberId.set(member.teamMemberId);
+    this.transferTargetId.set('');
+    this.showTransferModal.set(true);
+  }
+
+  closeTransferModal(): void {
+    this.showTransferModal.set(false);
+    this.transferMemberId.set('');
+    this.transferTargetId.set('');
+  }
+
+  getTransferTargetRestaurants(): UserRestaurant[] {
+    const member = this.transferMember();
+    if (!member) return this.restaurants();
+    return this.restaurants().filter(r => r.id !== member.primaryLocationId);
+  }
+
+  async confirmTransfer(): Promise<void> {
+    const member = this.transferMember();
+    const targetId = this.transferTargetId();
+    if (!member || !targetId) return;
+    const firstGroup = this.groups().at(0);
+    if (!firstGroup) return;
+    await this.mlService.transferStaff(firstGroup.id, member.teamMemberId, member.primaryLocationId, targetId);
+    this.closeTransferModal();
+  }
+
+  // ── Inventory Tab ──
+
+  openInventoryTransferForm(): void {
+    this.invTransferFromId.set('');
+    this.invTransferToId.set('');
+    this.invTransferItems.set([]);
+    this.showInventoryTransferForm.set(true);
+  }
+
+  closeInventoryTransferForm(): void {
+    this.showInventoryTransferForm.set(false);
+  }
+
+  addTransferItem(): void {
+    this.invTransferItems.update(list => [...list, { itemId: '', quantity: 1 }]);
+  }
+
+  removeTransferItem(index: number): void {
+    this.invTransferItems.update(list => list.filter((_, i) => i !== index));
+  }
+
+  updateTransferItemId(index: number, value: string): void {
+    this.invTransferItems.update(list =>
+      list.map((item, i) => i === index ? { ...item, itemId: value } : item)
+    );
+  }
+
+  updateTransferItemQty(index: number, value: number): void {
+    this.invTransferItems.update(list =>
+      list.map((item, i) => i === index ? { ...item, quantity: value } : item)
+    );
+  }
+
+  getInvTransferTargetRestaurants(): UserRestaurant[] {
+    const fromId = this.invTransferFromId();
+    return this.restaurants().filter(r => r.id !== fromId);
+  }
+
+  get canSubmitInventoryTransfer(): boolean {
+    return !!this.invTransferFromId() &&
+      !!this.invTransferToId() &&
+      this.invTransferItems().length > 0 &&
+      this.invTransferItems().every(i => !!i.itemId && i.quantity > 0);
+  }
+
+  async submitInventoryTransfer(): Promise<void> {
+    if (!this.canSubmitInventoryTransfer) return;
+    const firstGroup = this.groups().at(0);
+    if (!firstGroup) return;
+    await this.mlService.createInventoryTransfer(firstGroup.id, {
+      fromRestaurantId: this.invTransferFromId(),
+      toRestaurantId: this.invTransferToId(),
+      items: this.invTransferItems(),
+    });
+    this.closeInventoryTransferForm();
+  }
+
+  getTransferStatusClass(status: string): string {
+    switch (status) {
+      case 'received': return 'badge-success';
+      case 'in_transit': return 'badge-info';
+      case 'pending': return 'badge-warning';
+      case 'cancelled': return 'badge-danger';
+      default: return '';
     }
   }
 }

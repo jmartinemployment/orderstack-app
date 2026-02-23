@@ -509,4 +509,20 @@ ng build --configuration=production
 - **Remaining specs:** GOS-SPEC-01 (Phase 3 done), GOS-SPEC-02 (Phase 1 only), GOS-SPEC-10 (Phase 1 only), GOS-SPEC-11 (Phase 1 only)
 - Next: GOS-SPEC-02 Phase 2 (hardware management), GOS-SPEC-10 Phase 2 (appointments), or GOS-SPEC-11 Phase 2 (multi-location). End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 21)*
+**[February 23, 2026] (Session 22) — GOS-SPEC-11 Phase 2 Complete (Steps 6-10: Cross-Location Staff, Inventory, Health, Extended Settings):**
+- **Phase 2 COMPLETE** — Cross-location staff management, cross-location inventory, location health monitoring, extended settings propagation (5 → 12 types)
+- **Step 6 (Cross-Location Staff):** Added `CrossLocationStaffMember`, `StaffTransfer` interfaces to `multi-location.model.ts`. Service methods: `loadCrossLocationStaff()`, `transferStaff()`. New "Staff" tab in Multi-Location Dashboard with location filter dropdown, search input, staff directory table (name, email, job title, primary location, status, clocked-in location), transfer button per row. Transfer modal with destination picker. `filteredStaff` computed with location + search filtering. `transferMember` computed for modal display.
+- **Step 7 (Cross-Location Inventory):** Added `CrossLocationInventoryItem`, `InventoryTransfer`, `InventoryTransferFormData` interfaces. Service methods: `loadCrossLocationInventory()`, `createInventoryTransfer()`, `loadInventoryTransfers()`. New "Inventory" tab with search, low-stock-only toggle, per-location quantity table with low-stock highlighting, total column. Inventory transfer modal (from/to location selectors, dynamic item rows with quantity). Transfer history cards with status badges. `lowStockItems` computed, tab badge showing low stock count.
+- **Step 8 (Extended Settings Propagation):** Added `PropagationSettingType` union type with 12 values (ai, pricing, loyalty, delivery, payment + 7 new: tip_management, stations, break_types, workweek, timeclock, auto_gratuity, business_hours). Updated `SettingsPropagation` interface to use `PropagationSettingType`. Settings tab dropdown now shows all 12 types. `getSettingTypeLabel()` handles all 12 labels. `propagateSettings()` casts to `PropagationSettingType` instead of inline union.
+- **Step 9 (Group Campaigns):** Added `GroupCampaign` interface. Service methods: `loadGroupCampaigns()`, `createGroupCampaign()`. Model support ready for marketing tab integration.
+- **Step 10 (Location Health Monitoring):** Added `LocationHealth` interface. Service method: `loadLocationHealth()`. `offlineLocations` computed. Health grid in Overview tab — status cards per location with green/amber/red status dot, device count, orders in queue, overdue count, active alerts, last heartbeat time. Auto-refreshes every 30 seconds via `setInterval`. Cleanup via `DestroyRef.onDestroy()`. Offline location count shown as danger KPI in header.
+- **SCSS: Full dark → light migration** — Replaced all dark theme SCSS variables ($bg-dark, $bg-card, $bg-input, $border, $text-primary, $text-secondary, $accent, $green, $amber, $red, $blue) with `--os-*` CSS custom properties. Added new styles for `.health-grid`, `.health-card`, `.health-dot`, `.health-metrics`, `.staff-filters`, `.staff-table`, `.inventory-table`, `.qty-cell`, `.low-stock-*`, `.transfer-*`, `.badge-*`, `.modal-wide`.
+- **MultiLocationTab type expanded:** Added `'staff'` and `'inventory'` values (now 8 total: overview, groups, menu-sync, settings, franchise, staff, customers, inventory).
+- **Lazy tab loading:** Staff and inventory data loaded on first tab switch, not on init.
+- **Spec updated:** `specs/GOS-SPEC-11-multi-location-franchise.md` — Phase 2 status set to COMPLETE
+- **Files modified:** `models/multi-location.model.ts` (7 new interfaces, updated types), `services/multi-location.ts` (6 new signals, 8 new methods, 2 new computeds), `multi-location-dashboard/` (ts, html, scss — all three fully rewritten)
+- **Build: zero errors**
+- **Remaining specs:** GOS-SPEC-02 (Phase 1 only), GOS-SPEC-10 (Phase 1 only), GOS-SPEC-11 (Phase 2 done, Phases 3-4 pending)
+- Next: GOS-SPEC-02 Phase 2 (hardware management), GOS-SPEC-10 Phase 2 (appointments). End-to-end test with live backend.
+
+*Last Updated: February 23, 2026 (Session 22)*

@@ -23,6 +23,12 @@
           <span class="kpi-label">Total Orders</span>
         </div>
       }
+      @if (offlineLocations().length > 0) {
+        <div class="kpi-card danger">
+          <span class="kpi-value">{{ offlineLocations().length }}</span>
+          <span class="kpi-label">Issues</span>
+        </div>
+      }
     </div>
   </header>
 
@@ -54,6 +60,15 @@
     <button class="tab-btn" [class.active]="activeTab() === 'menu-sync'" (click)="setTab('menu-sync')">
       <i class="bi bi-arrow-repeat"></i> Menu Sync
     </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'staff'" (click)="setTab('staff')">
+      <i class="bi bi-people"></i> Staff
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'inventory'" (click)="setTab('inventory')">
+      <i class="bi bi-box-seam"></i> Inventory
+      @if (lowStockItems().length > 0) {
+        <span class="tab-badge">{{ lowStockItems().length }}</span>
+      }
+    </button>
     <button class="tab-btn" [class.active]="activeTab() === 'settings'" (click)="setTab('settings')">
       <i class="bi bi-gear"></i> Settings
     </button>
@@ -66,6 +81,50 @@
   <!-- ═══ OVERVIEW TAB ═══ -->
   @if (activeTab() === 'overview') {
     <div class="tab-content">
+      <!-- Location Health -->
+      @if (locationHealth().length > 0) {
+        <div class="section-header">
+          <h3>Location Health</h3>
+          @if (isLoadingHealth()) {
+            <span class="refresh-indicator">Refreshing...</span>
+          }
+        </div>
+        <div class="health-grid">
+          @for (loc of locationHealth(); track loc.restaurantId) {
+            <div class="health-card" [class.health-degraded]="loc.status === 'degraded'" [class.health-offline]="loc.status === 'offline'">
+              <div class="health-card-header">
+                <span [class]="getHealthDotClass(loc.status)"></span>
+                <span class="health-name">{{ loc.restaurantName }}</span>
+                <span class="health-status-label">{{ getHealthStatusLabel(loc.status) }}</span>
+              </div>
+              <div class="health-metrics">
+                <div class="health-metric">
+                  <span class="health-metric-value">{{ loc.devicesOnline }}/{{ loc.devicesTotal }}</span>
+                  <span class="health-metric-label">Devices</span>
+                </div>
+                <div class="health-metric">
+                  <span class="health-metric-value">{{ loc.ordersInQueue }}</span>
+                  <span class="health-metric-label">In Queue</span>
+                </div>
+                <div class="health-metric">
+                  <span class="health-metric-value" [class.text-danger]="loc.overdueOrders > 0">{{ loc.overdueOrders }}</span>
+                  <span class="health-metric-label">Overdue</span>
+                </div>
+                @if (loc.activeAlerts > 0) {
+                  <div class="health-metric">
+                    <span class="health-metric-value text-warning">{{ loc.activeAlerts }}</span>
+                    <span class="health-metric-label">Alerts</span>
+                  </div>
+                }
+              </div>
+              <div class="health-heartbeat">
+                Last heartbeat: {{ loc.lastHeartbeat | date:'shortTime' }}
+              </div>
+            </div>
+          }
+        </div>
+      }
+
       <div class="section-header">
         <h3>Cross-Location Performance</h3>
         <div class="period-pills">
@@ -365,6 +424,178 @@
     </div>
   }
 
+  <!-- ═══ STAFF TAB ═══ -->
+  @if (activeTab() === 'staff') {
+    <div class="tab-content">
+      <div class="section-header">
+        <h3>Cross-Location Staff</h3>
+      </div>
+
+      @if (isLoadingStaff()) {
+        <div class="loading-msg">Loading staff directory...</div>
+      } @else {
+        <div class="staff-filters">
+          <select class="form-select filter-select" [value]="staffLocationFilter()" (change)="staffLocationFilter.set($any($event.target).value)">
+            <option value="">All Locations</option>
+            @for (r of restaurants(); track r.id) {
+              <option [value]="r.id">{{ r.name }}</option>
+            }
+          </select>
+          <input type="text" class="form-input filter-input" placeholder="Search by name, email, or job..." [value]="staffSearch()" (input)="staffSearch.set($any($event.target).value)">
+        </div>
+
+        @if (filteredStaff().length > 0) {
+          <div class="staff-table-wrap">
+            <table class="staff-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Job Title</th>
+                  <th>Primary Location</th>
+                  <th>Status</th>
+                  <th>Clocked In</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (member of filteredStaff(); track member.teamMemberId) {
+                  <tr>
+                    <td>
+                      <div class="staff-name">{{ member.name }}</div>
+                      <div class="staff-email">{{ member.email }}</div>
+                    </td>
+                    <td>{{ member.jobTitle }}</td>
+                    <td>{{ member.primaryLocationName }}</td>
+                    <td>
+                      <span class="status-badge" [class.active]="member.status === 'active'" [class.inactive]="member.status === 'inactive'">
+                        {{ member.status }}
+                      </span>
+                    </td>
+                    <td>
+                      @if (member.clockedInLocationId) {
+                        <span class="clocked-in-badge">{{ getRestaurantName(member.clockedInLocationId) }}</span>
+                      } @else {
+                        <span class="not-clocked">—</span>
+                      }
+                    </td>
+                    <td>
+                      <button class="btn-icon" title="Transfer" (click)="openTransferModal(member)">
+                        <i class="bi bi-arrow-left-right"></i>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="empty-state">
+            <i class="bi bi-people"></i>
+            <p>No staff members found</p>
+            <p class="empty-hint">Staff will appear here when locations have team members assigned</p>
+          </div>
+        }
+      }
+    </div>
+  }
+
+  <!-- ═══ INVENTORY TAB ═══ -->
+  @if (activeTab() === 'inventory') {
+    <div class="tab-content">
+      <div class="section-header">
+        <h3>Cross-Location Inventory</h3>
+        <button class="btn-add" (click)="openInventoryTransferForm()">
+          <i class="bi bi-arrow-left-right"></i> New Transfer
+        </button>
+      </div>
+
+      @if (isLoadingInventory()) {
+        <div class="loading-msg">Loading inventory...</div>
+      } @else {
+        <div class="inventory-filters">
+          <input type="text" class="form-input filter-input" placeholder="Search items..." [value]="inventorySearch()" (input)="inventorySearch.set($any($event.target).value)">
+          <label class="checkbox-label low-stock-toggle" (click)="inventoryLowStockOnly.set(!inventoryLowStockOnly())">
+            <span class="checkbox" [class.checked]="inventoryLowStockOnly()">
+              @if (inventoryLowStockOnly()) { <i class="bi bi-check"></i> }
+            </span>
+            Low stock only
+            @if (lowStockItems().length > 0) {
+              <span class="low-stock-count">({{ lowStockItems().length }})</span>
+            }
+          </label>
+        </div>
+
+        @if (filteredInventory().length > 0) {
+          <div class="inventory-table-wrap">
+            <table class="inventory-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  @for (r of restaurants(); track r.id) {
+                    <th class="qty-header">{{ r.name }}</th>
+                  }
+                  <th class="qty-header">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of filteredInventory(); track item.itemId) {
+                  <tr [class.low-stock-row]="item.isLowStockAnywhere">
+                    <td>
+                      <span class="inv-item-name">{{ item.itemName }}</span>
+                      <span class="inv-item-unit">{{ item.unit }}</span>
+                      @if (item.isLowStockAnywhere) {
+                        <span class="low-stock-badge">Low Stock</span>
+                      }
+                    </td>
+                    @for (r of restaurants(); track r.id) {
+                      <td class="qty-cell">
+                        @for (lq of item.locationQuantities; track lq.restaurantId) {
+                          @if (lq.restaurantId === r.id) {
+                            <span [class.qty-low]="lq.quantity <= lq.reorderPoint">{{ lq.quantity }}</span>
+                          }
+                        }
+                      </td>
+                    }
+                    <td class="qty-cell qty-total">{{ item.totalQuantity }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="empty-state">
+            <i class="bi bi-box-seam"></i>
+            <p>No inventory items found</p>
+            <p class="empty-hint">Inventory will appear here when locations have items tracked</p>
+          </div>
+        }
+
+        <!-- Transfer history -->
+        @if (inventoryTransfers().length > 0) {
+          <div class="transfer-history">
+            <h4>Recent Transfers</h4>
+            @for (transfer of inventoryTransfers(); track transfer.id) {
+              <div class="transfer-card">
+                <div class="transfer-card-header">
+                  <span class="transfer-route">{{ transfer.fromRestaurantName }} → {{ transfer.toRestaurantName }}</span>
+                  <span class="transfer-status" [class]="getTransferStatusClass(transfer.status)">{{ transfer.status }}</span>
+                </div>
+                <div class="transfer-items-list">
+                  @for (item of transfer.items; track $index) {
+                    <span class="transfer-item-chip">{{ item.quantity }} {{ item.unit }} {{ item.itemName }}</span>
+                  }
+                </div>
+                <div class="transfer-meta">
+                  {{ transfer.createdAt | date:'medium' }} · {{ transfer.createdBy }}
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+  }
+
   <!-- ═══ SETTINGS TAB ═══ -->
   @if (activeTab() === 'settings') {
     <div class="tab-content">
@@ -384,6 +615,13 @@
             <option value="loyalty">Loyalty Config</option>
             <option value="delivery">Delivery Settings</option>
             <option value="payment">Payment Settings</option>
+            <option value="tip_management">Tip Management</option>
+            <option value="stations">Stations</option>
+            <option value="break_types">Break Types</option>
+            <option value="workweek">Workweek</option>
+            <option value="timeclock">Time Clock</option>
+            <option value="auto_gratuity">Auto Gratuity</option>
+            <option value="business_hours">Business Hours</option>
           </select>
         </div>
 
@@ -464,6 +702,109 @@
           <button class="btn-cancel" (click)="closeGroupForm()">Cancel</button>
           <button class="btn-save" [disabled]="!groupName() || isSavingGroup()" (click)="saveGroup()">
             @if (isSavingGroup()) { Saving... } @else { Save }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══ STAFF TRANSFER MODAL ═══ -->
+  @if (showTransferModal()) {
+    <div class="modal-overlay" (click)="closeTransferModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Transfer Staff Member</h3>
+          <button class="btn-close-modal" (click)="closeTransferModal()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body">
+          @if (transferMember()) {
+            <div class="transfer-summary">
+              <div class="transfer-member-info">
+                <strong>{{ transferMember()!.name }}</strong>
+                <span>{{ transferMember()!.jobTitle }}</span>
+              </div>
+              <div class="transfer-from">
+                <span class="transfer-label">From:</span>
+                <span>{{ transferMember()!.primaryLocationName }}</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Transfer To</label>
+              <select class="form-select" [value]="transferTargetId()" (change)="transferTargetId.set($any($event.target).value)">
+                <option value="">Select destination...</option>
+                @for (r of getTransferTargetRestaurants(); track r.id) {
+                  <option [value]="r.id">{{ r.name }}</option>
+                }
+              </select>
+            </div>
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeTransferModal()">Cancel</button>
+          <button class="btn-save" [disabled]="!transferTargetId()" (click)="confirmTransfer()">
+            <i class="bi bi-arrow-left-right"></i> Transfer
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══ INVENTORY TRANSFER FORM MODAL ═══ -->
+  @if (showInventoryTransferForm()) {
+    <div class="modal-overlay" (click)="closeInventoryTransferForm()">
+      <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>New Inventory Transfer</h3>
+          <button class="btn-close-modal" (click)="closeInventoryTransferForm()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="transfer-form-row">
+            <div class="form-group">
+              <label>From Location</label>
+              <select class="form-select" [value]="invTransferFromId()" (change)="invTransferFromId.set($any($event.target).value)">
+                <option value="">Select source...</option>
+                @for (r of restaurants(); track r.id) {
+                  <option [value]="r.id">{{ r.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="transfer-arrow"><i class="bi bi-arrow-right"></i></div>
+            <div class="form-group">
+              <label>To Location</label>
+              <select class="form-select" [value]="invTransferToId()" (change)="invTransferToId.set($any($event.target).value)">
+                <option value="">Select destination...</option>
+                @for (r of getInvTransferTargetRestaurants(); track r.id) {
+                  <option [value]="r.id">{{ r.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Items</label>
+            @for (item of invTransferItems(); track $index) {
+              <div class="transfer-item-row">
+                <select class="form-select" [value]="item.itemId" (change)="updateTransferItemId($index, $any($event.target).value)">
+                  <option value="">Select item...</option>
+                  @for (inv of crossLocationInventory(); track inv.itemId) {
+                    <option [value]="inv.itemId">{{ inv.itemName }} ({{ inv.unit }})</option>
+                  }
+                </select>
+                <input type="number" class="form-input qty-input" min="1" [value]="item.quantity" (input)="updateTransferItemQty($index, +$any($event.target).value)">
+                <button class="btn-icon btn-icon-danger" (click)="removeTransferItem($index)">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+            }
+            <button class="btn-add-item" (click)="addTransferItem()">
+              <i class="bi bi-plus"></i> Add Item
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeInventoryTransferForm()">Cancel</button>
+          <button class="btn-save" [disabled]="!canSubmitInventoryTransfer" (click)="submitInventoryTransfer()">
+            <i class="bi bi-arrow-left-right"></i> Create Transfer
           </button>
         </div>
       </div>

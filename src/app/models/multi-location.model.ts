@@ -71,11 +71,138 @@ export interface MenuSyncHistory {
   syncs: MenuSyncResult[];
 }
 
+export type PropagationSettingType =
+  | 'ai'
+  | 'pricing'
+  | 'loyalty'
+  | 'delivery'
+  | 'payment'
+  | 'tip_management'
+  | 'stations'
+  | 'break_types'
+  | 'workweek'
+  | 'timeclock'
+  | 'auto_gratuity'
+  | 'business_hours';
+
 export interface SettingsPropagation {
-  settingType: 'ai' | 'pricing' | 'loyalty' | 'delivery' | 'payment';
+  settingType: PropagationSettingType;
   sourceRestaurantId: string;
   targetRestaurantIds: string[];
   overrideExisting: boolean;
 }
 
-export type MultiLocationTab = 'overview' | 'groups' | 'menu-sync' | 'settings';
+export interface FranchiseConfig {
+  id: string;
+  groupId: string;
+  franchisorName: string;
+  royaltyType: 'percentage' | 'flat_monthly';
+  royaltyRate: number;
+  marketingFeeType: 'percentage' | 'flat_monthly';
+  marketingFeeRate: number;
+  technologyFeeMonthly: number;
+  reportingFrequency: 'weekly' | 'monthly';
+  menuControlLevel: 'strict' | 'moderate' | 'flexible';
+  priceFlexibilityPercent: number;
+  requireApprovalForMenuChanges: boolean;
+  brandingEnforced: boolean;
+}
+
+export interface FranchiseRoyaltyReport {
+  periodStart: string;
+  periodEnd: string;
+  locations: FranchiseLocationRoyalty[];
+  totalRevenue: number;
+  totalRoyalties: number;
+  totalMarketingFees: number;
+  totalTechnologyFees: number;
+  totalDue: number;
+}
+
+export interface FranchiseLocationRoyalty {
+  restaurantId: string;
+  restaurantName: string;
+  grossRevenue: number;
+  netRevenue: number;
+  royaltyAmount: number;
+  marketingFeeAmount: number;
+  technologyFeeAmount: number;
+  totalDue: number;
+  isPaid: boolean;
+  paidAt: string | null;
+}
+
+export interface CrossLocationStaffMember {
+  teamMemberId: string;
+  name: string;
+  email: string;
+  jobTitle: string;
+  primaryLocationId: string;
+  primaryLocationName: string;
+  assignedLocationIds: string[];
+  status: 'active' | 'inactive';
+  clockedInLocationId: string | null;
+}
+
+export interface StaffTransfer {
+  id: string;
+  teamMemberId: string;
+  teamMemberName: string;
+  fromRestaurantId: string;
+  fromRestaurantName: string;
+  toRestaurantId: string;
+  toRestaurantName: string;
+  transferredAt: string;
+  transferredBy: string;
+}
+
+export interface CrossLocationInventoryItem {
+  itemId: string;
+  itemName: string;
+  unit: string;
+  locationQuantities: { restaurantId: string; restaurantName: string; quantity: number; reorderPoint: number }[];
+  totalQuantity: number;
+  isLowStockAnywhere: boolean;
+}
+
+export interface InventoryTransfer {
+  id: string;
+  fromRestaurantId: string;
+  fromRestaurantName: string;
+  toRestaurantId: string;
+  toRestaurantName: string;
+  items: { itemName: string; quantity: number; unit: string }[];
+  status: 'pending' | 'in_transit' | 'received' | 'cancelled';
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface InventoryTransferFormData {
+  fromRestaurantId: string;
+  toRestaurantId: string;
+  items: { itemId: string; quantity: number }[];
+}
+
+export interface LocationHealth {
+  restaurantId: string;
+  restaurantName: string;
+  status: 'online' | 'degraded' | 'offline';
+  lastHeartbeat: string;
+  activeAlerts: number;
+  devicesOnline: number;
+  devicesTotal: number;
+  ordersInQueue: number;
+  overdueOrders: number;
+}
+
+export interface GroupCampaign {
+  id: string;
+  groupId: string;
+  name: string;
+  targetLocationIds: string[];
+  audienceSize: number;
+  status: 'draft' | 'scheduled' | 'active' | 'completed';
+  createdAt: string;
+}
+
+export type MultiLocationTab = 'overview' | 'groups' | 'menu-sync' | 'settings' | 'franchise' | 'staff' | 'customers' | 'inventory';
