@@ -7,6 +7,7 @@ export interface KdsStation {
   isExpo: boolean;
   isActive: boolean;
   categoryIds: string[];
+  boundDeviceId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -17,6 +18,7 @@ export interface StationFormData {
   displayOrder?: number;
   isExpo?: boolean;
   isActive?: boolean;
+  boundDeviceId?: string | null;
 }
 
 export interface StationCategoryMapping {

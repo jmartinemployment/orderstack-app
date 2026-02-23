@@ -1,4 +1,46 @@
 <div class="device-hub">
+  <!-- Device Health Overview Panel (Step 14) -->
+  @if (activeDevices().length > 0) {
+    <div class="health-overview mb-4">
+      <div class="health-kpis">
+        <div class="health-kpi">
+          <div class="health-kpi-value">{{ healthSummary().total }}</div>
+          <div class="health-kpi-label">Total Devices</div>
+        </div>
+        <div class="health-kpi online">
+          <div class="health-kpi-value">{{ healthSummary().online }}</div>
+          <div class="health-kpi-label">Online</div>
+        </div>
+        @if (healthSummary().offline > 0) {
+          <div class="health-kpi offline">
+            <div class="health-kpi-value">{{ healthSummary().offline }}</div>
+            <div class="health-kpi-label">Offline</div>
+          </div>
+        }
+        @for (item of healthSummary().byType; track item.type) {
+          @if (item.count > 0) {
+            <div class="health-kpi type-count">
+              <div class="health-kpi-value">
+                <i class="bi {{ deviceTypeIcons[item.type] }} me-1"></i>{{ item.count }}
+              </div>
+              <div class="health-kpi-label">{{ deviceTypeLabels[item.type] }}</div>
+            </div>
+          }
+        }
+      </div>
+      @if (healthSummary().staleDevices.length > 0) {
+        <div class="health-alerts">
+          @for (stale of healthSummary().staleDevices; track stale.id) {
+            <div class="health-alert">
+              <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+              <span><strong>{{ stale.name }}</strong> not seen for {{ getRelativeTime(stale.lastSeenAt) }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
   <!-- Sub-tab navigation -->
   <ul class="nav nav-pills hub-tabs mb-4">
     @for (tab of tabs(); track tab.key) {
@@ -104,7 +146,31 @@
                     <small>{{ hw.platform }} {{ hw.screenSize ? '(' + hw.screenSize + ')' : '' }}</small>
                   </div>
                 }
+                @if (device.lastSeenAt) {
+                  <div class="device-hw" [class]="getLastSeenClass(device.lastSeenAt)">
+                    <small>Last seen: {{ getRelativeTime(device.lastSeenAt) }}</small>
+                  </div>
+                }
               </div>
+
+              <!-- Station binding for KDS devices (Step 11) -->
+              @if (device.deviceType === 'kds_station') {
+                <div class="station-bind">
+                  <label class="form-label mb-0"><small>Station</small></label>
+                  <select class="form-select form-select-sm"
+                    [ngModel]="getStationForDevice(device.id)"
+                    (ngModelChange)="assignStation(device.id, $event)">
+                    <option value="">None</option>
+                    @for (station of stations(); track station.id) {
+                      <option [value]="station.id"
+                        [disabled]="station.boundDeviceId !== null && station.boundDeviceId !== device.id">
+                        {{ station.name }}{{ station.isExpo ? ' (Expo)' : '' }}
+                      </option>
+                    }
+                  </select>
+                </div>
+              }
+
               <div class="device-status">
                 <span class="status-dot active"></span>
                 <span class="status-label">Active</span>
@@ -508,7 +574,7 @@
     </div>
   }
 
-  <!-- ============ PERIPHERALS TAB ============ -->
+  <!-- ============ PERIPHERALS TAB (Step 12 Enhanced) ============ -->
   @if (activeTab() === 'peripherals') {
     <div class="tab-content-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -571,26 +637,53 @@
         @for (device of activeDevices(); track device.id) {
           @if (hasPeripherals(device.id)) {
             <div class="peripheral-group mb-3">
-              <h6 class="text-secondary">{{ device.deviceName }}</h6>
+              <h6 class="text-secondary">
+                <i class="bi {{ deviceTypeIcons[device.deviceType] }} me-1"></i>
+                {{ device.deviceName }}
+              </h6>
               @for (peripheral of getPeripheralsForDevice(device.id); track peripheral.id) {
                 <div class="peripheral-card">
                   <div class="peripheral-icon">
-                    <i class="bi bi-usb-drive"></i>
+                    <i class="bi {{ getPeripheralIcon(peripheral.type) }}"></i>
                   </div>
                   <div class="peripheral-info">
                     <div class="peripheral-name">{{ peripheral.name }}</div>
                     <div class="peripheral-meta text-secondary">
                       <span class="badge bg-light text-dark">{{ peripheralTypeLabels[peripheral.type] }}</span>
-                      <span class="badge bg-light text-dark">{{ peripheral.connectionType }}</span>
+                      <span class="badge bg-light text-dark">{{ peripheral.connectionType | titlecase }}</span>
                     </div>
                   </div>
                   <div class="peripheral-status">
                     <span class="status-dot" [class.active]="peripheral.status === 'connected'"
                       [class.error]="peripheral.status === 'error'"
                       [class.pending]="peripheral.status === 'disconnected'"></span>
-                    <span class="status-label">{{ peripheral.status }}</span>
+                    <span class="status-label">{{ peripheral.status | titlecase }}</span>
                   </div>
-                  <button class="btn btn-outline-danger btn-sm" (click)="removePeripheral(peripheral.id)">Remove</button>
+                  <div class="peripheral-actions">
+                    <!-- Test button -->
+                    @if (getTestResult(peripheral.id) === 'testing') {
+                      <button class="btn btn-outline-secondary btn-sm" disabled>
+                        <span class="spinner-border spinner-border-sm me-1"></span> Testing...
+                      </button>
+                    } @else if (getTestResult(peripheral.id) === 'success') {
+                      <button class="btn btn-outline-success btn-sm" disabled>
+                        <i class="bi bi-check-lg me-1"></i> OK
+                      </button>
+                    } @else {
+                      <button class="btn btn-outline-primary btn-sm" (click)="testPeripheral(peripheral)">
+                        @if (peripheral.type === 'cash_drawer') {
+                          <i class="bi bi-box-seam me-1"></i> Open
+                        } @else if (peripheral.type === 'barcode_scanner') {
+                          <i class="bi bi-upc-scan me-1"></i> Test Scan
+                        } @else if (peripheral.type === 'card_reader') {
+                          <i class="bi bi-credit-card me-1"></i> Test
+                        } @else {
+                          <i class="bi bi-lightning me-1"></i> Test
+                        }
+                      </button>
+                    }
+                    <button class="btn btn-outline-danger btn-sm" (click)="removePeripheral(peripheral.id)">Remove</button>
+                  </div>
                 </div>
               }
             </div>
@@ -612,7 +705,7 @@
     </div>
   }
 
-  <!-- ============ KIOSK PROFILES TAB ============ -->
+  <!-- ============ KIOSK PROFILES TAB (Step 13 Enhanced) ============ -->
   @if (activeTab() === 'kiosk-profiles') {
     <div class="tab-content-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -625,8 +718,10 @@
       @if (showKioskForm()) {
         <div class="card mb-3">
           <div class="card-body">
-            <h6>Create Kiosk Profile</h6>
-            <div class="row g-3">
+            <h6>{{ editingKiosk() ? 'Edit Kiosk Profile' : 'Create Kiosk Profile' }}</h6>
+
+            <!-- Basic info -->
+            <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <label class="form-label">Profile Name</label>
                 <input type="text" class="form-control" placeholder="e.g. Main Entrance Kiosk"
@@ -637,33 +732,133 @@
                 <input type="text" class="form-control"
                   [ngModel]="kioskFormWelcome()" (ngModelChange)="kioskFormWelcome.set($event)" />
               </div>
-              <div class="col-md-4">
-                <label class="form-label">Idle Timeout (seconds)</label>
-                <input type="number" class="form-control" min="30" max="300"
-                  [ngModel]="kioskFormTimeout()" (ngModelChange)="kioskFormTimeout.set($event)" />
-              </div>
-              <div class="col-md-8">
-                <div class="form-check mt-4">
-                  <input type="checkbox" class="form-check-input" id="kioskImages"
-                    [ngModel]="kioskFormShowImages()" (ngModelChange)="kioskFormShowImages.set($event)" />
-                  <label class="form-check-label" for="kioskImages">Show item images</label>
-                </div>
-                <div class="form-check">
-                  <input type="checkbox" class="form-check-input" id="kioskName"
-                    [ngModel]="kioskFormRequireName()" (ngModelChange)="kioskFormRequireName.set($event)" />
-                  <label class="form-check-label" for="kioskName">Require name for order</label>
-                </div>
-                <div class="form-check">
-                  <input type="checkbox" class="form-check-input" id="kioskAccessibility"
-                    [ngModel]="kioskFormAccessibility()" (ngModelChange)="kioskFormAccessibility.set($event)" />
-                  <label class="form-check-label" for="kioskAccessibility">Accessibility mode (larger fonts, high contrast)</label>
-                </div>
-              </div>
             </div>
-            <div class="d-flex gap-2 mt-3">
-              <button class="btn btn-primary" [disabled]="!kioskFormName()" (click)="saveKioskProfile()">Create Profile</button>
+
+            <!-- Category selector -->
+            <details class="settings-group mb-3" open>
+              <summary>Menu Categories</summary>
+              <div class="settings-body">
+                <p class="text-secondary mb-2"><small>Select which categories appear on this kiosk. Drag to reorder display order.</small></p>
+                <div class="category-selector">
+                  @for (catId of kioskFormCategoryOrder(); track catId; let i = $index) {
+                    <div class="category-row" [class.disabled]="!kioskFormCategories().includes(catId)">
+                      <input type="checkbox" class="form-check-input"
+                        [checked]="kioskFormCategories().includes(catId)"
+                        (change)="toggleKioskCategory(catId)" />
+                      <span class="category-label">{{ getCategoryName(catId) }}</span>
+                      <div class="category-reorder">
+                        <button class="btn btn-sm btn-link p-0" [disabled]="i === 0" (click)="moveCategoryUp(i)">
+                          <i class="bi bi-chevron-up"></i>
+                        </button>
+                        <button class="btn btn-sm btn-link p-0" [disabled]="i === kioskFormCategoryOrder().length - 1" (click)="moveCategoryDown(i)">
+                          <i class="bi bi-chevron-down"></i>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                  @if (kioskFormCategoryOrder().length === 0) {
+                    <p class="text-secondary"><small>No categories available. Add categories in Menu Management first.</small></p>
+                  }
+                </div>
+              </div>
+            </details>
+
+            <!-- Branding -->
+            <details class="settings-group mb-3">
+              <summary>Branding</summary>
+              <div class="settings-body">
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <label class="form-label">Primary Color</label>
+                    <div class="d-flex align-items-center gap-2">
+                      <input type="color" class="form-control form-control-color"
+                        [ngModel]="kioskFormPrimaryColor()" (ngModelChange)="kioskFormPrimaryColor.set($event)" />
+                      <input type="text" class="form-control form-control-sm" style="width: 100px"
+                        [ngModel]="kioskFormPrimaryColor()" (ngModelChange)="kioskFormPrimaryColor.set($event)" />
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Accent Color</label>
+                    <div class="d-flex align-items-center gap-2">
+                      <input type="color" class="form-control form-control-color"
+                        [ngModel]="kioskFormAccentColor()" (ngModelChange)="kioskFormAccentColor.set($event)" />
+                      <input type="text" class="form-control form-control-sm" style="width: 100px"
+                        [ngModel]="kioskFormAccentColor()" (ngModelChange)="kioskFormAccentColor.set($event)" />
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Logo</label>
+                    <div class="logo-placeholder">
+                      <i class="bi bi-image"></i>
+                      <span>Upload coming soon</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </details>
+
+            <!-- Behavior -->
+            <details class="settings-group mb-3">
+              <summary>Behavior</summary>
+              <div class="settings-body">
+                <div class="row g-3">
+                  <div class="col-md-4">
+                    <label class="form-label">Idle Timeout (seconds)</label>
+                    <input type="range" class="form-range" min="30" max="300" step="10"
+                      [ngModel]="kioskFormTimeout()" (ngModelChange)="kioskFormTimeout.set($event)" />
+                    <div class="text-center text-secondary"><small>{{ kioskFormTimeout() }}s</small></div>
+                  </div>
+                  <div class="col-md-8">
+                    <div class="form-check mt-3">
+                      <input type="checkbox" class="form-check-input" id="kioskImages2"
+                        [ngModel]="kioskFormShowImages()" (ngModelChange)="kioskFormShowImages.set($event)" />
+                      <label class="form-check-label" for="kioskImages2">Show item images</label>
+                    </div>
+                    <div class="form-check">
+                      <input type="checkbox" class="form-check-input" id="kioskName2"
+                        [ngModel]="kioskFormRequireName()" (ngModelChange)="kioskFormRequireName.set($event)" />
+                      <label class="form-check-label" for="kioskName2">Require name for order</label>
+                    </div>
+                    <div class="form-check">
+                      <input type="checkbox" class="form-check-input" id="kioskAccessibility2"
+                        [ngModel]="kioskFormAccessibility()" (ngModelChange)="kioskFormAccessibility.set($event)" />
+                      <label class="form-check-label" for="kioskAccessibility2">Accessibility mode (larger fonts, high contrast)</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </details>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary" [disabled]="!kioskFormName()" (click)="saveKioskProfile()">
+                {{ editingKiosk() ? 'Update' : 'Create' }} Profile
+              </button>
+              <button class="btn btn-outline-secondary" (click)="toggleKioskPreview()">
+                <i class="bi bi-eye me-1"></i> {{ showKioskPreview() ? 'Hide' : 'Show' }} Preview
+              </button>
               <button class="btn btn-outline-secondary" (click)="closeKioskForm()">Cancel</button>
             </div>
+
+            <!-- Kiosk Preview -->
+            @if (showKioskPreview()) {
+              <div class="kiosk-preview mt-3">
+                <div class="kiosk-preview-frame" [style.--kiosk-primary]="kioskFormPrimaryColor()" [style.--kiosk-accent]="kioskFormAccentColor()">
+                  <div class="kiosk-preview-header">
+                    <div class="kiosk-preview-welcome">{{ kioskFormWelcome() }}</div>
+                  </div>
+                  <div class="kiosk-preview-categories">
+                    @for (catId of kioskFormCategoryOrder(); track catId) {
+                      @if (kioskFormCategories().includes(catId)) {
+                        <div class="kiosk-preview-cat">{{ getCategoryName(catId) }}</div>
+                      }
+                    }
+                  </div>
+                  <div class="kiosk-preview-footer">
+                    <small class="text-secondary">Idle timeout: {{ kioskFormTimeout() }}s | {{ kioskFormAccessibility() ? 'Accessibility ON' : 'Standard' }}</small>
+                  </div>
+                </div>
+              </div>
+            }
           </div>
         </div>
       }
@@ -672,13 +867,28 @@
         <div class="kiosk-list">
           @for (profile of kioskProfiles(); track profile.id) {
             <div class="kiosk-card">
+              <div class="kiosk-icon">
+                <i class="bi bi-phone"></i>
+              </div>
               <div class="kiosk-info">
                 <div class="kiosk-name">{{ profile.name }}</div>
                 <div class="kiosk-meta text-secondary">
                   <small>{{ profile.welcomeMessage }}</small>
                 </div>
+                <div class="kiosk-meta mt-1">
+                  <span class="badge bg-light text-dark">{{ profile.enabledCategories.length }} categories</span>
+                  <span class="badge bg-light text-dark">{{ profile.maxIdleSeconds }}s timeout</span>
+                  @if (profile.enableAccessibility) {
+                    <span class="badge bg-info-subtle text-info">Accessible</span>
+                  }
+                </div>
+              </div>
+              <div class="kiosk-branding-preview">
+                <div class="color-swatch" [style.background]="profile.brandingPrimaryColor"></div>
+                <div class="color-swatch" [style.background]="profile.brandingAccentColor"></div>
               </div>
               <div class="kiosk-actions">
+                <button class="btn btn-outline-primary btn-sm" (click)="openKioskForm(profile)">Edit</button>
                 <button class="btn btn-outline-danger btn-sm" (click)="deleteKioskProfile(profile.id)">Delete</button>
               </div>
             </div>

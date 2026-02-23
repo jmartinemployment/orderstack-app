@@ -5,6 +5,7 @@ import {
   Device,
   DeviceFormData,
   DeviceHardwareInfo,
+  DeviceHealthSummary,
   DeviceMode,
   DeviceModeFormData,
   DeviceType,
@@ -71,6 +72,37 @@ export class DeviceService {
   readonly defaultPrinterProfile = computed(() =>
     this._printerProfiles().find(p => p.isDefault) ?? null
   );
+
+  readonly devicesByType = computed(() => {
+    const devices = this._devices();
+    const types: DeviceType[] = ['pos_terminal', 'kds_station', 'kiosk', 'order_pad', 'printer_station'];
+    return types.map(type => ({
+      type,
+      count: devices.filter(d => d.deviceType === type && d.status === 'active').length,
+    }));
+  });
+
+  readonly deviceHealthSummary = computed<DeviceHealthSummary>(() => {
+    const devices = this._devices().filter(d => d.status === 'active');
+    const now = Date.now();
+    const staleThreshold = 60 * 60 * 1000; // 1 hour
+
+    const staleDevices = devices
+      .filter(d => d.lastSeenAt !== null && (now - new Date(d.lastSeenAt).getTime()) > staleThreshold)
+      .map(d => ({ id: d.id, name: d.deviceName, lastSeenAt: d.lastSeenAt! }));
+
+    const online = devices.filter(d =>
+      d.lastSeenAt !== null && (now - new Date(d.lastSeenAt).getTime()) <= staleThreshold
+    ).length;
+
+    return {
+      total: devices.length,
+      online,
+      offline: devices.length - online,
+      byType: this.devicesByType(),
+      staleDevices,
+    };
+  });
 
   private get restaurantId(): string {
     return this.authService.selectedRestaurantId() ?? '';
@@ -482,6 +514,26 @@ export class DeviceService {
       this.persistData('peripherals', this._peripherals());
     } catch {
       this._error.set('Failed to remove peripheral');
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
+
+  async updatePeripheral(id: string, data: Partial<{ name: string; connectionType: PeripheralConnectionType }>): Promise<void> {
+    if (!this.restaurantId) return;
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    try {
+      const updated = await firstValueFrom(
+        this.http.patch<PeripheralDevice>(`${this.baseUrl}/peripherals/${id}`, data)
+      );
+      this._peripherals.update(list =>
+        list.map(p => p.id === id ? updated : p)
+      );
+      this.persistData('peripherals', this._peripherals());
+    } catch {
+      this._error.set('Failed to update peripheral');
     } finally {
       this._isLoading.set(false);
     }

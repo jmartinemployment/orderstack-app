@@ -152,9 +152,13 @@ export interface KioskProfile {
   welcomeMessage: string;
   showImages: boolean;
   enabledCategories: string[];
+  categoryDisplayOrder: string[];
   requireNameForOrder: boolean;
   maxIdleSeconds: number;
   enableAccessibility: boolean;
+  brandingLogoUrl: string | null;
+  brandingPrimaryColor: string;
+  brandingAccentColor: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -165,9 +169,32 @@ export interface KioskProfileFormData {
   welcomeMessage?: string;
   showImages?: boolean;
   enabledCategories?: string[];
+  categoryDisplayOrder?: string[];
   requireNameForOrder?: boolean;
   maxIdleSeconds?: number;
   enableAccessibility?: boolean;
+  brandingPrimaryColor?: string;
+  brandingAccentColor?: string;
+}
+
+// --- Peripheral Configuration ---
+
+export interface PeripheralConfig {
+  cashDrawerAutoOpen: boolean;
+  barcodeScannerPrefix: string;
+  barcodeScannerSuffix: string;
+  customerDisplayMode: 'mirror' | 'custom_message';
+  customerDisplayMessage: string;
+}
+
+// --- Device Health ---
+
+export interface DeviceHealthSummary {
+  total: number;
+  online: number;
+  offline: number;
+  byType: { type: DeviceType; count: number }[];
+  staleDevices: { id: string; name: string; lastSeenAt: string }[];
 }
 
 // --- DeviceHub Tab Navigation ---

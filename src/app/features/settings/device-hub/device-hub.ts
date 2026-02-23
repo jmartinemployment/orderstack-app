@@ -4,12 +4,15 @@ import { FormsModule } from '@angular/forms';
 import { DeviceService } from '@services/device';
 import { PlatformService } from '@services/platform';
 import { PrinterService } from '@services/printer';
+import { StationService } from '@services/station';
+import { MenuService } from '@services/menu';
 import { PrinterSettings } from '../printer-settings';
 import { StationSettings } from '../station-settings';
 import {
   DeviceHubTab,
   DeviceType,
   DeviceFormData,
+  Device,
   DeviceMode,
   DeviceModeFormData,
   DeviceModeSettings,
@@ -20,6 +23,7 @@ import {
   PeripheralType,
   PeripheralConnectionType,
   PeripheralDevice,
+  KioskProfile,
   KioskProfileFormData,
   defaultModeSettings,
   defaultModeSettingsForPosMode,
@@ -59,6 +63,14 @@ const PERIPHERAL_TYPE_LABELS: Record<PeripheralType, string> = {
   scale: 'Scale',
 };
 
+const PERIPHERAL_TYPE_ICONS: Record<PeripheralType, string> = {
+  cash_drawer: 'bi-box-seam',
+  barcode_scanner: 'bi-upc-scan',
+  card_reader: 'bi-credit-card',
+  customer_display: 'bi-display',
+  scale: 'bi-speedometer',
+};
+
 @Component({
   selector: 'os-device-hub',
   standalone: true,
@@ -71,6 +83,8 @@ export class DeviceHub implements OnInit {
   private readonly deviceService = inject(DeviceService);
   private readonly platformService = inject(PlatformService);
   private readonly printerService = inject(PrinterService);
+  private readonly stationService = inject(StationService);
+  private readonly menuService = inject(MenuService);
 
   // --- Tab state ---
   readonly activeTab = signal<DeviceHubTab>('devices');
@@ -82,12 +96,15 @@ export class DeviceHub implements OnInit {
   readonly peripherals = this.deviceService.peripherals;
   readonly kioskProfiles = this.deviceService.kioskProfiles;
   readonly printers = this.printerService.printers;
+  readonly stations = this.stationService.stations;
+  readonly categories = this.menuService.categories;
   readonly isLoading = this.deviceService.isLoading;
   readonly error = this.deviceService.error;
 
   // --- Computed ---
   readonly activeDevices = this.deviceService.activeDevices;
   readonly pendingDevices = this.deviceService.pendingDevices;
+  readonly healthSummary = this.deviceService.deviceHealthSummary;
 
   readonly showKioskTab = computed(() => {
     const profile = this.platformService.merchantProfile();
@@ -107,6 +124,14 @@ export class DeviceHub implements OnInit {
     }
     return base;
   });
+
+  readonly kdsDevices = computed(() =>
+    this.activeDevices().filter(d => d.deviceType === 'kds_station')
+  );
+
+  readonly unassignedStations = computed(() =>
+    this.stations().filter(s => !s.boundDeviceId)
+  );
 
   // --- Device code generation ---
   readonly showCodeForm = signal(false);
@@ -136,14 +161,23 @@ export class DeviceHub implements OnInit {
   readonly peripheralName = signal('');
   readonly peripheralConnection = signal<PeripheralConnectionType>('usb');
 
+  // --- Peripheral config ---
+  readonly peripheralTestResult = signal<{ id: string; result: string } | null>(null);
+
   // --- Kiosk profile editing ---
   readonly showKioskForm = signal(false);
+  readonly editingKiosk = signal<KioskProfile | null>(null);
   readonly kioskFormName = signal('');
   readonly kioskFormWelcome = signal('Welcome! Place your order here.');
   readonly kioskFormShowImages = signal(true);
   readonly kioskFormRequireName = signal(false);
   readonly kioskFormTimeout = signal(120);
   readonly kioskFormAccessibility = signal(false);
+  readonly kioskFormPrimaryColor = signal('#006aff');
+  readonly kioskFormAccentColor = signal('#22c55e');
+  readonly kioskFormCategories = signal<string[]>([]);
+  readonly kioskFormCategoryOrder = signal<string[]>([]);
+  readonly showKioskPreview = signal(false);
 
   // --- Confirm dialogs ---
   readonly confirmRevokeId = signal<string | null>(null);
@@ -154,6 +188,7 @@ export class DeviceHub implements OnInit {
   readonly deviceTypeIcons = DEVICE_TYPE_ICONS;
   readonly printJobLabels = PRINT_JOB_LABELS;
   readonly peripheralTypeLabels = PERIPHERAL_TYPE_LABELS;
+  readonly peripheralTypeIcons = PERIPHERAL_TYPE_ICONS;
   readonly deviceTypes: DeviceType[] = ['pos_terminal', 'kds_station', 'kiosk', 'order_pad', 'printer_station'];
   readonly printJobTypes: PrintJobType[] = ['customer_receipt', 'kitchen_ticket', 'bar_ticket', 'expo_ticket', 'order_summary', 'close_of_day'];
   readonly peripheralTypes: PeripheralType[] = ['cash_drawer', 'barcode_scanner', 'card_reader', 'customer_display', 'scale'];
@@ -166,6 +201,8 @@ export class DeviceHub implements OnInit {
     this.deviceService.loadPrinterProfiles();
     this.deviceService.loadPeripherals();
     this.deviceService.loadKioskProfiles();
+    this.stationService.loadStations();
+    this.menuService.loadMenu();
   }
 
   setTab(tab: DeviceHubTab): void {
@@ -220,6 +257,25 @@ export class DeviceHub implements OnInit {
     if (!id) return;
     await this.deviceService.revokeDevice(id);
     this.confirmRevokeId.set(null);
+  }
+
+  // === Station-Device Binding (Step 11) ===
+
+  getStationForDevice(deviceId: string): string {
+    const station = this.stations().find(s => s.boundDeviceId === deviceId);
+    return station?.id ?? '';
+  }
+
+  async assignStation(deviceId: string, stationId: string): Promise<void> {
+    // Unbind any station previously bound to this device
+    const oldStation = this.stations().find(s => s.boundDeviceId === deviceId);
+    if (oldStation) {
+      await this.stationService.updateStation(oldStation.id, { boundDeviceId: null });
+    }
+    // Bind new station
+    if (stationId) {
+      await this.stationService.updateStation(stationId, { boundDeviceId: deviceId });
+    }
   }
 
   // === Mode CRUD ===
@@ -362,20 +418,98 @@ export class DeviceHub implements OnInit {
     await this.deviceService.removePeripheral(id);
   }
 
-  // === Kiosk Profile CRUD ===
+  // === Peripheral Config (Step 12) ===
 
-  openKioskForm(): void {
+  testPeripheral(peripheral: PeripheralDevice): void {
+    this.peripheralTestResult.set({ id: peripheral.id, result: 'testing' });
+    // Simulate a test — in production this would call device APIs via WebSocket
+    setTimeout(() => {
+      this.peripheralTestResult.set({ id: peripheral.id, result: 'success' });
+      setTimeout(() => this.peripheralTestResult.set(null), 3000);
+    }, 1500);
+  }
+
+  getTestResult(peripheralId: string): string | null {
+    const result = this.peripheralTestResult();
+    if (result?.id === peripheralId) return result.result;
+    return null;
+  }
+
+  getPeripheralIcon(type: PeripheralType): string {
+    return this.peripheralTypeIcons[type];
+  }
+
+  // === Kiosk Profile CRUD (Step 13) ===
+
+  openKioskForm(profile?: KioskProfile): void {
     this.showKioskForm.set(true);
-    this.kioskFormName.set('');
-    this.kioskFormWelcome.set('Welcome! Place your order here.');
-    this.kioskFormShowImages.set(true);
-    this.kioskFormRequireName.set(false);
-    this.kioskFormTimeout.set(120);
-    this.kioskFormAccessibility.set(false);
+    if (profile) {
+      this.editingKiosk.set(profile);
+      this.kioskFormName.set(profile.name);
+      this.kioskFormWelcome.set(profile.welcomeMessage);
+      this.kioskFormShowImages.set(profile.showImages);
+      this.kioskFormRequireName.set(profile.requireNameForOrder);
+      this.kioskFormTimeout.set(profile.maxIdleSeconds);
+      this.kioskFormAccessibility.set(profile.enableAccessibility);
+      this.kioskFormPrimaryColor.set(profile.brandingPrimaryColor);
+      this.kioskFormAccentColor.set(profile.brandingAccentColor);
+      this.kioskFormCategories.set([...profile.enabledCategories]);
+      this.kioskFormCategoryOrder.set([...profile.categoryDisplayOrder]);
+    } else {
+      this.editingKiosk.set(null);
+      this.kioskFormName.set('');
+      this.kioskFormWelcome.set('Welcome! Place your order here.');
+      this.kioskFormShowImages.set(true);
+      this.kioskFormRequireName.set(false);
+      this.kioskFormTimeout.set(120);
+      this.kioskFormAccessibility.set(false);
+      this.kioskFormPrimaryColor.set('#006aff');
+      this.kioskFormAccentColor.set('#22c55e');
+      this.kioskFormCategories.set(this.categories().map(c => c.id));
+      this.kioskFormCategoryOrder.set(this.categories().map(c => c.id));
+    }
   }
 
   closeKioskForm(): void {
     this.showKioskForm.set(false);
+    this.editingKiosk.set(null);
+    this.showKioskPreview.set(false);
+  }
+
+  toggleKioskCategory(categoryId: string): void {
+    this.kioskFormCategories.update(ids => {
+      if (ids.includes(categoryId)) {
+        return ids.filter(id => id !== categoryId);
+      }
+      return [...ids, categoryId];
+    });
+  }
+
+  moveCategoryUp(index: number): void {
+    if (index <= 0) return;
+    this.kioskFormCategoryOrder.update(order => {
+      const updated = [...order];
+      [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
+      return updated;
+    });
+  }
+
+  moveCategoryDown(index: number): void {
+    const order = this.kioskFormCategoryOrder();
+    if (index >= order.length - 1) return;
+    this.kioskFormCategoryOrder.update(o => {
+      const updated = [...o];
+      [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
+      return updated;
+    });
+  }
+
+  getCategoryName(categoryId: string): string {
+    return this.categories().find(c => c.id === categoryId)?.name ?? 'Unknown';
+  }
+
+  toggleKioskPreview(): void {
+    this.showKioskPreview.update(v => !v);
   }
 
   async saveKioskProfile(): Promise<void> {
@@ -386,13 +520,44 @@ export class DeviceHub implements OnInit {
       requireNameForOrder: this.kioskFormRequireName(),
       maxIdleSeconds: this.kioskFormTimeout(),
       enableAccessibility: this.kioskFormAccessibility(),
+      brandingPrimaryColor: this.kioskFormPrimaryColor(),
+      brandingAccentColor: this.kioskFormAccentColor(),
+      enabledCategories: this.kioskFormCategories(),
+      categoryDisplayOrder: this.kioskFormCategoryOrder(),
     };
-    await this.deviceService.createKioskProfile(data);
+
+    const existing = this.editingKiosk();
+    if (existing) {
+      await this.deviceService.updateKioskProfile(existing.id, data);
+    } else {
+      await this.deviceService.createKioskProfile(data);
+    }
     this.closeKioskForm();
   }
 
   async deleteKioskProfile(id: string): Promise<void> {
     await this.deviceService.deleteKioskProfile(id);
+  }
+
+  // === Device Health (Step 14) ===
+
+  getRelativeTime(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const minutes = Math.floor(diff / 60000);
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  }
+
+  getLastSeenClass(dateStr: string | null): string {
+    if (!dateStr) return 'text-secondary';
+    const minutes = (Date.now() - new Date(dateStr).getTime()) / 60000;
+    if (minutes < 10) return 'text-success';
+    if (minutes < 60) return 'text-warning';
+    return 'text-danger';
   }
 
   // === Helpers ===

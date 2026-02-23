@@ -11,7 +11,7 @@
 This is the **canonical OrderStack** restaurant management SaaS application — a standalone Angular 21 app. This is the active, correct project for all OrderStack development.
 
 **Related Documentation:**
-- **`specs/`** — GOS-SPEC-02 (Phases 1-2), GOS-SPEC-10 (Phases 1-2), GOS-SPEC-11 (Phases 1-3). GOS-SPEC-01, 03, 04, 05, 06, 07, 08, 09 fully delivered and deleted.
+- **`specs/`** — GOS-SPEC-10 (Phases 1-2), GOS-SPEC-11 (Phases 1-3). GOS-SPEC-01, 02, 03, 04, 05, 06, 07, 08, 09 fully delivered and deleted.
 
 **Predecessor:** `Get-Order-Stack-Restaurant-Frontend-Workspace/` (Angular Elements + WordPress — archived, do not use)
 
@@ -554,4 +554,20 @@ ng build --configuration=production
 - **Remaining specs:** GOS-SPEC-02 (Phase 3 pending), GOS-SPEC-10 (Phase 3 pending), GOS-SPEC-11 (Phase 4 pending)
 - Next: GOS-SPEC-02 Phase 3 or GOS-SPEC-10 Phase 3. End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 24)*
+**[February 23, 2026] (Session 25) — GOS-SPEC-02 Phase 3 Complete (Steps 11-15: Station Binding, Peripherals, Kiosk Profiles, Device Health):**
+- **Phase 3 COMPLETE — GOS-SPEC-02 100% done, spec deleted**
+- **Step 11 (KDS Station-Device Binding):** Added `boundDeviceId: string | null` to `KdsStation` in `station.model.ts`. Added `boundDeviceId` to `StationFormData`. Station assignment dropdown on KDS-type devices in Devices tab. `assignStation()` method unbinds old station, binds new. Disabled options for stations already bound to other devices.
+- **Step 12 (Peripheral Management):** Enhanced peripherals tab with per-type icons (cash drawer, barcode scanner, card reader, customer display, scale). Test buttons per peripheral type (Open Drawer, Test Scan, Test Card, etc.) with testing spinner and success checkmark. `testPeripheral()` simulates device test via timeout. Added `PeripheralConfig` interface (cashDrawerAutoOpen, barcodeScannerPrefix/Suffix, customerDisplayMode/Message). Added `updatePeripheral()` to DeviceService. Added `PERIPHERAL_TYPE_ICONS` mapping.
+- **Step 13 (Kiosk Profile Configuration):** Full kiosk profile editor with 3 collapsible sections. Category selector: checkbox list of menu categories with reorder (up/down) controls, `toggleKioskCategory()`, `moveCategoryUp()/moveCategoryDown()`. Branding: color pickers for primary/accent colors with hex input, logo upload placeholder. Behavior: idle timeout range slider (30-300s), show images, require name, accessibility mode. Preview panel: simulated kiosk view with dynamic colors via CSS custom properties (`--kiosk-primary`, `--kiosk-accent`), welcome message, category pills, footer. Edit support for existing profiles. Added `categoryDisplayOrder`, `brandingLogoUrl`, `brandingPrimaryColor`, `brandingAccentColor` to `KioskProfile`/`KioskProfileFormData`. Branding swatches on kiosk list cards.
+- **Step 14 (Device Health Dashboard):** Health overview panel at top of DeviceHub. KPI chips: total devices, online count (green), offline count (red), per-type counts with icons. Stale device alerts (amber) for devices not seen in >1 hour with relative time. `devicesByType` and `deviceHealthSummary` computeds in DeviceService. `getRelativeTime()` and `getLastSeenClass()` helpers. Last seen timestamp per device in device cards.
+- **Step 15 (Build Verification):** `ng build --configuration=production` — zero errors.
+- **Added `DeviceHealthSummary` interface** to `device.model.ts` (total, online, offline, byType, staleDevices).
+- **Service additions:** `DeviceService` — `devicesByType` computed, `deviceHealthSummary` computed, `updatePeripheral()` method.
+- **DeviceHub injections added:** `StationService`, `MenuService` for station binding and kiosk category selector.
+- **Files modified:** `models/device.model.ts` (KioskProfile branding fields, PeripheralConfig, DeviceHealthSummary), `models/station.model.ts` (boundDeviceId), `services/device.ts` (3 computeds, 1 method), `features/settings/device-hub/` (ts, html, scss — all three fully rewritten)
+- **Spec deleted:** `specs/GOS-SPEC-02-hardware.md` — 100% complete
+- **Build: zero errors**
+- **Remaining specs:** GOS-SPEC-10 (Phase 3 pending), GOS-SPEC-11 (Phase 4 pending)
+- Next: GOS-SPEC-10 Phase 3 (Google Calendar sync, waitlist enhancements). End-to-end test with live backend.
+
+*Last Updated: February 23, 2026 (Session 25)*
