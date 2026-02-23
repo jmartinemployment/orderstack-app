@@ -89,6 +89,16 @@
     />
   }
 
+  <!-- Driver Assignment Panel (GAP-R08) -->
+  @if (unassignedDeliveryOrders().length > 0 && availableDrivers().length > 0) {
+    <div class="driver-assignment-panel mb-3">
+      <div class="panel-header">
+        <i class="bi bi-truck me-2"></i>
+        <strong>{{ unassignedDeliveryOrders().length }}</strong> delivery order{{ unassignedDeliveryOrders().length === 1 ? '' : 's' }} need{{ unassignedDeliveryOrders().length === 1 ? 's' : '' }} a driver
+      </div>
+    </div>
+  }
+
   <!-- Bulk Action Bar -->
   @if (selectedCount() > 0) {
     <div class="bulk-action-bar mb-3">
@@ -195,6 +205,48 @@
                   {{ getDeliveryStateLabel(order.deliveryInfo.deliveryState) }}
                 </span>
               </div>
+
+              <!-- Driver Assignment (GAP-R08) -->
+              @if (getAssignmentForOrder(order.guid); as assignment) {
+                <div class="driver-assignment-info small mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="bi" [class]="getVehicleIcon(getDriverVehicleType(assignment.driverId))"></i>
+                    <strong>{{ assignment.driverName ?? 'Driver' }}</strong>
+                    <span class="badge assignment-status-badge" [class]="getAssignmentStatusClass(assignment.status)">
+                      {{ getAssignmentStatusLabel(assignment.status) }}
+                    </span>
+                  </div>
+                  @if (getNextAssignmentStatus(assignment.status); as nextStatus) {
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-primary mt-1"
+                      (click)="updateAssignment(assignment.id, nextStatus)"
+                    >
+                      {{ getNextAssignmentAction(assignment.status) }}
+                    </button>
+                  }
+                </div>
+              } @else if (availableDrivers().length > 0) {
+                <div class="driver-assign-dropdown small mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <select
+                      class="form-select form-select-sm driver-select"
+                      [disabled]="isAssigningDriver(order.guid)"
+                      (change)="onDriverSelect(order.guid, $event)"
+                    >
+                      <option value="">Assign driver...</option>
+                      @for (driver of availableDrivers(); track driver.id) {
+                        <option [value]="driver.id">
+                          {{ driver.name }} ({{ driver.vehicleType }})
+                        </option>
+                      }
+                    </select>
+                    @if (isAssigningDriver(order.guid)) {
+                      <span class="spinner-border spinner-border-sm"></span>
+                    }
+                  </div>
+                </div>
+              }
             }
 
             @if (order.curbsideInfo) {

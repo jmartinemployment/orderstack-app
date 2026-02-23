@@ -3,6 +3,7 @@ import { CurrencyPipe } from '@angular/common';
 import { OrderService } from '@services/order';
 import { AuthService } from '@services/auth';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
+import { DeliveryService } from '@services/delivery';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
 import { StatusBadge } from '../../kds/status-badge/status-badge';
@@ -23,6 +24,8 @@ import {
   getMarketplaceSyncStateLabel,
   getMarketplaceSyncClass,
   MarketplaceSyncState,
+  Driver,
+  DeliveryAssignment,
 } from '@models/index';
 import { exportToCsv } from '@shared/utils/csv-export';
 
@@ -44,6 +47,7 @@ export class PendingOrders implements OnInit, OnDestroy {
   private readonly orderService = inject(OrderService);
   private readonly authService = inject(AuthService);
   private readonly settingsService = inject(RestaurantSettingsService);
+  private readonly deliveryService = inject(DeliveryService);
 
   readonly orders = this.orderService.orders;
   readonly isLoading = this.orderService.isLoading;
@@ -148,10 +152,26 @@ export class PendingOrders implements OnInit, OnDestroy {
     };
   });
 
+  // --- In-House Driver Assignment (GAP-R08) ---
+  readonly drivers = this.deliveryService.drivers;
+  readonly availableDrivers = this.deliveryService.availableDrivers;
+  readonly activeAssignments = this.deliveryService.activeAssignments;
+  private readonly _assigningOrderIds = signal(new Set<string>());
+
+  readonly deliveryOrders = computed(() =>
+    this.pendingOrders().filter(o => o.diningOption.type === 'delivery')
+  );
+
+  readonly unassignedDeliveryOrders = computed(() =>
+    this.deliveryOrders().filter(o => !this.getAssignmentForOrder(o.guid))
+  );
+
   ngOnInit(): void {
     this.orderService.loadOrders();
     this.settingsService.loadSettings();
     this.startApprovalTimeoutChecker();
+    void this.deliveryService.loadDrivers();
+    void this.deliveryService.loadActiveAssignments();
   }
 
   ngOnDestroy(): void {
@@ -616,6 +636,99 @@ export class PendingOrders implements OnInit, OnDestroy {
       case 'PREPARING': return 'Out for Delivery';
       case 'OUT_FOR_DELIVERY': return 'Mark Delivered';
       default: return '';
+    }
+  }
+
+  // --- In-House Driver Assignment (GAP-R08) ---
+
+  getAssignmentForOrder(orderId: string): DeliveryAssignment | undefined {
+    return this.activeAssignments().find(a => a.orderId === orderId);
+  }
+
+  isAssigningDriver(orderId: string): boolean {
+    return this._assigningOrderIds().has(orderId);
+  }
+
+  async assignDriver(orderId: string, driverId: string): Promise<void> {
+    if (!driverId || this.isAssigningDriver(orderId)) return;
+    this._assigningOrderIds.update(set => {
+      const updated = new Set(set);
+      updated.add(orderId);
+      return updated;
+    });
+    try {
+      await this.deliveryService.assignOrderToDriver(orderId, driverId);
+    } finally {
+      this._assigningOrderIds.update(set => {
+        const updated = new Set(set);
+        updated.delete(orderId);
+        return updated;
+      });
+    }
+  }
+
+  async updateAssignment(assignmentId: string, status: 'picked_up' | 'en_route' | 'delivered' | 'cancelled'): Promise<void> {
+    await this.deliveryService.updateAssignmentStatus(assignmentId, status);
+  }
+
+  getAssignmentStatusLabel(status: string): string {
+    switch (status) {
+      case 'assigned': return 'Assigned';
+      case 'picked_up': return 'Picked Up';
+      case 'en_route': return 'En Route';
+      case 'delivered': return 'Delivered';
+      case 'cancelled': return 'Cancelled';
+      default: return status;
+    }
+  }
+
+  getAssignmentStatusClass(status: string): string {
+    switch (status) {
+      case 'assigned': return 'assignment-assigned';
+      case 'picked_up': return 'assignment-picked-up';
+      case 'en_route': return 'assignment-en-route';
+      case 'delivered': return 'assignment-delivered';
+      case 'cancelled': return 'assignment-cancelled';
+      default: return '';
+    }
+  }
+
+  getNextAssignmentStatus(current: string): 'picked_up' | 'en_route' | 'delivered' | null {
+    switch (current) {
+      case 'assigned': return 'picked_up';
+      case 'picked_up': return 'en_route';
+      case 'en_route': return 'delivered';
+      default: return null;
+    }
+  }
+
+  getNextAssignmentAction(current: string): string {
+    switch (current) {
+      case 'assigned': return 'Mark Picked Up';
+      case 'picked_up': return 'Mark En Route';
+      case 'en_route': return 'Mark Delivered';
+      default: return '';
+    }
+  }
+
+  getDriverVehicleType(driverId: string): string {
+    return this.deliveryService.getDriverById(driverId)?.vehicleType ?? 'car';
+  }
+
+  getVehicleIcon(vehicleType: string): string {
+    switch (vehicleType) {
+      case 'car': return 'bi-car-front';
+      case 'bike': return 'bi-bicycle';
+      case 'scooter': return 'bi-scooter';
+      case 'walk': return 'bi-person-walking';
+      default: return 'bi-truck';
+    }
+  }
+
+  onDriverSelect(orderId: string, event: Event): void {
+    const driverId = (event.target as HTMLSelectElement).value;
+    if (driverId) {
+      void this.assignDriver(orderId, driverId);
     }
   }
 

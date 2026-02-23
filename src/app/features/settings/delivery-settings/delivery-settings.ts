@@ -1,4 +1,5 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { DeliveryService } from '@services/delivery';
 import { AuthService } from '@services/auth';
@@ -16,10 +17,17 @@ import {
   MarketplaceIntegrationUpdatePayload,
   MarketplaceMenuMapping,
   MarketplaceMenuMappingUpsertPayload,
+  Driver,
+  DriverFormData,
+  DriverStatus,
+  VehicleType,
+  DeliveryDispatchConfig,
+  defaultDeliveryDispatchConfig,
 } from '@models/index';
 
 @Component({
   selector: 'os-delivery-settings',
+  imports: [CurrencyPipe],
   templateUrl: './delivery-settings.html',
   styleUrl: './delivery-settings.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -205,6 +213,45 @@ export class DeliverySettingsComponent implements OnInit {
     && this._menuMappingMenuItemId().trim().length > 0
   );
 
+  // --- In-House Driver Management (GAP-R08) ---
+
+  readonly drivers = this.deliveryService.drivers;
+  readonly isLoadingDrivers = this.deliveryService.isLoadingDrivers;
+
+  private readonly _showDriverForm = signal(false);
+  private readonly _editingDriver = signal<Driver | null>(null);
+  private readonly _driverName = signal('');
+  private readonly _driverPhone = signal('');
+  private readonly _driverEmail = signal('');
+  private readonly _driverVehicleType = signal<VehicleType>('car');
+  private readonly _isSavingDriver = signal(false);
+  private readonly _driverNotice = signal<string | null>(null);
+
+  readonly showDriverForm = this._showDriverForm.asReadonly();
+  readonly editingDriver = this._editingDriver.asReadonly();
+  readonly driverName = this._driverName.asReadonly();
+  readonly driverPhone = this._driverPhone.asReadonly();
+  readonly driverEmail = this._driverEmail.asReadonly();
+  readonly driverVehicleType = this._driverVehicleType.asReadonly();
+  readonly isSavingDriver = this._isSavingDriver.asReadonly();
+  readonly driverNotice = this._driverNotice.asReadonly();
+
+  readonly canSaveDriver = computed(() =>
+    this.isManagerOrAbove()
+    && !this._isSavingDriver()
+    && this._driverName().trim().length > 0
+    && this._driverPhone().trim().length > 0
+  );
+
+  // Dispatch Config
+  private readonly _dispatchConfig = signal<DeliveryDispatchConfig>(defaultDeliveryDispatchConfig());
+  private readonly _isSavingDispatchConfig = signal(false);
+  private readonly _dispatchConfigNotice = signal<string | null>(null);
+
+  readonly dispatchConfig = this._dispatchConfig.asReadonly();
+  readonly isSavingDispatchConfig = this._isSavingDispatchConfig.asReadonly();
+  readonly dispatchConfigNotice = this._dispatchConfigNotice.asReadonly();
+
   ngOnInit(): void {
     const s = this.settingsService.deliverySettings();
     this._provider.set(s.provider);
@@ -226,6 +273,7 @@ export class DeliverySettingsComponent implements OnInit {
     });
     void this.menuService.loadMenu();
     void this.deliveryService.loadMarketplaceMenuMappings();
+    void this.deliveryService.loadDrivers();
   }
 
   onProviderChange(event: Event): void {
@@ -534,6 +582,127 @@ export class DeliverySettingsComponent implements OnInit {
     this._saved.set(false);
   }
 
+  // --- In-House Driver Management (GAP-R08) ---
+
+  openAddDriverForm(): void {
+    this._editingDriver.set(null);
+    this._driverName.set('');
+    this._driverPhone.set('');
+    this._driverEmail.set('');
+    this._driverVehicleType.set('car');
+    this._showDriverForm.set(true);
+    this._driverNotice.set(null);
+  }
+
+  openEditDriverForm(driver: Driver): void {
+    this._editingDriver.set(driver);
+    this._driverName.set(driver.name);
+    this._driverPhone.set(driver.phone);
+    this._driverEmail.set(driver.email ?? '');
+    this._driverVehicleType.set(driver.vehicleType);
+    this._showDriverForm.set(true);
+    this._driverNotice.set(null);
+  }
+
+  closeDriverForm(): void {
+    this._showDriverForm.set(false);
+    this._editingDriver.set(null);
+  }
+
+  onDriverNameInput(event: Event): void {
+    this._driverName.set((event.target as HTMLInputElement).value);
+  }
+
+  onDriverPhoneInput(event: Event): void {
+    this._driverPhone.set((event.target as HTMLInputElement).value);
+  }
+
+  onDriverEmailInput(event: Event): void {
+    this._driverEmail.set((event.target as HTMLInputElement).value);
+  }
+
+  onDriverVehicleTypeChange(event: Event): void {
+    this._driverVehicleType.set((event.target as HTMLSelectElement).value as VehicleType);
+  }
+
+  async saveDriver(): Promise<void> {
+    if (!this.canSaveDriver()) return;
+
+    this._isSavingDriver.set(true);
+    const formData: DriverFormData = {
+      name: this._driverName().trim(),
+      phone: this._driverPhone().trim(),
+      vehicleType: this._driverVehicleType(),
+    };
+    const email = this._driverEmail().trim();
+    if (email) formData.email = email;
+
+    const editing = this._editingDriver();
+    if (editing) {
+      const updated = await this.deliveryService.updateDriver(editing.id, formData);
+      if (updated) {
+        this._driverNotice.set(`Driver "${formData.name}" updated.`);
+        this.closeDriverForm();
+      }
+    } else {
+      const created = await this.deliveryService.createDriver(formData);
+      if (created) {
+        this._driverNotice.set(`Driver "${created.name}" added.`);
+        this.closeDriverForm();
+      }
+    }
+    this._isSavingDriver.set(false);
+  }
+
+  async deleteDriver(driver: Driver): Promise<void> {
+    if (!this.isManagerOrAbove()) return;
+    await this.deliveryService.deleteDriver(driver.id);
+    this._driverNotice.set(`Driver "${driver.name}" removed.`);
+  }
+
+  async toggleDriverStatus(driver: Driver): Promise<void> {
+    const newStatus: DriverStatus = driver.status === 'offline' ? 'available' : 'offline';
+    await this.deliveryService.setDriverStatus(driver.id, newStatus);
+  }
+
+  getVehicleIcon(vehicleType: string): string {
+    switch (vehicleType) {
+      case 'car': return 'bi-car-front';
+      case 'bike': return 'bi-bicycle';
+      case 'scooter': return 'bi-scooter';
+      case 'walk': return 'bi-person-walking';
+      default: return 'bi-truck';
+    }
+  }
+
+  getDriverStatusClass(status: string): string {
+    switch (status) {
+      case 'available': return 'text-success';
+      case 'assigned': return 'text-primary';
+      case 'en_route': return 'text-info';
+      case 'delivering': return 'text-warning';
+      case 'offline': return 'text-muted';
+      default: return '';
+    }
+  }
+
+  // Dispatch Config
+  onDispatchConfigChange(field: keyof DeliveryDispatchConfig, event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this._dispatchConfig.update(config => ({
+      ...config,
+      [field]: target.type === 'checkbox' ? target.checked : Number.parseFloat(target.value) || 0,
+    }));
+    this._dispatchConfigNotice.set(null);
+  }
+
+  async saveDispatchConfig(): Promise<void> {
+    this._isSavingDispatchConfig.set(true);
+    // Dispatch config is local for now — will be wired to backend API when available
+    this._dispatchConfigNotice.set('Dispatch configuration saved.');
+    this._isSavingDispatchConfig.set(false);
+  }
+
   private clearCredentialNotice(): void {
     this._credentialNotice.set(null);
     this.deliveryService.clearError();
@@ -608,7 +777,7 @@ export class DeliverySettingsComponent implements OnInit {
 
     this.marketplaceSecretSignalFor(provider).set('');
     this.syncMarketplaceFormsFromIntegrations(this.marketplaceIntegrations());
-    this._marketplaceNotice.set(this.marketplaceProviderLabel(provider) + ' marketplace integration saved.');
+    this._marketplaceNotice.set(this.marketplaceProviderLabelFor(provider) + ' marketplace integration saved.');
   }
 
   private async clearMarketplaceSecret(provider: MarketplaceProviderType): Promise<void> {
@@ -619,7 +788,7 @@ export class DeliverySettingsComponent implements OnInit {
 
     this.marketplaceSecretSignalFor(provider).set('');
     this.syncMarketplaceFormsFromIntegrations(this.marketplaceIntegrations());
-    this._marketplaceNotice.set(this.marketplaceProviderLabel(provider) + ' marketplace webhook secret cleared.');
+    this._marketplaceNotice.set(this.marketplaceProviderLabelFor(provider) + ' marketplace webhook secret cleared.');
   }
 
   private syncMarketplaceFormsFromIntegrations(integrations: MarketplaceIntegrationSummary[]): void {
@@ -662,7 +831,7 @@ export class DeliverySettingsComponent implements OnInit {
     return this.integrationByProvider(provider);
   }
 
-  marketplaceProviderLabel(provider: MarketplaceProviderType): string {
+  marketplaceProviderLabelFor(provider: MarketplaceProviderType): string {
     if (provider === 'doordash_marketplace') return 'DoorDash Marketplace';
     if (provider === 'ubereats') return 'Uber Eats';
     return 'Grubhub';

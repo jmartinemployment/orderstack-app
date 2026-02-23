@@ -713,7 +713,7 @@
   </section>
 
   <section class="credential-card">
-    <h6 class="mb-2">{{ marketplaceProviderLabel(menuMappingProvider()) }} Mappings</h6>
+    <h6 class="mb-2">{{ marketplaceProviderLabelFor(menuMappingProvider()) }} Mappings</h6>
     @if (filteredMarketplaceMenuMappings().length === 0) {
       <p class="small text-muted mb-0">No mappings configured for this provider yet.</p>
     } @else {
@@ -751,5 +751,261 @@
         </table>
       </div>
     }
+  </section>
+
+  <hr class="my-4" />
+
+  <!-- In-House Driver Management (GAP-R08) -->
+  <h6 class="mb-2">In-House Drivers</h6>
+  <p class="small text-muted mb-3">
+    Manage your delivery team. Add drivers, set vehicle types, and toggle availability.
+  </p>
+
+  @if (driverNotice()) {
+    <div class="alert alert-success py-2 small mb-3">
+      {{ driverNotice() }}
+    </div>
+  }
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="small text-muted">{{ drivers().length }} driver{{ drivers().length === 1 ? '' : 's' }}</span>
+    <button
+      type="button"
+      class="btn btn-primary btn-sm"
+      [disabled]="!isManagerOrAbove()"
+      (click)="openAddDriverForm()"
+    >
+      <i class="bi bi-plus-lg me-1"></i>Add Driver
+    </button>
+  </div>
+
+  @if (drivers().length === 0) {
+    <div class="empty-driver-state text-center py-4">
+      <i class="bi bi-truck d-block mb-2" style="font-size: 2rem; opacity: 0.3;"></i>
+      <p class="text-muted small mb-0">No drivers configured. Add your first driver to enable in-house delivery dispatch.</p>
+    </div>
+  } @else {
+    <div class="driver-list">
+      @for (driver of drivers(); track driver.id) {
+        <div class="driver-card">
+          <div class="driver-icon">
+            <i class="bi" [class]="getVehicleIcon(driver.vehicleType)"></i>
+          </div>
+          <div class="driver-info">
+            <div class="driver-name">{{ driver.name }}</div>
+            <div class="driver-meta">
+              <span class="small text-muted">{{ driver.phone }}</span>
+              @if (driver.email) {
+                <span class="small text-muted ms-2">{{ driver.email }}</span>
+              }
+              <span class="small ms-2" [class]="getDriverStatusClass(driver.status)">{{ driver.status }}</span>
+            </div>
+          </div>
+          <div class="driver-actions d-flex gap-2">
+            <button
+              type="button"
+              class="btn btn-sm"
+              [class.btn-outline-success]="driver.status === 'offline'"
+              [class.btn-outline-secondary]="driver.status !== 'offline'"
+              [disabled]="!isManagerOrAbove() || driver.status === 'assigned' || driver.status === 'en_route' || driver.status === 'delivering'"
+              (click)="toggleDriverStatus(driver)"
+              [title]="driver.status === 'offline' ? 'Set Available' : 'Set Offline'"
+            >
+              {{ driver.status === 'offline' ? 'Activate' : 'Deactivate' }}
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-primary"
+              [disabled]="!isManagerOrAbove()"
+              (click)="openEditDriverForm(driver)"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-danger"
+              [disabled]="!isManagerOrAbove() || driver.status === 'assigned' || driver.status === 'en_route' || driver.status === 'delivering'"
+              (click)="deleteDriver(driver)"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Driver Form Modal -->
+  @if (showDriverForm()) {
+    <div class="modal-overlay" (click)="closeDriverForm()">
+      <div class="driver-form-modal card" (click)="$event.stopPropagation()">
+        <div class="card-header">
+          <h5 class="mb-0">{{ editingDriver() ? 'Edit Driver' : 'Add Driver' }}</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label" for="driver-name">Name</label>
+            <input
+              id="driver-name"
+              type="text"
+              class="form-control"
+              [value]="driverName()"
+              (input)="onDriverNameInput($event)"
+              placeholder="Driver name"
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="driver-phone">Phone</label>
+            <input
+              id="driver-phone"
+              type="tel"
+              class="form-control"
+              [value]="driverPhone()"
+              (input)="onDriverPhoneInput($event)"
+              placeholder="(555) 123-4567"
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="driver-email">Email (optional)</label>
+            <input
+              id="driver-email"
+              type="email"
+              class="form-control"
+              [value]="driverEmail()"
+              (input)="onDriverEmailInput($event)"
+              placeholder="driver@example.com"
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="driver-vehicle">Vehicle Type</label>
+            <select
+              id="driver-vehicle"
+              class="form-select"
+              [value]="driverVehicleType()"
+              (change)="onDriverVehicleTypeChange($event)"
+            >
+              <option value="car">Car</option>
+              <option value="bike">Bike</option>
+              <option value="scooter">Scooter</option>
+              <option value="walk">Walk</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-footer d-flex gap-2 justify-content-end">
+          <button class="btn btn-outline-light" (click)="closeDriverForm()" [disabled]="isSavingDriver()">Cancel</button>
+          <button class="btn btn-primary" (click)="saveDriver()" [disabled]="!canSaveDriver()">
+            @if (isSavingDriver()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            {{ editingDriver() ? 'Update' : 'Add' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <hr class="my-4" />
+
+  <!-- Dispatch Configuration -->
+  <h6 class="mb-2">Dispatch Configuration</h6>
+  <p class="small text-muted mb-3">
+    Configure delivery radius, fees, and dispatch mode.
+  </p>
+
+  @if (dispatchConfigNotice()) {
+    <div class="alert alert-success py-2 small mb-3">
+      {{ dispatchConfigNotice() }}
+    </div>
+  }
+
+  <section class="credential-card mb-3">
+    <div class="row g-3">
+      <div class="col-12 col-md-6">
+        <div class="form-check mb-2">
+          <input
+            id="enable-in-house"
+            class="form-check-input"
+            type="checkbox"
+            [checked]="dispatchConfig().enableInHouseDelivery"
+            [disabled]="!isManagerOrAbove()"
+            (change)="onDispatchConfigChange('enableInHouseDelivery', $event)"
+          />
+          <label class="form-check-label" for="enable-in-house">Enable in-house delivery</label>
+        </div>
+        <div class="form-check mb-2">
+          <input
+            id="enable-third-party"
+            class="form-check-input"
+            type="checkbox"
+            [checked]="dispatchConfig().enableThirdParty"
+            [disabled]="!isManagerOrAbove()"
+            (change)="onDispatchConfigChange('enableThirdParty', $event)"
+          />
+          <label class="form-check-label" for="enable-third-party">Enable third-party dispatch</label>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <label class="form-label" for="max-radius">Max Delivery Radius (km)</label>
+        <input
+          id="max-radius"
+          type="number"
+          class="form-control"
+          min="1"
+          max="50"
+          [value]="dispatchConfig().maxDeliveryRadiusKm"
+          [disabled]="!isManagerOrAbove()"
+          (input)="onDispatchConfigChange('maxDeliveryRadiusKm', $event)"
+        />
+      </div>
+
+      <div class="col-12 col-md-6">
+        <label class="form-label" for="base-fee">Base Delivery Fee</label>
+        <div class="input-group">
+          <span class="input-group-text">$</span>
+          <input
+            id="base-fee"
+            type="number"
+            class="form-control"
+            min="0"
+            step="0.5"
+            [value]="dispatchConfig().baseDeliveryFee"
+            [disabled]="!isManagerOrAbove()"
+            (input)="onDispatchConfigChange('baseDeliveryFee', $event)"
+          />
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <label class="form-label" for="per-km-fee">Per-km Fee</label>
+        <div class="input-group">
+          <span class="input-group-text">$</span>
+          <input
+            id="per-km-fee"
+            type="number"
+            class="form-control"
+            min="0"
+            step="0.25"
+            [value]="dispatchConfig().perKmFee"
+            [disabled]="!isManagerOrAbove()"
+            (input)="onDispatchConfigChange('perKmFee', $event)"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+      <button
+        type="button"
+        class="btn btn-primary btn-sm"
+        [disabled]="!isManagerOrAbove() || isSavingDispatchConfig()"
+        (click)="saveDispatchConfig()"
+      >
+        @if (isSavingDispatchConfig()) {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+        }
+        Save Configuration
+      </button>
+    </div>
   </section>
 </div>

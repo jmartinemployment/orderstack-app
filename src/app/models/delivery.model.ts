@@ -157,6 +157,68 @@ export interface MarketplaceStatusSyncJobsResponse {
   jobs: MarketplaceStatusSyncJobSummary[];
 }
 
+// --- In-House Driver Management (GAP-R08) ---
+
+export type DriverStatus = 'available' | 'assigned' | 'en_route' | 'delivering' | 'offline';
+export type VehicleType = 'car' | 'bike' | 'scooter' | 'walk';
+export type DeliveryAssignmentStatus = 'assigned' | 'picked_up' | 'en_route' | 'delivered' | 'cancelled';
+
+export interface Driver {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  vehicleType: VehicleType;
+  status: DriverStatus;
+  currentOrderId?: string;
+  lastLocationLat?: number;
+  lastLocationLng?: number;
+  lastLocationAt?: string;
+  createdAt?: string;
+}
+
+export interface DriverFormData {
+  name: string;
+  phone: string;
+  email?: string;
+  vehicleType: VehicleType;
+}
+
+export interface DeliveryAssignment {
+  id: string;
+  orderId: string;
+  driverId: string;
+  driverName?: string;
+  assignedAt: string;
+  pickedUpAt?: string;
+  deliveredAt?: string;
+  estimatedDeliveryMinutes?: number;
+  distanceKm?: number;
+  customerLat?: number;
+  customerLng?: number;
+  status: DeliveryAssignmentStatus;
+}
+
+export interface DeliveryDispatchConfig {
+  enableInHouseDelivery: boolean;
+  enableThirdParty: boolean;
+  thirdPartyProvider: 'doordash_drive' | 'uber_direct' | null;
+  maxDeliveryRadiusKm: number;
+  baseDeliveryFee: number;
+  perKmFee: number;
+}
+
+export function defaultDeliveryDispatchConfig(): DeliveryDispatchConfig {
+  return {
+    enableInHouseDelivery: false,
+    enableThirdParty: false,
+    thirdPartyProvider: null,
+    maxDeliveryRadiusKm: 10,
+    baseDeliveryFee: 5,
+    perKmFee: 1,
+  };
+}
+
 // --- Context passed to provider classes (mirrors PaymentContext) ---
 export interface DeliveryContext {
   restaurantId: string;

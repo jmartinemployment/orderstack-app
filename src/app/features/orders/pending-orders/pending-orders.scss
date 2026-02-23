@@ -424,6 +424,63 @@
   padding-left: 0.5rem;
 }
 
+// Driver Assignment (GAP-R08)
+.driver-assignment-panel {
+  background-color: rgba(0, 106, 255, 0.06);
+  border: 1px solid var(--os-primary);
+  border-radius: var(--os-radius);
+  padding: 0.75rem 1rem;
+
+  .panel-header {
+    font-size: 0.875rem;
+    color: var(--os-primary);
+  }
+}
+
+.driver-assignment-info {
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.25rem;
+  background-color: rgba(0, 166, 126, 0.06);
+  border-left: 3px solid var(--os-success);
+}
+
+.driver-assign-dropdown {
+  .driver-select {
+    max-width: 200px;
+    font-size: 0.75rem;
+  }
+}
+
+.assignment-status-badge {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+}
+
+.assignment-assigned {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.assignment-picked-up {
+  background-color: #0dcaf0;
+  color: #000;
+}
+
+.assignment-en-route {
+  background-color: var(--os-primary);
+  color: #fff;
+}
+
+.assignment-delivered {
+  background-color: var(--os-success);
+  color: #fff;
+}
+
+.assignment-cancelled {
+  background-color: var(--os-danger);
+  color: #fff;
+}
+
 // Confirmation modals
 .modal-overlay {
   position: fixed;

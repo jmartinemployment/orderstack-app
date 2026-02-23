@@ -22,6 +22,11 @@ import {
   MarketplaceStatusSyncJobSummary,
   MarketplaceStatusSyncJobsResponse,
   Order,
+  Driver,
+  DriverFormData,
+  DriverStatus,
+  DeliveryAssignment,
+  DeliveryAssignmentStatus,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -766,5 +771,168 @@ export class DeliveryService {
     } catch {
       return fallback;
     }
+  }
+
+  // ============ In-House Driver Management (GAP-R08) ============
+
+  private readonly _drivers = signal<Driver[]>([]);
+  private readonly _activeAssignments = signal<DeliveryAssignment[]>([]);
+  private readonly _isLoadingDrivers = signal(false);
+
+  readonly drivers = this._drivers.asReadonly();
+  readonly activeAssignments = this._activeAssignments.asReadonly();
+  readonly isLoadingDrivers = this._isLoadingDrivers.asReadonly();
+
+  readonly availableDrivers = computed(() =>
+    this._drivers().filter(d => d.status === 'available')
+  );
+
+  readonly assignedDrivers = computed(() =>
+    this._drivers().filter(d => d.status !== 'available' && d.status !== 'offline')
+  );
+
+  readonly inTransitAssignments = computed(() =>
+    this._activeAssignments().filter(a => a.status === 'en_route')
+  );
+
+  async loadDrivers(): Promise<void> {
+    this._isLoadingDrivers.set(true);
+    try {
+      const response = await fetch(
+        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/drivers`,
+        { headers: this.buildAuthHeaders() }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        this._drivers.set(data.drivers ?? data ?? []);
+      }
+    } catch {
+      // Silent — drivers list is supplementary
+    } finally {
+      this._isLoadingDrivers.set(false);
+    }
+  }
+
+  async createDriver(data: DriverFormData): Promise<Driver | null> {
+    try {
+      const response = await fetch(
+        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/drivers`,
+        { method: 'POST', headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify(data) }
+      );
+      if (response.ok) {
+        const driver = await response.json();
+        this._drivers.update(list => [...list, driver]);
+        return driver;
+      }
+    } catch {
+      // handled by caller
+    }
+    return null;
+  }
+
+  async updateDriver(id: string, data: Partial<DriverFormData>): Promise<boolean> {
+    try {
+      const response = await fetch(
+        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/drivers/${id}`,
+        { method: 'PATCH', headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify(data) }
+      );
+      if (response.ok) {
+        const updated = await response.json();
+        this._drivers.update(list => list.map(d => d.id === id ? updated : d));
+        return true;
+      }
+    } catch {
+      // handled by caller
+    }
+    return false;
+  }
+
+  async deleteDriver(id: string): Promise<boolean> {
+    try {
+      const response = await fetch(
+        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/drivers/${id}`,
+        { method: 'DELETE', headers: this.buildAuthHeaders() }
+      );
+      if (response.ok) {
+        this._drivers.update(list => list.filter(d => d.id !== id));
+        return true;
+      }
+    } catch {
+      // handled by caller
+    }
+    return false;
+  }
+
+  async setDriverStatus(id: string, status: DriverStatus): Promise<void> {
+    try {
+      const response = await fetch(
+        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/drivers/${id}/status`,
+        { method: 'PATCH', headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ status }) }
+      );
+      if (response.ok) {
+        this._drivers.update(list => list.map(d => d.id === id ? { ...d, status } : d));
+      }
+    } catch {
+      // Silent
+    }
+  }
+
+  async assignOrderToDriver(orderId: string, driverId: string): Promise<DeliveryAssignment | null> {
+    try {
+      const response = await fetch(
+        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/assign`,
+        { method: 'POST', headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ orderId, driverId }) }
+      );
+      if (response.ok) {
+        const assignment: DeliveryAssignment = await response.json();
+        this._activeAssignments.update(list => [...list, assignment]);
+        this._drivers.update(list => list.map(d =>
+          d.id === driverId ? { ...d, status: 'assigned' as DriverStatus, currentOrderId: orderId } : d
+        ));
+        return assignment;
+      }
+    } catch {
+      // handled by caller
+    }
+    return null;
+  }
+
+  async updateAssignmentStatus(assignmentId: string, status: DeliveryAssignmentStatus): Promise<void> {
+    try {
+      const response = await fetch(
+        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/assignments/${assignmentId}/status`,
+        { method: 'PATCH', headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ status }) }
+      );
+      if (response.ok) {
+        this._activeAssignments.update(list =>
+          list.map(a => a.id === assignmentId ? { ...a, status } : a)
+        );
+      }
+    } catch {
+      // Silent
+    }
+  }
+
+  async loadActiveAssignments(): Promise<void> {
+    try {
+      const response = await fetch(
+        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/assignments?active=true`,
+        { headers: this.buildAuthHeaders() }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        this._activeAssignments.set(data.assignments ?? data ?? []);
+      }
+    } catch {
+      // Silent
+    }
+  }
+
+  getAssignmentForOrder(orderId: string): DeliveryAssignment | undefined {
+    return this._activeAssignments().find(a => a.orderId === orderId);
+  }
+
+  getDriverById(driverId: string): Driver | undefined {
+    return this._drivers().find(d => d.id === driverId);
   }
 }
