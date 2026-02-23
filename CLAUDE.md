@@ -368,4 +368,14 @@ ng build --configuration=production
 - **Build: zero errors**
 - Next: GOS-SPEC-03 Phase 3 (Steps 11-14) — Reporting categories, allergen/nutrition consumer display, time-based availability, build verification.
 
-*Last Updated: February 22, 2026 (Session 12)*
+**[February 23, 2026] (Session 13) — Code Review, Build Fixes, Cleanup:**
+- **Code review completed** on all uncommitted changes — found 2 build errors, stray files, silent error handling
+- **Fix: chart.js missing** — `npm install chart.js` (chart-helpers.ts was importing uninstalled dependency)
+- **Fix: BookingWidget compile errors** — Added `BookingStep`, `TimeSlot`, `DayAvailability`, `SeatingPreference`, `PublicReservationFormData`, `DIETARY_OPTIONS`, `OCCASION_OPTIONS` to `reservation.model.ts`. Added `getPublicAvailability()` and `createPublicReservation()` to `ReservationService` (public/unauthenticated endpoints for booking widget)
+- **Cleanup:** Deleted stray `.test.ts` (root) and `.claude/skills/KdsStations.test.ts` (React/Vitest — wrong framework). Added `test-results/` to `.gitignore`
+- **Specs moved:** 11 plan files from `.claude/plans/` to `specs/` as expanded spec documents
+- **Build: zero errors**
+- **Files modified:** `reservation.model.ts`, `services/reservation.ts`, `.gitignore`, `package.json`
+- Next: Style remaining feature pages to Square light theme. End-to-end test with live backend. Address `ReportService` silent error handling (7 catch blocks swallow errors).
+
+*Last Updated: February 23, 2026 (Session 13)*
