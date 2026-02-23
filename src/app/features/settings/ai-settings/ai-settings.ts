@@ -26,6 +26,9 @@ export class AiSettings implements OnInit {
   private readonly _quantityThreshold = signal(20);
   private readonly _coursePacingMode = signal<CoursePacingMode>('disabled');
   private readonly _targetCourseServeGapSeconds = signal(1200);
+  private readonly _defaultCourseNames = signal<string[]>(['Appetizer', 'Entree', 'Dessert']);
+  private readonly _autoFireFirstCourse = signal(true);
+  private readonly _newCourseName = signal('');
   private readonly _orderThrottlingEnabled = signal(false);
   private readonly _maxActiveOrders = signal(18);
   private readonly _maxOverdueOrders = signal(6);
@@ -44,6 +47,9 @@ export class AiSettings implements OnInit {
   readonly quantityThreshold = this._quantityThreshold.asReadonly();
   readonly coursePacingMode = this._coursePacingMode.asReadonly();
   readonly targetCourseServeGapSeconds = this._targetCourseServeGapSeconds.asReadonly();
+  readonly defaultCourseNames = this._defaultCourseNames.asReadonly();
+  readonly autoFireFirstCourse = this._autoFireFirstCourse.asReadonly();
+  readonly newCourseName = this._newCourseName.asReadonly();
   readonly orderThrottlingEnabled = this._orderThrottlingEnabled.asReadonly();
   readonly maxActiveOrders = this._maxActiveOrders.asReadonly();
   readonly maxOverdueOrders = this._maxOverdueOrders.asReadonly();
@@ -54,6 +60,8 @@ export class AiSettings implements OnInit {
   readonly expoStationEnabled = this._expoStationEnabled.asReadonly();
   readonly approvalTimeoutHours = this._approvalTimeoutHours.asReadonly();
   readonly hasUnsavedChanges = this._hasUnsavedChanges.asReadonly();
+
+  readonly coursePacingEnabled = computed(() => this._coursePacingMode() !== 'disabled');
 
   readonly pacingModeOptions: { value: CoursePacingMode; label: string; description: string }[] = [
     { value: 'disabled', label: 'Disabled', description: 'All items fire immediately when sent to kitchen.' },
@@ -176,6 +184,8 @@ export class AiSettings implements OnInit {
     this._quantityThreshold.set(s.quantityThreshold);
     this._coursePacingMode.set(s.coursePacingMode);
     this._targetCourseServeGapSeconds.set(this.normalizeTargetCourseServeGapSeconds(s.targetCourseServeGapSeconds));
+    this._defaultCourseNames.set(s.defaultCourseNames?.length > 0 ? [...s.defaultCourseNames] : ['Appetizer', 'Entree', 'Dessert']);
+    this._autoFireFirstCourse.set(s.autoFireFirstCourse ?? true);
     this._orderThrottlingEnabled.set(s.orderThrottlingEnabled);
     this._maxActiveOrders.set(this.normalizeMaxActiveOrders(s.maxActiveOrders));
     this._maxOverdueOrders.set(this.normalizeMaxOverdueOrders(s.maxOverdueOrders));
@@ -217,6 +227,53 @@ export class AiSettings implements OnInit {
     const rawMinutes = Number.parseInt((event.target as HTMLInputElement).value, 10);
     const minutes = Number.isFinite(rawMinutes) ? rawMinutes : 20;
     this._targetCourseServeGapSeconds.set(this.normalizeTargetCourseServeGapSeconds(minutes * 60));
+    this._hasUnsavedChanges.set(true);
+  }
+
+  // --- Default Course Names ---
+
+  onNewCourseNameInput(event: Event): void {
+    this._newCourseName.set((event.target as HTMLInputElement).value);
+  }
+
+  addCourseName(): void {
+    const name = this._newCourseName().trim();
+    if (!name) return;
+    const current = this._defaultCourseNames();
+    if (current.some(n => n.toLowerCase() === name.toLowerCase())) return;
+    this._defaultCourseNames.set([...current, name]);
+    this._newCourseName.set('');
+    this._hasUnsavedChanges.set(true);
+  }
+
+  removeCourseName(index: number): void {
+    this._defaultCourseNames.update(names => names.filter((_, i) => i !== index));
+    this._hasUnsavedChanges.set(true);
+  }
+
+  moveCourseUp(index: number): void {
+    if (index <= 0) return;
+    this._defaultCourseNames.update(names => {
+      const updated = [...names];
+      [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
+      return updated;
+    });
+    this._hasUnsavedChanges.set(true);
+  }
+
+  moveCourseDown(index: number): void {
+    const names = this._defaultCourseNames();
+    if (index >= names.length - 1) return;
+    this._defaultCourseNames.update(n => {
+      const updated = [...n];
+      [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
+      return updated;
+    });
+    this._hasUnsavedChanges.set(true);
+  }
+
+  onAutoFireFirstCourseToggle(event: Event): void {
+    this._autoFireFirstCourse.set((event.target as HTMLInputElement).checked);
     this._hasUnsavedChanges.set(true);
   }
 
@@ -283,6 +340,8 @@ export class AiSettings implements OnInit {
       quantityThreshold: this._quantityThreshold(),
       coursePacingMode: this._coursePacingMode(),
       targetCourseServeGapSeconds: this._targetCourseServeGapSeconds(),
+      defaultCourseNames: this._defaultCourseNames(),
+      autoFireFirstCourse: this._autoFireFirstCourse(),
       orderThrottlingEnabled: this._orderThrottlingEnabled(),
       maxActiveOrders: this._maxActiveOrders(),
       maxOverdueOrders: this._maxOverdueOrders(),

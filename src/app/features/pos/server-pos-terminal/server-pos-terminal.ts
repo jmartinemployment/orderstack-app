@@ -29,9 +29,16 @@ import {
   GuestOrderStatus,
   OrderTemplate,
   OrderTemplateItem,
+  Course,
+  CourseFireStatus,
 } from '@models/index';
 
-type PosModal = 'none' | 'modifier' | 'discount' | 'void' | 'comp' | 'split' | 'transfer' | 'tab' | 'templates' | 'save-template' | 'qr-pay';
+type PosModal = 'none' | 'modifier' | 'discount' | 'void' | 'comp' | 'split' | 'transfer' | 'tab' | 'templates' | 'save-template' | 'qr-pay' | 'course-fire';
+
+interface CourseGroup {
+  course: Course;
+  selections: Selection[];
+}
 
 @Component({
   selector: 'os-pos-terminal',
@@ -67,6 +74,12 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   readonly canUseSplitting = this.platformService.canUseSplitting;
   readonly canUseTransfer = this.platformService.canUseTransfer;
   readonly canUsePreAuthTabs = this.platformService.canUsePreAuthTabs;
+
+  // Course timing
+  readonly courseTimingEnabled = computed(() => {
+    const aiSettings = this.settingsService.aiSettings();
+    return aiSettings.coursePacingMode !== 'disabled';
+  });
 
   // Menu state
   private readonly _categories = signal<MenuCategory[]>([]);
@@ -164,6 +177,43 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     });
   });
 
+  // --- Course computeds ---
+
+  readonly orderCourses = computed<Course[]>(() => {
+    const order = this.activeOrder();
+    return order?.courses ?? [];
+  });
+
+  readonly courseGroupedSelections = computed<CourseGroup[]>(() => {
+    const check = this.activeCheck();
+    const courses = this.orderCourses();
+    if (!check || courses.length === 0) return [];
+
+    const groups: CourseGroup[] = [];
+
+    for (const course of courses) {
+      const sels = check.selections.filter(s => s.course?.guid === course.guid);
+      groups.push({ course, selections: sels });
+    }
+
+    // Unassigned items
+    const unassigned = check.selections.filter(s => !s.course);
+    if (unassigned.length > 0) {
+      groups.push({
+        course: { guid: '__unassigned__', name: 'Unassigned', sortOrder: 999, fireStatus: 'PENDING' },
+        selections: unassigned,
+      });
+    }
+
+    return groups;
+  });
+
+  readonly unassignedSelections = computed(() => {
+    const check = this.activeCheck();
+    if (!check) return [];
+    return check.selections.filter(s => !s.course);
+  });
+
   // Modal state
   private readonly _activeModal = signal<PosModal>('none');
   private readonly _modifierItem = signal<MenuItem | null>(null);
@@ -176,6 +226,9 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   private readonly _tabPreauthAmount = signal(50);
   private readonly _isTabProcessing = signal(false);
 
+  // Course fire modal state
+  private readonly _newCourseNameInput = signal('');
+
   readonly activeModal = this._activeModal.asReadonly();
   readonly modifierItem = this._modifierItem.asReadonly();
   readonly voidSelection = this._voidSelection.asReadonly();
@@ -186,6 +239,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   readonly tabPreauthEnabled = this._tabPreauthEnabled.asReadonly();
   readonly tabPreauthAmount = this._tabPreauthAmount.asReadonly();
   readonly isTabProcessing = this._isTabProcessing.asReadonly();
+  readonly newCourseNameInput = this._newCourseNameInput.asReadonly();
 
   // Seat assignment for next item
   private readonly _currentSeat = signal<number | undefined>(undefined);
@@ -377,10 +431,91 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     await this.orderService.updateOrderStatus(order.guid, 'IN_PREPARATION');
   }
 
-  async fireCourse(courseGuid: string): Promise<void> {
+  // --- Course management ---
+
+  openCourseFireModal(): void {
+    this._newCourseNameInput.set('');
+    this._activeModal.set('course-fire');
+  }
+
+  setNewCourseNameInput(value: string): void {
+    this._newCourseNameInput.set(value);
+  }
+
+  async addCourseToCurrentOrder(): Promise<void> {
+    const order = this.activeOrder();
+    if (!order) return;
+
+    const name = this._newCourseNameInput().trim();
+    if (!name) return;
+
+    const existingCourses = order.courses ?? [];
+    const sortOrder = existingCourses.length;
+
+    await this.orderService.addCourseToOrder(order.guid, name, sortOrder);
+    this._newCourseNameInput.set('');
+    this.orderService.loadOrders();
+  }
+
+  async addDefaultCourse(name: string): Promise<void> {
+    const order = this.activeOrder();
+    if (!order) return;
+
+    // Don't add if a course with this name already exists
+    const existingCourses = order.courses ?? [];
+    if (existingCourses.some(c => c.name.toLowerCase() === name.toLowerCase())) return;
+
+    const sortOrder = existingCourses.length;
+    await this.orderService.addCourseToOrder(order.guid, name, sortOrder);
+    this.orderService.loadOrders();
+  }
+
+  async removeCourseFromCurrentOrder(courseGuid: string): Promise<void> {
+    const order = this.activeOrder();
+    if (!order) return;
+
+    await this.orderService.removeCourseFromOrder(order.guid, courseGuid);
+    this.orderService.loadOrders();
+  }
+
+  async assignItemToCourse(selectionGuid: string, courseGuid: string): Promise<void> {
+    const order = this.activeOrder();
+    if (!order) return;
+
+    await this.orderService.assignSelectionToCourse(order.guid, selectionGuid, courseGuid);
+    this.orderService.loadOrders();
+  }
+
+  async doFireCourse(courseGuid: string): Promise<void> {
     const order = this.activeOrder();
     if (!order) return;
     await this.orderService.fireCourse(order.guid, courseGuid);
+    this.orderService.loadOrders();
+  }
+
+  async doHoldCourse(courseGuid: string): Promise<void> {
+    const order = this.activeOrder();
+    if (!order) return;
+    await this.orderService.holdCourse(order.guid, courseGuid);
+    this.orderService.loadOrders();
+  }
+
+  getFireStatusClass(status: CourseFireStatus): string {
+    switch (status) {
+      case 'FIRED': return 'badge-fired';
+      case 'READY': return 'badge-ready';
+      case 'PENDING':
+      default: return 'badge-pending';
+    }
+  }
+
+  getDefaultCourseNames(): string[] {
+    return this.settingsService.aiSettings().defaultCourseNames ?? ['Appetizer', 'Entree', 'Dessert'];
+  }
+
+  isDefaultCourseAlreadyAdded(name: string): boolean {
+    const courses = this.orderCourses();
+    return courses.some(c => c.name.toLowerCase() === name.toLowerCase());
   }
 
   // --- Check actions ---

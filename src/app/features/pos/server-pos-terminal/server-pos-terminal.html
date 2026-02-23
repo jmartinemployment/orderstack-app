@@ -218,47 +218,169 @@
             }
           </div>
         }
+
+        <!-- Check items: Course-grouped or flat -->
         <div class="check-items">
-          @for (sel of check.selections; track sel.guid) {
-            <div class="check-item" [class.comped]="sel.isComped">
-              <div class="item-row">
-                @if (sel.seatNumber) {
-                  <span class="seat-tag">S{{ sel.seatNumber }}</span>
-                }
-                <span class="item-qty">{{ sel.quantity }}x</span>
-                <span class="item-name">{{ sel.menuItemName }}</span>
-                <span class="item-price">
-                  @if (sel.isComped) {
-                    <s>{{ sel.totalPrice | currency }}</s> $0.00
-                  } @else {
-                    {{ sel.totalPrice | currency }}
-                  }
-                </span>
-              </div>
-              @if (sel.modifiers.length > 0) {
-                <div class="item-mods">
-                  @for (mod of sel.modifiers; track mod.guid) {
-                    <span class="mod-tag">{{ mod.name }}
-                      @if (mod.priceAdjustment > 0) {
-                        (+{{ mod.priceAdjustment | currency }})
-                      }
-                    </span>
-                  }
+          @if (courseTimingEnabled() && orderCourses().length > 0) {
+            <!-- Course-grouped display -->
+            @for (group of courseGroupedSelections(); track group.course.guid) {
+              <div class="course-section">
+                <div class="course-header">
+                  <span class="course-name">{{ group.course.name }}</span>
+                  <span class="course-status-badge" [class]="getFireStatusClass(group.course.fireStatus)">
+                    {{ group.course.fireStatus }}
+                  </span>
                 </div>
-              }
-              @if (sel.specialInstructions) {
-                <div class="item-note">{{ sel.specialInstructions }}</div>
-              }
-              <!-- Item actions -->
-              <div class="item-actions">
-                <button type="button" class="action-void" (click)="openVoidModal(sel)">Void</button>
-                <button type="button" class="action-comp" (click)="openCompModal(sel)">Comp</button>
+                @for (sel of group.selections; track sel.guid) {
+                  <div class="check-item" [class.comped]="sel.isComped">
+                    <div class="item-row">
+                      @if (sel.seatNumber) {
+                        <span class="seat-tag">S{{ sel.seatNumber }}</span>
+                      }
+                      <span class="item-qty">{{ sel.quantity }}x</span>
+                      <span class="item-name">{{ sel.menuItemName }}</span>
+                      <span class="item-price">
+                        @if (sel.isComped) {
+                          <s>{{ sel.totalPrice | currency }}</s> $0.00
+                        } @else {
+                          {{ sel.totalPrice | currency }}
+                        }
+                      </span>
+                    </div>
+                    @if (sel.modifiers.length > 0) {
+                      <div class="item-mods">
+                        @for (mod of sel.modifiers; track mod.guid) {
+                          <span class="mod-tag">{{ mod.name }}
+                            @if (mod.priceAdjustment > 0) {
+                              (+{{ mod.priceAdjustment | currency }})
+                            }
+                          </span>
+                        }
+                      </div>
+                    }
+                    @if (sel.specialInstructions) {
+                      <div class="item-note">{{ sel.specialInstructions }}</div>
+                    }
+                    <div class="item-actions">
+                      <button type="button" class="action-void" (click)="openVoidModal(sel)">Void</button>
+                      <button type="button" class="action-comp" (click)="openCompModal(sel)">Comp</button>
+                      <!-- Course reassign -->
+                      @if (orderCourses().length > 1) {
+                        <select
+                          class="course-reassign"
+                          [value]="group.course.guid"
+                          (change)="assignItemToCourse(sel.guid, $any($event.target).value)">
+                          @for (c of orderCourses(); track c.guid) {
+                            <option [value]="c.guid">{{ c.name }}</option>
+                          }
+                        </select>
+                      }
+                    </div>
+                  </div>
+                } @empty {
+                  <div class="course-empty">No items in this course</div>
+                }
               </div>
-            </div>
-          } @empty {
-            <div class="check-empty">
-              <p>Tap items to add to check</p>
-            </div>
+            }
+
+            <!-- Unassigned items -->
+            @if (unassignedSelections().length > 0) {
+              <div class="course-section course-unassigned">
+                <div class="course-header">
+                  <span class="course-name">Unassigned</span>
+                </div>
+                @for (sel of unassignedSelections(); track sel.guid) {
+                  <div class="check-item" [class.comped]="sel.isComped">
+                    <div class="item-row">
+                      @if (sel.seatNumber) {
+                        <span class="seat-tag">S{{ sel.seatNumber }}</span>
+                      }
+                      <span class="item-qty">{{ sel.quantity }}x</span>
+                      <span class="item-name">{{ sel.menuItemName }}</span>
+                      <span class="item-price">
+                        @if (sel.isComped) {
+                          <s>{{ sel.totalPrice | currency }}</s> $0.00
+                        } @else {
+                          {{ sel.totalPrice | currency }}
+                        }
+                      </span>
+                    </div>
+                    @if (sel.modifiers.length > 0) {
+                      <div class="item-mods">
+                        @for (mod of sel.modifiers; track mod.guid) {
+                          <span class="mod-tag">{{ mod.name }}
+                            @if (mod.priceAdjustment > 0) {
+                              (+{{ mod.priceAdjustment | currency }})
+                            }
+                          </span>
+                        }
+                      </div>
+                    }
+                    @if (sel.specialInstructions) {
+                      <div class="item-note">{{ sel.specialInstructions }}</div>
+                    }
+                    <div class="item-actions">
+                      <button type="button" class="action-void" (click)="openVoidModal(sel)">Void</button>
+                      <button type="button" class="action-comp" (click)="openCompModal(sel)">Comp</button>
+                      @if (orderCourses().length > 0) {
+                        <select
+                          class="course-reassign"
+                          value=""
+                          (change)="assignItemToCourse(sel.guid, $any($event.target).value)">
+                          <option value="" disabled>Assign...</option>
+                          @for (c of orderCourses(); track c.guid) {
+                            <option [value]="c.guid">{{ c.name }}</option>
+                          }
+                        </select>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          } @else {
+            <!-- Flat display (no course timing) -->
+            @for (sel of check.selections; track sel.guid) {
+              <div class="check-item" [class.comped]="sel.isComped">
+                <div class="item-row">
+                  @if (sel.seatNumber) {
+                    <span class="seat-tag">S{{ sel.seatNumber }}</span>
+                  }
+                  <span class="item-qty">{{ sel.quantity }}x</span>
+                  <span class="item-name">{{ sel.menuItemName }}</span>
+                  <span class="item-price">
+                    @if (sel.isComped) {
+                      <s>{{ sel.totalPrice | currency }}</s> $0.00
+                    } @else {
+                      {{ sel.totalPrice | currency }}
+                    }
+                  </span>
+                </div>
+                @if (sel.modifiers.length > 0) {
+                  <div class="item-mods">
+                    @for (mod of sel.modifiers; track mod.guid) {
+                      <span class="mod-tag">{{ mod.name }}
+                        @if (mod.priceAdjustment > 0) {
+                          (+{{ mod.priceAdjustment | currency }})
+                        }
+                      </span>
+                    }
+                  </div>
+                }
+                @if (sel.specialInstructions) {
+                  <div class="item-note">{{ sel.specialInstructions }}</div>
+                }
+                <!-- Item actions -->
+                <div class="item-actions">
+                  <button type="button" class="action-void" (click)="openVoidModal(sel)">Void</button>
+                  <button type="button" class="action-comp" (click)="openCompModal(sel)">Comp</button>
+                </div>
+              </div>
+            } @empty {
+              <div class="check-empty">
+                <p>Tap items to add to check</p>
+              </div>
+            }
           }
 
           <!-- Voided items (collapsed) -->
@@ -333,6 +455,11 @@
             @if (canUseTransfer()) {
               <button type="button" class="action-btn action-transfer" (click)="openTransferModal()" title="Transfer">
                 <i class="bi bi-arrow-left-right"></i> Move
+              </button>
+            }
+            @if (courseTimingEnabled()) {
+              <button type="button" class="action-btn action-courses" (click)="openCourseFireModal()" title="Course Firing">
+                <i class="bi bi-list-columns-reverse"></i> Courses
               </button>
             }
             <button type="button" class="action-btn action-discount" (click)="openDiscountModal()" title="Discount">
@@ -601,6 +728,113 @@
             <button type="button" class="btn btn-primary btn-sm" (click)="openQrPayModal()">Retry</button>
           </div>
         }
+      </div>
+    </div>
+  }
+
+  <!-- Course Fire Modal -->
+  @if (activeModal() === 'course-fire') {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="course-fire-modal" (click)="$event.stopPropagation()">
+        <div class="course-fire-header">
+          <h5>Course Firing</h5>
+          <button type="button" class="btn-modal-close" (click)="closeModal()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <!-- Course list -->
+        <div class="course-fire-body">
+          @for (group of courseGroupedSelections(); track group.course.guid) {
+            <div class="course-fire-card">
+              <div class="course-fire-card-header">
+                <div class="course-fire-card-info">
+                  <span class="course-fire-name">{{ group.course.name }}</span>
+                  <span class="course-fire-count">{{ group.selections.length }} item{{ group.selections.length !== 1 ? 's' : '' }}</span>
+                </div>
+                <span class="course-status-badge" [class]="getFireStatusClass(group.course.fireStatus)">
+                  {{ group.course.fireStatus }}
+                </span>
+              </div>
+
+              <!-- Items in this course -->
+              <div class="course-fire-items">
+                @for (sel of group.selections; track sel.guid) {
+                  <div class="course-fire-item">
+                    <span class="course-fire-item-qty">{{ sel.quantity }}x</span>
+                    <span class="course-fire-item-name">{{ sel.menuItemName }}</span>
+                  </div>
+                } @empty {
+                  <div class="course-fire-item-empty">No items</div>
+                }
+              </div>
+
+              <!-- Fire / Hold buttons -->
+              <div class="course-fire-card-actions">
+                @if (group.course.fireStatus === 'PENDING') {
+                  <button type="button" class="btn btn-sm btn-fire" (click)="doFireCourse(group.course.guid)">
+                    <i class="bi bi-fire me-1"></i> Fire
+                  </button>
+                } @else if (group.course.fireStatus === 'FIRED') {
+                  <button type="button" class="btn btn-sm btn-hold" (click)="doHoldCourse(group.course.guid)">
+                    <i class="bi bi-pause-circle me-1"></i> Hold
+                  </button>
+                }
+                <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeCourseFromCurrentOrder(group.course.guid)">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
+            </div>
+          } @empty {
+            <div class="course-fire-empty">
+              <p>No courses on this order yet.</p>
+            </div>
+          }
+
+          <!-- Unassigned items notice -->
+          @if (unassignedSelections().length > 0) {
+            <div class="course-fire-unassigned-notice">
+              <i class="bi bi-exclamation-circle"></i>
+              {{ unassignedSelections().length }} item{{ unassignedSelections().length !== 1 ? 's' : '' }} not assigned to a course
+            </div>
+          }
+        </div>
+
+        <!-- Add course controls -->
+        <div class="course-fire-footer">
+          <!-- Quick-add default courses -->
+          @if (getDefaultCourseNames().length > 0) {
+            <div class="course-default-chips">
+              @for (name of getDefaultCourseNames(); track name) {
+                <button
+                  type="button"
+                  class="course-chip"
+                  [disabled]="isDefaultCourseAlreadyAdded(name)"
+                  (click)="addDefaultCourse(name)">
+                  <i class="bi bi-plus"></i> {{ name }}
+                </button>
+              }
+            </div>
+          }
+
+          <!-- Custom course name -->
+          <div class="course-add-row">
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              placeholder="Custom course name..."
+              [value]="newCourseNameInput()"
+              (input)="setNewCourseNameInput($any($event.target).value)"
+              (keydown.enter)="addCourseToCurrentOrder()">
+            <button
+              type="button"
+              class="btn btn-sm btn-primary"
+              [disabled]="!newCourseNameInput().trim()"
+              (click)="addCourseToCurrentOrder()">
+              Add
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   }

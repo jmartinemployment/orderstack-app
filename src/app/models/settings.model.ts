@@ -17,6 +17,10 @@ export interface AISettings {
   coursePacingMode: CoursePacingMode;
   /** Gap between course serves in seconds. Range: 300–3600. */
   targetCourseServeGapSeconds: number;
+  /** Default course names shown when adding courses to an order. */
+  defaultCourseNames: string[];
+  /** Automatically fire the first course when the order is sent to kitchen. */
+  autoFireFirstCourse: boolean;
   orderThrottlingEnabled: boolean;
   /** Hold new orders when active count exceeds this. Must be > releaseActiveOrders. */
   maxActiveOrders: number;
@@ -112,6 +116,8 @@ export function defaultAISettings(): AISettings {
     quantityThreshold: 20,
     coursePacingMode: 'disabled',
     targetCourseServeGapSeconds: 1200,
+    defaultCourseNames: ['Appetizer', 'Entree', 'Dessert'],
+    autoFireFirstCourse: true,
     orderThrottlingEnabled: false,
     maxActiveOrders: 18,
     maxOverdueOrders: 6,

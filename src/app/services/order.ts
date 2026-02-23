@@ -245,6 +245,14 @@ export class OrderService implements OnDestroy {
       this.handleOrderEvent(event.type, event.order);
     });
 
+    // Course updated socket listener — reload the order when courses change from another device
+    this.socketService.onCustomEvent('course:updated', (data: any) => {
+      const orderId = data?.orderId;
+      if (orderId) {
+        this.loadOrders();
+      }
+    });
+
     // Scan to Pay socket listener
     this.socketService.onCustomEvent('scan-to-pay:completed', (data: any) => {
       this.handleScanToPayCompleted({
@@ -534,6 +542,101 @@ export class OrderService implements OnDestroy {
       return true;
     } catch {
       this._error.set('Failed to fire course — backend unavailable');
+      return false;
+    }
+  }
+
+  async addCourseToOrder(orderId: string, courseName: string, sortOrder: number): Promise<boolean> {
+    if (!this.restaurantId) {
+      this._error.set('No restaurant selected');
+      return false;
+    }
+
+    try {
+      const raw = await firstValueFrom(
+        this.http.post<any>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/courses`,
+          { name: courseName, sortOrder }
+        )
+      );
+      const updatedOrder = this.mapOrder(raw);
+      this._orders.update(orders =>
+        orders.map(o => o.guid === orderId ? updatedOrder : o)
+      );
+      return true;
+    } catch {
+      this._error.set('Failed to add course');
+      return false;
+    }
+  }
+
+  async assignSelectionToCourse(orderId: string, selectionGuid: string, courseGuid: string): Promise<boolean> {
+    if (!this.restaurantId) {
+      this._error.set('No restaurant selected');
+      return false;
+    }
+
+    try {
+      const raw = await firstValueFrom(
+        this.http.patch<any>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/assign-course`,
+          { selectionGuid, courseGuid }
+        )
+      );
+      const updatedOrder = this.mapOrder(raw);
+      this._orders.update(orders =>
+        orders.map(o => o.guid === orderId ? updatedOrder : o)
+      );
+      return true;
+    } catch {
+      this._error.set('Failed to assign item to course');
+      return false;
+    }
+  }
+
+  async holdCourse(orderId: string, courseGuid: string): Promise<boolean> {
+    if (!this.restaurantId) {
+      this._error.set('No restaurant selected');
+      return false;
+    }
+
+    try {
+      const raw = await firstValueFrom(
+        this.http.patch<any>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/hold-course`,
+          { courseGuid }
+        )
+      );
+      const updatedOrder = this.mapOrder(raw);
+      this._orders.update(orders =>
+        orders.map(o => o.guid === orderId ? updatedOrder : o)
+      );
+      return true;
+    } catch {
+      this._error.set('Failed to hold course');
+      return false;
+    }
+  }
+
+  async removeCourseFromOrder(orderId: string, courseGuid: string): Promise<boolean> {
+    if (!this.restaurantId) {
+      this._error.set('No restaurant selected');
+      return false;
+    }
+
+    try {
+      const raw = await firstValueFrom(
+        this.http.delete<any>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/courses/${courseGuid}`
+        )
+      );
+      const updatedOrder = this.mapOrder(raw);
+      this._orders.update(orders =>
+        orders.map(o => o.guid === orderId ? updatedOrder : o)
+      );
+      return true;
+    } catch {
+      this._error.set('Failed to remove course');
       return false;
     }
   }

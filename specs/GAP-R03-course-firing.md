@@ -1,6 +1,6 @@
 # GAP-R03: Course-Based Firing (Multi-Course Meal Management)
 
-**Status:** NOT STARTED
+**Status:** Phase 1 COMPLETE
 **Priority:** 2
 **Square Reference:** Assign items to courses (appetizer, entree, dessert). KDS fires courses sequentially. Server controls "Fire Next Course" from POS. Two KDS display modes: show all courses or only fired.
 
