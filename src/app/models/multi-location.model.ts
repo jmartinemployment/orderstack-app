@@ -205,4 +205,41 @@ export interface GroupCampaign {
   createdAt: string;
 }
 
+export interface LocationBenchmark {
+  restaurantId: string;
+  restaurantName: string;
+  performanceScore: number;
+  revenuePercentile: number;
+  laborPercentile: number;
+  foodCostPercentile: number;
+  customerSatPercentile: number;
+  speedPercentile: number;
+  trend: 'improving' | 'stable' | 'declining';
+  previousScore: number;
+  needsAttention: boolean;
+  bestPracticeArea: string | null;
+}
+
+export type ComplianceCategory = 'menu' | 'pricing' | 'settings' | 'hours' | 'branding';
+
+export interface ComplianceCheckItem {
+  id: string;
+  category: ComplianceCategory;
+  label: string;
+  isPassing: boolean;
+  detail: string | null;
+  resolvedAt: string | null;
+}
+
+export interface LocationCompliance {
+  restaurantId: string;
+  restaurantName: string;
+  score: number;
+  totalChecks: number;
+  passingChecks: number;
+  failingChecks: number;
+  items: ComplianceCheckItem[];
+  lastAuditAt: string;
+}
+
 export type MultiLocationTab = 'overview' | 'groups' | 'menu-sync' | 'settings' | 'franchise' | 'staff' | 'customers' | 'inventory';

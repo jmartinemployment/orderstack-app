@@ -11,7 +11,7 @@
 This is the **canonical OrderStack** restaurant management SaaS application — a standalone Angular 21 app. This is the active, correct project for all OrderStack development.
 
 **Related Documentation:**
-- **`specs/`** — GOS-SPEC-02, 04, 05, 07, 09, 10, 11 (Phase 1-2 complete; later phases pending). GOS-SPEC-01, 03, 06, 08 fully delivered and deleted.
+- **`specs/`** — GOS-SPEC-02 (Phases 1-2), GOS-SPEC-10 (Phases 1-2), GOS-SPEC-11 (Phases 1-3). GOS-SPEC-01, 03, 04, 05, 06, 07, 08, 09 fully delivered and deleted.
 
 **Predecessor:** `Get-Order-Stack-Restaurant-Frontend-Workspace/` (Angular Elements + WordPress — archived, do not use)
 
@@ -543,4 +543,15 @@ ng build --configuration=production
 - **Remaining specs:** GOS-SPEC-02 (Phase 1 only), GOS-SPEC-10 (Phase 3 pending), GOS-SPEC-11 (Phases 3-4 pending)
 - Next: GOS-SPEC-02 Phase 2 (hardware management). End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 23)*
+**[February 23, 2026] (Session 24) — GOS-SPEC-11 Phase 3 Complete (Steps 11-13: Benchmarking + Compliance):**
+- **Phase 3 COMPLETE** — Location performance benchmarking, franchise compliance dashboard
+- **Step 11 (Models):** Added `LocationBenchmark` (performanceScore, 5 percentile metrics, trend, needsAttention, bestPracticeArea), `ComplianceCategory` type (5 values), `ComplianceCheckItem` (id, category, label, isPassing, detail, resolvedAt), `LocationCompliance` (score, totalChecks, passingChecks, failingChecks, items array, lastAuditAt) to `multi-location.model.ts`.
+- **Step 12 (Service):** Added `_benchmarks`, `_compliance`, `_isLoadingBenchmarks`, `_isLoadingCompliance` signals. `attentionLocations`, `avgComplianceScore`, `nonCompliantLocations` computeds. `loadBenchmarks(groupId)`, `loadCompliance(groupId)`, `resolveComplianceItem(groupId, restaurantId, checkId)` methods with optimistic local state update.
+- **Step 13 (Dashboard UI):** Overview tab: "Performance Rankings" section with ranked benchmark cards (gold/silver/bronze rank badges, score gauge bars, 5 percentile bar rows for Revenue/Labor/Food Cost/Satisfaction/Speed, trend arrows with delta values, needs-attention flags, best-practice tip callouts). New "Compliance" tab button with non-compliant count badge. Compliance tab: summary KPIs (avg score, locations audited, non-compliant count), category filter dropdown, show-passing toggle, expandable location cards with score rings (color-coded by threshold), per-item compliance check list with pass/fail icons, resolve buttons. SCSS: benchmark styles (rank badges, score gauges, percentile bars, trend classes) and compliance styles (score rings, compliance cards, check items).
+- **GOS-SPEC-02 Phase 2 confirmed COMPLETE** from prior session — spec updated
+- **Files modified:** `models/multi-location.model.ts`, `services/multi-location.ts`, `multi-location-dashboard/` (ts, html, scss), `specs/GOS-SPEC-11-multi-location-franchise.md`, `specs/GOS-SPEC-02-hardware.md`
+- **Build: zero errors**
+- **Remaining specs:** GOS-SPEC-02 (Phase 3 pending), GOS-SPEC-10 (Phase 3 pending), GOS-SPEC-11 (Phase 4 pending)
+- Next: GOS-SPEC-02 Phase 3 or GOS-SPEC-10 Phase 3. End-to-end test with live backend.
+
+*Last Updated: February 23, 2026 (Session 24)*

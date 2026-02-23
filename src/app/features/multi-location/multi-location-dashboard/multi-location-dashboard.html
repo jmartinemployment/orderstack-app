@@ -69,6 +69,12 @@
         <span class="tab-badge">{{ lowStockItems().length }}</span>
       }
     </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'franchise'" (click)="setTab('franchise')">
+      <i class="bi bi-shield-check"></i> Compliance
+      @if (nonCompliantLocations().length > 0) {
+        <span class="tab-badge">{{ nonCompliantLocations().length }}</span>
+      }
+    </button>
     <button class="tab-btn" [class.active]="activeTab() === 'settings'" (click)="setTab('settings')">
       <i class="bi bi-gear"></i> Settings
     </button>
@@ -119,6 +125,98 @@
               </div>
               <div class="health-heartbeat">
                 Last heartbeat: {{ loc.lastHeartbeat | date:'shortTime' }}
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Performance Benchmarking -->
+      @if (sortedBenchmarks().length > 0) {
+        <div class="section-header">
+          <h3>Performance Rankings</h3>
+          @if (isLoadingBenchmarks()) {
+            <span class="refresh-indicator">Loading...</span>
+          }
+          @if (attentionLocations().length > 0) {
+            <span class="attention-badge">
+              <i class="bi bi-exclamation-triangle"></i>
+              {{ attentionLocations().length }} need{{ attentionLocations().length === 1 ? 's' : '' }} attention
+            </span>
+          }
+        </div>
+
+        <div class="benchmark-list">
+          @for (b of sortedBenchmarks(); track b.restaurantId; let i = $index) {
+            <div class="benchmark-card" [class.benchmark-attention]="b.needsAttention">
+              <div class="benchmark-rank">
+                <span class="rank-badge" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
+                  {{ getRankBadge(i) }}
+                </span>
+              </div>
+              <div class="benchmark-info">
+                <div class="benchmark-name-row">
+                  <span class="benchmark-name">{{ b.restaurantName }}</span>
+                  <span class="benchmark-trend" [class]="getTrendClass(b.trend)">
+                    <i class="bi" [class]="getTrendIcon(b.trend)"></i>
+                    @if (b.trend === 'improving') { +{{ b.performanceScore - b.previousScore }} }
+                    @else if (b.trend === 'declining') { {{ b.performanceScore - b.previousScore }} }
+                  </span>
+                  @if (b.needsAttention) {
+                    <span class="needs-attention-flag">
+                      <i class="bi bi-flag-fill"></i> Needs Attention
+                    </span>
+                  }
+                </div>
+                <div class="benchmark-score-row">
+                  <div class="score-gauge">
+                    <div class="score-fill" [class]="getScoreClass(b.performanceScore)" [style.width]="b.performanceScore + '%'"></div>
+                  </div>
+                  <span class="score-value" [class]="getScoreClass(b.performanceScore)">{{ b.performanceScore }}</span>
+                </div>
+                <div class="percentile-bars">
+                  <div class="pctl-row">
+                    <span class="pctl-label">Revenue</span>
+                    <div class="pctl-track">
+                      <div class="pctl-fill" [class]="getPercentileClass(b.revenuePercentile)" [style.width]="getPercentileBarWidth(b.revenuePercentile)"></div>
+                    </div>
+                    <span class="pctl-value">{{ b.revenuePercentile | number:'1.0-0' }}%</span>
+                  </div>
+                  <div class="pctl-row">
+                    <span class="pctl-label">Labor</span>
+                    <div class="pctl-track">
+                      <div class="pctl-fill" [class]="getPercentileClass(b.laborPercentile)" [style.width]="getPercentileBarWidth(b.laborPercentile)"></div>
+                    </div>
+                    <span class="pctl-value">{{ b.laborPercentile | number:'1.0-0' }}%</span>
+                  </div>
+                  <div class="pctl-row">
+                    <span class="pctl-label">Food Cost</span>
+                    <div class="pctl-track">
+                      <div class="pctl-fill" [class]="getPercentileClass(b.foodCostPercentile)" [style.width]="getPercentileBarWidth(b.foodCostPercentile)"></div>
+                    </div>
+                    <span class="pctl-value">{{ b.foodCostPercentile | number:'1.0-0' }}%</span>
+                  </div>
+                  <div class="pctl-row">
+                    <span class="pctl-label">Satisfaction</span>
+                    <div class="pctl-track">
+                      <div class="pctl-fill" [class]="getPercentileClass(b.customerSatPercentile)" [style.width]="getPercentileBarWidth(b.customerSatPercentile)"></div>
+                    </div>
+                    <span class="pctl-value">{{ b.customerSatPercentile | number:'1.0-0' }}%</span>
+                  </div>
+                  <div class="pctl-row">
+                    <span class="pctl-label">Speed</span>
+                    <div class="pctl-track">
+                      <div class="pctl-fill" [class]="getPercentileClass(b.speedPercentile)" [style.width]="getPercentileBarWidth(b.speedPercentile)"></div>
+                    </div>
+                    <span class="pctl-value">{{ b.speedPercentile | number:'1.0-0' }}%</span>
+                  </div>
+                </div>
+                @if (b.bestPracticeArea) {
+                  <div class="best-practice-tip">
+                    <i class="bi bi-lightbulb"></i>
+                    Excels at <strong>{{ b.bestPracticeArea }}</strong> — apply their approach to other locations?
+                  </div>
+                }
               </div>
             </div>
           }
@@ -592,6 +690,135 @@
             }
           </div>
         }
+      }
+    </div>
+  }
+
+  <!-- ═══ COMPLIANCE TAB (Franchise) ═══ -->
+  @if (activeTab() === 'franchise') {
+    <div class="tab-content">
+      <div class="section-header">
+        <h3>Franchise Compliance</h3>
+      </div>
+
+      @if (isLoadingCompliance()) {
+        <div class="loading-msg">Loading compliance data...</div>
+      } @else {
+        <!-- Summary KPIs -->
+        <div class="compliance-summary">
+          <div class="compliance-kpi">
+            <div class="compliance-kpi-value" [class]="getComplianceScoreClass(avgComplianceScore())">
+              {{ avgComplianceScore() | number:'1.0-0' }}%
+            </div>
+            <div class="compliance-kpi-label">Avg Compliance Score</div>
+          </div>
+          <div class="compliance-kpi">
+            <div class="compliance-kpi-value">{{ compliance().length }}</div>
+            <div class="compliance-kpi-label">Locations Audited</div>
+          </div>
+          <div class="compliance-kpi">
+            <div class="compliance-kpi-value" [class.text-danger]="nonCompliantLocations().length > 0">
+              {{ nonCompliantLocations().length }}
+            </div>
+            <div class="compliance-kpi-label">Non-Compliant</div>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="compliance-filters">
+          <select class="form-select filter-select" [value]="complianceCategoryFilter()" (change)="complianceCategoryFilter.set($any($event.target).value)">
+            <option value="">All Categories</option>
+            <option value="menu">Menu</option>
+            <option value="pricing">Pricing</option>
+            <option value="settings">Settings</option>
+            <option value="hours">Hours</option>
+            <option value="branding">Branding</option>
+          </select>
+          <label class="checkbox-label" (click)="showResolvedCompliance.set(!showResolvedCompliance())">
+            <span class="checkbox" [class.checked]="showResolvedCompliance()">
+              @if (showResolvedCompliance()) { <i class="bi bi-check"></i> }
+            </span>
+            Show passing checks
+          </label>
+        </div>
+
+        <!-- Location compliance cards -->
+        <div class="compliance-list">
+          @for (loc of filteredCompliance(); track loc.restaurantId) {
+            <div class="compliance-card" [class.compliance-failing]="loc.failingChecks > 0">
+              <div class="compliance-card-header" (click)="toggleComplianceExpand(loc.restaurantId)">
+                <div class="compliance-card-info">
+                  <span class="compliance-card-name">{{ loc.restaurantName }}</span>
+                  <div class="compliance-card-stats">
+                    <span class="compliance-passing">{{ loc.passingChecks }}/{{ loc.totalChecks }} passing</span>
+                    @if (loc.failingChecks > 0) {
+                      <span class="compliance-failing-count">{{ loc.failingChecks }} issue{{ loc.failingChecks === 1 ? '' : 's' }}</span>
+                    }
+                  </div>
+                </div>
+                <div class="compliance-card-score-wrap">
+                  <div class="compliance-score-ring" [class]="getComplianceScoreClass(loc.score)">
+                    {{ loc.score }}%
+                  </div>
+                  <i class="bi chevron" [class.bi-chevron-down]="expandedComplianceId() !== loc.restaurantId" [class.bi-chevron-up]="expandedComplianceId() === loc.restaurantId"></i>
+                </div>
+              </div>
+
+              @if (expandedComplianceId() === loc.restaurantId) {
+                <div class="compliance-detail">
+                  <div class="compliance-audit-date">
+                    Last audit: {{ loc.lastAuditAt | date:'medium' }}
+                  </div>
+                  <div class="compliance-items">
+                    @for (item of getFailingItems(loc); track item.id) {
+                      <div class="compliance-item" [class.compliance-item-pass]="item.isPassing" [class.compliance-item-fail]="!item.isPassing">
+                        <div class="compliance-item-left">
+                          @if (item.isPassing) {
+                            <i class="bi bi-check-circle-fill compliance-icon-pass"></i>
+                          } @else {
+                            <i class="bi bi-x-circle-fill compliance-icon-fail"></i>
+                          }
+                          <div class="compliance-item-content">
+                            <div class="compliance-item-row">
+                              <span class="compliance-item-cat">
+                                <i class="bi" [class]="getCategoryIcon(item.category)"></i>
+                                {{ getCategoryLabel(item.category) }}
+                              </span>
+                            </div>
+                            <div class="compliance-item-label">{{ item.label }}</div>
+                            @if (item.detail) {
+                              <div class="compliance-item-detail">{{ item.detail }}</div>
+                            }
+                            @if (item.resolvedAt) {
+                              <div class="compliance-item-resolved">
+                                Resolved {{ item.resolvedAt | date:'short' }}
+                              </div>
+                            }
+                          </div>
+                        </div>
+                        @if (!item.isPassing) {
+                          <button class="btn-resolve" (click)="resolveComplianceItem(loc.restaurantId, item.id); $event.stopPropagation()">
+                            <i class="bi bi-check-lg"></i> Resolve
+                          </button>
+                        }
+                      </div>
+                    } @empty {
+                      <div class="empty-hint compliance-all-pass">
+                        <i class="bi bi-check-circle"></i> All checks passing
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @empty {
+            <div class="empty-state">
+              <i class="bi bi-shield-check"></i>
+              <p>No compliance data available</p>
+              <p class="empty-hint">Compliance audits will appear here once franchise settings are configured</p>
+            </div>
+          }
+        </div>
       }
     </div>
   }

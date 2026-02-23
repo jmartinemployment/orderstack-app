@@ -18,6 +18,8 @@ import {
   InventoryTransferFormData,
   LocationHealth,
   GroupCampaign,
+  LocationBenchmark,
+  LocationCompliance,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -464,6 +466,99 @@ export class MultiLocationService {
       this._groupCampaigns.update(list => [campaign, ...list]);
     } catch {
       this._error.set('Failed to create group campaign');
+    }
+  }
+
+  // ── Benchmarking & Compliance (Phase 3) ──
+
+  private readonly _benchmarks = signal<LocationBenchmark[]>([]);
+  private readonly _compliance = signal<LocationCompliance[]>([]);
+  private readonly _isLoadingBenchmarks = signal(false);
+  private readonly _isLoadingCompliance = signal(false);
+
+  readonly benchmarks = this._benchmarks.asReadonly();
+  readonly compliance = this._compliance.asReadonly();
+  readonly isLoadingBenchmarks = this._isLoadingBenchmarks.asReadonly();
+  readonly isLoadingCompliance = this._isLoadingCompliance.asReadonly();
+
+  readonly attentionLocations = computed(() =>
+    this._benchmarks().filter(b => b.needsAttention)
+  );
+
+  readonly avgComplianceScore = computed(() => {
+    const items = this._compliance();
+    if (items.length === 0) return 0;
+    return items.reduce((sum, c) => sum + c.score, 0) / items.length;
+  });
+
+  readonly nonCompliantLocations = computed(() =>
+    this._compliance().filter(c => c.failingChecks > 0)
+  );
+
+  async loadBenchmarks(lgId: string): Promise<void> {
+    if (!this.groupId) return;
+    this._isLoadingBenchmarks.set(true);
+    this._error.set(null);
+    try {
+      const data = await firstValueFrom(
+        this.http.get<LocationBenchmark[]>(
+          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/benchmarks`
+        )
+      );
+      this._benchmarks.set(data);
+    } catch {
+      this._error.set('Failed to load benchmarks');
+    } finally {
+      this._isLoadingBenchmarks.set(false);
+    }
+  }
+
+  async loadCompliance(lgId: string): Promise<void> {
+    if (!this.groupId) return;
+    this._isLoadingCompliance.set(true);
+    this._error.set(null);
+    try {
+      const data = await firstValueFrom(
+        this.http.get<LocationCompliance[]>(
+          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/compliance`
+        )
+      );
+      this._compliance.set(data);
+    } catch {
+      this._error.set('Failed to load compliance data');
+    } finally {
+      this._isLoadingCompliance.set(false);
+    }
+  }
+
+  async resolveComplianceItem(lgId: string, restaurantId: string, checkId: string): Promise<void> {
+    if (!this.groupId) return;
+    this._error.set(null);
+    try {
+      await firstValueFrom(
+        this.http.patch(
+          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/compliance/${restaurantId}/resolve`,
+          { checkId }
+        )
+      );
+      this._compliance.update(list =>
+        list.map(loc => {
+          if (loc.restaurantId !== restaurantId) return loc;
+          const updatedItems = loc.items.map(item =>
+            item.id === checkId ? { ...item, isPassing: true, resolvedAt: new Date().toISOString() } : item
+          );
+          const passingChecks = updatedItems.filter(i => i.isPassing).length;
+          return {
+            ...loc,
+            items: updatedItems,
+            passingChecks,
+            failingChecks: loc.totalChecks - passingChecks,
+            score: Math.round((passingChecks / loc.totalChecks) * 100),
+          };
+        })
+      );
+    } catch {
+      this._error.set('Failed to resolve compliance item');
     }
   }
 

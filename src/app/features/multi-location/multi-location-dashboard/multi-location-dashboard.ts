@@ -19,6 +19,9 @@ import {
   CrossLocationStaffMember,
   CrossLocationInventoryItem,
   LocationHealth,
+  LocationBenchmark,
+  LocationCompliance,
+  ComplianceCheckItem,
   UserRestaurant,
 } from '@models/index';
 
@@ -64,6 +67,15 @@ export class MultiLocationDashboard implements OnInit {
   readonly isLoadingHealth = this.mlService.isLoadingHealth;
   readonly lowStockItems = this.mlService.lowStockItems;
   readonly offlineLocations = this.mlService.offlineLocations;
+
+  // Phase 3 signals from service
+  readonly benchmarks = this.mlService.benchmarks;
+  readonly compliance = this.mlService.compliance;
+  readonly isLoadingBenchmarks = this.mlService.isLoadingBenchmarks;
+  readonly isLoadingCompliance = this.mlService.isLoadingCompliance;
+  readonly attentionLocations = this.mlService.attentionLocations;
+  readonly avgComplianceScore = this.mlService.avgComplianceScore;
+  readonly nonCompliantLocations = this.mlService.nonCompliantLocations;
 
   // Report period
   readonly reportDays = signal(30);
@@ -165,6 +177,26 @@ export class MultiLocationDashboard implements OnInit {
     return locs.length > 1 ? locs.at(-1) ?? null : null;
   });
 
+  // Benchmark computeds
+  readonly sortedBenchmarks = computed(() =>
+    [...this.benchmarks()].sort((a, b) => b.performanceScore - a.performanceScore)
+  );
+
+  // Compliance tab
+  readonly expandedComplianceId = signal<string | null>(null);
+  readonly complianceCategoryFilter = signal<string>('');
+  readonly showResolvedCompliance = signal(false);
+
+  readonly filteredCompliance = computed(() => {
+    const items = this.compliance();
+    const catFilter = this.complianceCategoryFilter();
+    if (!catFilter) return items;
+    return items.map(loc => ({
+      ...loc,
+      items: loc.items.filter(i => i.category === catFilter),
+    }));
+  });
+
   async ngOnInit(): Promise<void> {
     await Promise.all([
       this.mlService.loadGroups(),
@@ -172,10 +204,13 @@ export class MultiLocationDashboard implements OnInit {
       this.mlService.loadSyncHistory(),
     ]);
 
-    // Load health data for overview and start auto-refresh
+    // Load health + benchmarks for overview and start auto-refresh
     const firstGroup = this.groups().at(0);
     if (firstGroup) {
-      await this.mlService.loadLocationHealth(firstGroup.id);
+      await Promise.all([
+        this.mlService.loadLocationHealth(firstGroup.id),
+        this.mlService.loadBenchmarks(firstGroup.id),
+      ]);
       this.startHealthRefresh(firstGroup.id);
     }
 
@@ -198,6 +233,8 @@ export class MultiLocationDashboard implements OnInit {
     }
   }
 
+  private complianceLoaded = false;
+
   async setTab(tab: MultiLocationTab): Promise<void> {
     this.activeTab.set(tab);
     const firstGroup = this.groups().at(0);
@@ -210,6 +247,9 @@ export class MultiLocationDashboard implements OnInit {
         this.mlService.loadCrossLocationInventory(firstGroup.id),
         this.mlService.loadInventoryTransfers(firstGroup.id),
       ]);
+    } else if (tab === 'franchise' && !this.complianceLoaded) {
+      this.complianceLoaded = true;
+      await this.mlService.loadCompliance(firstGroup.id);
     }
   }
 
@@ -255,6 +295,96 @@ export class MultiLocationDashboard implements OnInit {
     if (status === 'online') return 'Online';
     if (status === 'degraded') return 'Degraded';
     return 'Offline';
+  }
+
+  // ── Benchmarking ──
+
+  getTrendIcon(trend: string): string {
+    if (trend === 'improving') return 'bi-arrow-up-right';
+    if (trend === 'declining') return 'bi-arrow-down-right';
+    return 'bi-dash';
+  }
+
+  getTrendClass(trend: string): string {
+    if (trend === 'improving') return 'trend-up';
+    if (trend === 'declining') return 'trend-down';
+    return 'trend-stable';
+  }
+
+  getScoreClass(score: number): string {
+    if (score >= 80) return 'score-excellent';
+    if (score >= 60) return 'score-good';
+    if (score >= 40) return 'score-fair';
+    return 'score-poor';
+  }
+
+  getPercentileBarWidth(percentile: number): string {
+    return `${percentile}%`;
+  }
+
+  getPercentileClass(percentile: number): string {
+    if (percentile >= 75) return 'pctl-high';
+    if (percentile >= 50) return 'pctl-mid';
+    if (percentile >= 25) return 'pctl-low';
+    return 'pctl-bottom';
+  }
+
+  getRankBadge(index: number): string {
+    if (index === 0) return '1st';
+    if (index === 1) return '2nd';
+    if (index === 2) return '3rd';
+    return `${index + 1}th`;
+  }
+
+  // ── Compliance ──
+
+  toggleComplianceExpand(restaurantId: string): void {
+    if (this.expandedComplianceId() === restaurantId) {
+      this.expandedComplianceId.set(null);
+    } else {
+      this.expandedComplianceId.set(restaurantId);
+    }
+  }
+
+  getComplianceScoreClass(score: number): string {
+    if (score >= 90) return 'compliance-excellent';
+    if (score >= 70) return 'compliance-good';
+    if (score >= 50) return 'compliance-fair';
+    return 'compliance-poor';
+  }
+
+  getCategoryIcon(category: string): string {
+    switch (category) {
+      case 'menu': return 'bi-journal-text';
+      case 'pricing': return 'bi-tag';
+      case 'settings': return 'bi-gear';
+      case 'hours': return 'bi-clock';
+      case 'branding': return 'bi-palette';
+      default: return 'bi-check-circle';
+    }
+  }
+
+  getCategoryLabel(category: string): string {
+    switch (category) {
+      case 'menu': return 'Menu Compliance';
+      case 'pricing': return 'Pricing Compliance';
+      case 'settings': return 'Settings Compliance';
+      case 'hours': return 'Hours Compliance';
+      case 'branding': return 'Brand Compliance';
+      default: return category;
+    }
+  }
+
+  getFailingItems(loc: LocationCompliance): ComplianceCheckItem[] {
+    const showResolved = this.showResolvedCompliance();
+    if (showResolved) return loc.items;
+    return loc.items.filter(i => !i.isPassing);
+  }
+
+  async resolveComplianceItem(restaurantId: string, checkId: string): Promise<void> {
+    const firstGroup = this.groups().at(0);
+    if (!firstGroup) return;
+    await this.mlService.resolveComplianceItem(firstGroup.id, restaurantId, checkId);
   }
 
   // ── Groups ──
