@@ -169,3 +169,61 @@ export interface SalesAlert {
   timestamp: string;
   acknowledged: boolean;
 }
+
+// --- Menu Performance Deep Dive (Phase 3) ---
+
+export interface ItemProfitabilityTrend {
+  itemId: string;
+  itemName: string;
+  dataPoints: { date: string; margin: number; revenue: number; unitsSold: number }[];
+}
+
+export interface PriceElasticityIndicator {
+  itemId: string;
+  itemName: string;
+  currentPrice: number;
+  elasticity: number;
+  recommendation: 'increase' | 'decrease' | 'hold';
+  estimatedRevenueChange: number;
+}
+
+export interface CannibalizationResult {
+  newItemId: string;
+  newItemName: string;
+  affectedItemId: string;
+  affectedItemName: string;
+  salesDeclinePercent: number;
+  periodStart: string;
+  periodEnd: string;
+}
+
+export interface SeasonalPattern {
+  itemId: string;
+  itemName: string;
+  dayOfWeek: { day: string; avgSales: number }[];
+  monthOfYear: { month: string; avgSales: number }[];
+}
+
+// --- Predictive Analytics (Phase 3) ---
+
+export interface RevenueForecast {
+  forecastDays: number;
+  dataPoints: { date: string; predicted: number; lower: number; upper: number }[];
+  totalPredicted: number;
+  confidence: number;
+}
+
+export interface DemandForecastItem {
+  itemId: string;
+  itemName: string;
+  predictedQuantity: number;
+  confidence: number;
+  dayOfWeekAvg: number;
+}
+
+export interface StaffingRecommendation {
+  date: string;
+  hourlyBreakdown: { hour: number; recommendedStaff: number; predictedOrders: number; predictedRevenue: number }[];
+  totalRecommendedHours: number;
+  estimatedLaborCost: number;
+}

@@ -70,6 +70,16 @@
         }
       </button>
     </li>
+    <li class="nav-item">
+      <button
+        type="button"
+        class="nav-link"
+        [class.active]="activeTab() === 'forecast'"
+        (click)="setTab('forecast')"
+      >
+        Forecast
+      </button>
+    </li>
   </ul>
 
   @if (isLoading()) {
@@ -289,6 +299,184 @@
                   }
                 </div>
               }
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- FORECAST TAB -->
+    @if (activeTab() === 'forecast') {
+      <div class="row g-3">
+        <!-- Revenue Forecast -->
+        <div class="col-12">
+          <div class="cc-panel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <h5 class="panel-title mb-1">Revenue Forecast</h5>
+                <p class="text-muted small mb-0">Predicted revenue with confidence bands</p>
+              </div>
+              <div class="d-flex gap-2">
+                @for (d of [7, 14, 30]; track d) {
+                  <button
+                    type="button"
+                    class="btn btn-sm"
+                    [class.btn-primary]="forecastDays() === d"
+                    [class.btn-outline-light]="forecastDays() !== d"
+                    (click)="setForecastDays(d)"
+                  >
+                    {{ d }}d
+                  </button>
+                }
+              </div>
+            </div>
+
+            @if (isLoadingForecast()) {
+              <div class="d-flex justify-content-center p-4">
+                <os-loading-spinner message="Generating revenue forecast..." />
+              </div>
+            } @else if (revenueForecast(); as forecast) {
+              <!-- Forecast KPI summary -->
+              <div class="forecast-kpis d-flex gap-3 mb-3">
+                <div class="forecast-kpi">
+                  <span class="kpi-label">Total Predicted</span>
+                  <span class="kpi-value">{{ forecast.totalPredicted | currency }}</span>
+                </div>
+                <div class="forecast-kpi">
+                  <span class="kpi-label">Confidence</span>
+                  <span class="kpi-value" [class]="getConfidenceClass(forecast.confidence)">{{ (forecast.confidence * 100) | number:'1.0-0' }}%</span>
+                </div>
+                <div class="forecast-kpi">
+                  <span class="kpi-label">Period</span>
+                  <span class="kpi-value">{{ forecast.forecastDays }} days</span>
+                </div>
+              </div>
+
+              <!-- Forecast Chart -->
+              <div class="forecast-chart">
+                <div class="forecast-bars">
+                  @for (dp of forecast.dataPoints; track dp.date) {
+                    <div class="forecast-bar-wrapper" [title]="dp.date + ': ' + (dp.predicted | currency) + ' (range: ' + (dp.lower | currency) + ' – ' + (dp.upper | currency) + ')'">
+                      <div class="forecast-bar-band" [style.height.%]="getForecastBarHeight(dp.upper)">
+                        <div class="forecast-bar-predicted" [style.height.%]="getForecastPredictedHeight(dp.predicted)"></div>
+                      </div>
+                      <span class="forecast-bar-label">{{ dp.date.slice(5) }}</span>
+                    </div>
+                  }
+                </div>
+                <div class="forecast-legend d-flex gap-3 mt-2">
+                  <span class="legend-item"><span class="legend-color predicted"></span> Predicted</span>
+                  <span class="legend-item"><span class="legend-color band"></span> Confidence Band</span>
+                </div>
+              </div>
+            } @else {
+              <div class="text-center text-muted p-4">
+                No forecast data available. Sufficient sales history is needed.
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Demand Forecast -->
+        <div class="col-12 col-lg-6">
+          <div class="cc-panel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="panel-title mb-0">Demand Forecast</h5>
+              <input
+                type="date"
+                class="form-control form-control-sm"
+                style="width: auto"
+                [value]="demandForecastDate()"
+                (change)="setDemandDate($any($event.target).value)"
+              />
+            </div>
+
+            @if (isLoadingDemand()) {
+              <div class="d-flex justify-content-center p-4">
+                <os-loading-spinner message="Forecasting demand..." />
+              </div>
+            } @else if (topDemandItems().length > 0) {
+              <div class="demand-list">
+                @for (item of topDemandItems(); track item.itemId; let i = $index) {
+                  <div class="demand-item d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="rank-badge">{{ i + 1 }}</span>
+                      <div>
+                        <span class="fw-semibold">{{ item.itemName }}</span>
+                        <span class="small text-muted d-block">Avg: {{ item.dayOfWeekAvg | number:'1.0-0' }}/day</span>
+                      </div>
+                    </div>
+                    <div class="text-end">
+                      <span class="fw-bold">{{ item.predictedQuantity }}</span>
+                      <span class="badge ms-1" [class]="getConfidenceClass(item.confidence)">
+                        {{ getConfidenceLabel(item.confidence) }}
+                      </span>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="text-center text-muted p-4">
+                No demand forecast available for this date.
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Staffing Recommendation -->
+        <div class="col-12 col-lg-6">
+          <div class="cc-panel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="panel-title mb-0">Staffing Recommendation</h5>
+              <input
+                type="date"
+                class="form-control form-control-sm"
+                style="width: auto"
+                [value]="staffingDate()"
+                (change)="setStaffingDate($any($event.target).value)"
+              />
+            </div>
+
+            @if (isLoadingStaffing()) {
+              <div class="d-flex justify-content-center p-4">
+                <os-loading-spinner message="Calculating staffing needs..." />
+              </div>
+            } @else if (staffingRec(); as rec) {
+              <!-- Staffing KPIs -->
+              <div class="d-flex gap-3 mb-3">
+                <div class="forecast-kpi">
+                  <span class="kpi-label">Total Hours</span>
+                  <span class="kpi-value">{{ rec.totalRecommendedHours | number:'1.0-0' }}</span>
+                </div>
+                <div class="forecast-kpi">
+                  <span class="kpi-label">Est. Labor Cost</span>
+                  <span class="kpi-value">{{ rec.estimatedLaborCost | currency }}</span>
+                </div>
+                @if (peakStaffingHour(); as peak) {
+                  <div class="forecast-kpi">
+                    <span class="kpi-label">Peak Hour</span>
+                    <span class="kpi-value">{{ formatHour(peak.hour) }}</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Staffing Chart -->
+              <div class="staffing-chart">
+                <div class="staffing-bars">
+                  @for (h of rec.hourlyBreakdown; track h.hour) {
+                    <div class="staffing-bar-wrapper" [title]="formatHour(h.hour) + ': ' + h.recommendedStaff + ' staff, ' + h.predictedOrders + ' orders, ' + (h.predictedRevenue | currency)">
+                      <div class="staffing-bar" [style.height.%]="getStaffBarHeight(h.recommendedStaff)">
+                        <span class="staffing-bar-count">{{ h.recommendedStaff }}</span>
+                      </div>
+                      <span class="staffing-bar-label">{{ formatHour(h.hour) }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="text-center text-muted p-4">
+                No staffing recommendation available for this date.
+              </div>
             }
           </div>
         </div>

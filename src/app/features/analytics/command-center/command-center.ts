@@ -12,9 +12,12 @@ import {
   InventoryAlert,
   StockPrediction,
   RecentProfitSummary,
+  RevenueForecast,
+  DemandForecastItem,
+  StaffingRecommendation,
 } from '@models/index';
 
-type CommandTab = 'overview' | 'insights' | 'alerts';
+type CommandTab = 'overview' | 'insights' | 'alerts' | 'forecast';
 
 interface UnifiedInsight {
   id: string;
@@ -45,11 +48,32 @@ export class CommandCenter {
   private readonly _profitSummary = signal<RecentProfitSummary | null>(null);
   private readonly _lastRefresh = signal<Date | null>(null);
 
+  // --- Predictive Analytics (Phase 3) ---
+  private readonly _forecastDays = signal(14);
+  private readonly _revenueForecast = signal<RevenueForecast | null>(null);
+  private readonly _isLoadingForecast = signal(false);
+  private readonly _demandForecastDate = signal(this.getTomorrowDate());
+  private readonly _demandForecast = signal<DemandForecastItem[]>([]);
+  private readonly _isLoadingDemand = signal(false);
+  private readonly _staffingDate = signal(this.getTomorrowDate());
+  private readonly _staffingRec = signal<StaffingRecommendation | null>(null);
+  private readonly _isLoadingStaffing = signal(false);
+
   readonly activeTab = this._activeTab.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
   readonly profitSummary = this._profitSummary.asReadonly();
   readonly lastRefresh = this._lastRefresh.asReadonly();
+
+  readonly forecastDays = this._forecastDays.asReadonly();
+  readonly revenueForecast = this._revenueForecast.asReadonly();
+  readonly isLoadingForecast = this._isLoadingForecast.asReadonly();
+  readonly demandForecastDate = this._demandForecastDate.asReadonly();
+  readonly demandForecast = this._demandForecast.asReadonly();
+  readonly isLoadingDemand = this._isLoadingDemand.asReadonly();
+  readonly staffingDate = this._staffingDate.asReadonly();
+  readonly staffingRec = this._staffingRec.asReadonly();
+  readonly isLoadingStaffing = this._isLoadingStaffing.asReadonly();
 
   // Existing service signals
   readonly salesReport = this.analyticsService.salesReport;
@@ -110,11 +134,10 @@ export class CommandCenter {
     return this.salesReport()?.summary.topSellingItems?.slice(0, 5) ?? [];
   });
 
-  // Unified insights feed — combine all AI insights from all sources
+  // Unified insights feed
   readonly unifiedInsights = computed<UnifiedInsight[]>(() => {
     const insights: UnifiedInsight[] = [];
 
-    // Sales insights
     const salesInsights = this.salesReport()?.insights ?? [];
     for (const si of salesInsights) {
       insights.push({
@@ -126,7 +149,6 @@ export class CommandCenter {
       });
     }
 
-    // Menu engineering insights
     const menuInsights = this.menuEngineering()?.insights ?? [];
     for (const mi of menuInsights) {
       insights.push({
@@ -138,7 +160,6 @@ export class CommandCenter {
       });
     }
 
-    // Inventory alerts as insights
     const critAlerts = this.inventoryAlerts().filter(a => a.severity === 'critical');
     for (const alert of critAlerts.slice(0, 3)) {
       insights.push({
@@ -150,7 +171,6 @@ export class CommandCenter {
       });
     }
 
-    // Profit insights
     const profit = this._profitSummary();
     if (profit && profit.averageMargin < 30) {
       insights.push({
@@ -162,11 +182,41 @@ export class CommandCenter {
       });
     }
 
-    // Sort by priority
     const priorityOrder = { high: 0, medium: 1, low: 2 };
     insights.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 
     return insights;
+  });
+
+  // Forecast computeds
+  readonly forecastTotalPredicted = computed(() => {
+    return this._revenueForecast()?.totalPredicted ?? 0;
+  });
+
+  readonly forecastConfidence = computed(() => {
+    return this._revenueForecast()?.confidence ?? 0;
+  });
+
+  readonly forecastMaxRevenue = computed(() => {
+    const forecast = this._revenueForecast();
+    if (!forecast || forecast.dataPoints.length === 0) return 1;
+    return Math.max(...forecast.dataPoints.map(d => d.upper));
+  });
+
+  readonly topDemandItems = computed(() => {
+    return [...this._demandForecast()].sort((a, b) => b.predictedQuantity - a.predictedQuantity).slice(0, 10);
+  });
+
+  readonly peakStaffingHour = computed(() => {
+    const rec = this._staffingRec();
+    if (!rec || rec.hourlyBreakdown.length === 0) return null;
+    return [...rec.hourlyBreakdown].sort((a, b) => b.recommendedStaff - a.recommendedStaff)[0];
+  });
+
+  readonly maxStaffCount = computed(() => {
+    const rec = this._staffingRec();
+    if (!rec || rec.hourlyBreakdown.length === 0) return 1;
+    return Math.max(...rec.hourlyBreakdown.map(h => h.recommendedStaff));
   });
 
   constructor() {
@@ -179,6 +229,10 @@ export class CommandCenter {
 
   setTab(tab: CommandTab): void {
     this._activeTab.set(tab);
+
+    if (tab === 'forecast' && !this._revenueForecast()) {
+      this.loadForecastData();
+    }
   }
 
   async loadAllData(): Promise<void> {
@@ -261,6 +315,95 @@ export class CommandCenter {
     if (seconds < 60) return 'just now';
     const minutes = Math.floor(seconds / 60);
     return `${minutes}m ago`;
+  }
+
+  // === Predictive Analytics Methods ===
+
+  async loadForecastData(): Promise<void> {
+    await Promise.all([
+      this.loadRevenueForecast(),
+      this.loadDemandForecast(),
+      this.loadStaffingRecommendation(),
+    ]);
+  }
+
+  async loadRevenueForecast(): Promise<void> {
+    this._isLoadingForecast.set(true);
+    const result = await this.analyticsService.getRevenueForecast(this._forecastDays());
+    this._revenueForecast.set(result);
+    this._isLoadingForecast.set(false);
+  }
+
+  setForecastDays(days: number): void {
+    this._forecastDays.set(days);
+    this.loadRevenueForecast();
+  }
+
+  getForecastBarHeight(upper: number): number {
+    const max = this.forecastMaxRevenue();
+    if (max === 0) return 10;
+    return Math.max(10, (upper / max) * 100);
+  }
+
+  getForecastPredictedHeight(predicted: number): number {
+    const max = this.forecastMaxRevenue();
+    if (max === 0) return 10;
+    return Math.max(5, (predicted / max) * 100);
+  }
+
+  async loadDemandForecast(): Promise<void> {
+    this._isLoadingDemand.set(true);
+    const result = await this.analyticsService.getDemandForecast(this._demandForecastDate());
+    this._demandForecast.set(result);
+    this._isLoadingDemand.set(false);
+  }
+
+  setDemandDate(date: string): void {
+    this._demandForecastDate.set(date);
+    this.loadDemandForecast();
+  }
+
+  getConfidenceClass(confidence: number): string {
+    if (confidence >= 0.8) return 'confidence-high';
+    if (confidence >= 0.6) return 'confidence-medium';
+    return 'confidence-low';
+  }
+
+  getConfidenceLabel(confidence: number): string {
+    if (confidence >= 0.8) return 'High';
+    if (confidence >= 0.6) return 'Medium';
+    return 'Low';
+  }
+
+  async loadStaffingRecommendation(): Promise<void> {
+    this._isLoadingStaffing.set(true);
+    const result = await this.analyticsService.getStaffingRecommendation(this._staffingDate());
+    this._staffingRec.set(result);
+    this._isLoadingStaffing.set(false);
+  }
+
+  setStaffingDate(date: string): void {
+    this._staffingDate.set(date);
+    this.loadStaffingRecommendation();
+  }
+
+  getStaffBarHeight(count: number): number {
+    const max = this.maxStaffCount();
+    if (max === 0) return 10;
+    return Math.max(10, (count / max) * 100);
+  }
+
+  formatHour(hour: number): string {
+    if (hour === 0) return '12am';
+    if (hour < 12) return `${hour}am`;
+    if (hour === 12) return '12pm';
+    return `${hour - 12}pm`;
+  }
+
+  private getTomorrowDate(): string {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
   }
 
   private async loadProfitSummary(): Promise<void> {

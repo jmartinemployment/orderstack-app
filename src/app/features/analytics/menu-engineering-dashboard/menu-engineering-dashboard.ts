@@ -1,14 +1,23 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DecimalPipe, PercentPipe } from '@angular/common';
 import { AnalyticsService } from '@services/analytics';
 import { AuthService } from '@services/auth';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
-import { MenuEngineeringItem, MenuQuadrant } from '@models/index';
+import {
+  MenuEngineeringItem,
+  MenuQuadrant,
+  ItemProfitabilityTrend,
+  PriceElasticityIndicator,
+  CannibalizationResult,
+  SeasonalPattern,
+} from '@models/index';
+
+type DeepDiveTab = 'overview' | 'profitability' | 'elasticity' | 'cannibalization' | 'seasonal';
 
 @Component({
   selector: 'os-menu-engineering',
-  imports: [CurrencyPipe, LoadingSpinner, ErrorDisplay],
+  imports: [CurrencyPipe, DecimalPipe, PercentPipe, LoadingSpinner, ErrorDisplay],
   templateUrl: './menu-engineering-dashboard.html',
   styleUrl: './menu-engineering-dashboard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,6 +41,33 @@ export class MenuEngineeringDashboard implements OnInit {
   readonly sortAsc = this._sortAsc.asReadonly();
   readonly filterQuadrant = this._filterQuadrant.asReadonly();
 
+  // --- Deep Dive (Phase 3) ---
+  private readonly _deepDiveTab = signal<DeepDiveTab>('overview');
+  private readonly _selectedItemId = signal<string | null>(null);
+  private readonly _profitTrendDays = signal(30);
+  private readonly _profitTrend = signal<ItemProfitabilityTrend | null>(null);
+  private readonly _isLoadingTrend = signal(false);
+  private readonly _elasticityData = signal<PriceElasticityIndicator[]>([]);
+  private readonly _isLoadingElasticity = signal(false);
+  private readonly _cannibalizationDays = signal(60);
+  private readonly _cannibalizationData = signal<CannibalizationResult[]>([]);
+  private readonly _isLoadingCannibalization = signal(false);
+  private readonly _seasonalPattern = signal<SeasonalPattern | null>(null);
+  private readonly _isLoadingSeasonal = signal(false);
+
+  readonly deepDiveTab = this._deepDiveTab.asReadonly();
+  readonly selectedItemId = this._selectedItemId.asReadonly();
+  readonly profitTrendDays = this._profitTrendDays.asReadonly();
+  readonly profitTrend = this._profitTrend.asReadonly();
+  readonly isLoadingTrend = this._isLoadingTrend.asReadonly();
+  readonly elasticityData = this._elasticityData.asReadonly();
+  readonly isLoadingElasticity = this._isLoadingElasticity.asReadonly();
+  readonly cannibalizationDays = this._cannibalizationDays.asReadonly();
+  readonly cannibalizationData = this._cannibalizationData.asReadonly();
+  readonly isLoadingCannibalization = this._isLoadingCannibalization.asReadonly();
+  readonly seasonalPattern = this._seasonalPattern.asReadonly();
+  readonly isLoadingSeasonal = this._isLoadingSeasonal.asReadonly();
+
   readonly filteredItems = computed(() => {
     const engineering = this.data();
     if (!engineering) return [];
@@ -54,6 +90,46 @@ export class MenuEngineeringDashboard implements OnInit {
     });
 
     return items;
+  });
+
+  readonly selectedItemName = computed(() => {
+    const id = this._selectedItemId();
+    if (!id) return null;
+    const engineering = this.data();
+    return engineering?.items.find(i => i.id === id)?.name ?? null;
+  });
+
+  // Elasticity sorted by absolute estimated revenue change (most impactful first)
+  readonly sortedElasticity = computed(() => {
+    return [...this._elasticityData()].sort(
+      (a, b) => Math.abs(b.estimatedRevenueChange) - Math.abs(a.estimatedRevenueChange)
+    );
+  });
+
+  // Profit trend sparkline: min/max for chart scaling
+  readonly trendMinMargin = computed(() => {
+    const trend = this._profitTrend();
+    if (!trend || trend.dataPoints.length === 0) return 0;
+    return Math.min(...trend.dataPoints.map(d => d.margin));
+  });
+
+  readonly trendMaxMargin = computed(() => {
+    const trend = this._profitTrend();
+    if (!trend || trend.dataPoints.length === 0) return 100;
+    return Math.max(...trend.dataPoints.map(d => d.margin));
+  });
+
+  // Seasonal: peak day and peak month
+  readonly peakDay = computed(() => {
+    const pattern = this._seasonalPattern();
+    if (!pattern || pattern.dayOfWeek.length === 0) return null;
+    return [...pattern.dayOfWeek].sort((a, b) => b.avgSales - a.avgSales)[0];
+  });
+
+  readonly peakMonth = computed(() => {
+    const pattern = this._seasonalPattern();
+    if (!pattern || pattern.monthOfYear.length === 0) return null;
+    return [...pattern.monthOfYear].sort((a, b) => b.avgSales - a.avgSales)[0];
   });
 
   ngOnInit(): void {
@@ -108,5 +184,134 @@ export class MenuEngineeringDashboard implements OnInit {
 
   retry(): void {
     this.analyticsService.loadMenuEngineering(this._days());
+  }
+
+  // === Deep Dive Methods ===
+
+  setDeepDiveTab(tab: DeepDiveTab): void {
+    this._deepDiveTab.set(tab);
+
+    // Auto-load data for the tab
+    if (tab === 'elasticity' && this._elasticityData().length === 0) {
+      this.loadElasticity();
+    }
+    if (tab === 'cannibalization' && this._cannibalizationData().length === 0) {
+      this.loadCannibalization();
+    }
+  }
+
+  selectItem(itemId: string): void {
+    this._selectedItemId.set(itemId);
+  }
+
+  // Profitability Trend
+  async loadProfitTrend(): Promise<void> {
+    const itemId = this._selectedItemId();
+    if (!itemId) return;
+
+    this._isLoadingTrend.set(true);
+    const result = await this.analyticsService.getItemProfitabilityTrend(itemId, this._profitTrendDays());
+    this._profitTrend.set(result);
+    this._isLoadingTrend.set(false);
+  }
+
+  setProfitTrendDays(days: number): void {
+    this._profitTrendDays.set(days);
+    this.loadProfitTrend();
+  }
+
+  viewItemProfitability(itemId: string): void {
+    this._selectedItemId.set(itemId);
+    this._deepDiveTab.set('profitability');
+    this.loadProfitTrend();
+  }
+
+  viewItemSeasonal(itemId: string): void {
+    this._selectedItemId.set(itemId);
+    this._deepDiveTab.set('seasonal');
+    this.loadSeasonal();
+  }
+
+  getTrendBarHeight(margin: number): number {
+    const min = this.trendMinMargin();
+    const max = this.trendMaxMargin();
+    const range = max - min;
+    if (range === 0) return 50;
+    return Math.max(10, ((margin - min) / range) * 100);
+  }
+
+  getTrendBarColor(margin: number): string {
+    if (margin >= 60) return 'var(--os-success)';
+    if (margin >= 40) return 'var(--os-warning)';
+    return 'var(--os-danger)';
+  }
+
+  // Price Elasticity
+  async loadElasticity(): Promise<void> {
+    this._isLoadingElasticity.set(true);
+    const result = await this.analyticsService.getPriceElasticity();
+    this._elasticityData.set(result);
+    this._isLoadingElasticity.set(false);
+  }
+
+  getElasticityClass(recommendation: 'increase' | 'decrease' | 'hold'): string {
+    switch (recommendation) {
+      case 'increase': return 'rec-increase';
+      case 'decrease': return 'rec-decrease';
+      case 'hold': return 'rec-hold';
+    }
+  }
+
+  getElasticityLabel(recommendation: 'increase' | 'decrease' | 'hold'): string {
+    switch (recommendation) {
+      case 'increase': return 'Increase Price';
+      case 'decrease': return 'Decrease Price';
+      case 'hold': return 'Hold Price';
+    }
+  }
+
+  getElasticityDescription(elasticity: number): string {
+    const abs = Math.abs(elasticity);
+    if (abs < 0.5) return 'Very inelastic — price changes have minimal impact on demand';
+    if (abs < 1) return 'Inelastic — demand is relatively stable despite price changes';
+    if (abs === 1) return 'Unit elastic — price and demand change proportionally';
+    if (abs < 2) return 'Elastic — demand is sensitive to price changes';
+    return 'Highly elastic — small price changes cause large demand shifts';
+  }
+
+  // Cannibalization
+  async loadCannibalization(): Promise<void> {
+    this._isLoadingCannibalization.set(true);
+    const result = await this.analyticsService.getCannibalization(this._cannibalizationDays());
+    this._cannibalizationData.set(result);
+    this._isLoadingCannibalization.set(false);
+  }
+
+  setCannibalizationDays(days: number): void {
+    this._cannibalizationDays.set(days);
+    this.loadCannibalization();
+  }
+
+  getCannibalizationSeverity(declinePercent: number): string {
+    if (declinePercent >= 30) return 'severity-critical';
+    if (declinePercent >= 15) return 'severity-warning';
+    return 'severity-low';
+  }
+
+  // Seasonal Pattern
+  async loadSeasonal(): Promise<void> {
+    const itemId = this._selectedItemId();
+    if (!itemId) return;
+
+    this._isLoadingSeasonal.set(true);
+    const result = await this.analyticsService.getSeasonalPattern(itemId);
+    this._seasonalPattern.set(result);
+    this._isLoadingSeasonal.set(false);
+  }
+
+  getSeasonalBarHeight(avgSales: number, allValues: { avgSales: number }[]): number {
+    const max = Math.max(...allValues.map(v => v.avgSales));
+    if (max === 0) return 10;
+    return Math.max(10, (avgSales / max) * 100);
   }
 }

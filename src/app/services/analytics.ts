@@ -12,6 +12,13 @@ import {
   TeamSalesReport,
   ConversionFunnel,
   SalesAlert,
+  ItemProfitabilityTrend,
+  PriceElasticityIndicator,
+  CannibalizationResult,
+  SeasonalPattern,
+  RevenueForecast,
+  DemandForecastItem,
+  StaffingRecommendation,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -353,6 +360,108 @@ export class AnalyticsService {
       );
     } catch {
       // Silent — alert stays unacknowledged
+    }
+  }
+
+  // === Menu Deep Dive (Phase 3) ===
+
+  async getItemProfitabilityTrend(itemId: string, days = 30): Promise<ItemProfitabilityTrend | null> {
+    if (!this.restaurantId) return null;
+
+    try {
+      return await firstValueFrom(
+        this.http.get<ItemProfitabilityTrend>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/menu/item/${itemId}/profitability?days=${days}`
+        )
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  async getPriceElasticity(): Promise<PriceElasticityIndicator[]> {
+    if (!this.restaurantId) return [];
+
+    try {
+      return await firstValueFrom(
+        this.http.get<PriceElasticityIndicator[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/menu/price-elasticity`
+        )
+      ) ?? [];
+    } catch {
+      return [];
+    }
+  }
+
+  async getCannibalization(days = 60): Promise<CannibalizationResult[]> {
+    if (!this.restaurantId) return [];
+
+    try {
+      return await firstValueFrom(
+        this.http.get<CannibalizationResult[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/menu/cannibalization?days=${days}`
+        )
+      ) ?? [];
+    } catch {
+      return [];
+    }
+  }
+
+  async getSeasonalPattern(itemId: string): Promise<SeasonalPattern | null> {
+    if (!this.restaurantId) return null;
+
+    try {
+      return await firstValueFrom(
+        this.http.get<SeasonalPattern>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/menu/item/${itemId}/seasonal`
+        )
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  // === Predictive Analytics (Phase 3) ===
+
+  async getRevenueForecast(days = 14): Promise<RevenueForecast | null> {
+    if (!this.restaurantId) return null;
+
+    try {
+      return await firstValueFrom(
+        this.http.get<RevenueForecast>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/forecast/revenue?days=${days}`
+        )
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  async getDemandForecast(date: string): Promise<DemandForecastItem[]> {
+    if (!this.restaurantId) return [];
+
+    try {
+      return await firstValueFrom(
+        this.http.get<DemandForecastItem[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/forecast/demand?date=${encodeURIComponent(date)}`
+        )
+      ) ?? [];
+    } catch {
+      return [];
+    }
+  }
+
+  async getStaffingRecommendation(date: string): Promise<StaffingRecommendation | null> {
+    if (!this.restaurantId) return null;
+
+    try {
+      return await firstValueFrom(
+        this.http.get<StaffingRecommendation>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/forecast/staffing?date=${encodeURIComponent(date)}`
+        )
+      );
+    } catch {
+      return null;
     }
   }
 

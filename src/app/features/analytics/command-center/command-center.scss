@@ -203,3 +203,173 @@
   &.urgency-caution { border-left-color: #0dcaf0; background-color: rgba(13, 202, 240, 0.04); }
   &.urgency-ok { border-left-color: var(--os-success); background-color: rgba(0, 166, 126, 0.04); }
 }
+
+// === Forecast Tab (Phase 3) ===
+
+.forecast-kpis {
+  flex-wrap: wrap;
+}
+
+.forecast-kpi {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--os-bg);
+  border-radius: var(--os-radius);
+  border: 1px solid var(--os-border);
+
+  .kpi-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    color: var(--os-text-muted);
+  }
+
+  .kpi-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--os-text-primary);
+  }
+}
+
+// Confidence classes
+.confidence-high { color: var(--os-success) !important; background-color: rgba(0, 166, 126, 0.1) !important; }
+.confidence-medium { color: var(--os-warning) !important; background-color: rgba(245, 166, 35, 0.1) !important; }
+.confidence-low { color: var(--os-danger) !important; background-color: rgba(229, 62, 62, 0.1) !important; }
+
+// Revenue Forecast Chart
+.forecast-chart {
+  overflow-x: auto;
+
+  .forecast-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 180px;
+    padding-bottom: 0.25rem;
+  }
+
+  .forecast-bar-wrapper {
+    flex: 1;
+    min-width: 24px;
+    max-width: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    cursor: default;
+  }
+
+  .forecast-bar-band {
+    width: 100%;
+    background-color: rgba(0, 106, 255, 0.12);
+    border-radius: 2px 2px 0 0;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .forecast-bar-predicted {
+    width: 60%;
+    margin: 0 auto;
+    background-color: var(--os-primary);
+    border-radius: 2px 2px 0 0;
+    min-height: 4px;
+  }
+
+  .forecast-bar-label {
+    font-size: 0.55rem;
+    color: var(--os-text-muted);
+    margin-top: 4px;
+    white-space: nowrap;
+  }
+}
+
+.forecast-legend {
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: var(--os-text-secondary);
+  }
+
+  .legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+
+    &.predicted { background-color: var(--os-primary); }
+    &.band { background-color: rgba(0, 106, 255, 0.12); }
+  }
+}
+
+// Demand Forecast
+.demand-list {
+  .demand-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--os-border);
+    color: var(--os-text-primary);
+
+    &:last-child { border-bottom: none; }
+  }
+}
+
+// Staffing Chart
+.staffing-chart {
+  overflow-x: auto;
+
+  .staffing-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 140px;
+    padding-bottom: 0.25rem;
+  }
+
+  .staffing-bar-wrapper {
+    flex: 1;
+    min-width: 24px;
+    max-width: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    cursor: default;
+  }
+
+  .staffing-bar {
+    width: 100%;
+    background-color: var(--os-primary);
+    border-radius: 2px 2px 0 0;
+    min-height: 4px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .staffing-bar-count {
+    font-size: 0.6rem;
+    color: #fff;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  .staffing-bar-label {
+    font-size: 0.55rem;
+    color: var(--os-text-muted);
+    margin-top: 4px;
+    white-space: nowrap;
+  }
+}
+
+.btn-primary {
+  background-color: var(--os-primary);
+  border-color: var(--os-primary);
+
+  &:hover:not(:disabled) {
+    background-color: var(--os-primary-hover);
+    border-color: var(--os-primary-hover);
+  }
+}
