@@ -6,6 +6,11 @@
       @if (canUseOrderNumbers() && orderNumber()) {
         <span class="order-number">#{{ orderNumber() }}</span>
       }
+      @if (autoProgressEnabled()) {
+        <span class="auto-badge">
+          <i class="bi bi-lightning-charge-fill"></i> Express
+        </span>
+      }
       <button class="btn-refresh" (click)="refreshOrder()" [disabled]="isLoading()">
         <i class="bi bi-arrow-clockwise"></i>
       </button>
@@ -33,12 +38,14 @@
           </div>
         </div>
       } @else {
-        <!-- Tableless mode: New Order button -->
-        <div class="tableless-controls">
-          <button class="btn btn-primary btn-new-order" (click)="createNewOrder()" [disabled]="isLoading()">
-            <i class="bi bi-plus-lg"></i> New Order
-          </button>
-        </div>
+        <!-- Tableless mode: New Order button (hidden in auto-progress since orders are auto-created) -->
+        @if (!autoProgressEnabled()) {
+          <div class="tableless-controls">
+            <button class="btn btn-primary btn-new-order" (click)="createNewOrder()" [disabled]="isLoading()">
+              <i class="bi bi-plus-lg"></i> New Order
+            </button>
+          </div>
+        }
       }
 
       <!-- Gate 2: Seat selector — only when seat assignment is enabled -->
@@ -77,87 +84,126 @@
     </div>
   }
 
-  <!-- Category tabs -->
-  <nav class="category-tabs">
-    @for (cat of categories(); track cat.id) {
-      <button
-        class="category-pill"
-        [class.active]="selectedCategoryId() === cat.id"
-        (click)="selectCategory(cat.id)">
-        {{ cat.name }}
-      </button>
-    }
-  </nav>
-
-  <!-- Item grid -->
-  <div class="item-grid-container">
-    @if (isLoading()) {
-      <div class="loading-overlay">
-        <div class="spinner"></div>
+  <!-- Auto-progress payment view -->
+  @if (showPaymentView() && activeOrder()) {
+    <div class="payment-view">
+      <div class="payment-header">
+        <i class="bi bi-receipt"></i>
+        <h2>Ready to Pay</h2>
       </div>
-    }
 
-    <div class="item-grid">
-      @for (item of currentCategoryItems(); track item.id) {
-        <button class="item-card" (click)="onItemTap(item)">
-          <span class="item-name">{{ item.name }}</span>
-          <span class="item-price">{{ item.price | currency }}</span>
-          @if (item.eightySixed) {
-            <span class="item-86">86'd</span>
-          }
-        </button>
-      } @empty {
-        <div class="empty-grid">
-          <i class="bi bi-grid-3x3-gap"></i>
-          <span>No items in this category</span>
-        </div>
-      }
-    </div>
-  </div>
-
-  <!-- Order summary footer -->
-  @if (activeOrder()) {
-    <footer class="order-footer" [class.expanded]="footerExpanded()">
-      <button class="footer-toggle" (click)="toggleFooter()">
-        <div class="footer-summary">
-          <span class="item-count">{{ itemCount() }} items</span>
-          <span class="footer-total">{{ subtotal() | currency }}</span>
-        </div>
-        <i class="bi" [class.bi-chevron-up]="!footerExpanded()" [class.bi-chevron-down]="footerExpanded()"></i>
-      </button>
-
-      @if (footerExpanded()) {
-        <div class="footer-items">
-          @for (item of orderItems(); track item.guid) {
-            <div class="footer-item">
-              <div class="footer-item-info">
-                <span class="footer-item-qty">{{ item.quantity }}x</span>
-                <span class="footer-item-name">{{ item.menuItemName }}</span>
-                @if (item.seatNumber) {
-                  <span class="footer-item-seat">S{{ item.seatNumber }}</span>
-                }
-              </div>
-              <div class="footer-item-actions">
-                <span class="footer-item-price">{{ item.totalPrice | currency }}</span>
-                <button class="btn-remove" (click)="removeItem(item)">
-                  <i class="bi bi-x-circle"></i>
-                </button>
-              </div>
+      <div class="payment-items">
+        @for (item of orderItems(); track item.guid) {
+          <div class="payment-item">
+            <span class="payment-item-qty">{{ item.quantity }}x</span>
+            <span class="payment-item-name">{{ item.menuItemName }}</span>
+            <span class="payment-item-price">{{ item.totalPrice | currency }}</span>
+          </div>
+          @if (item.modifiers.length > 0) {
+            <div class="payment-item-mods">
+              @for (mod of item.modifiers; track mod.guid) {
+                <span class="mod-tag">{{ mod.name }}</span>
+              }
             </div>
-
-            @if (item.modifiers.length > 0) {
-              <div class="footer-item-mods">
-                @for (mod of item.modifiers; track mod.guid) {
-                  <span class="mod-tag">{{ mod.name }}</span>
-                }
-              </div>
-            }
-          } @empty {
-            <div class="footer-empty">No items yet — tap to add</div>
           }
+        }
+      </div>
+
+      <div class="payment-total">
+        <span>Total</span>
+        <span class="payment-total-amount">{{ subtotal() | currency }}</span>
+      </div>
+
+      <div class="payment-actions">
+        <button class="btn-add-more" (click)="addMoreItems()">
+          <i class="bi bi-plus-lg"></i> Add More Items
+        </button>
+        <!-- Payment integration placeholder — payment is handled by the existing payment flow -->
+      </div>
+    </div>
+  } @else {
+    <!-- Category tabs -->
+    <nav class="category-tabs">
+      @for (cat of categories(); track cat.id) {
+        <button
+          class="category-pill"
+          [class.active]="selectedCategoryId() === cat.id"
+          (click)="selectCategory(cat.id)">
+          {{ cat.name }}
+        </button>
+      }
+    </nav>
+
+    <!-- Item grid -->
+    <div class="item-grid-container">
+      @if (isLoading()) {
+        <div class="loading-overlay">
+          <div class="spinner"></div>
         </div>
       }
-    </footer>
+
+      <div class="item-grid">
+        @for (item of currentCategoryItems(); track item.id) {
+          <button class="item-card" (click)="onItemTap(item)">
+            <span class="item-name">{{ item.name }}</span>
+            <span class="item-price">{{ item.price | currency }}</span>
+            @if (item.eightySixed) {
+              <span class="item-86">86'd</span>
+            }
+          </button>
+        } @empty {
+          <div class="empty-grid">
+            <i class="bi bi-grid-3x3-gap"></i>
+            <span>No items in this category</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Order summary footer -->
+    @if (activeOrder()) {
+      <footer class="order-footer" [class.expanded]="footerExpanded()">
+        <button class="footer-toggle" (click)="toggleFooter()">
+          <div class="footer-summary">
+            <span class="item-count">{{ itemCount() }} items</span>
+            <span class="footer-total">{{ subtotal() | currency }}</span>
+          </div>
+          <i class="bi" [class.bi-chevron-up]="!footerExpanded()" [class.bi-chevron-down]="footerExpanded()"></i>
+        </button>
+
+        @if (footerExpanded()) {
+          <div class="footer-items">
+            @for (item of orderItems(); track item.guid) {
+              <div class="footer-item">
+                <div class="footer-item-info">
+                  <span class="footer-item-qty">{{ item.quantity }}x</span>
+                  <span class="footer-item-name">{{ item.menuItemName }}</span>
+                  @if (item.seatNumber) {
+                    <span class="footer-item-seat">S{{ item.seatNumber }}</span>
+                  }
+                </div>
+                <div class="footer-item-actions">
+                  <span class="footer-item-price">{{ item.totalPrice | currency }}</span>
+                  <button class="btn-remove" (click)="removeItem(item)">
+                    <i class="bi bi-x-circle"></i>
+                  </button>
+                </div>
+              </div>
+
+              @if (item.modifiers.length > 0) {
+                <div class="footer-item-mods">
+                  @for (mod of item.modifiers; track mod.guid) {
+                    <span class="mod-tag">{{ mod.name }}</span>
+                  }
+                </div>
+              }
+            } @empty {
+              <div class="footer-empty">No items yet — tap to add</div>
+            }
+          </div>
+        }
+      </footer>
+    }
   }
 
   <!-- Modifier prompt modal -->

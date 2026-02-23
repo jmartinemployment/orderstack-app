@@ -67,6 +67,7 @@ export interface DeviceModeSettings {
     autoSendToKds: boolean;
     showTipPrompt: boolean;
     tipPresets: number[];
+    autoProgressToPayment: boolean;
   };
   receipt: {
     autoPrintReceipt: boolean;
@@ -212,6 +213,7 @@ export function defaultModeSettings(): DeviceModeSettings {
       autoSendToKds: true,
       showTipPrompt: true,
       tipPresets: [15, 18, 20, 25],
+      autoProgressToPayment: false,
     },
     receipt: {
       autoPrintReceipt: true,
@@ -245,6 +247,7 @@ export function defaultModeSettingsForPosMode(posMode: DevicePosMode): DeviceMod
           requireTableSelection: false,
           skipPaymentScreen: false,
           showTipPrompt: true,
+          autoProgressToPayment: true,
         },
         receipt: {
           ...base.receipt,

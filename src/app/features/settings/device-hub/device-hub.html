@@ -314,6 +314,13 @@
                           (ngModelChange)="updateCheckoutSetting('autoSendToKds', $event)" />
                         <label class="form-check-label" for="autoKds">Auto-send to KDS</label>
                       </div>
+                      <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="autoProgress"
+                          [ngModel]="modeFormSettings().checkout.autoProgressToPayment"
+                          (ngModelChange)="updateCheckoutSetting('autoProgressToPayment', $event)" />
+                        <label class="form-check-label" for="autoProgress">Auto-progress to payment</label>
+                        <div class="form-text">After tapping an item, skip to payment immediately. Best for counter service.</div>
+                      </div>
                     </div>
                   </div>
                 </div>

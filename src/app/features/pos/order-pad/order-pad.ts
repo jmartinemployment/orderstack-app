@@ -14,6 +14,7 @@ import { TableService } from '@services/table';
 import { AuthService } from '@services/auth';
 import { CheckService } from '@services/check';
 import { PlatformService } from '@services/platform';
+import { DeviceService } from '@services/device';
 import { ModifierPrompt, ModifierPromptResult } from '../modifier-prompt';
 import {
   RestaurantTable,
@@ -39,6 +40,7 @@ export class OrderPad implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly checkService = inject(CheckService);
   private readonly platformService = inject(PlatformService);
+  private readonly deviceService = inject(DeviceService);
 
   // Mode-aware feature flags
   readonly canUseFloorPlan = this.platformService.canUseFloorPlan;
@@ -47,6 +49,12 @@ export class OrderPad implements OnInit, OnDestroy {
 
   readonly tables = this.tableService.tables;
   readonly orders = this.orderService.orders;
+
+  // Auto-progression: read from device mode settings
+  readonly autoProgressEnabled = computed(() => {
+    const mode = this.deviceService.currentDeviceMode();
+    return mode?.settings?.checkout?.autoProgressToPayment ?? false;
+  });
 
   // Menu state
   private readonly _categories = signal<MenuCategory[]>([]);
@@ -140,6 +148,10 @@ export class OrderPad implements OnInit, OnDestroy {
   private readonly _footerExpanded = signal(false);
   readonly footerExpanded = this._footerExpanded.asReadonly();
 
+  // Auto-progress payment view
+  private readonly _showPaymentView = signal(false);
+  readonly showPaymentView = this._showPaymentView.asReadonly();
+
   // Loading / error
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
@@ -210,6 +222,7 @@ export class OrderPad implements OnInit, OnDestroy {
 
     this._isLoading.set(true);
     this._error.set(null);
+    this._showPaymentView.set(false);
 
     try {
       const order = await this.orderService.createOrder({
@@ -249,6 +262,11 @@ export class OrderPad implements OnInit, OnDestroy {
 
   onItemTap(item: MenuItem): void {
     if (!this.activeOrder()) {
+      // In auto-progress mode, auto-create order on first item tap
+      if (this.autoProgressEnabled() && !this.canUseFloorPlan()) {
+        this.autoProgressAddItem(item);
+        return;
+      }
       this._error.set(this.canUseFloorPlan() ? 'Select a table first' : 'Create an order first');
       return;
     }
@@ -258,6 +276,18 @@ export class OrderPad implements OnInit, OnDestroy {
       this._showModifier.set(true);
     } else {
       this.addItemDirectly(item);
+    }
+  }
+
+  private async autoProgressAddItem(item: MenuItem): Promise<void> {
+    await this.createNewOrder();
+    if (!this.activeOrder()) return;
+
+    if (item.modifierGroups && item.modifierGroups.length > 0) {
+      this._modifierItem.set(item);
+      this._showModifier.set(true);
+    } else {
+      await this.addItemDirectly(item);
     }
   }
 
@@ -282,6 +312,11 @@ export class OrderPad implements OnInit, OnDestroy {
 
       await this.checkService.addItemToCheck(order.guid, check.guid, request);
       this.orderService.loadOrders();
+
+      // Auto-progress to payment after modifier confirmation
+      if (this.autoProgressEnabled()) {
+        this._showPaymentView.set(true);
+      }
     } catch {
       this._error.set('Failed to add item');
     } finally {
@@ -311,11 +346,22 @@ export class OrderPad implements OnInit, OnDestroy {
 
       await this.checkService.addItemToCheck(order.guid, check.guid, request);
       this.orderService.loadOrders();
+
+      // Auto-progress to payment after item add
+      if (this.autoProgressEnabled()) {
+        this._showPaymentView.set(true);
+      }
     } catch {
       this._error.set('Failed to add item');
     } finally {
       this._isLoading.set(false);
     }
+  }
+
+  // --- Auto-progress: Add More Items (escape hatch) ---
+
+  addMoreItems(): void {
+    this._showPaymentView.set(false);
   }
 
   // --- Item removal ---
