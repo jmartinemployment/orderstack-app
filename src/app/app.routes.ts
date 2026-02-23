@@ -51,6 +51,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/online-ordering/customer-portal/customer-portal').then(m => m.CustomerPortal),
   },
   {
+    path: 'pay/:checkToken',
+    loadComponent: () => import('./features/online-ordering/scan-to-pay/scan-to-pay').then(m => m.ScanToPay),
+  },
+  {
     path: 'select-restaurant',
     canActivate: [authGuard],
     loadComponent: () => import('./features/auth/restaurant-select/restaurant-select').then(m => m.RestaurantSelect),

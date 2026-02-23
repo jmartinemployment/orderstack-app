@@ -26,6 +26,7 @@ import {
   OrderNoteType,
   OrderTemplate,
   OrderTemplateItem,
+  ScanToPaySession,
 } from '../models';
 import { getDiningOption, DiningOptionType } from '../models/dining-option.model';
 import { AuthService } from './auth';
@@ -242,6 +243,16 @@ export class OrderService implements OnDestroy {
   constructor() {
     this.socketService.onOrderEvent((event) => {
       this.handleOrderEvent(event.type, event.order);
+    });
+
+    // Scan to Pay socket listener
+    this.socketService.onCustomEvent('scan-to-pay:completed', (data: any) => {
+      this.handleScanToPayCompleted({
+        orderId: data.orderId,
+        checkGuid: data.checkGuid,
+        tipAmount: Number(data.tipAmount) || 0,
+        total: Number(data.total) || 0,
+      });
     });
 
     // Load persisted queue when restaurant changes
@@ -941,6 +952,92 @@ export class OrderService implements OnDestroy {
     const template = this._templates().find(t => t.id === templateId);
     if (!template) return [];
     return template.items;
+  }
+
+  // --- Scan to Pay ---
+
+  private readonly _scanToPayCallbacks: Array<(data: { orderId: string; checkGuid: string; tipAmount: number; total: number }) => void> = [];
+
+  async generateCheckQr(orderId: string, checkId: string): Promise<{ token: string; qrCodeUrl: string } | null> {
+    if (!this.restaurantId) return null;
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.post<{ token: string; qrCodeUrl: string }>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/checks/${checkId}/scan-to-pay`,
+          {}
+        )
+      );
+
+      // Update the check locally with the token/QR
+      this._orders.update(orders => orders.map(o => {
+        if (o.guid !== orderId) return o;
+        return {
+          ...o,
+          checks: o.checks.map(c => {
+            if (c.guid !== checkId) return c;
+            return { ...c, paymentToken: result.token, qrCodeUrl: result.qrCodeUrl, scanToPayEnabled: true };
+          }),
+        };
+      }));
+
+      return result;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to generate QR code');
+      return null;
+    }
+  }
+
+  async getCheckByToken(token: string): Promise<(ScanToPaySession & { check: Check; restaurantName: string; restaurantLogo?: string }) | null> {
+    try {
+      return await firstValueFrom(
+        this.http.get<ScanToPaySession & { check: Check; restaurantName: string; restaurantLogo?: string }>(
+          `${this.apiUrl}/scan-to-pay/${token}`
+        )
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  async submitScanToPayment(token: string, payload: { tipAmount: number; paymentMethodNonce: string }): Promise<{ success: boolean; receiptNumber?: string; error?: string }> {
+    try {
+      return await firstValueFrom(
+        this.http.post<{ success: boolean; receiptNumber?: string; error?: string }>(
+          `${this.apiUrl}/scan-to-pay/${token}/pay`,
+          payload
+        )
+      );
+    } catch (err: unknown) {
+      return { success: false, error: err instanceof Error ? err.message : 'Payment failed' };
+    }
+  }
+
+  onScanToPayCompleted(callback: (data: { orderId: string; checkGuid: string; tipAmount: number; total: number }) => void): () => void {
+    this._scanToPayCallbacks.push(callback);
+    return () => {
+      const idx = this._scanToPayCallbacks.indexOf(callback);
+      if (idx !== -1) this._scanToPayCallbacks.splice(idx, 1);
+    };
+  }
+
+  private handleScanToPayCompleted(data: { orderId: string; checkGuid: string; tipAmount: number; total: number }): void {
+    // Update check payment status locally
+    this._orders.update(orders => orders.map(o => {
+      if (o.guid !== data.orderId) return o;
+      return {
+        ...o,
+        checks: o.checks.map(c => {
+          if (c.guid !== data.checkGuid) return c;
+          return { ...c, paymentStatus: 'PAID' as const, tipAmount: data.tipAmount, totalAmount: data.total };
+        }),
+      };
+    }));
+
+    for (const cb of this._scanToPayCallbacks) {
+      cb(data);
+    }
   }
 
   getOrderById(orderId: string): Order | undefined {

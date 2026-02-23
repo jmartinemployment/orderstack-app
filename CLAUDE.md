@@ -613,4 +613,17 @@ ng build --configuration=production
 - **No code changes** — specs only session
 - Next: Begin GAP-R01 (Scan to Pay) or GAP-R03 (Course-Based Firing) implementation. End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 27)*
+**[February 23, 2026] (Session 28) — GAP-R01 Phase 1 Complete (Scan to Pay):**
+- **Phase 1 COMPLETE** — Core Scan-to-Pay flow: models, services, guest payment page, QR Pay in POS, real-time notifications
+- **Step 1 (Models):** Added `ScanToPayStatus` type, `ScanToPaySession` interface, `paymentToken`/`qrCodeUrl`/`scanToPayEnabled` fields to `Check` in `order.model.ts`
+- **Step 2 (Service Methods):** Added `generateCheckQr()`, `getCheckByToken()`, `submitScanToPayment()`, `onScanToPayCompleted()`, `handleScanToPayCompleted()` to `OrderService`. Socket listener for `scan-to-pay:completed` via `SocketService.onCustomEvent()`. Added `onCustomEvent()` and `customEventHandlers` late-binding to `SocketService`
+- **Step 3 (Guest Payment Page):** Created `features/online-ordering/scan-to-pay/` (ts, html, scss). Public route `/pay/:checkToken`. Mobile-optimized (480px max-width), Square light theme. Shows restaurant branding, itemized check, tip selector (15%/18%/20%/25%/Custom), card payment form, success screen. States: loading/check/paying/success/error
+- **Step 4 (QR Pay in POS):** Added `'qr-pay'` to `PosModal` type. New signals: `_qrCodeUrl`, `_isGeneratingQr`, `_scanToPayNotification`. `openQrPayModal()` generates QR via service and displays in modal. QR Pay button (purple, `bi-qr-code` icon) added to action bar row 2. QR modal shows loading spinner → QR image → error/retry states
+- **Step 5 (Real-Time Notification):** `onScanToPayCompleted()` callback registration in `ngOnInit()`. Notification toast slides in from right with green border, QR icon, tip + total amounts. Auto-dismisses after 10 seconds. Click to dismiss immediately
+- **POS SCSS dark→light migration:** Fully rewrote `server-pos-terminal.scss` from dark theme ($bg-dark, $bg-panel, $bg-card, $accent, etc.) to `--os-*` CSS custom properties. This file was missed during Session 14's mass migration
+- **Files created:** `features/online-ordering/scan-to-pay/` (ts, html, scss)
+- **Files modified:** `models/order.model.ts`, `services/order.ts`, `services/socket.ts`, `features/pos/server-pos-terminal/` (ts, html, scss), `app.routes.ts`, `specs/GAP-R01-scan-to-pay.md`
+- **Build: zero errors**
+- Next: GAP-R01 Phase 2 (Split Pay, Apple/Google Pay, settings). GAP-R03 (Course-Based Firing). End-to-end test with live backend.
+
+*Last Updated: February 23, 2026 (Session 28)*

@@ -56,6 +56,7 @@ export class SocketService implements OnDestroy {
   // Event callbacks
   private orderCallbacks: Array<(event: OrderEvent) => void> = [];
   private deliveryLocationCallbacks: Array<(event: DeliveryLocationEvent) => void> = [];
+  private customEventHandlers: Array<{ eventName: string; callback: (data: any) => void }> = [];
 
   constructor() {
     globalThis.addEventListener('online', () => this._browserOnline.set(true));
@@ -97,6 +98,10 @@ export class SocketService implements OnDestroy {
       this.reconnectAttempts = 0;
       this.joinRestaurant(restaurantId);
       this.startHeartbeat();
+      // Bind any custom event handlers registered before connect
+      for (const handler of this.customEventHandlers) {
+        this.socket!.on(handler.eventName, handler.callback);
+      }
     });
 
     this.socket.on('disconnect', () => {
@@ -224,6 +229,21 @@ export class SocketService implements OnDestroy {
     this.orderCallbacks.push(callback);
     return () => {
       this.orderCallbacks = this.orderCallbacks.filter(cb => cb !== callback);
+    };
+  }
+
+  onCustomEvent(eventName: string, callback: (data: any) => void): () => void {
+    if (this.socket) {
+      this.socket.on(eventName, callback);
+    }
+    // Store for late-binding if socket not yet connected
+    const handler = { eventName, callback };
+    this.customEventHandlers.push(handler);
+    return () => {
+      this.customEventHandlers = this.customEventHandlers.filter(h => h !== handler);
+      if (this.socket) {
+        this.socket.off(eventName, callback);
+      }
     };
   }
 

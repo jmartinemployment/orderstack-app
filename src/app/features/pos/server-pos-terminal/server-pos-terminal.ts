@@ -31,7 +31,7 @@ import {
   OrderTemplateItem,
 } from '@models/index';
 
-type PosModal = 'none' | 'modifier' | 'discount' | 'void' | 'comp' | 'split' | 'transfer' | 'tab' | 'templates' | 'save-template';
+type PosModal = 'none' | 'modifier' | 'discount' | 'void' | 'comp' | 'split' | 'transfer' | 'tab' | 'templates' | 'save-template' | 'qr-pay';
 
 @Component({
   selector: 'os-pos-terminal',
@@ -199,12 +199,22 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   readonly templateName = this._templateName.asReadonly();
   readonly isApplyingTemplate = this._isApplyingTemplate.asReadonly();
 
+  // QR Pay (Scan to Pay)
+  private readonly _qrCodeUrl = signal<string | null>(null);
+  private readonly _isGeneratingQr = signal(false);
+  private readonly _scanToPayNotification = signal<{ checkGuid: string; tipAmount: number; total: number } | null>(null);
+
+  readonly qrCodeUrl = this._qrCodeUrl.asReadonly();
+  readonly isGeneratingQr = this._isGeneratingQr.asReadonly();
+  readonly scanToPayNotification = this._scanToPayNotification.asReadonly();
+
   readonly hasCheckItems = computed(() => {
     const check = this.activeCheck();
     return check ? check.selections.length > 0 : false;
   });
 
   private orderEventCleanup: (() => void) | null = null;
+  private scanToPayCleanup: (() => void) | null = null;
 
   ngOnInit(): void {
     this.menuService.loadMenu();
@@ -230,10 +240,19 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     this.orderEventCleanup = this.orderService.onMappedOrderEvent((event: MappedOrderEvent) => {
       // If active order was updated, state refreshes via signals automatically
     });
+
+    // Listen for scan-to-pay completions
+    this.scanToPayCleanup = this.orderService.onScanToPayCompleted((data) => {
+      this._scanToPayNotification.set(data);
+      this.orderService.loadOrders();
+      // Auto-dismiss after 10 seconds
+      setTimeout(() => this._scanToPayNotification.set(null), 10000);
+    });
   }
 
   ngOnDestroy(): void {
     this.orderEventCleanup?.();
+    this.scanToPayCleanup?.();
   }
 
   // --- Table selection ---
@@ -676,6 +695,29 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
 
   async deleteTemplate(templateId: string): Promise<void> {
     await this.orderService.deleteTemplate(templateId);
+  }
+
+  // --- QR Pay (Scan to Pay) ---
+
+  async openQrPayModal(): Promise<void> {
+    const order = this.activeOrder();
+    const check = this.activeCheck();
+    if (!order || !check) return;
+
+    this._isGeneratingQr.set(true);
+    this._qrCodeUrl.set(null);
+    this._activeModal.set('qr-pay');
+
+    const result = await this.orderService.generateCheckQr(order.guid, check.guid);
+    this._isGeneratingQr.set(false);
+
+    if (result) {
+      this._qrCodeUrl.set(result.qrCodeUrl);
+    }
+  }
+
+  dismissScanToPayNotification(): void {
+    this._scanToPayNotification.set(null);
   }
 
   // --- Payment ---

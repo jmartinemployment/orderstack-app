@@ -18,6 +18,23 @@ export type GuestOrderStatus =
 
 export type PaymentStatus = 'OPEN' | 'PAID' | 'PARTIAL' | 'CLOSED';
 
+// --- Scan to Pay ---
+
+export type ScanToPayStatus = 'pending' | 'viewing' | 'paying' | 'completed' | 'expired';
+
+export interface ScanToPaySession {
+  token: string;
+  checkId: string;
+  orderId: string;
+  status: ScanToPayStatus;
+  viewedAt?: string;
+  tipAmount: number;
+  tipPercent: number;
+  paymentMethod?: string;
+  paidAt?: string;
+  expiresAt: string;
+}
+
 export type FulfillmentStatus = 'NEW' | 'HOLD' | 'SENT' | 'ON_THE_FLY';
 
 export type CourseFireStatus = 'PENDING' | 'FIRED' | 'READY';
@@ -207,6 +224,10 @@ export interface Check {
   tabOpenedAt?: Date;
   tabClosedAt?: Date;
   preauthId?: string;
+  // Scan to Pay
+  paymentToken?: string;
+  qrCodeUrl?: string;
+  scanToPayEnabled?: boolean;
 }
 
 export interface OrderTimestamps {

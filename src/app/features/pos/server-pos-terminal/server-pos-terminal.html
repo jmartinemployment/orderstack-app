@@ -354,6 +354,9 @@
                 </button>
               }
             }
+            <button type="button" class="action-btn action-qr" (click)="openQrPayModal()" title="QR Pay">
+              <i class="bi bi-qr-code"></i> QR Pay
+            </button>
             <button type="button" class="action-btn action-print" (click)="printCheck()" title="Print">
               <i class="bi bi-printer"></i> Print
             </button>
@@ -567,6 +570,52 @@
           </button>
         </div>
       </div>
+    </div>
+  }
+
+  <!-- QR Pay Modal -->
+  @if (activeModal() === 'qr-pay') {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="qr-modal" (click)="$event.stopPropagation()">
+        <h5>Scan to Pay</h5>
+        <p class="qr-subtitle">Guest scans to view check and pay from their phone</p>
+        @if (isGeneratingQr()) {
+          <div class="qr-loading">
+            <span class="spinner-border"></span>
+            <p>Generating QR code...</p>
+          </div>
+        } @else if (qrCodeUrl()) {
+          <div class="qr-display">
+            <img [src]="qrCodeUrl()" alt="Scan to Pay QR Code" class="qr-image">
+          </div>
+          <div class="qr-actions">
+            <button type="button" class="btn btn-outline-secondary" (click)="printCheck()">
+              <i class="bi bi-printer me-1"></i> Print with QR
+            </button>
+            <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Done</button>
+          </div>
+        } @else {
+          <div class="qr-error">
+            <i class="bi bi-exclamation-triangle"></i>
+            <p>Could not generate QR code. Try again.</p>
+            <button type="button" class="btn btn-primary btn-sm" (click)="openQrPayModal()">Retry</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Scan-to-Pay Notification Toast -->
+  @if (scanToPayNotification(); as notif) {
+    <div class="stp-toast" (click)="dismissScanToPayNotification()">
+      <i class="bi bi-qr-code-scan stp-toast-icon"></i>
+      <div class="stp-toast-content">
+        <strong>QR Payment Received</strong>
+        <span>Tip: {{ notif.tipAmount | currency }} &middot; Total: {{ notif.total | currency }}</span>
+      </div>
+      <button type="button" class="stp-toast-close">
+        <i class="bi bi-x-lg"></i>
+      </button>
     </div>
   }
 

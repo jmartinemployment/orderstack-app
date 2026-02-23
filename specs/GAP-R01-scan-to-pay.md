@@ -1,6 +1,6 @@
 # GAP-R01: Scan to Pay (QR Code Table Payment)
 
-**Status:** NOT STARTED
+**Status:** Phase 1 COMPLETE
 **Priority:** 1 (highest value restaurant gap)
 **Square Reference:** Guests scan QR code at table to view check, add tip, and pay from phone — no app download.
 
