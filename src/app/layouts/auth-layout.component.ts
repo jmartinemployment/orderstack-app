@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'os-auth-layout',
@@ -7,12 +7,14 @@ import { RouterOutlet } from '@angular/router';
   imports: [RouterOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="auth-layout">
-      <div class="auth-brand">
-        <i class="bi bi-stack"></i>
-        <span>OrderStack</span>
-      </div>
-      <div class="auth-content">
+    <div class="auth-layout" [class.auth-layout--full]="isSignup">
+      @if (!isSignup) {
+        <div class="auth-brand">
+          <i class="bi bi-stack"></i>
+          <span>OrderStack</span>
+        </div>
+      }
+      <div class="auth-content" [class.auth-content--full]="isSignup">
         <router-outlet />
       </div>
     </div>
@@ -26,6 +28,11 @@ import { RouterOutlet } from '@angular/router';
       justify-content: center;
       background: #f9fafb;
       padding: 24px;
+    }
+
+    .auth-layout--full {
+      padding: 0;
+      background: #fff;
     }
 
     .auth-brand {
@@ -47,6 +54,16 @@ import { RouterOutlet } from '@angular/router';
       width: 100%;
       max-width: 440px;
     }
+
+    .auth-content--full {
+      max-width: none;
+    }
   `],
 })
-export class AuthLayoutComponent {}
+export class AuthLayoutComponent {
+  isSignup = false;
+
+  constructor(private route: ActivatedRoute) {
+    this.isSignup = this.route.snapshot.routeConfig?.path === 'signup';
+  }
+}

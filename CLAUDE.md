@@ -644,4 +644,15 @@ ng build --configuration=production
 - **Deleted specs:** GAP-R04 (auto-progression), GAP-R10 (customer display) — 100% complete from prior sessions
 - Next: GAP-R01 Phase 2 (Split Pay, Apple/Google Pay). GAP-R03 (Course-Based Firing). End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 29)*
+**[February 23, 2026] (Session 30) — Signup Screen Layout & Content Fixes:**
+- **Fix: Signup too narrow on all devices** — `auth-layout.component.ts` was constraining signup to 440px max-width. Added `isSignup` flag that conditionally removes brand header and width constraint (`auth-layout--full`, `auth-content--full` CSS classes).
+- **Fix: Triple "OrderStack" branding** — Was showing in (1) auth-layout wrapper, (2) brand-mark in form panel, (3) promo-brand in dark panel. Removed auth-layout brand for signup, removed brand-mark from form panel. Now appears once only in promo panel.
+- **Fix: "restaurant" → "business"** — Changed "Everything you need to run your restaurant" → "Everything you need to run your business", tagline → "Trusted by businesses of all sizes."
+- **Fix: "Kitchen Display" → "Order Display"** — Changed to be vertical-agnostic. "kitchen stations" → "prep stations", "menu engineering" → "operations".
+- **Responsive improvements:** Form panel `flex: 1 1 55%` with `max-width: 480px`, heading `2rem`, better breakpoints (1024px reduce padding, 768px stack/hide promo, 480px compact + stack name fields).
+- **Playwright verified:** Desktop (1440px), tablet (768px), mobile (375px), sign-in — all look correct.
+- **Files modified:** `layouts/auth-layout.component.ts`, `features/auth/login/login.html`, `features/auth/login/login.scss`
+- **Build: zero errors**
+- Next: GAP-R01 Phase 2 (Split Pay, Apple/Google Pay). GAP-R03 (Course-Based Firing). End-to-end test with live backend.
+
+*Last Updated: February 23, 2026 (Session 30)*
