@@ -1,5 +1,18 @@
 # GOS-SPEC-02: POS Device Setup & Hardware Management
 
+## Implementation Status
+
+| Phase | Status |
+|-------|--------|
+| Phase 1 (Steps 1-5) | ✅ COMPLETE |
+| Phases 2-3 | NOT STARTED — future work |
+
+**Implemented in:** `orderstack-app/` (standalone Angular 21 SaaS)
+**Depends on:** GOS-SPEC-01 Phases 3-4 (PlatformService, ModeFeatureFlags)
+**Existing assets:** DeviceRegistration in Control Panel 'devices' tab, Printer CRUD in 'printers' tab, KdsStation CRUD in 'stations' tab
+
+---
+
 ## Context
 
 Square's POS ecosystem treats hardware as a unified domain — devices, printers, KDS stations, peripherals, and kiosk profiles are all managed from a single "Devices" section in the dashboard. Each device gets a **device code** (5-character, expires in 5 days) for zero-touch pairing, and restaurants apply reusable **Modes** (configuration profiles for checkout behavior, receipt routing, security) to devices rather than configuring each one individually. Printer routing is handled via **Printer Profiles** (named groups that map print job types like receipts/kitchen tickets to specific printers). KDS stations distinguish between **Prep** (line cook) and **Expeditor** (expo) roles with timer configurations.
@@ -431,8 +444,7 @@ Overview panel at top of Devices sub-tab:
 
 ### Step 15: Build Verification
 
-- `ng build get-order-stack-restaurant-frontend-library` — zero errors
-- `ng build get-order-stack-restaurant-frontend-elements` — zero errors
+- `ng build` — zero errors
 - Verify ControlPanel has `'hardware'` tab replacing `'printers'`, `'stations'`, `'devices'`
 - Verify DeviceHub has 5 sub-tabs (Devices, Modes, Printer Profiles, Peripherals, Kiosk Profiles)
 - Verify all new model interfaces exported from `public-api.ts`
@@ -512,9 +524,8 @@ Overview panel at top of Devices sub-tab:
 
 ## Verification
 
-1. `ng build get-order-stack-restaurant-frontend-library` — zero errors
-2. `ng build get-order-stack-restaurant-frontend-elements` — zero errors
-3. Verify Control Panel shows "Hardware" tab (not separate Printers/Stations/Devices)
+1. `ng build` — zero errors
+2. Verify Control Panel shows "Hardware" tab (not separate Printers/Stations/Devices)
 4. Verify DeviceHub renders 5 sub-tabs
 5. Verify device code generation produces 5-char alphanumeric codes
 6. Verify mode settings form has 4 collapsible sections

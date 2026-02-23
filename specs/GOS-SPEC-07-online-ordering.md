@@ -1,5 +1,19 @@
 # GOS-SPEC-07: Online Ordering — Square Parity Enhancements
 
+## Implementation Status
+
+| Phase | Status |
+|-------|--------|
+| Phase 1 (Steps 1-5) | ✅ COMPLETE — modifier bottom sheet, scheduled ordering, delivery zones, promo codes, prep time + WebSocket tracking |
+| Phase 2 (Steps 6-9) | NOT STARTED — future work |
+| Phase 3 (Steps 10-14) | NOT STARTED — future work |
+
+**Implemented in:** `orderstack-app/` (standalone Angular 21 SaaS)
+**Depends on:** GOS-SPEC-01 (vertical-specific order types and fulfillment)
+**Existing assets:** OnlineOrderPortal (5 order types, DaaS delivery, loyalty, gift cards, tips, QR tableside, surcharge), SocketService
+
+---
+
 ## Context
 
 Square Online provides a full website builder with custom domains, SEO, integrated ordering with scheduled pickup/delivery windows (15-minute time slot capacity), delivery zone geofencing with radius/polygon zones, multi-location ordering (customer selects nearest location), social media ordering integration (Instagram/Facebook shops), promo codes, item-level modifier selection, age verification for alcohol, upsell prompts in checkout, and Neighborhoods on Cash App for hyperlocal discovery. OrderStack's Online Order Portal has strong foundations — 5 order types (pickup/delivery/dine-in/curbside/catering), DaaS delivery with real-time tracking, loyalty/gift card redemption, tip presets, QR tableside multi-round ordering, and surcharge pass-through — but lacks several Square Online features.

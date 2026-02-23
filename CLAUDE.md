@@ -8,7 +8,12 @@
 
 ## Project Overview
 
-This is the **OrderStack** restaurant management SaaS application — a standalone Angular 21 app. It replaces the previous Angular Elements + WordPress architecture.
+This is the **canonical OrderStack** restaurant management SaaS application — a standalone Angular 21 app. This is the active, correct project for all OrderStack development.
+
+**Related Documentation:**
+- **`specs/`** — GOS-SPEC-01 through 11 (all Phase 1 complete; GOS-SPEC-03, 06, 08 have Phase 2-3 complete)
+
+**Predecessor:** `Get-Order-Stack-Restaurant-Frontend-Workspace/` (Angular Elements + WordPress — archived, do not use)
 
 **Stack:** Angular 21, Bootstrap SCSS 5.3.8, Socket.io-client, Zoneless change detection
 **Design Language:** Square-inspired (squareup.com) — clean, modern, professional UI
@@ -170,7 +175,7 @@ ng build --configuration=production
 | Project | Location | Purpose |
 |---------|----------|---------|
 | OrderStack Backend | `/Users/jam/development/Get-Order-Stack-Restaurant-Backend` | Express API backend |
-| Old Frontend (reference) | `/Users/jam/development/Get-Order-Stack-Restaurant-Frontend-Workspace` | Legacy Angular Elements workspace |
+| Old Frontend (ARCHIVED) | `/Users/jam/development/Get-Order-Stack-Restaurant-Frontend-Workspace` | Superseded — do not use |
 
 ### Session Notes
 

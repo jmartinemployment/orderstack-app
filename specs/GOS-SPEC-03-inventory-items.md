@@ -1,12 +1,19 @@
 # GOS-SPEC-03: Inventory & Items — Square Parity Enhancements
 
-## Status
+## Implementation Status
 
-| Phase | Steps | Status |
-|-------|-------|--------|
-| Phase 1 — Item Enrichment | Steps 1-5 | **COMPLETE** |
-| Phase 2 — Inventory Enhancements | Steps 6-10 | **COMPLETE** |
-| Phase 3 — Purchase Orders & Integration | Steps 11-14 | Not started |
+| Phase | Status |
+|-------|--------|
+| Phase 1 Steps 1-5 | ✅ COMPLETE |
+| Phase 2 Steps 6-10 | ✅ COMPLETE |
+| Phase 3 Steps 11-14 | ✅ COMPLETE |
+
+**Implemented in:** `orderstack-app/` (standalone Angular 21 SaaS)
+
+**Depends on:** GOS-SPEC-01 (PlatformService for vertical-specific field gating)
+**Existing assets:** MenuItem model, MenuService, InventoryItem model, InventoryService, ItemManagement UI, CategoryManagement UI, InventoryDashboard UI, Vendor/Recipe models (Food Cost)
+
+---
 
 ## Context
 
@@ -352,8 +359,7 @@ Add to `InventoryDashboard`: unit conversion calculator when adjusting stock or 
 
 ### Step 14: Build Verification
 
-- `ng build get-order-stack-restaurant-frontend-library` — zero errors
-- `ng build get-order-stack-restaurant-frontend-elements` — zero errors
+- `ng build` — zero errors
 - Verify MenuItem has SKU, barcode, allergens, nutritionFacts, variations, channelVisibility, availabilityWindows
 - Verify CSV import/export works in Item Management
 - Verify reporting categories are separate from organizational categories

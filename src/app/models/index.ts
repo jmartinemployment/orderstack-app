@@ -34,3 +34,4 @@ export * from './waste.model';
 export * from './platform.model';
 export * from './device.model';
 export * from './subscription.model';
+export * from './report.model';

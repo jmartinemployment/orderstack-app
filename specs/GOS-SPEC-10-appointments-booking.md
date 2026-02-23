@@ -1,5 +1,18 @@
 # GOS-SPEC-10: Appointments & Booking — Square Parity Enhancements
 
+## Implementation Status
+
+| Phase | Status |
+|-------|--------|
+| Phase 1 (Steps 1-5) | ✅ COMPLETE |
+| Phase 2+ | NOT STARTED — future work |
+
+**Implemented in:** `orderstack-app/` (standalone Angular 21 SaaS)
+**Depends on:** GOS-SPEC-01 (services vertical, appointments module)
+**Existing assets:** ReservationService (11 methods), ReservationManager (4 tabs incl. waitlist), FloorPlan with QR, TableService
+
+---
+
 ## Context
 
 Square Appointments provides online booking with the Square Assistant AI (automated SMS responses for scheduling), waitlist management with 5 availability preferences, no-show protection (deposits/prepayment/cancellation fees), recurring appointments, multi-staff scheduling with resource allocation, Google Calendar sync, intake forms/digital contracts/waivers, and class/group booking. OrderStack's current reservation system handles basic restaurant booking — reservation CRUD with 6 status states, waitlist with notify/seat/reorder, walk-in form, and table assignment — but lacks several advanced booking features that restaurants increasingly need for private events, cooking classes, and catering.

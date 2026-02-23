@@ -1,5 +1,18 @@
 # GOS-SPEC-09: Customer Engagement — Square Parity Enhancements
 
+## Implementation Status
+
+| Phase | Status |
+|-------|--------|
+| Phase 1 (Steps 1-5) | ✅ COMPLETE — customer model enrichment, merge/dedup, notes, consent, insights |
+| Phase 2+ | NOT STARTED — future work |
+
+**Implemented in:** `orderstack-app/` (standalone Angular 21 SaaS)
+**Depends on:** GOS-SPEC-01 (vertical-specific segment labels, loyalty triggers)
+**Existing assets:** CustomerDashboard (5 segments), LoyaltyService (12 methods, 4 tiers), CampaignBuilder (6 types), GiftCardService (7 methods)
+
+---
+
 ## Context
 
 Square's Customer Engagement ecosystem includes a Customer Directory with merge/deduplication, loyalty programs with volume-based pricing tiers ($45-$105/month at scale), email + SMS marketing with AI-generated content, physical + digital gift cards, Square Feedback for reputation management, smart group segmentation with auto-enrollment, Square Messages (unified SMS/email inbox), and marketing automation triggers (welcome series, win-back, birthday). OrderStack has strong CRM foundations — 5-segment customer dashboard (VIP/Regular/New/At-Risk/Dormant) with detail panel and loyalty section, 4-tier loyalty with rewards/redemption, email/SMS campaign builder with templates, and digital gift cards with balance tracking — but lacks several Square engagement features.

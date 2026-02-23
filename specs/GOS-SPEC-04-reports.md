@@ -1,5 +1,18 @@
 # GOS-SPEC-04: Reports — Square Parity Enhancements
 
+## Implementation Status
+
+| Phase | Status |
+|-------|--------|
+| Phase 1 Steps 1-5 | ✅ COMPLETE |
+| Phase 2+ | NOT STARTED — future work |
+
+**Implemented in:** `orderstack-app/` (standalone Angular 21 SaaS)
+**Depends on:** GOS-SPEC-01 (PlatformService for vertical-gated report blocks)
+**Existing assets:** CloseOfDay (5 tabs), CashDrawer, StaffScheduling labor report, SalesDashboard, CommandCenter, CSV export
+
+---
+
 ## Context
 
 Square's reporting system offers a **custom report builder** (drag-drop report blocks), **scheduled email delivery** (daily sales summary + custom report scheduling), **period-over-period comparisons** (WoW, YoY), **shift-level reporting**, **section sales** (by floor plan area), and **multi-format export** (CSV, XLSX, PDF, print, email link). OrderStack has strong reporting foundations — a 5-tab Close-of-Day report, Cash Drawer reconciliation, labor reports in Staff Scheduling, and CSV export in order views — but lacks customizable/composable reports and automated delivery.

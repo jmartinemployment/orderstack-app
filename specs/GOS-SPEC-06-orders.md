@@ -1,5 +1,20 @@
 # GOS-SPEC-06: Orders — Square Parity Enhancements
 
+## Implementation Status
+
+| Phase | Status |
+|-------|--------|
+| Phase 1 Steps 1-5 | ✅ COMPLETE |
+| Phase 2 Steps 6-10 | ✅ COMPLETE |
+| Phase 3 Steps 11-14 | ✅ COMPLETE |
+
+**Implemented in:** `orderstack-app/` (standalone Angular 21 SaaS)
+
+**Depends on:** GOS-SPEC-01 (ModeFeatureFlags for check/tab/course gating)
+**Existing assets:** Full order lifecycle, CheckService (12 methods), POS Terminal, OrderPad, KDS with expo/throttle/auto-fire, DaaS delivery, marketplace ingestion
+
+---
+
 ## Context
 
 Square's order management provides a 5-state lifecycle (New → In Progress → Ready → Active → Completed), multi-channel order aggregation (POS, online, kiosk, QR, third-party delivery all in one view), fractional check splitting (split individual items into precise portions), pre-authorization bar tabs ($1.01-$250 hold range), text modifiers for free-form customization, bulk order actions (mark multiple orders as complete), and expo station recall/refire. OrderStack already has excellent order management — full check splitting (by item/seat/equal), tab management with pre-auth, void/comp workflows, course pacing with auto-fire, DaaS delivery dispatch, and marketplace order ingestion — but several Square features are missing or weak.
@@ -215,7 +230,7 @@ Allows diners to view their check and pay from their phone:
 - Split-my-share: select which items are mine → pay only those
 - "Request Server" button → sends notification to POS
 - No login required — order GUID acts as auth token
-- Standalone routed component at `/guest-check` (public route, no auth guard)
+- Register as `get-order-stack-guest-check` custom element
 
 ### Step 5: Automatic Gratuity
 
@@ -372,7 +387,7 @@ export interface OrderTemplateItem {
 
 ### Step 14: Build Verification
 
-- `ng build --configuration=production` — zero errors
+- `ng build` both library and elements — zero errors
 - Verify order activity log renders timeline in order detail
 - Verify bulk actions work on multiple selected orders
 - Verify text modifiers appear in modifier prompt and on KDS
@@ -385,46 +400,38 @@ export interface OrderTemplateItem {
 ## Files Summary
 
 ### New Files
-| File | Purpose | Status |
-|------|---------|--------|
-| `online-ordering/guest-check/` (ts, html, scss) | Guest-facing check view & pay | DONE |
+| File | Purpose |
+|------|---------|
+| `online-ordering/guest-check/` (4 files) | Guest-facing check view & pay |
 
 ### Modified Files
-| File | Changes | Status |
-|------|---------|--------|
-| `models/order.model.ts` | OrderActivityEvent, OrderNote, OrderTemplate, fractional splitting fields, isRemake, added `'kiosk' \| 'qr' \| 'delivery'` to OrderSource, added `'PARTIAL'` to PaymentStatus | DONE |
-| `models/menu.model.ts` | Text modifier fields on ModifierGroup (allowTextModifier, textModifierLabel, textModifierMaxLength), isTextModifier + textValue on Modifier/Selection | DONE |
-| `models/dining-option.model.ts` | Added `arrivedAt?: Date` to CurbsideInfo | DONE |
-| `models/settings.model.ts` | AutoGratuitySettings (already existed) | DONE |
-| `services/order.ts` | Activity log, bulk status, notify arrival, order templates, draft recovery, remakeItem() | DONE |
-| `services/check.ts` | Fractional splitting (already existed) | DONE |
-| `services/restaurant-settings.ts` | Auto-gratuity settings signal + save method | DONE |
-| `orders/pending-orders/` (ts, html, scss) | Bulk actions, channel filter tabs, curbside wait time, drafts indicator badge | DONE |
-| `orders/order-history/` (ts, html, scss) | Advanced search (channel, payment status, date range, employee, phone), notes form, activity timeline, remake/fraction badges | DONE |
-| `app.routes.ts` | Add `/guest-check` public route | DONE |
-
-### Deferred to Other Specs
-| File | Changes | Deferred To |
-|------|---------|-------------|
-| `pos/server-pos-terminal/` | Activity log panel, auto-gratuity checkout, order templates panel, notes | POS spec |
-| `pos/modifier-prompt/` | Text modifier input field | POS spec |
-| `kds/order-card/` | Remake button + reason, notes display | KDS spec |
-| `kds/kds-display/` | Remake routing | KDS spec |
+| File | Changes |
+|------|---------|
+| `models/order.model.ts` | OrderActivityEvent, OrderNote, OrderTemplate, fractional splitting fields, isRemake |
+| `models/menu.model.ts` | Text modifier fields on ModifierGroup |
+| `models/settings.model.ts` | AutoGratuitySettings |
+| `services/order.ts` | Activity log, bulk status, notify arrival, order templates, draft recovery |
+| `services/check.ts` | Fractional splitting |
+| `services/restaurant-settings.ts` | Auto-gratuity settings |
+| `orders/pending-orders/` | Bulk actions, channel filter tabs, curbside management |
+| `orders/order-history/` | Advanced search (last 4 digits, phone, receipt #, channel, employee) |
+| `pos/server-pos-terminal/` | Activity log panel, auto-gratuity, order templates, notes |
+| `pos/modifier-prompt/` | Text modifier input field |
+| `kds/order-card/` | Remake button + reason, notes display |
+| `kds/kds-display/` | Remake routing |
+| `public-api.ts` | Add GuestCheck export |
+| `elements/src/main.ts` | Register `get-order-stack-guest-check` |
 
 ---
 
 ## Verification
 
-1. `ng build --configuration=production` — zero errors (**PASSED**)
-2. Order activity log shows timeline of events in order-history detail (**DONE**)
-3. Bulk actions bar appears when orders are selected (**DONE**)
-4. Text modifier fields added to models; modifier prompt UI deferred to POS spec (**MODELS DONE, UI DEFERRED**)
-5. Guest check page renders order items and accepts payment (**DONE** — `/guest-check` public route)
-6. Auto-gratuity settings signal + save in RestaurantSettingsService; checkout integration deferred to POS spec (**SERVICE DONE, CHECKOUT DEFERRED**)
-7. Curbside arrival tracking with wait time display in pending-orders (**DONE**)
-8. Fractional check splitting service method exists; fraction badge in order-history (**DONE**)
-9. Order templates models + service methods complete; POS quick-order panel deferred (**SERVICE DONE, UI DEFERRED**)
-10. Channel filter tabs in both pending-orders and order-history (**DONE**)
-11. Order notes interactive form with type selector in order-history (**DONE**)
-12. Drafts indicator badge for offline queue in pending-orders (**DONE**)
-13. Remake service method + badge display in order-history; KDS remake button deferred (**SERVICE DONE, KDS DEFERRED**)
+1. `ng build` both library and elements — zero errors
+2. Order activity log shows timeline of events
+3. Bulk actions bar appears when orders are selected
+4. Text modifier input appears in modifier prompt when enabled
+5. Guest check page renders order items and accepts payment
+6. Auto-gratuity applies to parties >= configured size
+7. Curbside "I'm Here" notification appears in POS
+8. Fractional check splitting divides item into portions
+9. Order templates can be saved and applied

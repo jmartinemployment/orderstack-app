@@ -1,5 +1,18 @@
 # GOS-SPEC-11: Multi-Location & Franchise — Square Parity Enhancements
 
+## Implementation Status
+
+| Phase | Status |
+|-------|--------|
+| Phase 1 (Steps 1-5) | ✅ COMPLETE |
+| Phases 2-4 | NOT STARTED — future work |
+
+**Implemented in:** `orderstack-app/` (standalone Angular 21 SaaS)
+**Depends on:** GOS-SPEC-01 (multi-vertical franchise groups)
+**Existing assets:** MultiLocationService (13 methods), MultiLocationDashboard (4 tabs), LocationGroup CRUD, menu sync, settings propagation (5 types), cross-location report
+
+---
+
 ## Context
 
 Square for Franchises provides a centralized franchisor dashboard with multi-location oversight, permission-based menu customization (corporate sets base menu, locations can customize within guardrails), automated royalty/fee calculation, flat organizational hierarchy with location groups, consolidated reporting across all locations, centralized customer data with cross-location loyalty pooling, and staff management across locations. OrderStack's multi-location system has foundations — location group CRUD with members, cross-location KPI comparison, menu sync (one-way preview + execute), settings propagation (5 types), and sync history — but lacks franchise-specific features and several cross-location capabilities.
