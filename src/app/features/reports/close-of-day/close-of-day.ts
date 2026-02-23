@@ -12,6 +12,7 @@ import { AnalyticsService } from '@services/analytics';
 import { TipService } from '@services/tip';
 import { AuthService } from '@services/auth';
 import { ReportService } from '@services/report';
+import { CashDrawerService } from '@services/cash-drawer';
 import {
   Order,
   Check,
@@ -19,9 +20,10 @@ import {
   VoidedSelection,
   TeamMemberSalesRow,
   TaxServiceChargeReport,
+  CashReconciliation,
 } from '@models/index';
 
-type ReportTab = 'summary' | 'payments' | 'tips' | 'voids' | 'items' | 'team' | 'taxes';
+type ReportTab = 'summary' | 'payments' | 'tips' | 'voids' | 'items' | 'team' | 'taxes' | 'cash';
 
 interface PaymentMethodBreakdown {
   method: string;
@@ -55,6 +57,7 @@ export class CloseOfDay implements OnInit {
   private readonly tipService = inject(TipService);
   private readonly authService = inject(AuthService);
   private readonly reportService = inject(ReportService);
+  readonly cashDrawerService = inject(CashDrawerService);
 
   private readonly _activeTab = signal<ReportTab>('summary');
   private readonly _reportDate = signal(new Date());
@@ -329,6 +332,9 @@ export class CloseOfDay implements OnInit {
     }
     if (tab === 'taxes' && !this._taxReport()) {
       this.loadTaxReport();
+    }
+    if (tab === 'cash') {
+      this.cashDrawerService.loadSessionHistory();
     }
   }
 

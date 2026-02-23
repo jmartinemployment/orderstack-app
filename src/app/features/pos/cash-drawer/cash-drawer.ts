@@ -7,9 +7,36 @@ import {
 } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { CashDrawerService } from '@services/cash-drawer';
-import { CashEventType, getCashEventLabel, isCashInflow } from '@models/cash-drawer.model';
+import {
+  CashEventType,
+  CashDenomination,
+  getCashEventLabel,
+  getCashEventIcon,
+  isCashInflow,
+  calculateDenominationTotal,
+  emptyDenomination,
+} from '@models/cash-drawer.model';
 
 type DrawerView = 'status' | 'open' | 'close' | 'event';
+
+interface DenominationRow {
+  key: keyof CashDenomination;
+  label: string;
+  value: number;
+}
+
+const DENOMINATION_ROWS: DenominationRow[] = [
+  { key: 'hundreds', label: '$100', value: 100 },
+  { key: 'fifties', label: '$50', value: 50 },
+  { key: 'twenties', label: '$20', value: 20 },
+  { key: 'tens', label: '$10', value: 10 },
+  { key: 'fives', label: '$5', value: 5 },
+  { key: 'ones', label: '$1', value: 1 },
+  { key: 'quarters', label: '25¢', value: 0.25 },
+  { key: 'dimes', label: '10¢', value: 0.10 },
+  { key: 'nickels', label: '5¢', value: 0.05 },
+  { key: 'pennies', label: '1¢', value: 0.01 },
+];
 
 @Component({
   selector: 'os-cash-drawer',
@@ -23,22 +50,31 @@ export class CashDrawer {
 
   private readonly _view = signal<DrawerView>('status');
   private readonly _openingFloat = signal(200);
-  private readonly _actualCash = signal(0);
+  private readonly _denomination = signal<CashDenomination>(emptyDenomination());
   private readonly _eventType = signal<CashEventType>('cash_out');
   private readonly _eventAmount = signal(0);
   private readonly _eventReason = signal('');
 
   readonly view = this._view.asReadonly();
   readonly openingFloat = this._openingFloat.asReadonly();
-  readonly actualCash = this._actualCash.asReadonly();
+  readonly denomination = this._denomination.asReadonly();
   readonly eventType = this._eventType.asReadonly();
   readonly eventAmount = this._eventAmount.asReadonly();
   readonly eventReason = this._eventReason.asReadonly();
+  readonly denominationRows = DENOMINATION_ROWS;
 
   readonly eventLog = computed(() => {
     const session = this.drawerService.session();
     if (!session) return [];
     return [...session.events].reverse();
+  });
+
+  readonly denominationTotal = computed(() => {
+    return calculateDenominationTotal(this._denomination());
+  });
+
+  readonly closeVariance = computed(() => {
+    return this.denominationTotal() - this.drawerService.runningBalance();
   });
 
   readonly overShortClass = computed(() => {
@@ -55,12 +91,19 @@ export class CashDrawer {
   }
 
   showCloseDrawer(): void {
-    this._actualCash.set(Math.round(this.drawerService.runningBalance() * 100) / 100);
+    this._denomination.set(emptyDenomination());
     this._view.set('close');
   }
 
   showAddEvent(): void {
     this._eventType.set('cash_out');
+    this._eventAmount.set(0);
+    this._eventReason.set('');
+    this._view.set('event');
+  }
+
+  showQuickEvent(type: CashEventType): void {
+    this._eventType.set(type);
     this._eventAmount.set(0);
     this._eventReason.set('');
     this._view.set('event');
@@ -74,8 +117,10 @@ export class CashDrawer {
     this._openingFloat.set(Math.max(0, val));
   }
 
-  setActualCash(val: number): void {
-    this._actualCash.set(Math.max(0, val));
+  setDenominationCount(key: keyof CashDenomination, count: number): void {
+    const d = { ...this._denomination() };
+    d[key] = Math.max(0, Math.round(count));
+    this._denomination.set(d);
   }
 
   setEventType(type: CashEventType): void {
@@ -96,7 +141,7 @@ export class CashDrawer {
   }
 
   closeDrawer(): void {
-    this.drawerService.closeDrawer(this._actualCash());
+    this.drawerService.closeDrawerWithDenomination(this._denomination());
     this._view.set('status');
   }
 
@@ -117,6 +162,10 @@ export class CashDrawer {
 
   getEventLabel(type: CashEventType): string {
     return getCashEventLabel(type);
+  }
+
+  getEventIcon(type: CashEventType): string {
+    return getCashEventIcon(type);
   }
 
   isInflow(type: CashEventType): boolean {

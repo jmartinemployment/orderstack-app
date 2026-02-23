@@ -58,6 +58,7 @@
     <button type="button" class="cod-tab" [class.active]="activeTab() === 'items'" (click)="setTab('items')">Top Sellers</button>
     <button type="button" class="cod-tab" [class.active]="activeTab() === 'team'" (click)="setTab('team')">Team Sales</button>
     <button type="button" class="cod-tab" [class.active]="activeTab() === 'taxes'" (click)="setTab('taxes')">Taxes & Fees</button>
+    <button type="button" class="cod-tab" [class.active]="activeTab() === 'cash'" (click)="setTab('cash')">Cash</button>
   </div>
 
   <!-- Loading -->
@@ -475,6 +476,58 @@
         } @else {
           <div class="section-card full-width text-center py-4">
             <p class="text-muted-custom">No tax and fee data available for this date</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- CASH TAB -->
+    @if (activeTab() === 'cash') {
+      <div class="cod-section">
+        @if (cashDrawerService.todaysReconciliations().length > 0) {
+          @for (recon of cashDrawerService.todaysReconciliations(); track recon.sessionId) {
+            <div class="section-card full-width">
+              <h6>Session — {{ recon.openedBy }}</h6>
+              <div class="cash-recon-grid">
+                <div class="cash-recon-row">
+                  <span>Opening Float</span>
+                  <span class="fw-semibold">{{ recon.openingFloat | currency }}</span>
+                </div>
+                <div class="cash-recon-row">
+                  <span>Cash Sales</span>
+                  <span class="fw-semibold">{{ recon.cashSalesTotal | currency }}</span>
+                </div>
+                <div class="cash-recon-row">
+                  <span>Cash Out</span>
+                  <span class="fw-semibold">{{ recon.cashOutTotal | currency }}</span>
+                </div>
+                <div class="cash-recon-row">
+                  <span>Expected Cash</span>
+                  <span class="fw-bold">{{ recon.expectedCash | currency }}</span>
+                </div>
+                <div class="cash-recon-row">
+                  <span>Actual Cash</span>
+                  <span class="fw-bold">{{ recon.actualCash | currency }}</span>
+                </div>
+                <div class="cash-recon-row cash-recon-variance"
+                  [class.over]="recon.overShort > 0.005"
+                  [class.short]="recon.overShort < -0.005"
+                  [class.even]="recon.overShort >= -0.005 && recon.overShort <= 0.005">
+                  <span>Over/Short</span>
+                  <span class="fw-bold">
+                    @if (recon.overShort > 0) { +}{{ recon.overShort | currency }}
+                  </span>
+                </div>
+                <div class="cash-recon-row cash-recon-meta">
+                  <span>Closed by {{ recon.closedBy }}</span>
+                  <span>{{ recon.eventCount }} transactions</span>
+                </div>
+              </div>
+            </div>
+          }
+        } @else {
+          <div class="section-card full-width text-center py-4">
+            <p class="text-muted-custom">No cash drawer sessions closed today</p>
           </div>
         }
       </div>

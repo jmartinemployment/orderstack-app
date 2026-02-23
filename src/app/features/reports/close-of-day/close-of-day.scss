@@ -350,6 +350,38 @@ $border: #252545;
   }
 }
 
+// Cash reconciliation
+.cash-recon-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.cash-recon-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba($border, 0.5);
+
+  &:last-child { border-bottom: none; }
+}
+
+.cash-recon-variance {
+  margin-top: 0.25rem;
+  padding-top: 0.5rem;
+  border-top: 2px solid $border;
+
+  &.over { color: $success; }
+  &.short { color: $danger; }
+  &.even { color: $text-muted; }
+}
+
+.cash-recon-meta {
+  font-size: 0.8rem;
+  color: $text-muted;
+  border-bottom: none;
+}
+
 // Print styles
 @media print {
   .cod-report { background: #fff; color: #000; padding: 0; }
