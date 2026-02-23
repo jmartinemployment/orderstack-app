@@ -487,9 +487,17 @@
               }
             </button>
           } @else if (!isOnBreak()) {
-            <button class="btn-clock btn-clock-out" [disabled]="isClockAction()" (click)="openClockOutConfirm()">
-              <i class="bi bi-box-arrow-right"></i> Clock Out
-            </button>
+            <div class="clock-out-row">
+              <button class="btn-clock btn-clock-out" [disabled]="isClockAction()" (click)="openClockOutConfirm()">
+                <i class="bi bi-box-arrow-right"></i> Clock Out
+              </button>
+
+              @if (canSwitchJob()) {
+                <button class="btn-clock btn-switch-job" [disabled]="isClockAction()" (click)="openJobSwitcher()">
+                  <i class="bi bi-arrow-repeat"></i> Switch Job
+                </button>
+              }
+            </div>
 
             <!-- Break Buttons -->
             @if (breakTypes().length > 0) {
@@ -764,5 +772,50 @@
         }
       </div>
     }
+
+        <!-- Job Switch Modal -->
+        @if (showJobSwitcher()) {
+          <div class="modal-overlay" (click)="cancelJobSwitch()">
+            <div class="job-switch-modal" (click)="$event.stopPropagation()">
+              <h3>Switch Job</h3>
+              <p class="job-switch-desc">
+                This will close your current timecard as
+                <strong>{{ activeTimecard()!.jobTitle }}</strong>
+                and start a new one.
+              </p>
+
+              <div class="job-switch-options">
+                @if (teamMemberRecord(); as record) {
+                  @for (job of record.jobs; track job.id) {
+                    @if (job.jobTitle !== activeTimecard()!.jobTitle) {
+                      <button
+                        class="job-switch-btn"
+                        [class.selected]="switchJobTitle() === job.jobTitle"
+                        (click)="selectSwitchJob(job.jobTitle)">
+                        <div class="job-switch-info">
+                          <span class="job-switch-title">{{ job.jobTitle }}</span>
+                          <span class="job-switch-rate">${{ (job.hourlyRate / 100).toFixed(2) }}/hr</span>
+                        </div>
+                        @if (job.isTipEligible) {
+                          <span class="job-switch-tip">Tip Eligible</span>
+                        }
+                      </button>
+                    }
+                  }
+                }
+              </div>
+
+              <div class="job-switch-actions">
+                <button class="btn-cancel" (click)="cancelJobSwitch()">Cancel</button>
+                <button
+                  class="btn-confirm-switch"
+                  [disabled]="!switchJobTitle() || isClockAction()"
+                  (click)="confirmSwitchJob()">
+                  @if (isClockAction()) { Switching... } @else { Switch Job }
+                </button>
+              </div>
+            </div>
+          </div>
+        }
   }
 </div>

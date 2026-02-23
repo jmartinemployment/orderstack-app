@@ -1087,12 +1087,26 @@ $border: #252545;
   &:hover:not(:disabled) { background: color.adjust($success, $lightness: -8%); }
 }
 
+.clock-out-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
 .btn-clock-out {
+  flex: 1;
   background: $danger;
   color: #fff;
-  margin-bottom: 0.75rem;
 
   &:hover:not(:disabled) { background: color.adjust($danger, $lightness: -8%); }
+}
+
+.btn-switch-job {
+  flex: 1;
+  background: $info;
+  color: #fff;
+
+  &:hover:not(:disabled) { background: color.adjust($info, $lightness: -8%); }
 }
 
 .break-options {
@@ -1729,4 +1743,106 @@ $border: #252545;
   font-size: 0.75rem;
   color: $text-muted;
   margin-top: 0.25rem;
+}
+
+// ===== Job Switch Modal =====
+
+.job-switch-modal {
+  background: $bg-panel;
+  border: 1px solid $border;
+  border-radius: 16px;
+  padding: 1.25rem;
+  width: 100%;
+  max-width: 380px;
+
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+    text-align: center;
+  }
+}
+
+.job-switch-desc {
+  font-size: 0.8125rem;
+  color: $text-muted;
+  text-align: center;
+  margin: 0 0 1rem;
+
+  strong { color: $text-primary; }
+}
+
+.job-switch-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.job-switch-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: $bg-card;
+  border: 2px solid $border;
+  border-radius: 10px;
+  color: $text-primary;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: $accent;
+    background: $bg-card-hover;
+  }
+
+  &.selected {
+    border-color: $accent;
+    background: $bg-card-hover;
+  }
+}
+
+.job-switch-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.job-switch-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.job-switch-rate {
+  font-size: 0.8125rem;
+  color: $text-muted;
+}
+
+.job-switch-tip {
+  font-size: 0.6875rem;
+  background: color.adjust($success, $lightness: -30%);
+  color: $success;
+  padding: 0.125rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.job-switch-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-confirm-switch {
+  flex: 1;
+  background: $accent;
+  border: none;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.625rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { background: $accent-dark; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 }

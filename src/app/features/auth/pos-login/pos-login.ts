@@ -7,13 +7,14 @@ import {
   output,
   OnDestroy,
 } from '@angular/core';
+import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { LaborService } from '@services/labor';
 import { StaffManagementService } from '@services/staff-management';
 import { AuthService } from '@services/auth';
 import { DeviceService } from '@services/device';
 import { PlatformService } from '@services/platform';
-import { TeamMember, PosSession, Timecard } from '@models/index';
+import { TeamMember, PosSession, Timecard, BreakType } from '@models/index';
 
 export interface PosLoginEvent {
   teamMember: TeamMember;
@@ -25,7 +26,7 @@ type PosLoginState = 'idle' | 'entering-passcode' | 'clock-in-prompt' | 'authent
 @Component({
   selector: 'os-pos-login',
   standalone: true,
-  imports: [],
+  imports: [CurrencyPipe, DecimalPipe],
   templateUrl: './pos-login.html',
   styleUrl: './pos-login.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -58,6 +59,14 @@ export class PosLogin implements OnDestroy {
   private readonly MAX_ATTEMPTS = 5;
   private readonly LOCKOUT_MS = 30 * 1000;
 
+  // --- Clock-out, break, job-switch state ---
+  private readonly _breakTypes = signal<BreakType[]>([]);
+  private readonly _showClockOutModal = signal(false);
+  private readonly _declaredTips = signal<number | null>(null);
+  private readonly _isClockAction = signal(false);
+  private readonly _showJobSwitcher = signal(false);
+  private readonly _switchJobTitle = signal<string | null>(null);
+
   readonly state = this._state.asReadonly();
   readonly teamMembers = this._teamMembers.asReadonly();
   readonly selectedMember = this._selectedMember.asReadonly();
@@ -68,6 +77,12 @@ export class PosLogin implements OnDestroy {
   readonly activeTimecard = this._activeTimecard.asReadonly();
   readonly selectedJobTitle = this._selectedJobTitle.asReadonly();
   readonly isClockingIn = this._isClockingIn.asReadonly();
+  readonly breakTypes = this._breakTypes.asReadonly();
+  readonly showClockOutModal = this._showClockOutModal.asReadonly();
+  readonly declaredTips = this._declaredTips.asReadonly();
+  readonly isClockAction = this._isClockAction.asReadonly();
+  readonly showJobSwitcher = this._showJobSwitcher.asReadonly();
+  readonly switchJobTitle = this._switchJobTitle.asReadonly();
 
   readonly isLocked = computed(() => {
     const until = this._lockoutUntil();
@@ -100,6 +115,87 @@ export class PosLogin implements OnDestroy {
   });
 
   readonly needsJobSelection = computed(() => this.memberJobs().length > 1);
+
+  // --- Clock-out / break computeds ---
+
+  readonly isClockedIn = computed(() => this._activeTimecard() !== null);
+
+  readonly activeBreak = computed(() => {
+    const tc = this._activeTimecard();
+    if (!tc) return null;
+    return tc.breaks.find(b => b.endAt === null) ?? null;
+  });
+
+  readonly isOnBreak = computed(() => this.activeBreak() !== null);
+
+  readonly clockedInDuration = computed(() => {
+    const tc = this._activeTimecard();
+    if (!tc) return '';
+    const start = new Date(tc.clockInAt);
+    const now = new Date();
+    const diffMs = now.getTime() - start.getTime();
+    const hours = Math.floor(diffMs / 3600000);
+    const mins = Math.floor((diffMs % 3600000) / 60000);
+    return `${hours}h ${mins}m`;
+  });
+
+  readonly breakElapsedMinutes = computed(() => {
+    const brk = this.activeBreak();
+    if (!brk) return 0;
+    const start = new Date(brk.startAt);
+    const now = new Date();
+    return Math.floor((now.getTime() - start.getTime()) / 60000);
+  });
+
+  readonly shiftSummary = computed(() => {
+    const tc = this._activeTimecard();
+    if (!tc) return null;
+
+    const clockIn = new Date(tc.clockInAt);
+    const now = new Date();
+    const totalMs = now.getTime() - clockIn.getTime();
+    const totalMinutes = Math.floor(totalMs / 60000);
+    const totalHours = totalMinutes / 60;
+
+    const breakMinutes = tc.breaks.reduce((sum, b) => {
+      if (b.endAt) {
+        return sum + (b.actualMinutes ?? Math.floor((new Date(b.endAt).getTime() - new Date(b.startAt).getTime()) / 60000));
+      }
+      return sum;
+    }, 0);
+
+    const paidBreakMinutes = tc.breaks.filter(b => b.isPaid && b.endAt).reduce((sum, b) => {
+      return sum + (b.actualMinutes ?? Math.floor((new Date(b.endAt!).getTime() - new Date(b.startAt).getTime()) / 60000));
+    }, 0);
+
+    const unpaidBreakMinutes = breakMinutes - paidBreakMinutes;
+    const netPaidMinutes = totalMinutes - unpaidBreakMinutes;
+    const netPaidHours = netPaidMinutes / 60;
+
+    return {
+      clockInTime: this.formatTimecardTime(tc.clockInAt),
+      clockOutTime: this.formatTimecardTime(now.toISOString()),
+      totalHours,
+      breakMinutes,
+      paidBreakMinutes,
+      unpaidBreakMinutes,
+      netPaidHours,
+      breaks: tc.breaks.filter(b => b.endAt !== null),
+      jobTitle: tc.jobTitle,
+      hourlyRate: tc.hourlyRate,
+      isTipEligible: tc.isTipEligible,
+      estimatedPay: netPaidHours * (tc.hourlyRate / 100),
+    };
+  });
+
+  readonly canSwitchJob = computed(() => {
+    const member = this._selectedMember();
+    return (member?.jobs?.length ?? 0) > 1 && this.isClockedIn();
+  });
+
+  readonly activeBreakTypes = computed(() =>
+    this._breakTypes().filter(bt => bt.isActive)
+  );
 
   constructor() {
     this.loadTeamMembers();
@@ -304,7 +400,13 @@ export class PosLogin implements OnDestroy {
     this._state.set('authenticated');
     this.teamMemberAuthenticated.emit({ teamMember: member, session });
     this.resetInactivityTimer();
+    this.loadBreakTypes();
     this.navigateToLanding();
+  }
+
+  private async loadBreakTypes(): Promise<void> {
+    await this.laborService.loadBreakTypes();
+    this._breakTypes.set(this.laborService.breakTypes());
   }
 
   private navigateToLanding(): void {
@@ -330,6 +432,145 @@ export class PosLogin implements OnDestroy {
         this.router.navigate(['/orders']);
         break;
     }
+  }
+
+  // === Clock-Out Flow ===
+
+  openClockOutModal(): void {
+    this._declaredTips.set(null);
+    this._showClockOutModal.set(true);
+  }
+
+  cancelClockOut(): void {
+    this._showClockOutModal.set(false);
+  }
+
+  setDeclaredTips(amount: number | null): void {
+    this._declaredTips.set(amount);
+  }
+
+  async doClockOut(): Promise<void> {
+    const tc = this._activeTimecard();
+    if (!tc || this._isClockAction()) return;
+
+    this._isClockAction.set(true);
+    this._error.set(null);
+
+    const tips = this._declaredTips() ?? undefined;
+    const success = await this.laborService.clockOutWithTips(tc.id, tips);
+
+    if (success) {
+      this._activeTimecard.set(null);
+      this._showClockOutModal.set(false);
+      this.switchUser();
+    } else {
+      this._error.set('Failed to clock out');
+    }
+
+    this._isClockAction.set(false);
+  }
+
+  // === Break Management ===
+
+  async doStartBreak(breakTypeId: string): Promise<void> {
+    const tc = this._activeTimecard();
+    if (!tc || this._isClockAction()) return;
+
+    this._isClockAction.set(true);
+    this._error.set(null);
+
+    const result = await this.laborService.startBreak(tc.id, breakTypeId);
+
+    if (result) {
+      this._activeTimecard.update(t => {
+        if (!t) return t;
+        return { ...t, breaks: [...t.breaks, result] };
+      });
+    } else {
+      this._error.set('Failed to start break');
+    }
+
+    this._isClockAction.set(false);
+  }
+
+  async doEndBreak(): Promise<void> {
+    const tc = this._activeTimecard();
+    const brk = this.activeBreak();
+    if (!tc || !brk || this._isClockAction()) return;
+
+    this._isClockAction.set(true);
+    this._error.set(null);
+
+    const success = await this.laborService.endBreak(tc.id, brk.id);
+
+    if (success) {
+      this._activeTimecard.update(t => {
+        if (!t) return t;
+        return {
+          ...t,
+          breaks: t.breaks.map(b => b.id === brk.id ? { ...b, endAt: new Date().toISOString() } : b),
+        };
+      });
+    } else {
+      this._error.set('Failed to end break');
+    }
+
+    this._isClockAction.set(false);
+  }
+
+  // === Job Switching ===
+
+  openJobSwitcher(): void {
+    this._switchJobTitle.set(null);
+    this._showJobSwitcher.set(true);
+  }
+
+  cancelJobSwitch(): void {
+    this._showJobSwitcher.set(false);
+    this._switchJobTitle.set(null);
+  }
+
+  selectSwitchJob(jobTitle: string): void {
+    this._switchJobTitle.set(jobTitle);
+  }
+
+  async confirmSwitchJob(): Promise<void> {
+    const tc = this._activeTimecard();
+    const member = this._selectedMember();
+    const session = this._session();
+    const newJob = this._switchJobTitle();
+    if (!tc || !member || !session || !newJob || this._isClockAction()) return;
+
+    // Don't switch to same job
+    if (newJob === tc.jobTitle) {
+      this._showJobSwitcher.set(false);
+      return;
+    }
+
+    this._isClockAction.set(true);
+    this._error.set(null);
+
+    // Clock out current timecard (no tips on job switch)
+    const clockedOut = await this.laborService.clockOutWithTips(tc.id);
+
+    if (!clockedOut) {
+      this._error.set('Failed to close current timecard');
+      this._isClockAction.set(false);
+      return;
+    }
+
+    // Clock in with new job
+    const newTimecard = await this.laborService.clockInWithJob(session.teamMemberId, newJob);
+
+    if (newTimecard) {
+      this._activeTimecard.set(newTimecard);
+      this._showJobSwitcher.set(false);
+      this._switchJobTitle.set(null);
+    } else {
+      this._error.set('Clocked out but failed to clock in with new job');
+    }
+
+    this._isClockAction.set(false);
   }
 
   // === Inactivity Management ===
@@ -359,10 +600,17 @@ export class PosLogin implements OnDestroy {
     this._session.set(null);
     this._activeTimecard.set(null);
     this._selectedJobTitle.set(null);
+    this._showClockOutModal.set(false);
+    this._showJobSwitcher.set(false);
+    this._breakTypes.set([]);
     this.laborService.clearPosSession();
   }
 
   // === Helpers ===
+
+  dismissError(): void {
+    this._error.set(null);
+  }
 
   getInitials(name: string): string {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -375,5 +623,14 @@ export class PosLogin implements OnDestroy {
       hash = char.charCodeAt(0) + ((hash << 5) - hash);
     }
     return colors[Math.abs(hash) % colors.length];
+  }
+
+  formatTimecardTime(isoString: string): string {
+    const d = new Date(isoString);
+    const h = d.getHours();
+    const m = d.getMinutes();
+    const period = h >= 12 ? 'PM' : 'AM';
+    const hour = h % 12 || 12;
+    return `${hour}:${m.toString().padStart(2, '0')} ${period}`;
   }
 }

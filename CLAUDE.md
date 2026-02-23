@@ -392,4 +392,17 @@ ng build --configuration=production
 - **Color mapping applied:** `--midnight-black` → `--os-bg-card`, `--deep-lake` → `--os-border`, `--hermes` → `--os-bg`, `--medium-slate-blue` → `--os-primary`, `--lapis-lazuli` → `--os-primary-hover`, `--cerulean-periwinkle` → `--os-primary`, `--dark-teal` → `--os-text-primary`
 - Next: GOS-SPEC-01 Phase 2 (auth hardening, session management). Remaining spec Phase 2s. End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 14)*
+**[February 23, 2026] (Session 15) — GOS-SPEC-01 Phase 2 Complete (Steps 8-10: POS Clock-Out, Break, Job Switch):**
+- **Phase 2 COMPLETE** — Steps 6-7 (device registration, permission sets) were already implemented. Steps 8-10 add POS-side controls.
+- **Step 8 (POS Break Management):** Added `_breakTypes`, `activeBreakTypes`, `activeBreak`, `isOnBreak`, `breakElapsedMinutes` signals/computeds to POS Login. `doStartBreak(breakTypeId)` and `doEndBreak()` methods call existing `LaborService` methods. Break types loaded on authentication via `loadBreakTypes()`. Active break banner shown in authenticated bar with break name, elapsed time, and "End Break" button.
+- **Step 9 (POS Clock-Out with Shift Summary):** Added `_showClockOutModal`, `_declaredTips`, `_isClockAction`, `shiftSummary` computed (mirrors Staff Portal pattern). Clock-out modal shows shift timeline (clock in/breaks/clock out dots), hours breakdown (total, break, paid/unpaid, net paid), job title, estimated pay, tip declaration for tip-eligible roles. `doClockOut()` calls `clockOutWithTips()` then returns to idle (switch user).
+- **Step 10 (Job Switching):** Added `_showJobSwitcher`, `_switchJobTitle`, `canSwitchJob` computed (requires >1 jobs + clocked in). `confirmSwitchJob()` clocks out current timecard (no tips), clocks in with new job — creates new timecard. Job switch modal shows available jobs (excluding current) with rate and tip eligibility. Added to both POS Login and Staff Portal.
+- **POS Login authenticated bar expanded:** Avatar + name + clocked-in status + duration + job title, active break banner, action buttons row (break types, clock out, switch job, switch user). Replaced minimal bar with full controls.
+- **Staff Portal job switch:** Added `_teamMemberRecord` signal (loaded from `StaffManagementService` after login), `canSwitchJob` computed, `openJobSwitcher/cancelJobSwitch/selectSwitchJob/confirmSwitchJob` methods. "Switch Job" button appears next to "Clock Out" in Time Clock tab. Job switch modal with same pattern as POS Login.
+- **Files rewritten:** `features/auth/pos-login/pos-login.ts` (added ~15 signals/computeds, ~8 methods), `pos-login.html` (expanded authenticated state, 2 modals), `pos-login.scss` (new styles for auth bar, break banner, modals)
+- **Files modified:** `features/staff/staff-portal/staff-portal.ts` (added job switch signals + methods + team member record loading), `staff-portal.html` (added Switch Job button + modal), `staff-portal.scss` (added job switch styles)
+- **Spec updated:** `specs/GOS-SPEC-01-auth-timeclock.md` — Phase 2 status set to COMPLETE
+- **Build: zero errors** — Production build passes clean
+- Next: GOS-SPEC-01 Phase 3 (auth hardening, session management). Remaining spec Phase 2s. End-to-end test with live backend.
+
+*Last Updated: February 23, 2026 (Session 15)*

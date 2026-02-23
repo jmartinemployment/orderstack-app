@@ -8,6 +8,7 @@ import {
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { LaborService } from '@services/labor';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
+import { StaffManagementService } from '@services/staff-management';
 import {
   StaffMember,
   Shift,
@@ -26,6 +27,7 @@ import {
   PtoRequest,
   PtoRequestStatus,
   PtoBalance,
+  TeamMember,
 } from '@models/index';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -41,6 +43,7 @@ const DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export class StaffPortal {
   private readonly laborService = inject(LaborService);
   private readonly settingsService = inject(RestaurantSettingsService);
+  private readonly staffManagementService = inject(StaffManagementService);
 
   // --- PIN login state ---
   private readonly _pinDigits = signal('');
@@ -177,6 +180,20 @@ export class StaffPortal {
   readonly showClockOutConfirm = this._showClockOutConfirm.asReadonly();
   readonly declaredTips = this._declaredTips.asReadonly();
   readonly selectedJobTitle = this._selectedJobTitle.asReadonly();
+
+  // --- Job switch state ---
+  private readonly _teamMemberRecord = signal<TeamMember | null>(null);
+  private readonly _showJobSwitcher = signal(false);
+  private readonly _switchJobTitle = signal<string | null>(null);
+
+  readonly showJobSwitcher = this._showJobSwitcher.asReadonly();
+  readonly switchJobTitle = this._switchJobTitle.asReadonly();
+  readonly teamMemberRecord = this._teamMemberRecord.asReadonly();
+
+  readonly canSwitchJob = computed(() => {
+    const record = this._teamMemberRecord();
+    return (record?.jobs?.length ?? 0) > 1 && this._activeTimecard() !== null;
+  });
 
   readonly isClockedIn = computed(() => this._activeTimecard() !== null);
 
@@ -368,6 +385,7 @@ export class StaffPortal {
       await this.loadScheduleData();
       this.laborService.loadNotifications(staff.id);
       this.loadMyPtoRequests();
+      this.loadTeamMemberRecord(staff.id);
     } else {
       this._pinError.set('Invalid PIN');
       this._pinDigits.set('');
@@ -724,6 +742,65 @@ export class StaffPortal {
     if (status === 'approved') return 'status-approved';
     if (status === 'denied') return 'status-rejected';
     return 'status-pending';
+  }
+
+  // === Job Switching ===
+
+  private async loadTeamMemberRecord(staffId: string): Promise<void> {
+    await this.staffManagementService.loadTeamMembers();
+    const members = this.staffManagementService.teamMembers();
+    const match = members.find(m => m.id === staffId) ?? null;
+    this._teamMemberRecord.set(match);
+  }
+
+  openJobSwitcher(): void {
+    this._switchJobTitle.set(null);
+    this._showJobSwitcher.set(true);
+  }
+
+  cancelJobSwitch(): void {
+    this._showJobSwitcher.set(false);
+    this._switchJobTitle.set(null);
+  }
+
+  selectSwitchJob(jobTitle: string): void {
+    this._switchJobTitle.set(jobTitle);
+  }
+
+  async confirmSwitchJob(): Promise<void> {
+    const tc = this._activeTimecard();
+    const staff = this._loggedInStaff();
+    const newJob = this._switchJobTitle();
+    if (!tc || !staff || !newJob || this._isClockAction()) return;
+
+    if (newJob === tc.jobTitle) {
+      this._showJobSwitcher.set(false);
+      return;
+    }
+
+    this._isClockAction.set(true);
+    this._error.set(null);
+
+    const clockedOut = await this.laborService.clockOutWithTips(tc.id);
+
+    if (!clockedOut) {
+      this._error.set('Failed to close current timecard');
+      this._isClockAction.set(false);
+      return;
+    }
+
+    const newTimecard = await this.laborService.clockInWithJob(staff.id, newJob);
+
+    if (newTimecard) {
+      this._activeTimecard.set(newTimecard);
+      this._todayTimecards.update(tc => [...tc, newTimecard]);
+      this._showJobSwitcher.set(false);
+      this._switchJobTitle.set(null);
+    } else {
+      this._error.set('Clocked out but failed to clock in with new job');
+    }
+
+    this._isClockAction.set(false);
   }
 
   // === Helpers ===
