@@ -862,6 +862,70 @@ export class MenuService {
     }
   }
 
+  // --- Menu Item Photos & AI Descriptions (GAP-R09) ---
+
+  async uploadItemImage(itemId: string, file: File): Promise<{ imageUrl: string; thumbnailUrl: string }> {
+    const restaurantId = this.authService.selectedRestaurantId();
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('itemId', itemId);
+    formData.append('restaurantId', restaurantId ?? '');
+
+    const result = await firstValueFrom(
+      this.http.post<{ imageUrl: string; thumbnailUrl: string }>(
+        `${this.apiUrl}/menu/items/${itemId}/image`,
+        formData
+      )
+    );
+
+    // Update local state
+    this._categories.update(cats => cats.map(cat => ({
+      ...cat,
+      items: cat.items?.map(item =>
+        item.id === itemId
+          ? { ...item, imageUrl: result.imageUrl, thumbnailUrl: result.thumbnailUrl }
+          : item
+      ),
+    })));
+
+    return result;
+  }
+
+  async deleteItemImage(itemId: string): Promise<void> {
+    await firstValueFrom(
+      this.http.delete(`${this.apiUrl}/menu/items/${itemId}/image`)
+    );
+
+    this._categories.update(cats => cats.map(cat => ({
+      ...cat,
+      items: cat.items?.map(item =>
+        item.id === itemId
+          ? { ...item, imageUrl: null, thumbnailUrl: null }
+          : item
+      ),
+    })));
+  }
+
+  async generateAiDescription(itemId: string): Promise<string> {
+    const result = await firstValueFrom(
+      this.http.post<{ description: string }>(
+        `${this.apiUrl}/menu/items/${itemId}/generate-description`,
+        {}
+      )
+    );
+
+    this._categories.update(cats => cats.map(cat => ({
+      ...cat,
+      items: cat.items?.map(item =>
+        item.id === itemId
+          ? { ...item, aiGeneratedDescription: result.description }
+          : item
+      ),
+    })));
+
+    return result.description;
+  }
+
   private normalizeMenuData(categories: MenuCategory[]): MenuCategory[] {
     return categories.map(cat => ({
       ...cat,

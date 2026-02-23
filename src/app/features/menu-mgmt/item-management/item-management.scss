@@ -437,6 +437,87 @@
   overflow-y: auto;
 }
 
+// Image upload zone in form
+.image-dropzone {
+  border: 2px dashed var(--os-border);
+  border-radius: var(--os-radius);
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--os-text-secondary);
+
+  &:hover {
+    border-color: var(--os-primary);
+    background-color: rgba(0, 106, 255, 0.03);
+  }
+
+  i {
+    font-size: 1.5rem;
+    color: var(--os-primary);
+  }
+}
+
+.dropzone-hint {
+  font-size: 0.75rem;
+  color: var(--os-text-muted);
+}
+
+.image-preview-container {
+  position: relative;
+  border-radius: var(--os-radius);
+  overflow: hidden;
+  border: 1px solid var(--os-border);
+}
+
+.image-preview {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.image-preview-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background-color: var(--os-bg);
+  border-top: 1px solid var(--os-border);
+}
+
+.upload-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--os-text-primary);
+}
+
+// AI description generation
+.ai-description-section {
+  padding: 0.75rem;
+  background-color: var(--os-bg);
+  border: 1px solid var(--os-border);
+  border-radius: var(--os-radius);
+}
+
+.generated-desc-card {
+  textarea {
+    font-size: 0.85rem;
+    background-color: var(--os-bg-card);
+    border-color: var(--os-border);
+    color: var(--os-text-primary);
+  }
+}
+
 .btn-primary {
   background-color: var(--os-primary);
   border-color: var(--os-primary);

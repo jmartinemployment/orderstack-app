@@ -185,6 +185,10 @@
       <div class="menu-list">
         @for (item of filteredItems(); track item.id) {
           <div class="menu-item" [class.unavailable]="!isItemAvailable(item)">
+            @if (item.imageUrl || item.image) {
+              <img [src]="item.thumbnailUrl || item.imageUrl || item.image" [alt]="item.name"
+                class="menu-item-image" loading="lazy" />
+            }
             <div class="item-info" (click)="toggleItemExpanded(item.id)">
               <div class="item-name">{{ item.name }}</div>
               @if (item.description) {

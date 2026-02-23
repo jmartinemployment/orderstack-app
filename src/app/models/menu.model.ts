@@ -32,6 +32,9 @@ export interface MenuItem {
   price: number | string;
   cost?: number;
   image?: string;
+  imageUrl?: string | null;
+  thumbnailUrl?: string | null;
+  aiGeneratedDescription?: string | null;
   displayOrder?: number;
   modifierGroups?: ModifierGroup[];
   dietary?: DietaryInfo[];

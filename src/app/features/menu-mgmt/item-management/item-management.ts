@@ -90,6 +90,12 @@ export class ItemManagement {
   private readonly _importResult = signal<CsvImportResult | null>(null);
   private readonly _isImporting = signal(false);
 
+  // Image upload
+  private readonly _isUploadingImage = signal(false);
+  private readonly _imagePreview = signal<string | null>(null);
+  private readonly _isGeneratingDescription = signal(false);
+  private readonly _generatedDescription = signal<string | null>(null);
+
   readonly editingItem = this._editingItem.asReadonly();
   readonly showForm = this._showForm.asReadonly();
   readonly isSaving = this._isSaving.asReadonly();
@@ -116,6 +122,10 @@ export class ItemManagement {
   readonly showImportModal = this._showImportModal.asReadonly();
   readonly importResult = this._importResult.asReadonly();
   readonly isImporting = this._isImporting.asReadonly();
+  readonly isUploadingImage = this._isUploadingImage.asReadonly();
+  readonly imagePreview = this._imagePreview.asReadonly();
+  readonly isGeneratingDescription = this._isGeneratingDescription.asReadonly();
+  readonly generatedDescription = this._generatedDescription.asReadonly();
 
   readonly items = this.menuService.allItems;
   readonly categories = this.menuService.categories;
@@ -319,6 +329,8 @@ export class ItemManagement {
 
   openCreateForm(): void {
     this._editingItem.set(null);
+    this._imagePreview.set(null);
+    this._generatedDescription.set(null);
     this._selectedModifierGroupIds.set([]);
     this._formAllergens.set([]);
     this._formAvailabilityWindows.set([]);
@@ -340,6 +352,8 @@ export class ItemManagement {
 
   openEditForm(item: MenuItem): void {
     this._editingItem.set(item);
+    this._imagePreview.set(item.imageUrl ?? null);
+    this._generatedDescription.set(null);
     this._selectedModifierGroupIds.set(item.modifierGroups?.map(g => g.id) ?? []);
     this._formAllergens.set(item.allergens ?? []);
     this._formAvailabilityWindows.set(item.availabilityWindows ?? []);
@@ -407,6 +421,8 @@ export class ItemManagement {
   closeForm(): void {
     this._showForm.set(false);
     this._editingItem.set(null);
+    this._imagePreview.set(null);
+    this._generatedDescription.set(null);
     this._selectedModifierGroupIds.set([]);
     this.itemForm.reset();
   }
@@ -702,6 +718,91 @@ export class ItemManagement {
       case 'medium': return 'bg-warning text-dark';
       case 'low': return 'bg-danger';
       default: return 'bg-secondary';
+    }
+  }
+
+  // ============ Image Upload (GAP-R09) ============
+
+  onImageFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    // Validate file size (2MB max)
+    if (file.size > 2 * 1024 * 1024) {
+      this._localError.set('Image must be under 2MB');
+      return;
+    }
+
+    // Validate file type
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      this._localError.set('Accepted formats: JPG, PNG, WebP');
+      return;
+    }
+
+    // Show local preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      this._imagePreview.set(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload if editing existing item
+    const item = this._editingItem();
+    if (item) {
+      this.uploadImage(item.id, file);
+    }
+  }
+
+  private async uploadImage(itemId: string, file: File): Promise<void> {
+    this._isUploadingImage.set(true);
+    this._localError.set(null);
+    try {
+      const result = await this.menuService.uploadItemImage(itemId, file);
+      this._imagePreview.set(result.imageUrl);
+    } catch {
+      this._localError.set('Failed to upload image');
+    } finally {
+      this._isUploadingImage.set(false);
+    }
+  }
+
+  async removeImage(): Promise<void> {
+    const item = this._editingItem();
+    if (!item) return;
+
+    this._isUploadingImage.set(true);
+    try {
+      await this.menuService.deleteItemImage(item.id);
+      this._imagePreview.set(null);
+    } catch {
+      this._localError.set('Failed to remove image');
+    } finally {
+      this._isUploadingImage.set(false);
+    }
+  }
+
+  async generateAiDescription(): Promise<void> {
+    const item = this._editingItem();
+    if (!item) return;
+
+    this._isGeneratingDescription.set(true);
+    this._localError.set(null);
+    try {
+      const description = await this.menuService.generateAiDescription(item.id);
+      this._generatedDescription.set(description);
+    } catch {
+      this._localError.set('Failed to generate description');
+    } finally {
+      this._isGeneratingDescription.set(false);
+    }
+  }
+
+  applyGeneratedDescription(): void {
+    const desc = this._generatedDescription();
+    if (desc) {
+      this.itemForm.patchValue({ description: desc });
+      this._generatedDescription.set(null);
     }
   }
 }
