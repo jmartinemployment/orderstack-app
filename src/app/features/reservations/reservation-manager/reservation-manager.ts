@@ -18,6 +18,10 @@ import {
   GuestPreferences,
   SeatingPreference,
   TimelineBlock,
+  CalendarConnection,
+  WaitlistSmsConfig,
+  WaitlistAnalytics,
+  VirtualWaitlistConfig,
   DIETARY_OPTIONS,
   OCCASION_OPTIONS,
 } from '@models/index';
@@ -231,6 +235,49 @@ export class ReservationManager {
     return hours;
   });
 
+  // ── Phase 3: Calendar Sync ──
+  readonly calendarConnection = this.reservationService.calendarConnection;
+  readonly calendarBlocks = this.reservationService.calendarBlocks;
+  readonly isCalendarConnected = this.reservationService.isCalendarConnected;
+  private readonly _showCalendarSettings = signal(false);
+  private readonly _calendarSyncing = signal(false);
+  readonly showCalendarSettings = this._showCalendarSettings.asReadonly();
+  readonly calendarSyncing = this._calendarSyncing.asReadonly();
+
+  // ── Phase 3: Waitlist SMS Config ──
+  readonly waitlistSmsConfig = this.reservationService.waitlistSmsConfig;
+  private readonly _showSmsConfig = signal(false);
+  private readonly _smsEnabled = signal(false);
+  private readonly _smsMessage = signal('');
+  private readonly _smsOnMyWay = signal(false);
+  private readonly _smsAutoRemove = signal(15);
+  private readonly _smsSaving = signal(false);
+  readonly showSmsConfig = this._showSmsConfig.asReadonly();
+  readonly smsEnabled = this._smsEnabled.asReadonly();
+  readonly smsMessage = this._smsMessage.asReadonly();
+  readonly smsOnMyWay = this._smsOnMyWay.asReadonly();
+  readonly smsAutoRemove = this._smsAutoRemove.asReadonly();
+  readonly smsSaving = this._smsSaving.asReadonly();
+
+  // ── Phase 3: Waitlist Analytics ──
+  readonly waitlistAnalytics = this.reservationService.waitlistAnalytics;
+  private readonly _showWaitlistAnalytics = signal(false);
+  readonly showWaitlistAnalytics = this._showWaitlistAnalytics.asReadonly();
+
+  // ── Phase 3: Virtual Waitlist ──
+  readonly virtualWaitlistConfig = this.reservationService.virtualWaitlistConfig;
+  private readonly _showVirtualConfig = signal(false);
+  private readonly _virtualEnabled = signal(false);
+  private readonly _virtualMaxQueue = signal(50);
+  private readonly _virtualSaving = signal(false);
+  readonly showVirtualConfig = this._showVirtualConfig.asReadonly();
+  readonly virtualEnabled = this._virtualEnabled.asReadonly();
+  readonly virtualMaxQueue = this._virtualMaxQueue.asReadonly();
+  readonly virtualSaving = this._virtualSaving.asReadonly();
+
+  // ── Phase 3: On My Way entries ──
+  readonly onMyWayEntries = this.reservationService.onMyWayEntries;
+
   // ── Reservation Form ──
   readonly reservationForm = this.fb.group({
     customerName: ['', [Validators.required, Validators.minLength(2)]],
@@ -245,6 +292,8 @@ export class ReservationManager {
 
   private eventsLoaded = false;
   private recurringLoaded = false;
+  private calendarLoaded = false;
+  private waitlistConfigLoaded = false;
 
   constructor() {
     effect(() => {
@@ -263,6 +312,12 @@ export class ReservationManager {
     this._activeTab.set(tab);
     if (tab === 'waitlist') {
       this.reservationService.loadWaitlist();
+      if (!this.waitlistConfigLoaded) {
+        this.reservationService.loadWaitlistSmsConfig();
+        this.reservationService.loadVirtualWaitlistConfig();
+        this.reservationService.loadWaitlistAnalytics();
+        this.waitlistConfigLoaded = true;
+      }
     }
     if (tab === 'events' && !this.eventsLoaded) {
       this.reservationService.loadEvents();
@@ -271,6 +326,10 @@ export class ReservationManager {
     if ((tab === 'today' || tab === 'upcoming') && !this.recurringLoaded) {
       this.reservationService.loadRecurringReservations();
       this.recurringLoaded = true;
+    }
+    if (tab === 'timeline' && !this.calendarLoaded) {
+      this.reservationService.loadCalendarConnection();
+      this.calendarLoaded = true;
     }
   }
 
@@ -483,6 +542,16 @@ export class ReservationManager {
     return `${hours}h ${remainder}m`;
   }
 
+  isOnMyWay(entry: WaitlistEntry): boolean {
+    return entry.onMyWayAt !== null;
+  }
+
+  getOnMyWayTime(entry: WaitlistEntry): string {
+    if (!entry.onMyWayAt) return '';
+    const date = new Date(entry.onMyWayAt);
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  }
+
   // ── Events (Phase 2) ──
 
   setEventFilter(filter: 'upcoming' | 'past'): void {
@@ -649,7 +718,6 @@ export class ReservationManager {
     const success = await this.reservationService.updateGuestPreferences(resId, preferences);
     if (success) {
       this.closePreferences();
-      // Update selected reservation if open
       const sel = this._selectedReservation();
       if (sel?.id === resId) {
         this._selectedReservation.set({ ...sel, preferences });
@@ -716,6 +784,191 @@ export class ReservationManager {
     const totalMinutes = 15 * 60;
     const leftPercent = (offset / totalMinutes) * 100;
     return { left: `${leftPercent}%` };
+  }
+
+  // ── Google Calendar Sync (Phase 3) ──
+
+  toggleCalendarSettings(): void {
+    this._showCalendarSettings.update(v => !v);
+    if (this._showCalendarSettings() && !this.calendarLoaded) {
+      this.reservationService.loadCalendarConnection();
+      this.calendarLoaded = true;
+    }
+  }
+
+  async connectCalendar(): Promise<void> {
+    const authUrl = await this.reservationService.connectGoogleCalendar();
+    if (authUrl) {
+      window.open(authUrl, '_blank', 'noopener,noreferrer');
+    }
+  }
+
+  async disconnectCalendar(): Promise<void> {
+    await this.reservationService.disconnectCalendar();
+  }
+
+  async updateCalendarPush(event: Event): Promise<void> {
+    const checked = (event.target as HTMLInputElement).checked;
+    const conn = this.calendarConnection();
+    if (conn) {
+      await this.reservationService.updateCalendarSettings({
+        pushReservations: checked,
+        pullBlocks: conn.pullBlocks,
+      });
+    }
+  }
+
+  async updateCalendarPull(event: Event): Promise<void> {
+    const checked = (event.target as HTMLInputElement).checked;
+    const conn = this.calendarConnection();
+    if (conn) {
+      await this.reservationService.updateCalendarSettings({
+        pushReservations: conn.pushReservations,
+        pullBlocks: checked,
+      });
+    }
+  }
+
+  async syncCalendarNow(): Promise<void> {
+    this._calendarSyncing.set(true);
+    await this.reservationService.syncCalendar();
+    this._calendarSyncing.set(false);
+  }
+
+  getCalendarStatusClass(): string {
+    const conn = this.calendarConnection();
+    if (!conn) return 'status-disconnected';
+    switch (conn.status) {
+      case 'connected': return 'status-connected';
+      case 'syncing': return 'status-syncing';
+      case 'error': return 'status-error';
+      default: return 'status-disconnected';
+    }
+  }
+
+  getCalendarStatusLabel(): string {
+    const conn = this.calendarConnection();
+    if (!conn) return 'Not Connected';
+    switch (conn.status) {
+      case 'connected': return 'Connected';
+      case 'syncing': return 'Syncing...';
+      case 'error': return 'Error';
+      default: return 'Disconnected';
+    }
+  }
+
+  // ── Waitlist SMS Config (Phase 3) ──
+
+  openSmsConfig(): void {
+    const config = this.waitlistSmsConfig();
+    this._smsEnabled.set(config?.enabled ?? false);
+    this._smsMessage.set(config?.notifyMessage ?? 'Hi {name}, your table is ready at {restaurant}! Please head to the host stand.');
+    this._smsOnMyWay.set(config?.onMyWayEnabled ?? false);
+    this._smsAutoRemove.set(config?.autoRemoveMinutes ?? 15);
+    this._showSmsConfig.set(true);
+  }
+
+  closeSmsConfig(): void {
+    this._showSmsConfig.set(false);
+  }
+
+  onSmsField(field: string, event: Event): void {
+    const target = event.target as HTMLInputElement | HTMLTextAreaElement;
+    switch (field) {
+      case 'enabled': this._smsEnabled.set((target as HTMLInputElement).checked); break;
+      case 'message': this._smsMessage.set(target.value); break;
+      case 'onMyWay': this._smsOnMyWay.set((target as HTMLInputElement).checked); break;
+      case 'autoRemove': this._smsAutoRemove.set(Number.parseInt(target.value, 10) || 15); break;
+    }
+  }
+
+  async saveSmsConfig(): Promise<void> {
+    if (this._smsSaving()) return;
+    this._smsSaving.set(true);
+
+    const config: WaitlistSmsConfig = {
+      enabled: this._smsEnabled(),
+      notifyMessage: this._smsMessage(),
+      onMyWayEnabled: this._smsOnMyWay(),
+      autoRemoveMinutes: this._smsAutoRemove(),
+    };
+
+    const success = await this.reservationService.saveWaitlistSmsConfig(config);
+    this._smsSaving.set(false);
+
+    if (success) {
+      this.closeSmsConfig();
+    } else {
+      this._localError.set(this.reservationService.error() ?? 'Failed to save SMS config');
+    }
+  }
+
+  // ── Waitlist Analytics (Phase 3) ──
+
+  toggleWaitlistAnalytics(): void {
+    this._showWaitlistAnalytics.update(v => !v);
+    if (this._showWaitlistAnalytics()) {
+      this.reservationService.loadWaitlistAnalytics();
+    }
+  }
+
+  getAnalyticsBarWidth(count: number, analytics: WaitlistAnalytics): number {
+    const maxCount = Math.max(...analytics.byHour.map(h => h.count), 1);
+    return (count / maxCount) * 100;
+  }
+
+  getDayBarWidth(count: number, analytics: WaitlistAnalytics): number {
+    const maxCount = Math.max(...analytics.byDay.map(d => d.count), 1);
+    return (count / maxCount) * 100;
+  }
+
+  async recalculateWaitTimes(): Promise<void> {
+    await this.reservationService.recalculateWaitTimes();
+  }
+
+  // ── Virtual Waitlist (Phase 3) ──
+
+  openVirtualConfig(): void {
+    const config = this.virtualWaitlistConfig();
+    this._virtualEnabled.set(config?.enabled ?? false);
+    this._virtualMaxQueue.set(config?.maxQueueSize ?? 50);
+    this._showVirtualConfig.set(true);
+  }
+
+  closeVirtualConfig(): void {
+    this._showVirtualConfig.set(false);
+  }
+
+  onVirtualField(field: string, event: Event): void {
+    const target = event.target as HTMLInputElement;
+    switch (field) {
+      case 'enabled': this._virtualEnabled.set(target.checked); break;
+      case 'maxQueue': this._virtualMaxQueue.set(Number.parseInt(target.value, 10) || 50); break;
+    }
+  }
+
+  async saveVirtualConfig(): Promise<void> {
+    if (this._virtualSaving()) return;
+    this._virtualSaving.set(true);
+
+    const success = await this.reservationService.saveVirtualWaitlistConfig({
+      enabled: this._virtualEnabled(),
+      maxQueueSize: this._virtualMaxQueue(),
+    });
+    this._virtualSaving.set(false);
+
+    if (success) {
+      this.closeVirtualConfig();
+    } else {
+      this._localError.set(this.reservationService.error() ?? 'Failed to save virtual waitlist config');
+    }
+  }
+
+  copyJoinLink(): void {
+    const config = this.virtualWaitlistConfig();
+    if (config?.joinUrl) {
+      navigator.clipboard.writeText(config.joinUrl);
+    }
   }
 
   // ── Helpers ──

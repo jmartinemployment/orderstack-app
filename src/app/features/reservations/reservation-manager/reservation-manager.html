@@ -174,7 +174,96 @@
         <label class="form-label mb-0 small fw-semibold">Date:</label>
         <input type="date" class="form-control form-control-sm timeline-date-picker"
           [value]="timelineDate()" (change)="setTimelineDate($event)" />
+
+        <!-- Calendar Sync Toggle -->
+        <button type="button" class="btn btn-sm ms-auto"
+          [class]="isCalendarConnected() ? 'btn-outline-success' : 'btn-outline-secondary'"
+          (click)="toggleCalendarSettings()">
+          <i class="bi bi-google"></i>
+          {{ isCalendarConnected() ? 'Calendar Connected' : 'Connect Calendar' }}
+        </button>
       </div>
+
+      <!-- Calendar Settings Panel -->
+      @if (showCalendarSettings()) {
+        <div class="calendar-settings-panel mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">Google Calendar Integration</h6>
+            <span class="calendar-status" [class]="getCalendarStatusClass()">
+              {{ getCalendarStatusLabel() }}
+            </span>
+          </div>
+
+          @if (calendarConnection(); as conn) {
+            <div class="calendar-connected-info mb-3">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-envelope"></i>
+                <span class="small">{{ conn.email }}</span>
+                <span class="badge bg-secondary">{{ conn.calendarName }}</span>
+              </div>
+              @if (conn.lastSyncAt) {
+                <div class="small text-muted">Last synced: {{ conn.lastSyncAt | date:'short' }}</div>
+              }
+            </div>
+
+            <div class="calendar-toggles mb-3">
+              <div class="form-check mb-2">
+                <input type="checkbox" class="form-check-input" id="calPush"
+                  [checked]="conn.pushReservations" (change)="updateCalendarPush($event)" />
+                <label class="form-check-label" for="calPush">
+                  Push reservations to Google Calendar
+                </label>
+              </div>
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="calPull"
+                  [checked]="conn.pullBlocks" (change)="updateCalendarPull($event)" />
+                <label class="form-check-label" for="calPull">
+                  Pull blocked times from Google Calendar
+                </label>
+              </div>
+            </div>
+
+            <!-- Calendar Blocks -->
+            @if (calendarBlocks().length > 0) {
+              <div class="calendar-blocks mb-3">
+                <span class="section-label d-block mb-2">Blocked Times from Calendar</span>
+                @for (block of calendarBlocks(); track block.id) {
+                  <div class="calendar-block-card">
+                    <span class="fw-semibold small">{{ block.title }}</span>
+                    <span class="small text-muted ms-2">
+                      @if (block.isAllDay) {
+                        All Day
+                      } @else {
+                        {{ block.startTime | date:'shortTime' }} – {{ block.endTime | date:'shortTime' }}
+                      }
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-outline-primary" (click)="syncCalendarNow()" [disabled]="calendarSyncing()">
+                @if (calendarSyncing()) {
+                  <span class="spinner-border spinner-border-sm me-1"></span> Syncing...
+                } @else {
+                  <i class="bi bi-arrow-repeat"></i> Sync Now
+                }
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="disconnectCalendar()">
+                Disconnect
+              </button>
+            </div>
+          } @else {
+            <p class="small text-muted mb-3">
+              Connect your Google Calendar to sync reservations and pull blocked times automatically.
+            </p>
+            <button type="button" class="btn btn-sm btn-primary" (click)="connectCalendar()">
+              <i class="bi bi-google"></i> Connect Google Calendar
+            </button>
+          }
+        </div>
+      }
 
       <!-- Capacity Heat Strip -->
       <div class="capacity-strip mb-3">
@@ -339,14 +428,133 @@
     @if (activeTab() === 'waitlist') {
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0">Walk-In Waitlist</h5>
-        <button type="button" class="btn btn-warning btn-sm" (click)="openWaitlistForm()">
-          + Add to Waitlist
-        </button>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="openSmsConfig()">
+            <i class="bi bi-chat-dots"></i> SMS Config
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="openVirtualConfig()">
+            <i class="bi bi-qr-code"></i> Virtual Waitlist
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="toggleWaitlistAnalytics()">
+            <i class="bi bi-bar-chart"></i> Analytics
+          </button>
+          <button type="button" class="btn btn-warning btn-sm" (click)="openWaitlistForm()">
+            + Add to Waitlist
+          </button>
+        </div>
       </div>
 
+      <!-- Virtual Waitlist Info Bar -->
+      @if (virtualWaitlistConfig(); as vConfig) {
+        @if (vConfig.enabled) {
+          <div class="virtual-waitlist-bar mb-3">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-qr-code"></i>
+              <span class="small fw-semibold">Virtual Waitlist Active</span>
+              @if (vConfig.joinUrl) {
+                <span class="small text-muted ms-2">{{ vConfig.joinUrl }}</span>
+                <button type="button" class="btn btn-sm btn-link p-0" (click)="copyJoinLink()">
+                  <i class="bi bi-clipboard"></i>
+                </button>
+              }
+              <span class="badge bg-secondary ms-auto">Max {{ vConfig.maxQueueSize }}</span>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- On My Way Entries -->
+      @if (onMyWayEntries().length > 0) {
+        <div class="on-my-way-section mb-3">
+          <h6 class="section-label mb-2">On Their Way</h6>
+          @for (entry of onMyWayEntries(); track entry.id) {
+            <div class="on-my-way-card d-flex justify-content-between align-items-center">
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-geo-alt-fill"></i>
+                <strong>{{ entry.partyName }}</strong>
+                <span class="badge bg-secondary">{{ entry.partySize }} guests</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <span class="small text-muted">Confirmed at {{ getOnMyWayTime(entry) }}</span>
+                <button type="button" class="btn btn-sm btn-outline-info" (click)="seatGuest(entry)">
+                  <i class="bi bi-box-arrow-in-right"></i> Seat Now
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Waitlist Analytics Panel -->
+      @if (showWaitlistAnalytics()) {
+        @if (waitlistAnalytics(); as analytics) {
+          <div class="waitlist-analytics-panel mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="mb-0">Waitlist Analytics</h6>
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="recalculateWaitTimes()">
+                <i class="bi bi-arrow-repeat"></i> Recalculate
+              </button>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="analytics-kpis mb-3">
+              <div class="analytics-kpi">
+                <span class="analytics-kpi-value">{{ analytics.avgWaitMinutes }}m</span>
+                <span class="analytics-kpi-label">Avg Wait</span>
+              </div>
+              <div class="analytics-kpi">
+                <span class="analytics-kpi-value analytics-success">{{ (analytics.seatedRate * 100).toFixed(0) }}%</span>
+                <span class="analytics-kpi-label">Seated Rate</span>
+              </div>
+              <div class="analytics-kpi">
+                <span class="analytics-kpi-value analytics-danger">{{ (analytics.noShowRate * 100).toFixed(0) }}%</span>
+                <span class="analytics-kpi-label">No-Show</span>
+              </div>
+              <div class="analytics-kpi">
+                <span class="analytics-kpi-value analytics-warning">{{ (analytics.cancelledRate * 100).toFixed(0) }}%</span>
+                <span class="analytics-kpi-label">Cancelled</span>
+              </div>
+            </div>
+
+            <!-- Wait by Hour -->
+            <div class="analytics-chart-section mb-3">
+              <span class="section-label d-block mb-2">Average Wait by Hour</span>
+              <div class="analytics-bar-chart">
+                @for (h of analytics.byHour; track h.hour) {
+                  <div class="bar-row">
+                    <span class="bar-label">{{ h.hour > 12 ? h.hour - 12 : h.hour }}{{ h.hour >= 12 ? 'PM' : 'AM' }}</span>
+                    <div class="bar-track">
+                      <div class="bar-fill" [style.width.%]="getAnalyticsBarWidth(h.count, analytics)"></div>
+                    </div>
+                    <span class="bar-value">{{ h.avgWait }}m <span class="text-muted">({{ h.count }})</span></span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Wait by Day -->
+            <div class="analytics-chart-section">
+              <span class="section-label d-block mb-2">Average Wait by Day</span>
+              <div class="analytics-bar-chart">
+                @for (d of analytics.byDay; track d.day) {
+                  <div class="bar-row">
+                    <span class="bar-label">{{ d.day }}</span>
+                    <div class="bar-track">
+                      <div class="bar-fill bar-fill-alt" [style.width.%]="getDayBarWidth(d.count, analytics)"></div>
+                    </div>
+                    <span class="bar-value">{{ d.avgWait }}m <span class="text-muted">({{ d.count }})</span></span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- Waitlist Queue -->
       <div class="waitlist-queue">
         @for (entry of activeWaitlist(); track entry.id) {
-          <div class="waitlist-card" [class.waitlist-notified]="entry.status === 'notified'">
+          <div class="waitlist-card" [class.waitlist-notified]="entry.status === 'notified'" [class.waitlist-on-my-way]="isOnMyWay(entry)">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div class="d-flex align-items-center gap-2">
                 <span class="waitlist-position">{{ entry.position }}</span>
@@ -355,6 +563,11 @@
                   <span class="badge bg-secondary ms-2">{{ entry.partySize }} guests</span>
                   @if (entry.status === 'notified') {
                     <span class="badge bg-success ms-1">Notified</span>
+                  }
+                  @if (isOnMyWay(entry)) {
+                    <span class="badge badge-on-my-way ms-1">
+                      <i class="bi bi-geo-alt-fill"></i> On My Way
+                    </span>
                   }
                 </div>
               </div>
@@ -967,6 +1180,129 @@
         <div class="card-footer d-flex gap-2 justify-content-end">
           <button type="button" class="btn btn-outline-secondary" (click)="closePreferences()">Cancel</button>
           <button type="button" class="btn btn-primary" (click)="savePreferences()">Save Preferences</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══ SMS CONFIG MODAL ═══ -->
+  @if (showSmsConfig()) {
+    <div class="modal-overlay" (click)="closeSmsConfig()">
+      <div class="modal-content card" (click)="$event.stopPropagation()">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">Waitlist SMS Notifications</h4>
+          <button type="button" class="btn-close" (click)="closeSmsConfig()"></button>
+        </div>
+        <div class="card-body">
+          <div class="form-check form-switch mb-3">
+            <input type="checkbox" class="form-check-input" id="smsEnabled"
+              [checked]="smsEnabled()" (change)="onSmsField('enabled', $event)" />
+            <label class="form-check-label fw-semibold" for="smsEnabled">Enable SMS Notifications</label>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Notification Message</label>
+            <textarea class="form-control" rows="3"
+              [value]="smsMessage()" (input)="onSmsField('message', $event)"
+              placeholder="Hi {name}, your table is ready..."></textarea>
+            <div class="form-text">
+              Variables: <code>{{ '{' }}name{{ '}' }}</code> = guest name, <code>{{ '{' }}restaurant{{ '}' }}</code> = restaurant name
+            </div>
+          </div>
+
+          <div class="form-check form-switch mb-3">
+            <input type="checkbox" class="form-check-input" id="smsOnMyWay"
+              [checked]="smsOnMyWay()" (change)="onSmsField('onMyWay', $event)" />
+            <label class="form-check-label" for="smsOnMyWay">
+              Enable "On My Way" replies
+            </label>
+            <div class="form-text">
+              Guests can reply to confirm they're headed to the restaurant
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Auto-Remove After (minutes)</label>
+            <input type="number" class="form-control" min="5" max="60" style="max-width: 120px"
+              [value]="smsAutoRemove()" (input)="onSmsField('autoRemove', $event)" />
+            <div class="form-text">
+              Remove guests who don't respond after this many minutes
+            </div>
+          </div>
+        </div>
+        <div class="card-footer d-flex gap-2 justify-content-end">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeSmsConfig()" [disabled]="smsSaving()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="saveSmsConfig()" [disabled]="smsSaving()">
+            @if (smsSaving()) {
+              <span class="spinner-border spinner-border-sm me-1"></span> Saving...
+            } @else {
+              Save Configuration
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══ VIRTUAL WAITLIST CONFIG MODAL ═══ -->
+  @if (showVirtualConfig()) {
+    <div class="modal-overlay" (click)="closeVirtualConfig()">
+      <div class="modal-content card" (click)="$event.stopPropagation()">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">Virtual Waitlist</h4>
+          <button type="button" class="btn-close" (click)="closeVirtualConfig()"></button>
+        </div>
+        <div class="card-body">
+          <div class="form-check form-switch mb-3">
+            <input type="checkbox" class="form-check-input" id="virtualEnabled"
+              [checked]="virtualEnabled()" (change)="onVirtualField('enabled', $event)" />
+            <label class="form-check-label fw-semibold" for="virtualEnabled">Enable Virtual Waitlist</label>
+          </div>
+
+          <p class="small text-muted mb-3">
+            Let guests join your waitlist from their phone using a QR code or link — no staff interaction needed.
+          </p>
+
+          @if (virtualWaitlistConfig(); as vConfig) {
+            @if (vConfig.qrCodeUrl) {
+              <div class="mb-3">
+                <label class="form-label">QR Code</label>
+                <div class="qr-placeholder text-center p-3">
+                  <img [src]="vConfig.qrCodeUrl" alt="Waitlist QR Code" class="qr-code-img" />
+                </div>
+              </div>
+            }
+            @if (vConfig.joinUrl) {
+              <div class="mb-3">
+                <label class="form-label">Join Link</label>
+                <div class="input-group">
+                  <input type="text" class="form-control" [value]="vConfig.joinUrl" readonly />
+                  <button type="button" class="btn btn-outline-secondary" (click)="copyJoinLink()">
+                    <i class="bi bi-clipboard"></i>
+                  </button>
+                </div>
+              </div>
+            }
+          }
+
+          <div class="mb-3">
+            <label class="form-label">Max Queue Size</label>
+            <input type="number" class="form-control" min="5" max="200" style="max-width: 120px"
+              [value]="virtualMaxQueue()" (input)="onVirtualField('maxQueue', $event)" />
+            <div class="form-text">
+              Maximum number of guests who can be on the waitlist at once
+            </div>
+          </div>
+        </div>
+        <div class="card-footer d-flex gap-2 justify-content-end">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeVirtualConfig()" [disabled]="virtualSaving()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="saveVirtualConfig()" [disabled]="virtualSaving()">
+            @if (virtualSaving()) {
+              <span class="spinner-border spinner-border-sm me-1"></span> Saving...
+            } @else {
+              Save Configuration
+            }
+          </button>
         </div>
       </div>
     </div>

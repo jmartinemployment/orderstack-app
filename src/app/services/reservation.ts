@@ -15,6 +15,11 @@ import {
   EventAttendee,
   TurnTimeStats,
   GuestPreferences,
+  CalendarConnection,
+  CalendarBlock,
+  WaitlistSmsConfig,
+  WaitlistAnalytics,
+  VirtualWaitlistConfig,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -39,6 +44,13 @@ export class ReservationService {
   private readonly _isLoadingEvents = signal(false);
   private readonly _isLoadingRecurring = signal(false);
 
+  // Phase 3 signals
+  private readonly _calendarConnection = signal<CalendarConnection | null>(null);
+  private readonly _calendarBlocks = signal<CalendarBlock[]>([]);
+  private readonly _waitlistSmsConfig = signal<WaitlistSmsConfig | null>(null);
+  private readonly _waitlistAnalytics = signal<WaitlistAnalytics | null>(null);
+  private readonly _virtualWaitlistConfig = signal<VirtualWaitlistConfig | null>(null);
+
   readonly reservations = this._reservations.asReadonly();
   readonly waitlist = this._waitlist.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
@@ -49,6 +61,19 @@ export class ReservationService {
   readonly turnTimeStats = this._turnTimeStats.asReadonly();
   readonly isLoadingEvents = this._isLoadingEvents.asReadonly();
   readonly isLoadingRecurring = this._isLoadingRecurring.asReadonly();
+
+  // Phase 3 public signals
+  readonly calendarConnection = this._calendarConnection.asReadonly();
+  readonly calendarBlocks = this._calendarBlocks.asReadonly();
+  readonly waitlistSmsConfig = this._waitlistSmsConfig.asReadonly();
+  readonly waitlistAnalytics = this._waitlistAnalytics.asReadonly();
+  readonly virtualWaitlistConfig = this._virtualWaitlistConfig.asReadonly();
+
+  readonly isCalendarConnected = computed(() => this._calendarConnection()?.status === 'connected');
+
+  readonly onMyWayEntries = computed(() =>
+    this._waitlist().filter(e => e.onMyWayAt !== null && e.status === 'waiting')
+  );
 
   readonly activeWaitlist = computed(() =>
     this._waitlist()
@@ -587,6 +612,229 @@ export class ReservationService {
       const message = err instanceof Error ? err.message : 'Failed to update guest preferences';
       this._error.set(message);
       return false;
+    }
+  }
+
+  // ── Google Calendar Sync (Phase 3) ──
+
+  async loadCalendarConnection(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const connection = await firstValueFrom(
+        this.http.get<CalendarConnection>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/calendar/connection`
+        )
+      );
+      this._calendarConnection.set(connection);
+    } catch {
+      this._calendarConnection.set(null);
+    }
+  }
+
+  async connectGoogleCalendar(): Promise<string | null> {
+    if (!this.restaurantId) return null;
+
+    try {
+      const result = await firstValueFrom(
+        this.http.post<{ authUrl: string }>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/calendar/connect`,
+          { provider: 'google' }
+        )
+      );
+      return result.authUrl;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to start calendar connection';
+      this._error.set(message);
+      return null;
+    }
+  }
+
+  async disconnectCalendar(): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    try {
+      await firstValueFrom(
+        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/calendar/connection`)
+      );
+      this._calendarConnection.set(null);
+      this._calendarBlocks.set([]);
+      return true;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to disconnect calendar';
+      this._error.set(message);
+      return false;
+    }
+  }
+
+  async updateCalendarSettings(settings: { pushReservations: boolean; pullBlocks: boolean }): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    try {
+      const updated = await firstValueFrom(
+        this.http.patch<CalendarConnection>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/calendar/connection`,
+          settings
+        )
+      );
+      this._calendarConnection.set(updated);
+      return true;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to update calendar settings';
+      this._error.set(message);
+      return false;
+    }
+  }
+
+  async syncCalendar(): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    this._calendarConnection.update(c => c ? { ...c, status: 'syncing' } : null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.post<{ blocks: CalendarBlock[] }>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/calendar/sync`,
+          {}
+        )
+      );
+      this._calendarBlocks.set(result.blocks);
+      this._calendarConnection.update(c => c ? { ...c, status: 'connected', lastSyncAt: new Date().toISOString() } : null);
+      return true;
+    } catch (err: unknown) {
+      this._calendarConnection.update(c => c ? { ...c, status: 'error' } : null);
+      const message = err instanceof Error ? err.message : 'Calendar sync failed';
+      this._error.set(message);
+      return false;
+    }
+  }
+
+  async loadCalendarBlocks(date: string): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const blocks = await firstValueFrom(
+        this.http.get<CalendarBlock[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/calendar/blocks`,
+          { params: { date } }
+        )
+      );
+      this._calendarBlocks.set(blocks);
+    } catch {
+      // Silent — calendar blocks are supplementary
+    }
+  }
+
+  // ── Waitlist SMS & Virtual (Phase 3) ──
+
+  async loadWaitlistSmsConfig(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const config = await firstValueFrom(
+        this.http.get<WaitlistSmsConfig>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/sms-config`
+        )
+      );
+      this._waitlistSmsConfig.set(config);
+    } catch {
+      this._waitlistSmsConfig.set({
+        enabled: false,
+        notifyMessage: 'Hi {name}, your table is ready at {restaurant}! Please head to the host stand.',
+        onMyWayEnabled: false,
+        autoRemoveMinutes: 15,
+      });
+    }
+  }
+
+  async saveWaitlistSmsConfig(config: WaitlistSmsConfig): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    try {
+      const saved = await firstValueFrom(
+        this.http.put<WaitlistSmsConfig>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/sms-config`,
+          config
+        )
+      );
+      this._waitlistSmsConfig.set(saved);
+      return true;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to save SMS config';
+      this._error.set(message);
+      return false;
+    }
+  }
+
+  async loadWaitlistAnalytics(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const analytics = await firstValueFrom(
+        this.http.get<WaitlistAnalytics>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/analytics`
+        )
+      );
+      this._waitlistAnalytics.set(analytics);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load waitlist analytics';
+      this._error.set(message);
+    }
+  }
+
+  async loadVirtualWaitlistConfig(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const config = await firstValueFrom(
+        this.http.get<VirtualWaitlistConfig>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/virtual-config`
+        )
+      );
+      this._virtualWaitlistConfig.set(config);
+    } catch {
+      this._virtualWaitlistConfig.set({
+        enabled: false,
+        qrCodeUrl: null,
+        joinUrl: null,
+        maxQueueSize: 50,
+      });
+    }
+  }
+
+  async saveVirtualWaitlistConfig(config: Partial<VirtualWaitlistConfig>): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    try {
+      const saved = await firstValueFrom(
+        this.http.put<VirtualWaitlistConfig>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/virtual-config`,
+          config
+        )
+      );
+      this._virtualWaitlistConfig.set(saved);
+      return true;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to save virtual waitlist config';
+      this._error.set(message);
+      return false;
+    }
+  }
+
+  async recalculateWaitTimes(): Promise<void> {
+    if (!this.restaurantId) return;
+
+    try {
+      const updated = await firstValueFrom(
+        this.http.post<WaitlistEntry[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/recalculate`,
+          {}
+        )
+      );
+      this._waitlist.set(updated);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to recalculate wait times';
+      this._error.set(message);
     }
   }
 

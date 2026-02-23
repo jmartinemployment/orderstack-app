@@ -207,6 +207,11 @@
   &.waitlist-notified {
     border-left: 3px solid var(--os-success);
   }
+
+  &.waitlist-on-my-way {
+    border-left: 3px solid var(--os-info, #0dcaf0);
+    background-color: rgba(13, 202, 240, 0.03);
+  }
 }
 
 .waitlist-position {
@@ -599,4 +604,220 @@
     background-color: var(--os-primary);
     border-color: var(--os-primary);
   }
+}
+
+// ─── Google Calendar Sync (Phase 3) ───
+
+.calendar-settings-panel {
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+
+  h6 {
+    color: var(--os-text-primary);
+    font-weight: 600;
+  }
+}
+
+.calendar-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 2rem;
+
+  &.status-connected {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: var(--os-success);
+  }
+
+  &.status-syncing {
+    background-color: rgba(0, 106, 255, 0.1);
+    color: var(--os-primary);
+  }
+
+  &.status-error {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--os-danger);
+  }
+
+  &.status-disconnected {
+    background-color: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+  }
+}
+
+.calendar-connected-info {
+  background-color: var(--os-bg);
+  border: 1px solid var(--os-border);
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+}
+
+.calendar-toggles {
+  .form-check-label {
+    font-size: 0.875rem;
+    color: var(--os-text-primary);
+  }
+}
+
+.calendar-blocks {
+  .calendar-block-card {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background-color: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    border-radius: 0.375rem;
+    margin-bottom: 0.25rem;
+
+    &:last-child { margin-bottom: 0; }
+  }
+}
+
+// ─── Waitlist SMS & On My Way (Phase 3) ───
+
+.badge-on-my-way {
+  background-color: rgba(13, 202, 240, 0.1);
+  color: var(--os-info, #0dcaf0);
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.on-my-way-section {
+  .on-my-way-card {
+    background-color: var(--os-bg-card);
+    border: 1px solid var(--os-info, #0dcaf0);
+    border-left: 3px solid var(--os-info, #0dcaf0);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+
+    &:last-child { margin-bottom: 0; }
+
+    i.bi-geo-alt-fill {
+      color: var(--os-info, #0dcaf0);
+    }
+  }
+}
+
+.virtual-waitlist-bar {
+  background-color: rgba(0, 106, 255, 0.04);
+  border: 1px solid rgba(0, 106, 255, 0.15);
+  border-radius: 0.5rem;
+  padding: 0.625rem 1rem;
+
+  i.bi-qr-code {
+    color: var(--os-primary);
+  }
+}
+
+// ─── Waitlist Analytics (Phase 3) ───
+
+.waitlist-analytics-panel {
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+
+  h6 {
+    color: var(--os-text-primary);
+    font-weight: 600;
+  }
+}
+
+.analytics-kpis {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.analytics-kpi {
+  text-align: center;
+
+  .analytics-kpi-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--os-text-primary);
+  }
+
+  .analytics-kpi-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--os-text-muted);
+    letter-spacing: 0.03em;
+  }
+
+  .analytics-success { color: var(--os-success); }
+  .analytics-danger { color: var(--os-danger); }
+  .analytics-warning { color: var(--os-warning); }
+}
+
+.analytics-chart-section {
+  background-color: var(--os-bg);
+  border: 1px solid var(--os-border);
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+}
+
+.analytics-bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  .bar-label {
+    width: 48px;
+    font-size: 0.75rem;
+    color: var(--os-text-secondary);
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 16px;
+    background-color: var(--os-bg-card);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background-color: var(--os-primary);
+    border-radius: 3px;
+    min-width: 2px;
+    transition: width 0.3s;
+  }
+
+  .bar-fill-alt {
+    background-color: var(--os-success);
+  }
+
+  .bar-value {
+    width: 80px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--os-text-primary);
+    flex-shrink: 0;
+  }
+}
+
+// ─── Virtual Waitlist Config (Phase 3) ───
+
+.qr-placeholder {
+  background-color: var(--os-bg);
+  border: 1px solid var(--os-border);
+  border-radius: 0.5rem;
+}
+
+.qr-code-img {
+  max-width: 180px;
+  height: auto;
 }

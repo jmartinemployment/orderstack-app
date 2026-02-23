@@ -11,7 +11,7 @@
 This is the **canonical OrderStack** restaurant management SaaS application — a standalone Angular 21 app. This is the active, correct project for all OrderStack development.
 
 **Related Documentation:**
-- **`specs/`** — GOS-SPEC-10 (Phases 1-2), GOS-SPEC-11 (Phases 1-3). GOS-SPEC-01, 02, 03, 04, 05, 06, 07, 08, 09 fully delivered and deleted.
+- **`specs/`** — GOS-SPEC-11 (Phases 1-3). GOS-SPEC-01, 02, 03, 04, 05, 06, 07, 08, 09, 10 fully delivered and deleted.
 
 **Predecessor:** `Get-Order-Stack-Restaurant-Frontend-Workspace/` (Angular Elements + WordPress — archived, do not use)
 
@@ -570,4 +570,19 @@ ng build --configuration=production
 - **Remaining specs:** GOS-SPEC-10 (Phase 3 pending), GOS-SPEC-11 (Phase 4 pending)
 - Next: GOS-SPEC-10 Phase 3 (Google Calendar sync, waitlist enhancements). End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 25)*
+**[February 23, 2026] (Session 26) — GOS-SPEC-10 Phase 3 Complete (Steps 11-13: Calendar Sync + Waitlist Enhancements):**
+- **Phase 3 COMPLETE** — Google Calendar integration, waitlist SMS/analytics/virtual waitlist
+- **GOS-SPEC-10 100% COMPLETE** — spec deleted
+- **Step 11 (Google Calendar Sync):** Calendar settings panel in Timeline tab. Connect/disconnect Google Calendar via OAuth2 redirect. Push reservations to calendar toggle. Pull blocked times from calendar toggle. Sync Now button with spinner. Calendar block cards showing blocked time ranges. Status badges (Connected/Syncing/Error/Disconnected). `connectCalendar()`, `disconnectCalendar()`, `updateCalendarPush()`, `updateCalendarPull()`, `syncCalendarNow()`.
+- **Step 12 (Waitlist Enhancements):** SMS Config modal — enable SMS, message template with `{name}`/`{restaurant}` variables, "On My Way" reply toggle, auto-remove timeout. Waitlist Analytics panel — KPI cards (avg wait, seated rate, no-show rate, cancelled rate), bar charts by hour and by day. Virtual Waitlist modal — enable toggle, QR code display, join URL with copy button, max queue size. "On My Way" badges on waitlist entries. On My Way section at top of waitlist showing confirmed guests. `recalculateWaitTimes()` button.
+- **Step 13 (Build Verification):** `ng build --configuration=production` — zero errors.
+- **Fix:** Angular ICU parser error from `{name}` and `{restaurant}` in template — escaped with `{{ '{' }}name{{ '}' }}` pattern.
+- **Models (previous session):** `CalendarSyncStatus`, `CalendarConnection`, `CalendarBlock`, `WaitlistSmsConfig`, `WaitlistAnalytics`, `VirtualWaitlistConfig` already in `reservation.model.ts`. `onMyWayAt` already on `WaitlistEntry`.
+- **Service (previous session):** 12 new methods + 5 signals + 2 computeds already in `services/reservation.ts`.
+- **Files rewritten:** `features/reservations/reservation-manager/` (ts, html, scss — full rewrite with Phase 3 additions)
+- **Files deleted:** `specs/GOS-SPEC-10-appointments-booking.md`
+- **Build: zero errors**
+- **Remaining specs:** GOS-SPEC-11 (Phase 4 — undefined placeholder only). All other specs 100% complete.
+- Next: End-to-end test with live backend. Evaluate GOS-SPEC-11 Phase 4 scope.
+
+*Last Updated: February 23, 2026 (Session 26)*

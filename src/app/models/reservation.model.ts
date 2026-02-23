@@ -51,6 +51,7 @@ export interface WaitlistEntry {
   estimatedWaitMinutes: number;
   quotedWaitMinutes: number;
   notifiedAt: string | null;
+  onMyWayAt: string | null;
   seatedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -211,4 +212,56 @@ export interface TimelineBlock {
   durationMinutes: number;
   tableId: string;
   tableName: string;
+}
+
+// --- Google Calendar Sync (Phase 3) ---
+
+export type CalendarSyncStatus = 'disconnected' | 'connected' | 'syncing' | 'error';
+
+export interface CalendarConnection {
+  id: string;
+  restaurantId: string;
+  provider: 'google';
+  email: string;
+  calendarId: string;
+  calendarName: string;
+  status: CalendarSyncStatus;
+  pushReservations: boolean;
+  pullBlocks: boolean;
+  lastSyncAt: string | null;
+  connectedAt: string;
+}
+
+export interface CalendarBlock {
+  id: string;
+  calendarEventId: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  isAllDay: boolean;
+}
+
+// --- Waitlist Enhancements (Phase 3) ---
+
+export interface WaitlistSmsConfig {
+  enabled: boolean;
+  notifyMessage: string;
+  onMyWayEnabled: boolean;
+  autoRemoveMinutes: number;
+}
+
+export interface WaitlistAnalytics {
+  avgWaitMinutes: number;
+  noShowRate: number;
+  seatedRate: number;
+  cancelledRate: number;
+  byHour: { hour: number; avgWait: number; count: number }[];
+  byDay: { day: string; avgWait: number; count: number }[];
+}
+
+export interface VirtualWaitlistConfig {
+  enabled: boolean;
+  qrCodeUrl: string | null;
+  joinUrl: string | null;
+  maxQueueSize: number;
 }
