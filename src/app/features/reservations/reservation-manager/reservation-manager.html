@@ -2,9 +2,17 @@
 <div class="reservation-manager">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="h4 mb-0">Reservations</h2>
-    <button type="button" class="btn btn-primary" (click)="openForm()">
-      + New Reservation
-    </button>
+    <div class="d-flex gap-2">
+      @if (activeTab() === 'events') {
+        <button type="button" class="btn btn-primary" (click)="openEventForm()">
+          + New Event
+        </button>
+      } @else {
+        <button type="button" class="btn btn-primary" (click)="openForm()">
+          + New Reservation
+        </button>
+      }
+    </div>
   </div>
 
   @if (localError()) {
@@ -30,6 +38,16 @@
       <span class="kpi-chip-label">Covers Today</span>
       <span class="kpi-chip-value">{{ totalSeats() }}</span>
     </div>
+    <div class="kpi-chip">
+      <span class="kpi-chip-label">Avg Turn</span>
+      <span class="kpi-chip-value">{{ avgTableTurnMinutes() }}m</span>
+    </div>
+    @if (waitlistCount() > 0) {
+      <div class="kpi-chip kpi-chip-warning">
+        <span class="kpi-chip-label">Waitlist</span>
+        <span class="kpi-chip-value">{{ waitlistCount() }}</span>
+      </div>
+    }
   </div>
 
   <!-- Tabs -->
@@ -40,6 +58,11 @@
         @if (todayCount() > 0) {
           <span class="badge bg-info ms-1">{{ todayCount() }}</span>
         }
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab() === 'timeline'" (click)="setTab('timeline')">
+        Timeline
       </button>
     </li>
     <li class="nav-item">
@@ -60,6 +83,11 @@
         }
       </button>
     </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab() === 'events'" (click)="setTab('events')">
+        Events
+      </button>
+    </li>
   </ul>
 
   @if (isLoading()) {
@@ -67,15 +95,19 @@
       <os-loading-spinner message="Loading reservations..." />
     </div>
   } @else {
-    <!-- TODAY TAB -->
+
+    <!-- ═══ TODAY TAB ═══ -->
     @if (activeTab() === 'today') {
       <div class="reservation-list">
         @for (res of todayReservations(); track res.id) {
           <div class="res-card" (click)="selectReservation(res)">
             <div class="d-flex justify-content-between align-items-start mb-2">
-              <div>
+              <div class="d-flex align-items-center gap-2">
                 <span class="res-time">{{ formatTime(res.reservationTime) }}</span>
-                <span class="res-name ms-2">{{ res.customerName }}</span>
+                <span class="res-name">{{ res.customerName }}</span>
+                @if (isRecurring(res)) {
+                  <span class="badge badge-recurring">Recurring</span>
+                }
               </div>
               <span class="badge" [class]="getStatusClass(res.status)">{{ res.status }}</span>
             </div>
@@ -86,6 +118,25 @@
               }
               <span>{{ res.customerPhone }}</span>
             </div>
+            @if (res.preferences) {
+              <div class="pref-badges mb-2">
+                @if (res.preferences.seatingPreference !== 'no_preference') {
+                  <span class="badge badge-pref">{{ getSeatingLabel(res.preferences.seatingPreference) }}</span>
+                }
+                @if (res.preferences.celebration) {
+                  <span class="badge badge-celebration">{{ res.preferences.celebration }}</span>
+                }
+                @if (res.preferences.highChairsNeeded > 0) {
+                  <span class="badge badge-pref">{{ res.preferences.highChairsNeeded }} High Chair{{ res.preferences.highChairsNeeded > 1 ? 's' : '' }}</span>
+                }
+                @if (res.preferences.wheelchairAccessible) {
+                  <span class="badge badge-pref">Wheelchair</span>
+                }
+                @for (diet of res.preferences.dietaryRestrictions; track diet) {
+                  <span class="badge badge-dietary">{{ diet }}</span>
+                }
+              </div>
+            }
             @if (res.specialRequests) {
               <p class="small text-muted mb-2">{{ res.specialRequests }}</p>
             }
@@ -103,6 +154,9 @@
                 <button type="button" class="btn btn-sm btn-outline-danger" (click)="updateStatus(res, 'cancelled'); $event.stopPropagation()">Cancel</button>
                 <button type="button" class="btn btn-sm btn-outline-warning" (click)="updateStatus(res, 'no-show'); $event.stopPropagation()">No-Show</button>
               }
+              <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" (click)="openPreferences(res); $event.stopPropagation()">
+                <i class="bi bi-person-gear"></i> Prefs
+              </button>
             </div>
           </div>
         } @empty {
@@ -114,16 +168,113 @@
       </div>
     }
 
-    <!-- UPCOMING TAB -->
+    <!-- ═══ TIMELINE TAB ═══ -->
+    @if (activeTab() === 'timeline') {
+      <div class="timeline-controls d-flex align-items-center gap-3 mb-3">
+        <label class="form-label mb-0 small fw-semibold">Date:</label>
+        <input type="date" class="form-control form-control-sm timeline-date-picker"
+          [value]="timelineDate()" (change)="setTimelineDate($event)" />
+      </div>
+
+      <!-- Capacity Heat Strip -->
+      <div class="capacity-strip mb-3">
+        <div class="capacity-strip-label">Capacity</div>
+        <div class="capacity-strip-bar">
+          @for (h of capacityByHour(); track h.hour) {
+            <div class="capacity-cell"
+              [title]="h.covers + '/' + h.maxCovers + ' covers at ' + h.hour">
+              <div class="capacity-fill"
+                [style.height.%]="getCapacityPercent(h.covers, h.maxCovers)"
+                [style.background-color]="getCapacityColor(h.covers, h.maxCovers)">
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Timeline Grid -->
+      <div class="timeline-container">
+        <!-- Hour Headers -->
+        <div class="timeline-header">
+          <div class="timeline-label-col"></div>
+          <div class="timeline-grid-area">
+            @for (hour of timelineHours(); track hour) {
+              <div class="timeline-hour-mark">{{ hour }}</div>
+            }
+            <!-- Current Time Indicator -->
+            <div class="current-time-line" [style.left]="getCurrentTimeStyle()['left']"></div>
+          </div>
+        </div>
+
+        <!-- Table Rows -->
+        @for (table of timelineTables(); track table.id) {
+          <div class="timeline-row">
+            <div class="timeline-label-col">
+              <span class="table-label">{{ table.name }}</span>
+              @if (table.capacity > 0) {
+                <span class="table-capacity">{{ table.capacity }}p</span>
+              }
+            </div>
+            <div class="timeline-grid-area">
+              @for (block of getBlocksForTable(table.id); track block.reservation.id) {
+                <div class="timeline-block" [class]="getBlockClass(block)"
+                  [style.left]="getBlockStyle(block)['left']"
+                  [style.width]="getBlockStyle(block)['width']"
+                  [title]="block.reservation.customerName + ' - Party of ' + block.reservation.partySize"
+                  (click)="selectReservation(block.reservation)">
+                  <span class="block-name">{{ block.reservation.customerName }}</span>
+                  <span class="block-size">{{ block.reservation.partySize }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state text-center p-4">
+            <p class="text-muted">No tables configured. Add tables in Floor Plan to use Timeline view.</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ═══ UPCOMING TAB ═══ -->
     @if (activeTab() === 'upcoming') {
+      <!-- Recurring Reservations Summary -->
+      @if (activeRecurring().length > 0) {
+        <div class="recurring-section mb-4">
+          <h6 class="section-label mb-2">Active Recurring Reservations</h6>
+          <div class="recurring-list">
+            @for (rec of activeRecurring(); track rec.id) {
+              <div class="recurring-card d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="fw-semibold">{{ rec.baseReservation.customerName }}</span>
+                  <span class="badge badge-recurring ms-2">{{ getRecurrenceLabel(rec.pattern) }}</span>
+                  @if (rec.baseReservation.partySize) {
+                    <span class="small text-muted ms-2">Party of {{ rec.baseReservation.partySize }}</span>
+                  }
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                  <button type="button" class="btn btn-sm btn-outline-secondary"
+                    (click)="toggleRecurringActive(rec.id, false)">Pause</button>
+                  <button type="button" class="btn btn-sm btn-outline-danger"
+                    (click)="cancelRecurring(rec.id)">Cancel Series</button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
       <div class="reservation-list">
         @for (res of upcomingReservations(); track res.id) {
           <div class="res-card" (click)="selectReservation(res)">
             <div class="d-flex justify-content-between align-items-start mb-2">
-              <div>
+              <div class="d-flex align-items-center gap-2">
                 <span class="res-date">{{ res.reservationTime | date:'EEE, MMM d' }}</span>
-                <span class="res-time ms-2">{{ formatTime(res.reservationTime) }}</span>
-                <span class="res-name ms-2">{{ res.customerName }}</span>
+                <span class="res-time">{{ formatTime(res.reservationTime) }}</span>
+                <span class="res-name">{{ res.customerName }}</span>
+                @if (isRecurring(res)) {
+                  <span class="badge badge-recurring">Recurring</span>
+                }
               </div>
               <span class="badge" [class]="getStatusClass(res.status)">{{ res.status }}</span>
             </div>
@@ -134,6 +285,19 @@
               }
               <span>{{ res.customerPhone }}</span>
             </div>
+            @if (res.preferences) {
+              <div class="pref-badges mt-1">
+                @if (res.preferences.seatingPreference !== 'no_preference') {
+                  <span class="badge badge-pref">{{ getSeatingLabel(res.preferences.seatingPreference) }}</span>
+                }
+                @if (res.preferences.celebration) {
+                  <span class="badge badge-celebration">{{ res.preferences.celebration }}</span>
+                }
+                @for (diet of res.preferences.dietaryRestrictions; track diet) {
+                  <span class="badge badge-dietary">{{ diet }}</span>
+                }
+              </div>
+            }
           </div>
         } @empty {
           <div class="empty-state text-center p-4">
@@ -143,7 +307,7 @@
       </div>
     }
 
-    <!-- PAST TAB -->
+    <!-- ═══ PAST TAB ═══ -->
     @if (activeTab() === 'past') {
       <div class="reservation-list">
         @for (res of pastReservations(); track res.id) {
@@ -170,10 +334,11 @@
         }
       </div>
     }
-    <!-- WAITLIST TAB -->
+
+    <!-- ═══ WAITLIST TAB ═══ -->
     @if (activeTab() === 'waitlist') {
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0 text-white">Walk-In Waitlist</h5>
+        <h5 class="mb-0">Walk-In Waitlist</h5>
         <button type="button" class="btn btn-warning btn-sm" (click)="openWaitlistForm()">
           + Add to Waitlist
         </button>
@@ -186,7 +351,7 @@
               <div class="d-flex align-items-center gap-2">
                 <span class="waitlist-position">{{ entry.position }}</span>
                 <div>
-                  <strong class="text-white">{{ entry.partyName }}</strong>
+                  <strong>{{ entry.partyName }}</strong>
                   <span class="badge bg-secondary ms-2">{{ entry.partySize }} guests</span>
                   @if (entry.status === 'notified') {
                     <span class="badge bg-success ms-1">Notified</span>
@@ -223,10 +388,10 @@
                 <i class="bi bi-x-lg"></i>
               </button>
               <div class="ms-auto d-flex gap-1">
-                <button type="button" class="btn btn-sm btn-outline-light" (click)="moveUp(entry)" [disabled]="entry.position <= 1">
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="moveUp(entry)" [disabled]="entry.position <= 1">
                   <i class="bi bi-arrow-up"></i>
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-light" (click)="moveDown(entry)">
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="moveDown(entry)">
                   <i class="bi bi-arrow-down"></i>
                 </button>
               </div>
@@ -240,15 +405,72 @@
         }
       </div>
     }
+
+    <!-- ═══ EVENTS TAB ═══ -->
+    @if (activeTab() === 'events') {
+      <div class="d-flex gap-2 mb-3">
+        <button type="button" class="btn btn-sm" [class]="eventFilter() === 'upcoming' ? 'btn-primary' : 'btn-outline-secondary'"
+          (click)="setEventFilter('upcoming')">Upcoming</button>
+        <button type="button" class="btn btn-sm" [class]="eventFilter() === 'past' ? 'btn-primary' : 'btn-outline-secondary'"
+          (click)="setEventFilter('past')">Past</button>
+      </div>
+
+      @if (isLoadingEvents()) {
+        <div class="d-flex justify-content-center p-4">
+          <os-loading-spinner message="Loading events..." />
+        </div>
+      } @else {
+        <div class="event-list">
+          @for (evt of (eventFilter() === 'upcoming' ? upcomingEvents() : pastEvents()); track evt.id) {
+            <div class="event-card" (click)="selectEvent(evt)">
+              <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                  <span class="badge badge-event-type me-2">{{ getEventTypeLabel(evt.bookingType) }}</span>
+                  <strong>{{ evt.title }}</strong>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                  @if (evt.isPublished) {
+                    <span class="badge badge-published">Published</span>
+                  } @else {
+                    <span class="badge badge-draft">Draft</span>
+                  }
+                </div>
+              </div>
+              <div class="d-flex gap-3 small text-muted mb-1">
+                <span>{{ evt.date | date:'EEE, MMM d' }}</span>
+                <span>{{ evt.startTime }} – {{ evt.endTime }}</span>
+                <span>{{ evt.currentAttendees }}/{{ evt.maxAttendees }} attendees</span>
+              </div>
+              @if (evt.pricePerPerson > 0) {
+                <div class="small text-muted">${{ evt.pricePerPerson }}/person</div>
+              }
+              <div class="d-flex gap-2 mt-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary"
+                  (click)="togglePublished(evt); $event.stopPropagation()">
+                  {{ evt.isPublished ? 'Unpublish' : 'Publish' }}
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger"
+                  (click)="deleteEvent(evt); $event.stopPropagation()">Delete</button>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-state text-center p-4">
+              <p class="text-muted mb-2">No {{ eventFilter() }} events</p>
+              <button type="button" class="btn btn-primary btn-sm" (click)="openEventForm()">Create Event</button>
+            </div>
+          }
+        </div>
+      }
+    }
   }
 
-  <!-- Waitlist Form Modal -->
+  <!-- ═══ WAITLIST FORM MODAL ═══ -->
   @if (showWaitlistForm()) {
     <div class="modal-overlay" (click)="closeWaitlistForm()">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Add to Waitlist</h4>
-          <button type="button" class="btn-close btn-close-white" (click)="closeWaitlistForm()"></button>
+          <button type="button" class="btn-close" (click)="closeWaitlistForm()"></button>
         </div>
         <div class="card-body">
           <div class="mb-3">
@@ -275,7 +497,7 @@
           </div>
         </div>
         <div class="card-footer d-flex gap-2 justify-content-end">
-          <button type="button" class="btn btn-outline-light" (click)="closeWaitlistForm()" [disabled]="waitlistSaving()">Cancel</button>
+          <button type="button" class="btn btn-outline-secondary" (click)="closeWaitlistForm()" [disabled]="waitlistSaving()">Cancel</button>
           <button type="button" class="btn btn-warning" (click)="saveWaitlistEntry()"
             [disabled]="!waitlistName().trim() || waitlistSaving()">
             @if (waitlistSaving()) {
@@ -289,13 +511,13 @@
     </div>
   }
 
-  <!-- New Reservation Modal -->
+  <!-- ═══ NEW RESERVATION MODAL ═══ -->
   @if (showForm()) {
     <div class="modal-overlay" (click)="closeForm()">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">New Reservation</h4>
-          <button type="button" class="btn-close btn-close-white" (click)="closeForm()"></button>
+          <button type="button" class="btn-close" (click)="closeForm()"></button>
         </div>
         <form [formGroup]="reservationForm" (ngSubmit)="saveReservation()">
           <div class="card-body">
@@ -312,7 +534,7 @@
 
             <div class="mb-3 mt-3">
               <label class="form-label">Email</label>
-              <input type="email" class="form-control" formControlName="customerEmail" placeholder="guest@email.com" />
+              <input type="email" class="form-control" formControlName="customerEmail" placeholder="guest&#64;email.com" />
             </div>
 
             <div class="row g-3 mb-3">
@@ -346,14 +568,46 @@
               <label class="form-label">Special Requests</label>
               <textarea class="form-control" rows="2" formControlName="specialRequests" placeholder="High chair, birthday, dietary needs..."></textarea>
             </div>
+
+            <!-- Recurring Option -->
+            <div class="recurring-toggle mb-3">
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="toggleRecurringForm()">
+                <i class="bi bi-arrow-repeat"></i>
+                {{ showRecurringForm() ? 'Remove Recurring' : 'Make Recurring' }}
+              </button>
+            </div>
+
+            @if (showRecurringForm()) {
+              <div class="recurring-options p-3 mb-3">
+                <div class="row g-3">
+                  <div class="col-6">
+                    <label class="form-label">Repeat Pattern</label>
+                    <select class="form-select" [value]="recurringPattern()" (change)="setRecurringPattern($event)">
+                      <option value="weekly">Weekly</option>
+                      <option value="biweekly">Biweekly</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="first_weekday">1st Weekday of Month</option>
+                      <option value="last_weekday">Last Weekday of Month</option>
+                    </select>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label">End Date (optional)</label>
+                    <input type="date" class="form-control"
+                      [value]="recurringEndDate()" (change)="setRecurringEndDate($event)" />
+                  </div>
+                </div>
+              </div>
+            }
           </div>
 
           <div class="card-footer d-flex gap-2 justify-content-end">
-            <button type="button" class="btn btn-outline-light" (click)="closeForm()" [disabled]="isSaving()">Cancel</button>
+            <button type="button" class="btn btn-outline-secondary" (click)="closeForm()" [disabled]="isSaving()">Cancel</button>
             <button type="submit" class="btn btn-primary" [disabled]="reservationForm.invalid || isSaving()">
               @if (isSaving()) {
                 <span class="spinner-border spinner-border-sm me-2"></span>
                 Saving...
+              } @else if (showRecurringForm()) {
+                Create Recurring
               } @else {
                 Create Reservation
               }
@@ -364,17 +618,103 @@
     </div>
   }
 
-  <!-- Reservation Detail -->
+  <!-- ═══ NEW EVENT MODAL ═══ -->
+  @if (showEventForm()) {
+    <div class="modal-overlay" (click)="closeEventForm()">
+      <div class="modal-content card modal-wide" (click)="$event.stopPropagation()">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">New Event</h4>
+          <button type="button" class="btn-close" (click)="closeEventForm()"></button>
+        </div>
+        <form [formGroup]="eventForm" (ngSubmit)="saveEvent()">
+          <div class="card-body">
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <label class="form-label">Type *</label>
+                <select class="form-select" formControlName="bookingType">
+                  <option value="event">Event</option>
+                  <option value="class">Class</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label">Title *</label>
+                <input type="text" class="form-control" formControlName="title" placeholder="Wine Tasting Night" />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" rows="2" formControlName="description" placeholder="Describe the event..."></textarea>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-4">
+                <label class="form-label">Date *</label>
+                <input type="date" class="form-control" formControlName="date" />
+              </div>
+              <div class="col-4">
+                <label class="form-label">Start Time *</label>
+                <input type="time" class="form-control" formControlName="startTime" />
+              </div>
+              <div class="col-4">
+                <label class="form-label">End Time *</label>
+                <input type="time" class="form-control" formControlName="endTime" />
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-4">
+                <label class="form-label">Max Attendees *</label>
+                <input type="number" class="form-control" formControlName="maxAttendees" min="1" />
+              </div>
+              <div class="col-4">
+                <label class="form-label">Price per Person ($)</label>
+                <input type="number" class="form-control" formControlName="pricePerPerson" min="0" step="0.01" />
+              </div>
+              <div class="col-4 d-flex flex-column justify-content-end">
+                <div class="form-check">
+                  <input type="checkbox" class="form-check-input" formControlName="requiresPrepayment" id="requiresPrepayment" />
+                  <label class="form-check-label" for="requiresPrepayment">Require Prepayment</label>
+                </div>
+                <div class="form-check mt-1">
+                  <input type="checkbox" class="form-check-input" formControlName="isPublished" id="isPublished" />
+                  <label class="form-check-label" for="isPublished">Publish Immediately</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer d-flex gap-2 justify-content-end">
+            <button type="button" class="btn btn-outline-secondary" (click)="closeEventForm()" [disabled]="isSavingEvent()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="eventForm.invalid || isSavingEvent()">
+              @if (isSavingEvent()) {
+                <span class="spinner-border spinner-border-sm me-2"></span> Creating...
+              } @else {
+                Create Event
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- ═══ RESERVATION DETAIL MODAL ═══ -->
   @if (selectedReservation(); as res) {
     <div class="modal-overlay" (click)="closeDetail()">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Reservation Details</h4>
-          <button type="button" class="btn-close btn-close-white" (click)="closeDetail()"></button>
+          <button type="button" class="btn-close" (click)="closeDetail()"></button>
         </div>
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">{{ res.customerName }}</h5>
+            <div class="d-flex align-items-center gap-2">
+              <h5 class="mb-0">{{ res.customerName }}</h5>
+              @if (isRecurring(res)) {
+                <span class="badge badge-recurring">Recurring</span>
+              }
+            </div>
             <span class="badge" [class]="getStatusClass(res.status)">{{ res.status }}</span>
           </div>
 
@@ -403,7 +743,38 @@
                 <span>{{ res.tableNumber }}</span>
               </div>
             }
+            <div class="detail-item">
+              <span class="detail-label">Est. Turn Time</span>
+              <span>{{ getTurnTimeForParty(res.partySize) }} min</span>
+            </div>
           </div>
+
+          <!-- Guest Preferences -->
+          @if (res.preferences) {
+            <div class="preferences-section mb-3">
+              <span class="detail-label d-block mb-2">Guest Preferences</span>
+              <div class="pref-badges">
+                @if (res.preferences.seatingPreference !== 'no_preference') {
+                  <span class="badge badge-pref">{{ getSeatingLabel(res.preferences.seatingPreference) }}</span>
+                }
+                @if (res.preferences.celebration) {
+                  <span class="badge badge-celebration">{{ res.preferences.celebration }}</span>
+                }
+                @if (res.preferences.highChairsNeeded > 0) {
+                  <span class="badge badge-pref">{{ res.preferences.highChairsNeeded }} High Chair{{ res.preferences.highChairsNeeded > 1 ? 's' : '' }}</span>
+                }
+                @if (res.preferences.wheelchairAccessible) {
+                  <span class="badge badge-pref">Wheelchair Accessible</span>
+                }
+                @for (diet of res.preferences.dietaryRestrictions; track diet) {
+                  <span class="badge badge-dietary">{{ diet }}</span>
+                }
+              </div>
+              @if (res.preferences.notes) {
+                <p class="small text-muted mt-1 mb-0">{{ res.preferences.notes }}</p>
+              }
+            </div>
+          }
 
           @if (res.specialRequests) {
             <div class="mb-3">
@@ -426,6 +797,9 @@
               <button type="button" class="btn btn-sm btn-outline-danger" (click)="updateStatus(res, 'cancelled')">Cancel</button>
               <button type="button" class="btn btn-sm btn-outline-warning" (click)="updateStatus(res, 'no-show')">No-Show</button>
             }
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-auto" (click)="openPreferences(res)">
+              <i class="bi bi-person-gear"></i> Edit Preferences
+            </button>
           </div>
 
           <div class="mt-3 small text-muted">
@@ -438,12 +812,171 @@
       </div>
     </div>
   }
+
+  <!-- ═══ EVENT DETAIL MODAL ═══ -->
+  @if (selectedEvent(); as evt) {
+    <div class="modal-overlay" (click)="closeEventDetail()">
+      <div class="modal-content card modal-wide" (click)="$event.stopPropagation()">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">{{ evt.title }}</h4>
+          <button type="button" class="btn-close" (click)="closeEventDetail()"></button>
+        </div>
+        <div class="card-body">
+          <div class="d-flex gap-2 align-items-center mb-3">
+            <span class="badge badge-event-type">{{ getEventTypeLabel(evt.bookingType) }}</span>
+            @if (evt.isPublished) {
+              <span class="badge badge-published">Published</span>
+            } @else {
+              <span class="badge badge-draft">Draft</span>
+            }
+          </div>
+
+          <div class="detail-grid mb-3">
+            <div class="detail-item">
+              <span class="detail-label">Date</span>
+              <span>{{ evt.date | date:'EEE, MMM d, y' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Time</span>
+              <span>{{ evt.startTime }} – {{ evt.endTime }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Capacity</span>
+              <span>{{ evt.currentAttendees }}/{{ evt.maxAttendees }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Price</span>
+              <span>{{ evt.pricePerPerson > 0 ? '$' + evt.pricePerPerson + '/person' : 'Free' }}</span>
+            </div>
+          </div>
+
+          @if (evt.description) {
+            <p class="small text-muted mb-3">{{ evt.description }}</p>
+          }
+
+          <!-- Attendees -->
+          @if (evt.attendees.length > 0) {
+            <div class="attendees-section">
+              <span class="detail-label d-block mb-2">Attendees ({{ evt.attendees.length }})</span>
+              <div class="attendee-list">
+                @for (att of evt.attendees; track att.id) {
+                  <div class="attendee-row d-flex justify-content-between align-items-center">
+                    <div>
+                      <span class="fw-semibold">{{ att.name }}</span>
+                      <span class="small text-muted ms-2">{{ att.email }}</span>
+                      @if (att.ticketCount > 1) {
+                        <span class="badge bg-secondary ms-1">{{ att.ticketCount }} tickets</span>
+                      }
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                      <span class="badge" [class]="getAttendeePaymentClass(att.paymentStatus)">{{ att.paymentStatus }}</span>
+                      @if (!att.checkedIn) {
+                        <button type="button" class="btn btn-sm btn-outline-success" (click)="checkInAttendee(evt.id, att.id)">Check In</button>
+                      } @else {
+                        <span class="badge badge-checked-in">Checked In</span>
+                      }
+                      @if (att.paymentStatus === 'paid') {
+                        <button type="button" class="btn btn-sm btn-outline-warning" (click)="refundAttendee(evt.id, att.id)">Refund</button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="empty-state text-center p-3">
+              <p class="text-muted small mb-0">No attendees yet</p>
+            </div>
+          }
+
+          <div class="d-flex gap-2 mt-3">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="togglePublished(evt)">
+              {{ evt.isPublished ? 'Unpublish' : 'Publish' }}
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteEvent(evt)">Delete Event</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══ GUEST PREFERENCES MODAL ═══ -->
+  @if (showPreferencesModal()) {
+    <div class="modal-overlay" (click)="closePreferences()">
+      <div class="modal-content card" (click)="$event.stopPropagation()">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">Guest Preferences</h4>
+          <button type="button" class="btn-close" (click)="closePreferences()"></button>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Seating Preference</label>
+            <select class="form-select" [value]="prefSeating()" (change)="onPrefField('seating', $event)">
+              <option value="no_preference">No Preference</option>
+              <option value="indoor">Indoor</option>
+              <option value="outdoor">Outdoor</option>
+              <option value="bar">Bar</option>
+              <option value="private">Private</option>
+            </select>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label">High Chairs Needed</label>
+              <input type="number" class="form-control" min="0" max="5"
+                [value]="prefHighChairs()" (input)="onPrefField('highChairs', $event)" />
+            </div>
+            <div class="col-6 d-flex align-items-end">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="wheelchairPref"
+                  [checked]="prefWheelchair()" (change)="onPrefField('wheelchair', $event)" />
+                <label class="form-check-label" for="wheelchairPref">Wheelchair Accessible</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Celebration / Occasion</label>
+            <select class="form-select" [value]="prefCelebration() ?? ''" (change)="onPrefField('celebration', $event)">
+              <option value="">None</option>
+              @for (occ of occasionOptions; track occ) {
+                <option [value]="occ">{{ occ }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Dietary Restrictions</label>
+            <div class="dietary-grid">
+              @for (option of dietaryOptions; track option) {
+                <button type="button" class="dietary-chip"
+                  [class.dietary-active]="isDietarySelected(option)"
+                  (click)="toggleDietary(option)">
+                  {{ option }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Additional Notes</label>
+            <textarea class="form-control" rows="2" placeholder="VIP guest, prefers corner booth..."
+              [value]="prefNotes() ?? ''" (input)="onPrefField('notes', $event)"></textarea>
+          </div>
+        </div>
+        <div class="card-footer d-flex gap-2 justify-content-end">
+          <button type="button" class="btn btn-outline-secondary" (click)="closePreferences()">Cancel</button>
+          <button type="button" class="btn btn-primary" (click)="savePreferences()">Save Preferences</button>
+        </div>
+      </div>
+    </div>
+  }
 </div>
 } @else {
 <div class="auth-required d-flex align-items-center justify-content-center p-5">
   <div class="text-center">
-    <h3 class="text-warning mb-3">Authentication Required</h3>
-    <p class="text-light">Please log in to manage reservations.</p>
+    <h3 class="mb-3" style="color: var(--os-warning)">Authentication Required</h3>
+    <p style="color: var(--os-text-secondary)">Please log in to manage reservations.</p>
   </div>
 </div>
 }

@@ -525,4 +525,22 @@ ng build --configuration=production
 - **Remaining specs:** GOS-SPEC-02 (Phase 1 only), GOS-SPEC-10 (Phase 1 only), GOS-SPEC-11 (Phase 2 done, Phases 3-4 pending)
 - Next: GOS-SPEC-02 Phase 2 (hardware management), GOS-SPEC-10 Phase 2 (appointments). End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 22)*
+**[February 23, 2026] (Session 23) — GOS-SPEC-10 Phase 2 Complete (Steps 6-10: Timeline, Recurring, Events, Turn Times, Preferences):**
+- **Phase 2 COMPLETE** — Timeline view, recurring reservations, event/class booking, dynamic turn times, guest preferences
+- **Step 6 (Timeline View):** Horizontal time axis (9:00–23:00, 15 hour slots) with vertical table axis sorted by section → name. Reservation blocks as colored bars by status (pending=gray, confirmed=green, seated=blue, completed=faded blue). Click block to open reservation detail. Current time red indicator line. Capacity heat strip at top showing utilization per hour with green/amber/red coloring. Date picker to browse days. `timelineBlocks`, `timelineTables`, `capacityByHour`, `currentTimeOffset` computeds. Unassigned reservations shown in separate row.
+- **Step 7 (Recurring Reservations):** Added `RecurrencePattern` (5 types), `RecurringReservation` to `reservation.model.ts`. Service methods: `loadRecurringReservations()`, `createRecurringReservation()`, `cancelRecurringReservation()`, `toggleRecurring()`. "Make Recurring" toggle in reservation form with pattern selector (weekly/biweekly/monthly/first_weekday/last_weekday) and optional end date. Recurring badge on reservation cards. Active recurring summary section in Upcoming tab with pause/cancel controls. `activeRecurring` computed.
+- **Step 8 (Event & Class Booking):** Added `BookingType`, `EventBooking`, `EventAttendee`, `EventFormData`, `IntakeForm`, `IntakeFormField` to model. Service methods: `loadEvents()`, `createEvent()`, `updateEvent()`, `deleteEvent()`, `toggleEventPublished()`, `checkInAttendee()`, `refundAttendee()`. New "Events" tab with upcoming/past filter, event cards (type badge, title, date/time, attendee count, price, published status). Event creation form (type, title, description, date, times, max attendees, price, prepayment, publish). Event detail modal with attendee management (check-in, refund, payment status badges).
+- **Step 9 (Dynamic Turn Times):** Added `TurnTimeStats` interface (overall, byPartySize, byMealPeriod, byDayOfWeek, sampleSize). `loadTurnTimeStats()` method called on init. `dynamicTurnTime` computed replaces hardcoded 45min. `getTurnTimeForParty(partySize)` looks up party-size-specific turn time from stats. "Avg Turn" KPI chip in header. Turn time shown in reservation detail modal.
+- **Step 10 (Guest Preferences):** Added `GuestPreferences` interface (seatingPreference, highChairsNeeded, wheelchairAccessible, dietaryRestrictions, celebration, notes). `updateGuestPreferences()` service method. Preferences modal with seating selector, high chairs count, wheelchair checkbox, occasion dropdown, dietary restriction chips (8 options with active state toggle), notes textarea. Preference badges displayed on reservation cards (seating, celebration, high chairs, wheelchair, dietary). "Edit Preferences" button in detail modal.
+- **HTML dark theme remnants fixed:** Replaced `text-white`, `btn-outline-light`, `btn-close-white` with proper `--os-*` theme references.
+- **Build error fix:** `[ngStyle]` not available in standalone component — replaced with individual `[style.left]` and `[style.width]` bindings.
+- **`ReservationTab` type expanded:** Added `'events'` and `'timeline'` (now 6 total).
+- **Reservation model extended:** Added `endTime`, `recurringReservationId`, `preferences` fields to `Reservation`. Added `preferences`, `recurringPattern`, `recurringEndDate` to `ReservationFormData`.
+- **Lazy tab loading:** Events loaded on first tab switch. Recurring loaded on first today/upcoming visit.
+- **Spec updated:** `specs/GOS-SPEC-10-appointments-booking.md` — Phase 2 status set to COMPLETE
+- **Files modified:** `models/reservation.model.ts` (10 new interfaces/types), `services/reservation.ts` (5 new signals, 12 new methods, 4 new computeds), `reservation-manager/` (ts, html, scss — all three fully rewritten)
+- **Build: zero errors**
+- **Remaining specs:** GOS-SPEC-02 (Phase 1 only), GOS-SPEC-10 (Phase 3 pending), GOS-SPEC-11 (Phases 3-4 pending)
+- Next: GOS-SPEC-02 Phase 2 (hardware management). End-to-end test with live backend.
+
+*Last Updated: February 23, 2026 (Session 23)*

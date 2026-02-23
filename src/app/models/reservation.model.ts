@@ -9,11 +9,14 @@ export interface Reservation {
   customerEmail: string | null;
   partySize: number;
   reservationTime: string;
+  endTime: string | null;
   tableNumber: string | null;
   status: ReservationStatus;
   specialRequests: string | null;
   confirmationSent: boolean;
   reminderSent: boolean;
+  recurringReservationId: string | null;
+  preferences: GuestPreferences | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -26,9 +29,12 @@ export interface ReservationFormData {
   reservationTime: string;
   tableNumber?: string;
   specialRequests?: string;
+  preferences?: GuestPreferences;
+  recurringPattern?: RecurrencePattern;
+  recurringEndDate?: string;
 }
 
-export type ReservationTab = 'upcoming' | 'today' | 'past' | 'waitlist';
+export type ReservationTab = 'today' | 'upcoming' | 'past' | 'waitlist' | 'events' | 'timeline';
 export type ReservationViewMode = 'list' | 'timeline';
 
 export type WaitlistStatus = 'waiting' | 'notified' | 'seated' | 'cancelled' | 'no-show';
@@ -95,3 +101,114 @@ export const OCCASION_OPTIONS: string[] = [
   'Birthday', 'Anniversary', 'Date Night', 'Business Meal',
   'Celebration', 'Holiday', 'Other',
 ];
+
+// --- Recurring Reservations (Phase 2) ---
+
+export type RecurrencePattern = 'weekly' | 'biweekly' | 'monthly' | 'first_weekday' | 'last_weekday';
+
+export interface RecurringReservation {
+  id: string;
+  restaurantId: string;
+  pattern: RecurrencePattern;
+  dayOfWeek: number | null;
+  dayOfMonth: number | null;
+  startDate: string;
+  endDate: string | null;
+  baseReservation: Partial<Reservation>;
+  generatedReservationIds: string[];
+  isActive: boolean;
+  createdAt: string;
+}
+
+// --- Event & Class Booking (Phase 2) ---
+
+export type BookingType = 'reservation' | 'event' | 'class';
+
+export interface EventBooking {
+  id: string;
+  restaurantId: string;
+  bookingType: BookingType;
+  title: string;
+  description: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  maxAttendees: number;
+  currentAttendees: number;
+  pricePerPerson: number;
+  requiresPrepayment: boolean;
+  intakeFormId: string | null;
+  isPublished: boolean;
+  attendees: EventAttendee[];
+  createdAt: string;
+}
+
+export interface EventAttendee {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  ticketCount: number;
+  paymentStatus: 'paid' | 'pending' | 'refunded';
+  checkedIn: boolean;
+  intakeFormData: Record<string, string> | null;
+}
+
+export interface EventFormData {
+  bookingType: BookingType;
+  title: string;
+  description: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  maxAttendees: number;
+  pricePerPerson: number;
+  requiresPrepayment: boolean;
+  isPublished: boolean;
+}
+
+export interface IntakeForm {
+  id: string;
+  restaurantId: string;
+  name: string;
+  fields: IntakeFormField[];
+}
+
+export interface IntakeFormField {
+  id: string;
+  label: string;
+  type: 'text' | 'select' | 'checkbox' | 'textarea';
+  options: string[] | null;
+  isRequired: boolean;
+}
+
+// --- Dynamic Turn Times (Phase 2) ---
+
+export interface TurnTimeStats {
+  overall: number;
+  byPartySize: { range: string; avgMinutes: number }[];
+  byMealPeriod: { period: string; avgMinutes: number }[];
+  byDayOfWeek: { day: string; avgMinutes: number }[];
+  sampleSize: number;
+}
+
+// --- Guest Preferences (Phase 2) ---
+
+export interface GuestPreferences {
+  seatingPreference: SeatingPreference;
+  highChairsNeeded: number;
+  wheelchairAccessible: boolean;
+  dietaryRestrictions: string[];
+  celebration: string | null;
+  notes: string | null;
+}
+
+// --- Timeline View (Phase 2) ---
+
+export interface TimelineBlock {
+  reservation: Reservation;
+  startMinute: number;
+  durationMinutes: number;
+  tableId: string;
+  tableName: string;
+}

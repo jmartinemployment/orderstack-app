@@ -24,6 +24,11 @@
       font-weight: 700;
       color: var(--os-text-primary);
     }
+
+    &.kpi-chip-warning {
+      border-color: var(--os-warning);
+      .kpi-chip-value { color: var(--os-warning); }
+    }
   }
 }
 
@@ -113,6 +118,8 @@
   max-height: 90vh;
   overflow-y: auto;
 
+  &.modal-wide { max-width: 700px; }
+
   .card-header {
     background-color: var(--os-bg-card);
     border-bottom: 1px solid var(--os-border);
@@ -172,6 +179,14 @@
   color: var(--os-text-muted);
 }
 
+.section-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--os-text-muted);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
 // Waitlist
 .waitlist-queue {
   display: flex;
@@ -185,6 +200,7 @@
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
   transition: border-color 0.2s;
+  color: var(--os-text-primary);
 
   &:hover { border-color: var(--os-primary); }
 
@@ -223,4 +239,364 @@
   }
 
   &:disabled { opacity: 0.5; }
+}
+
+// ─── Recurring Reservations (Phase 2) ───
+
+.badge-recurring {
+  background-color: rgba(0, 106, 255, 0.1);
+  color: var(--os-primary);
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.recurring-section {
+  .recurring-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .recurring-card {
+    background-color: var(--os-bg-card);
+    border: 1px solid var(--os-border);
+    border-left: 3px solid var(--os-primary);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+}
+
+.recurring-options {
+  background-color: var(--os-bg);
+  border: 1px solid var(--os-border);
+  border-radius: 0.5rem;
+}
+
+// ─── Timeline View (Phase 2) ───
+
+.timeline-date-picker {
+  max-width: 200px;
+}
+
+.capacity-strip {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+
+  .capacity-strip-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--os-text-muted);
+    width: 120px;
+    text-align: right;
+    padding-bottom: 2px;
+    flex-shrink: 0;
+  }
+
+  .capacity-strip-bar {
+    display: flex;
+    gap: 1px;
+    flex: 1;
+    height: 24px;
+    background-color: var(--os-bg);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .capacity-cell {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    background-color: var(--os-bg-card);
+
+    .capacity-fill {
+      width: 100%;
+      border-radius: 2px 2px 0 0;
+      transition: height 0.3s;
+    }
+  }
+}
+
+.timeline-container {
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  min-width: 0;
+}
+
+.timeline-header {
+  display: flex;
+  border-bottom: 1px solid var(--os-border);
+  position: sticky;
+  top: 0;
+  background-color: var(--os-bg-card);
+  z-index: 2;
+}
+
+.timeline-label-col {
+  width: 120px;
+  flex-shrink: 0;
+  padding: 0.5rem 0.75rem;
+  border-right: 1px solid var(--os-border);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  .table-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--os-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .table-capacity {
+    font-size: 0.65rem;
+    color: var(--os-text-muted);
+  }
+}
+
+.timeline-grid-area {
+  flex: 1;
+  position: relative;
+  min-width: 900px;
+  height: 36px;
+  display: flex;
+}
+
+.timeline-hour-mark {
+  flex: 1;
+  border-left: 1px solid var(--os-border);
+  padding: 0.25rem 0.35rem;
+  font-size: 0.65rem;
+  color: var(--os-text-muted);
+  white-space: nowrap;
+}
+
+.timeline-row {
+  display: flex;
+  border-bottom: 1px solid var(--os-border);
+
+  &:last-child { border-bottom: none; }
+
+  .timeline-grid-area {
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent calc(100% / 15 - 1px),
+      var(--os-border) calc(100% / 15 - 1px),
+      var(--os-border) calc(100% / 15)
+    );
+  }
+}
+
+.timeline-block {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  border-radius: 4px;
+  padding: 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 0.7rem;
+  z-index: 1;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 0.85; }
+
+  .block-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .block-size {
+    opacity: 0.8;
+    font-size: 0.6rem;
+  }
+
+  &.block-pending {
+    background-color: #6c757d;
+    color: #fff;
+  }
+
+  &.block-confirmed {
+    background-color: var(--os-success);
+    color: #fff;
+  }
+
+  &.block-seated {
+    background-color: var(--os-primary);
+    color: #fff;
+  }
+
+  &.block-completed {
+    background-color: var(--os-primary-hover);
+    color: #fff;
+    opacity: 0.6;
+  }
+}
+
+.current-time-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--os-danger);
+  z-index: 3;
+  pointer-events: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--os-danger);
+  }
+}
+
+// ─── Events (Phase 2) ───
+
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.event-card {
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  color: var(--os-text-primary);
+
+  &:hover { border-color: var(--os-primary); }
+}
+
+.badge-event-type {
+  background-color: rgba(111, 66, 193, 0.1);
+  color: #6f42c1;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.badge-published {
+  background-color: var(--os-success);
+  color: #fff;
+  font-size: 0.65rem;
+}
+
+.badge-draft {
+  background-color: #6c757d;
+  color: #fff;
+  font-size: 0.65rem;
+}
+
+.badge-checked-in {
+  background-color: var(--os-success);
+  color: #fff;
+  font-size: 0.65rem;
+}
+
+.badge-success { background-color: var(--os-success); color: #fff; }
+.badge-warning { background-color: var(--os-warning); color: #fff; }
+.badge-secondary { background-color: #6c757d; color: #fff; }
+
+.attendees-section {
+  .attendee-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .attendee-row {
+    background-color: var(--os-bg);
+    border: 1px solid var(--os-border);
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+}
+
+// ─── Guest Preferences (Phase 2) ───
+
+.pref-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.badge-pref {
+  background-color: rgba(0, 106, 255, 0.08);
+  color: var(--os-primary);
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.badge-celebration {
+  background-color: rgba(232, 62, 140, 0.1);
+  color: #e83e8c;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.badge-dietary {
+  background-color: rgba(40, 167, 69, 0.1);
+  color: var(--os-success);
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.preferences-section {
+  background-color: var(--os-bg);
+  border: 1px solid var(--os-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.dietary-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dietary-chip {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--os-border);
+  border-radius: 2rem;
+  background-color: var(--os-bg-card);
+  color: var(--os-text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: var(--os-primary);
+    color: var(--os-primary);
+  }
+
+  &.dietary-active {
+    background-color: rgba(0, 106, 255, 0.1);
+    border-color: var(--os-primary);
+    color: var(--os-primary);
+    font-weight: 600;
+  }
+}
+
+.form-check-input {
+  &:checked {
+    background-color: var(--os-primary);
+    border-color: var(--os-primary);
+  }
 }
