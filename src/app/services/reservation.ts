@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { Reservation, ReservationFormData, ReservationStatus, WaitlistEntry, WaitlistFormData } from '../models';
+import { Reservation, ReservationFormData, ReservationStatus, WaitlistEntry, WaitlistFormData, DayAvailability, PublicReservationFormData } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
 
@@ -250,6 +250,38 @@ export class ReservationService {
       const message = err instanceof Error ? err.message : 'Failed to reorder waitlist';
       this._error.set(message);
       return false;
+    }
+  }
+
+  // --- Public Booking Widget (unauthenticated) ---
+
+  async getPublicAvailability(restaurantSlug: string, date: string, partySize: number): Promise<DayAvailability | null> {
+    try {
+      return await firstValueFrom(
+        this.http.get<DayAvailability>(
+          `${this.apiUrl}/public/restaurant/${restaurantSlug}/availability`,
+          { params: { date, partySize: String(partySize) } }
+        )
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load availability';
+      this._error.set(message);
+      return null;
+    }
+  }
+
+  async createPublicReservation(restaurantSlug: string, data: PublicReservationFormData): Promise<Reservation | null> {
+    try {
+      return await firstValueFrom(
+        this.http.post<Reservation>(
+          `${this.apiUrl}/public/restaurant/${restaurantSlug}/reservations`,
+          data
+        )
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to create reservation';
+      this._error.set(message);
+      return null;
     }
   }
 

@@ -56,3 +56,42 @@ export interface WaitlistFormData {
   phone: string;
   notes?: string;
 }
+
+// --- Booking Widget Types ---
+
+export type BookingStep = 'date' | 'info' | 'confirm';
+
+export type SeatingPreference = 'no_preference' | 'indoor' | 'outdoor' | 'bar' | 'private';
+
+export interface TimeSlot {
+  time: string;
+  isAvailable: boolean;
+  availableCovers: number;
+}
+
+export interface DayAvailability {
+  date: string;
+  slots: TimeSlot[];
+}
+
+export interface PublicReservationFormData {
+  customerName: string;
+  customerPhone: string;
+  customerEmail?: string;
+  partySize: number;
+  reservationTime: string;
+  specialRequests?: string;
+  dietaryRestrictions?: string[];
+  seatingPreference?: SeatingPreference;
+  occasion?: string;
+}
+
+export const DIETARY_OPTIONS: string[] = [
+  'Vegetarian', 'Vegan', 'Gluten-Free', 'Dairy-Free',
+  'Nut-Free', 'Shellfish-Free', 'Halal', 'Kosher',
+];
+
+export const OCCASION_OPTIONS: string[] = [
+  'Birthday', 'Anniversary', 'Date Night', 'Business Meal',
+  'Celebration', 'Holiday', 'Other',
+];
