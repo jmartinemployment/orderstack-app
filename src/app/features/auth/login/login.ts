@@ -18,6 +18,7 @@ export class Login {
 
   readonly isLoading = this.authService.isLoading;
   readonly error = this.authService.error;
+  readonly sessionExpiredMessage = this.authService.sessionExpiredMessage;
 
   loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -38,6 +39,7 @@ export class Login {
     }
 
     const { email, password } = this.loginForm.value;
+    this.authService.clearSessionExpiredMessage();
     const success = await this.authService.login({ email, password });
 
     if (success) {

@@ -107,6 +107,41 @@
         <p>You're not clocked in yet</p>
       </div>
 
+      <!-- Schedule enforcement warning -->
+      @if (scheduleWarning()) {
+        <div class="schedule-warning">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <div class="schedule-warning-text">{{ scheduleWarning() }}</div>
+        </div>
+      }
+
+      <!-- Manager override for schedule enforcement -->
+      @if (showManagerOverride()) {
+        <div class="manager-override">
+          <label>Manager Override — Enter a manager PIN to proceed</label>
+          <div class="override-input-row">
+            <input
+              type="password"
+              class="override-pin-input"
+              placeholder="Manager PIN"
+              maxlength="6"
+              [value]="managerOverridePin()"
+              (input)="setManagerOverridePin($any($event.target).value)">
+            <button
+              class="btn-override-submit"
+              [disabled]="managerOverridePin().length < 4 || isClockingIn()"
+              (click)="submitManagerOverride()">
+              @if (isClockingIn()) {
+                <span class="spinner"></span>
+              } @else {
+                Override
+              }
+            </button>
+          </div>
+          <button class="btn-override-cancel" (click)="cancelManagerOverride()">Cancel</button>
+        </div>
+      }
+
       @if (needsJobSelection()) {
         <div class="job-selector">
           <label>Select your role for this shift:</label>
@@ -128,21 +163,23 @@
         <div class="error-msg">{{ error() }}</div>
       }
 
-      <div class="clockin-actions">
-        <button
-          class="btn-clockin"
-          [disabled]="isClockingIn() || (needsJobSelection() && !selectedJobTitle())"
-          (click)="clockInAndProceed()">
-          @if (isClockingIn()) {
-            <span class="spinner"></span> Clocking In...
-          } @else {
-            <i class="bi bi-clock-fill"></i> Clock In & Start
-          }
-        </button>
-        <button class="btn-skip" (click)="skipClockIn()">
-          Skip — Continue Without Clocking In
-        </button>
-      </div>
+      @if (!showManagerOverride()) {
+        <div class="clockin-actions">
+          <button
+            class="btn-clockin"
+            [disabled]="isClockingIn() || (needsJobSelection() && !selectedJobTitle())"
+            (click)="clockInAndProceed()">
+            @if (isClockingIn()) {
+              <span class="spinner"></span> Clocking In...
+            } @else {
+              <i class="bi bi-clock-fill"></i> Clock In & Start
+            }
+          </button>
+          <button class="btn-skip" (click)="skipClockIn()">
+            Skip — Continue Without Clocking In
+          </button>
+        </div>
+      }
     </div>
   }
 

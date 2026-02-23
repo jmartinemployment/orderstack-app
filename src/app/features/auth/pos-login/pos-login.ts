@@ -5,7 +5,7 @@ import {
   signal,
   computed,
   output,
-  OnDestroy,
+  DestroyRef,
 } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
@@ -14,7 +14,8 @@ import { StaffManagementService } from '@services/staff-management';
 import { AuthService } from '@services/auth';
 import { DeviceService } from '@services/device';
 import { PlatformService } from '@services/platform';
-import { TeamMember, PosSession, Timecard, BreakType } from '@models/index';
+import { RestaurantSettingsService } from '@services/restaurant-settings';
+import { TeamMember, PosSession, Timecard, BreakType, Shift } from '@models/index';
 
 export interface PosLoginEvent {
   teamMember: TeamMember;
@@ -31,13 +32,15 @@ type PosLoginState = 'idle' | 'entering-passcode' | 'clock-in-prompt' | 'authent
   styleUrl: './pos-login.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PosLogin implements OnDestroy {
+export class PosLogin {
   private readonly router = inject(Router);
   private readonly laborService = inject(LaborService);
   private readonly staffService = inject(StaffManagementService);
   private readonly authService = inject(AuthService);
   private readonly deviceService = inject(DeviceService);
   private readonly platformService = inject(PlatformService);
+  private readonly settingsService = inject(RestaurantSettingsService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly teamMemberAuthenticated = output<PosLoginEvent>();
 
@@ -67,6 +70,15 @@ export class PosLogin implements OnDestroy {
   private readonly _showJobSwitcher = signal(false);
   private readonly _switchJobTitle = signal<string | null>(null);
 
+  // --- Schedule enforcement ---
+  private readonly _scheduleWarning = signal<string | null>(null);
+  private readonly _showManagerOverride = signal(false);
+  private readonly _managerOverridePin = signal('');
+  private readonly _todayShifts = signal<Shift[]>([]);
+
+  // --- Auto clock-out timer ---
+  private autoClockOutTimer: ReturnType<typeof setTimeout> | null = null;
+
   readonly state = this._state.asReadonly();
   readonly teamMembers = this._teamMembers.asReadonly();
   readonly selectedMember = this._selectedMember.asReadonly();
@@ -83,6 +95,9 @@ export class PosLogin implements OnDestroy {
   readonly isClockAction = this._isClockAction.asReadonly();
   readonly showJobSwitcher = this._showJobSwitcher.asReadonly();
   readonly switchJobTitle = this._switchJobTitle.asReadonly();
+  readonly scheduleWarning = this._scheduleWarning.asReadonly();
+  readonly showManagerOverride = this._showManagerOverride.asReadonly();
+  readonly managerOverridePin = this._managerOverridePin.asReadonly();
 
   readonly isLocked = computed(() => {
     const until = this._lockoutUntil();
@@ -199,10 +214,11 @@ export class PosLogin implements OnDestroy {
 
   constructor() {
     this.loadTeamMembers();
-  }
 
-  ngOnDestroy(): void {
-    this.clearInactivityTimer();
+    this.destroyRef.onDestroy(() => {
+      this.clearInactivityTimer();
+      this.clearAutoClockOutTimer();
+    });
   }
 
   private async loadTeamMembers(): Promise<void> {
@@ -372,6 +388,29 @@ export class PosLogin implements OnDestroy {
     const session = this._session();
     if (!session) return;
 
+    // Schedule enforcement check
+    const tcSettings = this.settingsService.timeclockSettings();
+    if (tcSettings.scheduleEnforcementEnabled) {
+      await this.loadTodayShifts();
+      const blockReason = this.checkScheduleEnforcement(tcSettings.earlyClockInGraceMinutes);
+      if (blockReason) {
+        if (tcSettings.allowManagerOverride) {
+          this._scheduleWarning.set(blockReason);
+          this._showManagerOverride.set(true);
+          return;
+        }
+        this._error.set(blockReason);
+        return;
+      }
+    }
+
+    await this.executeClockIn();
+  }
+
+  private async executeClockIn(): Promise<void> {
+    const session = this._session();
+    if (!session) return;
+
     this._isClockingIn.set(true);
     this._error.set(null);
 
@@ -401,6 +440,7 @@ export class PosLogin implements OnDestroy {
     this.teamMemberAuthenticated.emit({ teamMember: member, session });
     this.resetInactivityTimer();
     this.loadBreakTypes();
+    this.startAutoClockOutTimer();
     this.navigateToLanding();
   }
 
@@ -434,6 +474,116 @@ export class PosLogin implements OnDestroy {
     }
   }
 
+  // === Schedule Enforcement ===
+
+  private async loadTodayShifts(): Promise<void> {
+    const member = this._selectedMember();
+    if (!member) return;
+
+    const today = this.formatDate(new Date());
+    const shifts = await this.laborService.loadStaffShifts(member.id, today, today);
+    this._todayShifts.set(shifts);
+  }
+
+  private checkScheduleEnforcement(graceMinutes: number): string | null {
+    const todayShifts = this._todayShifts();
+
+    if (todayShifts.length === 0) {
+      return 'No scheduled shift found for today. Clock-in requires a scheduled shift.';
+    }
+
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const hasUpcoming = todayShifts.some(s => {
+      const [h, m] = s.startTime.split(':').map(Number);
+      const shiftStart = h * 60 + m;
+      return nowMinutes >= (shiftStart - graceMinutes);
+    });
+
+    if (!hasUpcoming) {
+      return `Too early to clock in. Your shift doesn't start for more than ${graceMinutes} minutes.`;
+    }
+
+    return null;
+  }
+
+  setManagerOverridePin(pin: string): void {
+    this._managerOverridePin.set(pin);
+  }
+
+  async submitManagerOverride(): Promise<void> {
+    const pin = this._managerOverridePin();
+    if (pin.length < 4) return;
+
+    this._isClockingIn.set(true);
+    const staff = await this.laborService.validateStaffPin(pin);
+
+    if (staff && (staff.role === 'manager' || staff.role === 'owner')) {
+      this._showManagerOverride.set(false);
+      this._scheduleWarning.set(null);
+      this._managerOverridePin.set('');
+      await this.executeClockIn();
+    } else {
+      this._error.set('Invalid manager PIN');
+      this._managerOverridePin.set('');
+    }
+
+    this._isClockingIn.set(false);
+  }
+
+  cancelManagerOverride(): void {
+    this._showManagerOverride.set(false);
+    this._scheduleWarning.set(null);
+    this._managerOverridePin.set('');
+  }
+
+  // === Auto Clock-Out Timer ===
+
+  private startAutoClockOutTimer(): void {
+    this.clearAutoClockOutTimer();
+
+    const tcSettings = this.settingsService.timeclockSettings();
+    if (tcSettings.autoClockOutMode === 'never') return;
+
+    const tc = this._activeTimecard();
+    if (!tc) return;
+
+    let targetMs: number;
+
+    if (tcSettings.autoClockOutMode === 'after_shift_end') {
+      const todayShifts = this._todayShifts();
+      const todayShift = todayShifts.length > 0 ? todayShifts[0] : null;
+      if (!todayShift) return;
+
+      const [endH, endM] = todayShift.endTime.split(':').map(Number);
+      const shiftEnd = new Date();
+      shiftEnd.setHours(endH, endM, 0, 0);
+      targetMs = shiftEnd.getTime() + (tcSettings.autoClockOutDelayMinutes * 60000) - Date.now();
+    } else {
+      // business_day_cutoff
+      const [cutH, cutM] = tcSettings.businessDayCutoffTime.split(':').map(Number);
+      const cutoff = new Date();
+      cutoff.setHours(cutH, cutM, 0, 0);
+      if (cutoff.getTime() <= Date.now()) {
+        cutoff.setDate(cutoff.getDate() + 1);
+      }
+      targetMs = cutoff.getTime() - Date.now();
+    }
+
+    if (targetMs > 0) {
+      this.autoClockOutTimer = setTimeout(() => {
+        this.doClockOut();
+      }, targetMs);
+    }
+  }
+
+  private clearAutoClockOutTimer(): void {
+    if (this.autoClockOutTimer !== null) {
+      clearTimeout(this.autoClockOutTimer);
+      this.autoClockOutTimer = null;
+    }
+  }
+
   // === Clock-Out Flow ===
 
   openClockOutModal(): void {
@@ -462,6 +612,7 @@ export class PosLogin implements OnDestroy {
     if (success) {
       this._activeTimecard.set(null);
       this._showClockOutModal.set(false);
+      this.clearAutoClockOutTimer();
       this.switchUser();
     } else {
       this._error.set('Failed to clock out');
@@ -593,6 +744,7 @@ export class PosLogin implements OnDestroy {
 
   switchUser(): void {
     this.clearInactivityTimer();
+    this.clearAutoClockOutTimer();
     this._state.set('idle');
     this._selectedMember.set(null);
     this._passcodeDigits.set('');
@@ -603,6 +755,10 @@ export class PosLogin implements OnDestroy {
     this._showClockOutModal.set(false);
     this._showJobSwitcher.set(false);
     this._breakTypes.set([]);
+    this._scheduleWarning.set(null);
+    this._showManagerOverride.set(false);
+    this._managerOverridePin.set('');
+    this._todayShifts.set([]);
     this.laborService.clearPosSession();
   }
 
@@ -632,5 +788,12 @@ export class PosLogin implements OnDestroy {
     const period = h >= 12 ? 'PM' : 'AM';
     const hour = h % 12 || 12;
     return `${hour}:${m.toString().padStart(2, '0')} ${period}`;
+  }
+
+  private formatDate(date: Date): string {
+    const y = date.getFullYear();
+    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+    const d = date.getDate().toString().padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 }

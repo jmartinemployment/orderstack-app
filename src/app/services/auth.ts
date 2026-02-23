@@ -1,5 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { User, UserRestaurant, LoginRequest, LoginResponse, Restaurant } from '../models';
 import { environment } from '@environments/environment';
@@ -9,6 +10,7 @@ import { environment } from '@environments/environment';
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
   private readonly apiUrl = environment.apiUrl;
 
   // Private writable signals
@@ -20,6 +22,7 @@ export class AuthService {
   private readonly _selectedRestaurantId = signal<string | null>(null);
   private readonly _selectedRestaurantName = signal<string | null>(null);
   private readonly _selectedRestaurantLogo = signal<string | null>(null);
+  private readonly _sessionExpiredMessage = signal<string | null>(null);
 
   // Public readonly signals
   readonly user = this._user.asReadonly();
@@ -29,6 +32,7 @@ export class AuthService {
   readonly selectedRestaurantId = this._selectedRestaurantId.asReadonly();
   readonly selectedRestaurantName = this._selectedRestaurantName.asReadonly();
   readonly selectedRestaurantLogo = this._selectedRestaurantLogo.asReadonly();
+  readonly sessionExpiredMessage = this._sessionExpiredMessage.asReadonly();
 
   // Computed signals
   readonly isAuthenticated = computed(() => !!this._token() && !!this._user());
@@ -87,6 +91,7 @@ export class AuthService {
   async login(credentials: LoginRequest): Promise<boolean> {
     this._isLoading.set(true);
     this._error.set(null);
+    this._sessionExpiredMessage.set(null);
 
     try {
       const response = await firstValueFrom(
@@ -99,9 +104,14 @@ export class AuthService {
       this.saveToStorage(response.token, response.user, response.restaurants || []);
 
       return true;
-    } catch (err: any) {
-      const message = err?.error?.message ?? err?.error?.error ?? 'Login failed';
-      this._error.set(message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Login failed';
+      if (typeof err === 'object' && err !== null && 'error' in err) {
+        const httpErr = err as { error?: { message?: string; error?: string } };
+        this._error.set(httpErr.error?.message ?? httpErr.error?.error ?? message);
+      } else {
+        this._error.set(message);
+      }
       return false;
     } finally {
       this._isLoading.set(false);
@@ -151,6 +161,22 @@ export class AuthService {
     } finally {
       this._isLoading.set(false);
     }
+  }
+
+  handleSessionExpired(): void {
+    this._token.set(null);
+    this._user.set(null);
+    this._restaurants.set([]);
+    this._selectedRestaurantId.set(null);
+    this._selectedRestaurantName.set(null);
+    this._selectedRestaurantLogo.set(null);
+    this.clearStorage();
+    this._sessionExpiredMessage.set('Your session has expired. Please sign in again.');
+    this.router.navigate(['/login']);
+  }
+
+  clearSessionExpiredMessage(): void {
+    this._sessionExpiredMessage.set(null);
   }
 
   selectRestaurant(restaurantId: string, restaurantName: string, restaurantLogo?: string): void {

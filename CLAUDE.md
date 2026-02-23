@@ -405,4 +405,19 @@ ng build --configuration=production
 - **Build: zero errors** — Production build passes clean
 - Next: GOS-SPEC-01 Phase 3 (auth hardening, session management). Remaining spec Phase 2s. End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 15)*
+**[February 23, 2026] (Session 16) — GOS-SPEC-01 Phase 3 Complete + Auth Interceptor:**
+- **Phase 3 COMPLETE** — Schedule enforcement + auto clock-out ported to POS Login
+- **POS Login schedule enforcement:** Injected `RestaurantSettingsService`, added `_scheduleWarning`, `_showManagerOverride`, `_managerOverridePin`, `_todayShifts` signals. `checkScheduleEnforcement()` checks if member has a scheduled shift within grace window. `clockInAndProceed()` now checks `scheduleEnforcementEnabled` before clock-in. Manager override PIN flow with `submitManagerOverride()` / `cancelManagerOverride()`. Schedule warning banner + manager override PIN input in clock-in prompt screen.
+- **POS Login auto clock-out:** `startAutoClockOutTimer()` / `clearAutoClockOutTimer()` — mirrors Staff Portal logic, reads `autoClockOutMode` from settings. Timer starts on `completeAuthentication()`, clears on `switchUser()` and `doClockOut()`. Supports `after_shift_end` (uses today's shift end + delay) and `business_day_cutoff` (uses cutoff time) modes.
+- **POS Login cleanup:** Replaced `OnDestroy` with `DestroyRef` for cleanup. Clears both inactivity and auto clock-out timers on destroy. Added `formatDate()` helper. `switchUser()` now resets all schedule enforcement state.
+- **Auth interceptor (NEW):** Created `src/app/interceptors/auth.interceptor.ts` — functional `HttpInterceptorFn` that injects JWT `Authorization: Bearer` header on all requests when token exists. Catches 401 responses (excluding `/auth/login`) and calls `authService.handleSessionExpired()`.
+- **AuthService hardened:** Added `handleSessionExpired()` — clears all auth state + storage, sets `_sessionExpiredMessage` signal, navigates to `/login`. Added `clearSessionExpiredMessage()`. Added `Router` injection. Fixed `catch (err: any)` → `catch (err: unknown)` with proper narrowing.
+- **Login session expired banner:** Login component reads `authService.sessionExpiredMessage()` and displays amber `alert-warning` banner. Message cleared on form submit.
+- **App config updated:** Added `withInterceptors([authInterceptor])` to `provideHttpClient()`.
+- **Spec updated:** `specs/GOS-SPEC-01-auth-timeclock.md` — Phase 3 status set to COMPLETE.
+- **Files created:** `src/app/interceptors/auth.interceptor.ts`
+- **Files modified:** `features/auth/pos-login/pos-login.ts` (schedule enforcement + auto clock-out), `pos-login.html` (warning banner + manager override), `pos-login.scss` (schedule-warning + manager-override styles), `services/auth.ts` (handleSessionExpired, sessionExpiredMessage, Router), `features/auth/login/login.ts` (sessionExpiredMessage), `features/auth/login/login.html` (expired session banner), `app.config.ts` (withInterceptors), `specs/GOS-SPEC-01-auth-timeclock.md`
+- **Build: zero errors** — Production build passes clean
+- Next: Remaining spec Phase 2s. End-to-end test with live backend.
+
+*Last Updated: February 23, 2026 (Session 16)*
