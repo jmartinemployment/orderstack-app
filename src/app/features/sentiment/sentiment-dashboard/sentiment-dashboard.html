@@ -50,7 +50,7 @@
     <div class="alert alert-danger mx-3 mt-2">{{ error() }}</div>
   }
 
-  @if (isLoading()) {
+  @if (isLoading() && summary().totalAnalyzed === 0) {
     <div class="text-center p-5">
       <div class="spinner-border text-light"></div>
       <p class="text-muted mt-2">Analyzing order instructions...</p>

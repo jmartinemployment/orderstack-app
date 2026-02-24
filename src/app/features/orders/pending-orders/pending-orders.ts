@@ -277,7 +277,11 @@ export class PendingOrders implements OnInit, OnDestroy {
     );
     if (minutes < 1) return 'Just now';
     if (minutes === 1) return '1 min ago';
-    return `${minutes} mins ago`;
+    if (minutes < 60) return `${minutes} mins ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
   }
 
   async confirmOrder(order: Order): Promise<void> {

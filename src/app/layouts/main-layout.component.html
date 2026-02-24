@@ -1,7 +1,7 @@
 <div class="app-shell" [class.sidebar-collapsed]="sidebarCollapsed()">
   <!-- Mobile header -->
   <header class="mobile-header d-md-none">
-    <button class="btn btn-link hamburger" (click)="toggleMobileMenu()">
+    <button class="btn btn-link hamburger" (click)="toggleMobileMenu()" aria-label="Toggle menu">
       <i class="bi bi-list"></i>
     </button>
     <span class="brand">OrderStack</span>
@@ -24,7 +24,7 @@
           <span class="brand-text">OrderStack</span>
         }
       </div>
-      <button class="btn btn-link collapse-btn d-none d-md-block" (click)="toggleSidebar()">
+      <button class="btn btn-link collapse-btn d-none d-md-block" (click)="toggleSidebar()" [attr.aria-label]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'">
         <i class="bi" [class.bi-chevron-left]="!sidebarCollapsed()" [class.bi-chevron-right]="sidebarCollapsed()"></i>
       </button>
     </div>
@@ -58,7 +58,7 @@
           <i class="bi bi-person-circle"></i>
           @if (!sidebarCollapsed()) {
             <span class="user-name">{{ u.firstName }}</span>
-            <button class="btn btn-link logout-btn" (click)="logout()">
+            <button class="btn btn-link logout-btn" (click)="logout()" aria-label="Logout">
               <i class="bi bi-box-arrow-right"></i>
             </button>
           }

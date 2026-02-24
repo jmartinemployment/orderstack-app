@@ -806,4 +806,22 @@ ng build --configuration=production
 - **Build: zero errors** — both frontend (`ng build --configuration=production`) and backend (`tsc --noEmit` after `prisma generate`)
 - Next: End-to-end test with live backend. Verify Stripe Connect + PayPal flows.
 
-*Last Updated: February 24, 2026 (Session 37)*
+**[February 24, 2026] (Session 38) — Comprehensive Playwright UI/UX Audit + 6 Fixes:**
+- **Ran full 43-page Playwright audit** — tested every authenticated route for accessibility, stuck spinners, API errors, visual quality
+- **Audit findings:** 42 warnings across 43 pages, 0 errors. Key issues: 3 unlabeled sidebar buttons (all 42 pages), 3 stuck loading spinners, 20 unlabeled retail POS buttons, 2 unlabeled KDS form inputs, 1 duplicate heading, stale timestamp display
+- **Fix 1 (Sidebar accessibility):** Added `aria-label` to 3 icon-only buttons in `main-layout.component.html` — hamburger ("Toggle menu"), collapse ("Expand/Collapse sidebar" dynamic), logout ("Logout"). Resolved across all 42 authenticated pages.
+- **Fix 2 (Stuck loading spinners):** Changed 3 components from blocking `@if (isLoading())` to conditional rendering:
+  - Command Center: `@if (isLoading() && !hasAnyData())` + new `hasAnyData()` computed
+  - Customer Dashboard: `@if (isLoading() && customers().length === 0)`
+  - Sentiment Dashboard: `@if (isLoading() && summary().totalAnalyzed === 0)`
+- **Fix 3 (KDS form labels):** Added `aria-label="Course pacing mode"` and `aria-label="Station filter"` to KDS select elements
+- **Fix 4 (Retail POS buttons):** Added `aria-label="Search products"` to search button, `aria-label="Add quick key"` to empty quick-key buttons
+- **Fix 5 (Timestamp formatting):** Enhanced `getTimeSinceOrder()` in pending-orders (minutes→hours→days), added `formatWaitTime()` to kds-display and `formatElapsed()` to order-card for human-readable time
+- **Fix 6 (Duplicate heading):** Removed duplicate "KDS Stations" h5 from station-settings.html (parent device-hub provides heading)
+- **Updated root CLAUDE.md** — expanded Playwright section with comprehensive UI/UX audit pattern
+- **Playwright verification:** 7/8 tests pass. 1 false negative (KDS selects conditionally rendered, not in DOM without live data)
+- **Files modified (12):** `main-layout.component.html`, `command-center/command-center.html`, `command-center/command-center.ts`, `customer-dashboard/customer-dashboard.html`, `sentiment-dashboard/sentiment-dashboard.html`, `kds-display/kds-display.html`, `kds-display/kds-display.ts`, `order-card/order-card.html`, `order-card/order-card.ts`, `pending-orders/pending-orders.ts`, `retail-pos/retail-pos.html`, `station-settings/station-settings.html`
+- **Build: zero errors**
+- Next: End-to-end test with live backend. Stripe Connect + PayPal verification.
+
+*Last Updated: February 24, 2026 (Session 38)*

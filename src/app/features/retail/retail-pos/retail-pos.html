@@ -18,7 +18,7 @@
           <span class="scan-flash">{{ scanFlashMessage() }}</span>
         }
       </div>
-      <button class="btn-search" (click)="openSearch()">
+      <button class="btn-search" (click)="openSearch()" aria-label="Search products">
         <i class="bi bi-search"></i>
       </button>
     </div>
@@ -51,6 +51,7 @@
             <button
               class="quick-key quick-key-empty"
               (click)="openQuickKeyConfig($index)"
+              aria-label="Add quick key"
             >
               <i class="bi bi-plus"></i>
             </button>

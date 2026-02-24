@@ -145,7 +145,7 @@
     </div>
   }
 
-  @if (isLoading()) {
+  @if (isLoading() && !hasAnyData()) {
     <div class="d-flex justify-content-center p-5">
       <os-loading-spinner message="Loading command center..." />
     </div>

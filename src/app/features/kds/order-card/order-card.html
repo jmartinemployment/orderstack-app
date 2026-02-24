@@ -22,7 +22,7 @@
     </div>
     <div class="d-flex align-items-center gap-2">
       <span class="elapsed-time" [class]="prepColorClass()">
-        {{ elapsedMinutes() }}m
+        {{ formatElapsed(elapsedMinutes()) }}
       </span>
       @if (estimatedPrepMinutes() > 0 && remainingMinutes() !== null) {
         <span class="prep-eta small" [class]="prepColorClass()">

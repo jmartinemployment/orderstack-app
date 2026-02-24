@@ -136,6 +136,13 @@ export class CommandCenter {
     return this.salesReport()?.summary.topSellingItems?.slice(0, 5) ?? [];
   });
 
+  readonly hasAnyData = computed(() => {
+    return this.salesReport() !== null
+      || this.menuEngineering() !== null
+      || this.inventoryAlerts().length > 0
+      || this._profitSummary() !== null;
+  });
+
   // Unified insights feed
   readonly unifiedInsights = computed<UnifiedInsight[]>(() => {
     const insights: UnifiedInsight[] = [];

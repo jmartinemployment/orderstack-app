@@ -19,7 +19,7 @@
           <span class="stat-label">Overdue</span>
         </span>
         <span class="stat">
-          <span class="stat-value">{{ avgWaitMinutes() }}m</span>
+          <span class="stat-value">{{ formatWaitTime(avgWaitMinutes()) }}</span>
           <span class="stat-label">Avg Wait</span>
         </span>
       </div>
@@ -49,6 +49,7 @@
         <label class="small text-muted mb-0">Courses:</label>
         <select
           class="form-select form-select-sm pacing-select"
+          aria-label="Course pacing mode"
           [value]="coursePacingMode()"
           (change)="setCoursePacingMode($event)"
         >
@@ -75,6 +76,7 @@
           <label class="small text-muted mb-0">Station:</label>
           <select
             class="form-select form-select-sm station-select"
+            aria-label="Station filter"
             (change)="selectStation($any($event.target).value || null)"
           >
             <option value="" [selected]="selectedStationId() === null">All Stations</option>
