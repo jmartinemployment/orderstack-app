@@ -229,7 +229,17 @@ export class MultiLocationService {
           { params: { days: days.toString() } }
         )
       );
-      this._crossLocationReport.set(report);
+      this._crossLocationReport.set({
+        ...report,
+        locations: report.locations ?? [],
+        totals: report.totals ?? {
+          totalRevenue: 0,
+          totalOrders: 0,
+          avgOrderValue: 0,
+          avgLaborCostPercent: 0,
+          avgFoodCostPercent: 0,
+        },
+      });
     } catch {
       this._error.set('Failed to load cross-location report');
     } finally {

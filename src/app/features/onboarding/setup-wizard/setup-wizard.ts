@@ -216,7 +216,7 @@ export class SetupWizard {
   readonly currentStep = this._currentStep.asReadonly();
 
   readonly progressPercent = computed(() =>
-    Math.round((this._currentStep() / TOTAL_STEPS) * 100)
+    Math.round(((this._currentStep() + 1) / (TOTAL_STEPS + 1)) * 100)
   );
 
   // --- Step 1: Business Info + Address ---

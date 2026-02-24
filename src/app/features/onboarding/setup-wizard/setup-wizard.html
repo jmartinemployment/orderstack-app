@@ -8,7 +8,7 @@
       <div class="progress-bar-fill" [style.width.%]="progressPercent()"></div>
     </div>
     <div class="step-label">
-      <span>Step {{ currentStep() }} of {{ totalSteps }}</span>
+      <span>Step {{ currentStep() + 1 }} of {{ totalSteps + 1 }}</span>
       <span>{{ progressPercent() }}% complete</span>
     </div>
   </div>

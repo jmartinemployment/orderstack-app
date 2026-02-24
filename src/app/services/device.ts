@@ -240,13 +240,9 @@ export class DeviceService {
       );
       this._currentDevice.set(device);
     } catch {
-      // Device not found or API unavailable — check local cache
-      const cached = this._devices().find(d => d.id === deviceId);
-      if (cached) {
-        this._currentDevice.set(cached);
-      } else {
-        this._currentDevice.set(null);
-      }
+      // Device not found (404) or API unavailable — clear stale device ID
+      localStorage.removeItem('device_id');
+      this._currentDevice.set(null);
     }
   }
 

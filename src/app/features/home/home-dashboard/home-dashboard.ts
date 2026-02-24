@@ -161,6 +161,15 @@ export class HomeDashboard implements OnInit {
         category: 'advanced',
       },
       {
+        id: 'hardware',
+        label: 'Set up hardware',
+        description: 'Tablets, card readers, printers, and more',
+        icon: 'bi-cpu',
+        route: '/hardware-guide',
+        done: done.has('hardware'),
+        category: 'advanced',
+      },
+      {
         id: 'pin',
         label: 'Set owner PIN',
         description: 'Security PIN for POS access and clock-in',

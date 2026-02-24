@@ -182,7 +182,20 @@ export class AnalyticsService {
           `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/menu-engineering?days=${days}`
         )
       );
-      this._menuEngineering.set(data);
+      this._menuEngineering.set({
+        ...data,
+        items: data.items ?? [],
+        insights: data.insights ?? [],
+        summary: data.summary ?? {
+          totalItems: 0,
+          stars: 0,
+          cashCows: 0,
+          puzzles: 0,
+          dogs: 0,
+          averageMargin: 0,
+          averagePopularity: 0,
+        },
+      });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to load menu engineering data';
       this._engineeringError.set(message);

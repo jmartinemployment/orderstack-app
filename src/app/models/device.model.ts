@@ -240,7 +240,7 @@ export interface DeviceHealthSummary {
 
 // --- DeviceHub Tab Navigation ---
 
-export type DeviceHubTab = 'devices' | 'modes' | 'printer-profiles' | 'peripherals' | 'kiosk-profiles' | 'hardware-recs';
+export type DeviceHubTab = 'devices' | 'modes' | 'printer-profiles' | 'peripherals' | 'kiosk-profiles';
 
 // --- Hardware Recommendations ---
 

@@ -778,7 +778,7 @@ export class LaborService {
     try {
       const data = await firstValueFrom(
         this.http.get<WorkweekConfig>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/workweek-config`
+          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/workweek-config`
         )
       );
       this._workweekConfig.set(data);
@@ -796,7 +796,7 @@ export class LaborService {
     try {
       const result = await firstValueFrom(
         this.http.put<WorkweekConfig>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/workweek-config`,
+          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/workweek-config`,
           data
         )
       );
@@ -859,7 +859,7 @@ export class LaborService {
     try {
       const data = await firstValueFrom(
         this.http.get<ScheduleTemplate[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/schedule-templates`
+          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/schedule-templates`
         )
       );
       this._scheduleTemplates.set(data);
@@ -876,7 +876,7 @@ export class LaborService {
     try {
       const result = await firstValueFrom(
         this.http.post<ScheduleTemplate>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/schedule-templates`,
+          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/schedule-templates`,
           { name, weekStartDate }
         )
       );
@@ -896,7 +896,7 @@ export class LaborService {
     try {
       const result = await firstValueFrom(
         this.http.post<Shift[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/schedule-templates/${templateId}/apply`,
+          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/schedule-templates/${templateId}/apply`,
           { weekStartDate }
         )
       );
@@ -916,7 +916,7 @@ export class LaborService {
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/schedule-templates/${id}`
+          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/schedule-templates/${id}`
         )
       );
       this._scheduleTemplates.update(t => t.filter(tpl => tpl.id !== id));
@@ -958,7 +958,7 @@ export class LaborService {
     try {
       const data = await firstValueFrom(
         this.http.get<LiveLaborData>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/live`
+          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/labor-live`
         )
       );
       this._liveLabor.set(data);
