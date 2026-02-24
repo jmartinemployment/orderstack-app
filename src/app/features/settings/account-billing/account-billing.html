@@ -87,22 +87,6 @@
             </button>
           </div>
 
-          <!-- Processor toggle -->
-          <div class="processor-toggle">
-            <span class="toggle-label">Processing rates for:</span>
-            <button
-              class="toggle-btn"
-              [class.active]="_selectedProcessor() === 'stripe'"
-              (click)="setProcessor('stripe')">
-              <i class="bi bi-stripe"></i> Stripe
-            </button>
-            <button
-              class="toggle-btn"
-              [class.active]="_selectedProcessor() === 'paypal'"
-              (click)="setProcessor('paypal')">
-              <i class="bi bi-paypal"></i> PayPal
-            </button>
-          </div>
         </div>
 
         <!-- Tier cards -->
@@ -128,11 +112,15 @@
               <div class="tier-rates">
                 <div class="rate-row">
                   <span class="rate-label">In-person</span>
-                  <span class="rate-value">{{ getProcessingRates(tier).inPerson }}</span>
+                  <span class="rate-value">{{ tier.processingRates.inPerson }}</span>
                 </div>
                 <div class="rate-row">
                   <span class="rate-label">Online</span>
-                  <span class="rate-value">{{ getProcessingRates(tier).online }}</span>
+                  <span class="rate-value">{{ tier.processingRates.online }}</span>
+                </div>
+                <div class="rate-row">
+                  <span class="rate-label">Keyed-in</span>
+                  <span class="rate-value">{{ tier.processingRates.keyedIn }}</span>
                 </div>
               </div>
 

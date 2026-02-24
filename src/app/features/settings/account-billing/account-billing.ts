@@ -27,7 +27,6 @@ export class AccountBilling implements OnInit {
   readonly showCancelModal = signal(false);
   readonly _showPlanComparison = signal(false);
   readonly _billingInterval = signal<'month' | 'year'>('month');
-  readonly _selectedProcessor = signal<'stripe' | 'paypal'>('stripe');
 
   readonly planTiers = PLAN_TIERS;
 
@@ -54,8 +53,8 @@ export class AccountBilling implements OnInit {
   });
 
   readonly annualSavingsPercent = computed(() => {
-    // Plus: $25/mo vs $20/mo = 20% savings
-    return 20;
+    // Plus: $49/mo vs $40/mo annual = ~18% savings
+    return 18;
   });
 
   ngOnInit(): void {
@@ -78,20 +77,11 @@ export class AccountBilling implements OnInit {
     this._billingInterval.set(interval);
   }
 
-  setProcessor(processor: 'stripe' | 'paypal'): void {
-    this._selectedProcessor.set(processor);
-  }
-
   formatPrice(tier: typeof PLAN_TIERS[number]): string {
     const interval = this._billingInterval();
     const cents = interval === 'year' ? tier.annualPriceCents : tier.monthlyPriceCents;
     if (cents === 0) return '$0';
     return `$${cents / 100}`;
-  }
-
-  getProcessingRates(tier: typeof PLAN_TIERS[number]): { inPerson: string; online: string } {
-    const processor = this._selectedProcessor();
-    return tier.processingRates[processor];
   }
 
   isCurrentTier(tierKey: PlanTierKey): boolean {

@@ -281,9 +281,11 @@ export class SetupWizard {
   // --- Step 4: Choose Your Plan ---
   readonly _selectedTier = signal<PlanTierKey>('free');
   readonly _billingInterval = signal<'month' | 'year'>('month');
-  readonly _selectedProcessor = signal<'stripe' | 'paypal'>('stripe');
 
-  readonly annualSavingsPercent = computed(() => 20);
+  readonly annualSavingsPercent = computed(() => {
+    // Plus: $49/mo vs $40/mo annual = ~18% savings
+    return 18;
+  });
 
   // --- Auto-detect mode from business type ---
   readonly autoDetectedMode = computed<DevicePosMode>(() => {
@@ -376,20 +378,11 @@ export class SetupWizard {
     this._billingInterval.set(interval);
   }
 
-  setProcessor(processor: 'stripe' | 'paypal'): void {
-    this._selectedProcessor.set(processor);
-  }
-
   formatPrice(tier: typeof PLAN_TIERS[number]): string {
     const interval = this._billingInterval();
     const cents = interval === 'year' ? tier.annualPriceCents : tier.monthlyPriceCents;
     if (cents === 0) return '$0';
     return `$${cents / 100}`;
-  }
-
-  getProcessingRates(tier: typeof PLAN_TIERS[number]): { inPerson: string; online: string } {
-    const processor = this._selectedProcessor();
-    return tier.processingRates[processor];
   }
 
   // --- Onboarding submission (happens between step 3 and 4) ---

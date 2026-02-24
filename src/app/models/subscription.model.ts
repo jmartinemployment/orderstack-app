@@ -6,8 +6,9 @@ export interface PlanTier {
   monthlyPriceCents: number;
   annualPriceCents: number;
   processingRates: {
-    stripe: { inPerson: string; online: string };
-    paypal: { inPerson: string; online: string };
+    inPerson: string;
+    online: string;
+    keyedIn: string;
   };
   features: string[];
   highlighted?: boolean;
@@ -20,8 +21,9 @@ export const PLAN_TIERS: PlanTier[] = [
     monthlyPriceCents: 0,
     annualPriceCents: 0,
     processingRates: {
-      stripe: { inPerson: '2.6% + 10¢', online: '2.9% + 30¢' },
-      paypal: { inPerson: '2.29% + 9¢', online: '3.49% + 49¢' },
+      inPerson: '2.6% + 15¢',
+      online: '3.3% + 30¢',
+      keyedIn: '3.5% + 15¢',
     },
     features: [
       'POS for 1 location',
@@ -34,11 +36,12 @@ export const PLAN_TIERS: PlanTier[] = [
   {
     key: 'plus',
     name: 'Plus',
-    monthlyPriceCents: 2500,
-    annualPriceCents: 2000,
+    monthlyPriceCents: 4900,
+    annualPriceCents: 4000,
     processingRates: {
-      stripe: { inPerson: '2.5% + 10¢', online: '2.9% + 30¢' },
-      paypal: { inPerson: '2.29% + 9¢', online: '3.49% + 49¢' },
+      inPerson: '2.5% + 15¢',
+      online: '2.9% + 30¢',
+      keyedIn: '3.5% + 15¢',
     },
     features: [
       'Everything in Free, plus:',
@@ -54,11 +57,12 @@ export const PLAN_TIERS: PlanTier[] = [
   {
     key: 'premium',
     name: 'Premium',
-    monthlyPriceCents: 6900,
-    annualPriceCents: 5900,
+    monthlyPriceCents: 14900,
+    annualPriceCents: 12900,
     processingRates: {
-      stripe: { inPerson: '2.4% + 10¢', online: '2.9% + 30¢' },
-      paypal: { inPerson: '2.29% + 9¢', online: '3.49% + 49¢' },
+      inPerson: '2.4% + 15¢',
+      online: '2.9% + 30¢',
+      keyedIn: '3.5% + 15¢',
     },
     features: [
       'Everything in Plus, plus:',

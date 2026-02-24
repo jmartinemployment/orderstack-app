@@ -130,7 +130,7 @@
         <h2>Choose your plan</h2>
         <p class="step-subtitle">Start free and upgrade anytime. All plans include unlimited transactions.</p>
 
-        <!-- Billing interval + Processor toggles -->
+        <!-- Billing interval toggle -->
         <div class="plan-toggles">
           <div class="toggle-group">
             <button
@@ -147,24 +147,6 @@
               (click)="setBillingInterval('year')">
               Annual
               <span class="savings-badge">Save {{ annualSavingsPercent() }}%</span>
-            </button>
-          </div>
-
-          <div class="toggle-group">
-            <span class="toggle-label">Rates for:</span>
-            <button
-              type="button"
-              class="toggle-btn"
-              [class.active]="_selectedProcessor() === 'stripe'"
-              (click)="setProcessor('stripe')">
-              Stripe
-            </button>
-            <button
-              type="button"
-              class="toggle-btn"
-              [class.active]="_selectedProcessor() === 'paypal'"
-              (click)="setProcessor('paypal')">
-              PayPal
             </button>
           </div>
         </div>
@@ -200,11 +182,15 @@
               <div class="tier-rates">
                 <div class="rate-row">
                   <span class="rate-label">In-person</span>
-                  <span class="rate-value">{{ getProcessingRates(tier).inPerson }}</span>
+                  <span class="rate-value">{{ tier.processingRates.inPerson }}</span>
                 </div>
                 <div class="rate-row">
                   <span class="rate-label">Online</span>
-                  <span class="rate-value">{{ getProcessingRates(tier).online }}</span>
+                  <span class="rate-value">{{ tier.processingRates.online }}</span>
+                </div>
+                <div class="rate-row">
+                  <span class="rate-label">Keyed-in</span>
+                  <span class="rate-value">{{ tier.processingRates.keyedIn }}</span>
                 </div>
               </div>
 
