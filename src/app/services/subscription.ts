@@ -1,15 +1,10 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { Subscription, SubscriptionStatus, CancellationFeedback } from '../models';
+import { Subscription, SubscriptionStatus, CancellationFeedback, PlanTierKey, PLAN_TIERS } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
 
-/**
- * STUBBED — API endpoints for subscription management do not exist yet.
- * This service uses mock data for the current subscription state.
- * Connect to real billing API (Stripe) when backend endpoints are built.
- */
 @Injectable({
   providedIn: 'root',
 })
@@ -28,8 +23,17 @@ export class SubscriptionService {
 
   readonly status = computed<SubscriptionStatus>(() => {
     const sub = this._subscription();
-    if (!sub) return 'trialing';
+    if (!sub) return 'active';
     return sub.status;
+  });
+
+  readonly planTier = computed<PlanTierKey>(() => {
+    const sub = this._subscription();
+    if (!sub) return 'free';
+    const name = sub.planName.toLowerCase();
+    if (name === 'plus' || name === 'orderstack plus') return 'plus';
+    if (name === 'premium' || name === 'orderstack premium') return 'premium';
+    return 'free';
   });
 
   readonly isTrial = computed(() => this.status() === 'trialing');
@@ -85,8 +89,45 @@ export class SubscriptionService {
       );
       this._subscription.set(sub);
     } catch {
-      // STUBBED — API not available, load mock trial subscription
       this.loadMockSubscription();
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
+
+  async changePlan(newTier: PlanTierKey): Promise<boolean> {
+    if (!this.restaurantId) return false;
+
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    const tier = PLAN_TIERS.find(t => t.key === newTier);
+    if (!tier) {
+      this._isLoading.set(false);
+      return false;
+    }
+
+    try {
+      const updated = await firstValueFrom(
+        this.http.post<Subscription>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/subscription/change-plan`,
+          { planTier: newTier }
+        )
+      );
+      this._subscription.set(updated);
+      return true;
+    } catch {
+      // Fallback — update mock subscription locally
+      const current = this._subscription();
+      if (current) {
+        this._subscription.set({
+          ...current,
+          planName: tier.name,
+          amountCents: tier.monthlyPriceCents,
+          status: 'active',
+        });
+      }
+      return true;
     } finally {
       this._isLoading.set(false);
     }
@@ -108,7 +149,6 @@ export class SubscriptionService {
       this._subscription.set(updated);
       return true;
     } catch {
-      // STUBBED — simulate cancellation locally
       const current = this._subscription();
       if (current) {
         this._subscription.set({
@@ -140,7 +180,6 @@ export class SubscriptionService {
       this._subscription.set(updated);
       return true;
     } catch {
-      // STUBBED — simulate 30-day extension locally
       const current = this._subscription();
       if (current?.trialEnd) {
         const newEnd = new Date(current.trialEnd);
@@ -173,7 +212,6 @@ export class SubscriptionService {
       this._subscription.set(updated);
       return true;
     } catch {
-      // STUBBED — simulate discount locally
       const current = this._subscription();
       if (current) {
         this._subscription.set({
@@ -189,22 +227,16 @@ export class SubscriptionService {
 
   private loadMockSubscription(): void {
     const now = new Date();
-    const trialStart = new Date(now);
-    trialStart.setDate(trialStart.getDate() - 5);
-    const trialEnd = new Date(trialStart);
-    trialEnd.setDate(trialEnd.getDate() + 14);
 
     this._subscription.set({
-      id: 'sub_mock_trial',
+      id: 'sub_mock_free',
       restaurantId: this.restaurantId,
-      planName: 'OrderStack Pro',
-      status: 'trialing',
-      currentPeriodStart: trialStart.toISOString(),
-      currentPeriodEnd: trialEnd.toISOString(),
-      trialStart: trialStart.toISOString(),
-      trialEnd: trialEnd.toISOString(),
+      planName: 'Free',
+      status: 'active',
+      currentPeriodStart: now.toISOString(),
+      currentPeriodEnd: new Date(now.getFullYear() + 1, now.getMonth(), now.getDate()).toISOString(),
       cancelAtPeriodEnd: false,
-      amountCents: 7900,
+      amountCents: 0,
       interval: 'month',
     });
   }

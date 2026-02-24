@@ -1,3 +1,77 @@
+export type PlanTierKey = 'free' | 'plus' | 'premium';
+
+export interface PlanTier {
+  key: PlanTierKey;
+  name: string;
+  monthlyPriceCents: number;
+  annualPriceCents: number;
+  processingRates: {
+    stripe: { inPerson: string; online: string };
+    paypal: { inPerson: string; online: string };
+  };
+  features: string[];
+  highlighted?: boolean;
+}
+
+export const PLAN_TIERS: PlanTier[] = [
+  {
+    key: 'free',
+    name: 'Free',
+    monthlyPriceCents: 0,
+    annualPriceCents: 0,
+    processingRates: {
+      stripe: { inPerson: '2.6% + 10¢', online: '2.9% + 30¢' },
+      paypal: { inPerson: '2.29% + 9¢', online: '3.49% + 49¢' },
+    },
+    features: [
+      'POS for 1 location',
+      'Unlimited transactions',
+      'Basic reporting',
+      'Online ordering page',
+      'Email support',
+    ],
+  },
+  {
+    key: 'plus',
+    name: 'Plus',
+    monthlyPriceCents: 2500,
+    annualPriceCents: 2000,
+    processingRates: {
+      stripe: { inPerson: '2.5% + 10¢', online: '2.9% + 30¢' },
+      paypal: { inPerson: '2.29% + 9¢', online: '3.49% + 49¢' },
+    },
+    features: [
+      'Everything in Free, plus:',
+      'Multi-location management',
+      'Advanced reporting & analytics',
+      'Staff scheduling & labor tools',
+      'Loyalty program',
+      'Marketing automations',
+      'Priority support',
+    ],
+    highlighted: true,
+  },
+  {
+    key: 'premium',
+    name: 'Premium',
+    monthlyPriceCents: 6900,
+    annualPriceCents: 5900,
+    processingRates: {
+      stripe: { inPerson: '2.4% + 10¢', online: '2.9% + 30¢' },
+      paypal: { inPerson: '2.29% + 9¢', online: '3.49% + 49¢' },
+    },
+    features: [
+      'Everything in Plus, plus:',
+      'Lower processing rates',
+      'Menu engineering & AI insights',
+      'Course-based firing',
+      'Franchise compliance tools',
+      'Custom reporting & exports',
+      'Dedicated account manager',
+    ],
+  },
+];
+
 export type SubscriptionStatus = 'active' | 'trialing' | 'canceled' | 'expired' | 'past_due';
 
 export type CancellationReason =

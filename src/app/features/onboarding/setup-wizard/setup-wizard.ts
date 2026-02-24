@@ -18,7 +18,6 @@ import { Router } from '@angular/router';
 import { PlatformService, OnboardingPayload } from '@services/platform';
 import { AuthService } from '@services/auth';
 import { DeviceService } from '@services/device';
-import { PaymentConnectService } from '@services/payment-connect';
 import { PwaInstallService } from '@services/pwa-install';
 
 const US_STATES = [
@@ -41,7 +40,7 @@ const US_STATES = [
   { code: 'WI', name: 'Wisconsin' }, { code: 'WY', name: 'Wyoming' }, { code: 'DC', name: 'Washington DC' },
 ];
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 4;
 
 // --- Business type -> mode mapping ---
 const BUSINESS_TYPE_MODE_MAP: Record<string, DevicePosMode> = {
@@ -203,7 +202,6 @@ export class SetupWizard {
   private readonly platformService = inject(PlatformService);
   private readonly authService = inject(AuthService);
   private readonly deviceService = inject(DeviceService);
-  private readonly paymentConnect = inject(PaymentConnectService);
   readonly pwaInstall = inject(PwaInstallService);
   private readonly router = inject(Router);
 
@@ -251,17 +249,6 @@ export class SetupWizard {
   // --- Step 3: Annual Revenue ---
   readonly _selectedRevenue = signal<string | null>(null);
 
-  // --- Step 4: Payment Connect ---
-  readonly stripeStatus = this.paymentConnect.stripeStatus;
-  readonly paypalStatus = this.paymentConnect.paypalStatus;
-  readonly isConnecting = this.paymentConnect.isConnecting;
-  readonly _connectError = signal<string | null>(null);
-  readonly _isPolling = signal(false);
-
-  readonly hasConnectedProcessor = computed(() =>
-    this.stripeStatus() === 'connected' || this.paypalStatus() === 'connected'
-  );
-
   // --- Auto-detect mode from business type ---
   readonly autoDetectedMode = computed<DevicePosMode>(() => {
     const bt = this._selectedBusinessType();
@@ -292,8 +279,7 @@ export class SetupWizard {
       case 1: return this._businessName().trim().length > 0;
       case 2: return this._selectedBusinessType() !== null;
       case 3: return this._selectedRevenue() !== null;
-      case 4: return true; // payment step — always can proceed (skip or connect)
-      case 5: return !this._isSubmitting();
+      case 4: return !this._isSubmitting();
       default: return false;
     }
   });
@@ -391,51 +377,7 @@ export class SetupWizard {
     }
   }
 
-  // --- Step 4: Payment Connect ---
-
-  async connectStripe(): Promise<void> {
-    this._connectError.set(null);
-    const url = await this.paymentConnect.startStripeConnect();
-    if (url) {
-      // Open Stripe hosted onboarding in new tab
-      window.open(url, '_blank');
-      // Start polling for completion
-      this._isPolling.set(true);
-      const connected = await this.paymentConnect.pollStripeUntilConnected();
-      this._isPolling.set(false);
-      if (!connected) {
-        this._connectError.set('Stripe setup timed out. You can finish this in Settings later.');
-      }
-    } else if (this.paymentConnect.error()) {
-      this._connectError.set(this.paymentConnect.error());
-    }
-  }
-
-  async connectPayPal(): Promise<void> {
-    this._connectError.set(null);
-    const url = await this.paymentConnect.startPayPalConnect();
-    if (url) {
-      // Open PayPal onboarding in new tab
-      window.open(url, '_blank');
-      // Start polling for completion
-      this._isPolling.set(true);
-      const connected = await this.paymentConnect.pollPayPalUntilConnected();
-      this._isPolling.set(false);
-      if (!connected) {
-        this._connectError.set('PayPal setup timed out. You can finish this in Settings later.');
-      }
-    } else if (this.paymentConnect.error()) {
-      this._connectError.set(this.paymentConnect.error());
-    }
-  }
-
-  // --- Step 4: Skip payment ---
-
-  skipPayment(): void {
-    this._currentStep.set(5);
-  }
-
-  // --- Step 5: Go to dashboard ---
+  // --- Step 4: Go to dashboard ---
 
   goToDashboard(): void {
     this.router.navigate(['/home']);

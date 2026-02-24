@@ -12,7 +12,7 @@
           <h3 class="plan-name">{{ sub.planName }}</h3>
           <span class="badge" [class]="statusClass()">{{ statusLabel() }}</span>
         </div>
-        @if (!isTrial()) {
+        @if (sub.amountCents > 0) {
           <div class="plan-price">
             <span class="amount">{{ formattedAmount() }}</span>
           </div>
@@ -43,7 +43,7 @@
           <i class="bi bi-info-circle"></i>
           Access until {{ sub.currentPeriodEnd | date:'longDate' }}
         </div>
-      } @else if (!isTrial()) {
+      } @else if (sub.amountCents > 0) {
         <div class="billing-detail">
           <span class="detail-label">Next billing date</span>
           <span class="detail-value">{{ sub.currentPeriodEnd | date:'longDate' }}</span>
@@ -56,11 +56,119 @@
             Cancel Subscription
           </button>
         }
-        <button class="btn btn-outline-primary btn-sm" disabled>
-          Change Plan
+        <button class="btn btn-outline-primary btn-sm" (click)="togglePlanComparison()">
+          @if (_showPlanComparison()) {
+            Hide Plans
+          } @else {
+            Change Plan
+          }
         </button>
       </div>
     </div>
+
+    <!-- Plan Comparison -->
+    @if (_showPlanComparison()) {
+      <div class="plan-comparison">
+        <!-- Billing interval toggle -->
+        <div class="comparison-toggles">
+          <div class="interval-toggle">
+            <button
+              class="toggle-btn"
+              [class.active]="_billingInterval() === 'month'"
+              (click)="setBillingInterval('month')">
+              Monthly
+            </button>
+            <button
+              class="toggle-btn"
+              [class.active]="_billingInterval() === 'year'"
+              (click)="setBillingInterval('year')">
+              Annual
+              <span class="savings-badge">Save {{ annualSavingsPercent() }}%</span>
+            </button>
+          </div>
+
+          <!-- Processor toggle -->
+          <div class="processor-toggle">
+            <span class="toggle-label">Processing rates for:</span>
+            <button
+              class="toggle-btn"
+              [class.active]="_selectedProcessor() === 'stripe'"
+              (click)="setProcessor('stripe')">
+              <i class="bi bi-stripe"></i> Stripe
+            </button>
+            <button
+              class="toggle-btn"
+              [class.active]="_selectedProcessor() === 'paypal'"
+              (click)="setProcessor('paypal')">
+              <i class="bi bi-paypal"></i> PayPal
+            </button>
+          </div>
+        </div>
+
+        <!-- Tier cards -->
+        <div class="tier-cards">
+          @for (tier of planTiers; track tier.key) {
+            <div class="tier-card" [class.highlighted]="tier.highlighted" [class.current]="isCurrentTier(tier.key)">
+              @if (tier.highlighted) {
+                <div class="popular-badge">Most Popular</div>
+              }
+              @if (isCurrentTier(tier.key)) {
+                <div class="current-badge">Current Plan</div>
+              }
+
+              <h4 class="tier-name">{{ tier.name }}</h4>
+              <div class="tier-price">
+                <span class="price-amount">{{ formatPrice(tier) }}</span>
+                @if (tier.monthlyPriceCents > 0) {
+                  <span class="price-period">/{{ _billingInterval() === 'year' ? 'mo' : 'mo' }}</span>
+                  <span class="price-note">per location</span>
+                }
+              </div>
+
+              <div class="tier-rates">
+                <div class="rate-row">
+                  <span class="rate-label">In-person</span>
+                  <span class="rate-value">{{ getProcessingRates(tier).inPerson }}</span>
+                </div>
+                <div class="rate-row">
+                  <span class="rate-label">Online</span>
+                  <span class="rate-value">{{ getProcessingRates(tier).online }}</span>
+                </div>
+              </div>
+
+              <ul class="tier-features">
+                @for (feature of tier.features; track feature) {
+                  <li>
+                    <i class="bi bi-check2"></i>
+                    <span>{{ feature }}</span>
+                  </li>
+                }
+              </ul>
+
+              <div class="tier-action">
+                @if (isCurrentTier(tier.key)) {
+                  <button class="btn btn-current" disabled>Current Plan</button>
+                } @else if (isUpgrade(tier.key)) {
+                  <button
+                    class="btn btn-upgrade"
+                    [disabled]="isLoading()"
+                    (click)="changePlan(tier.key)">
+                    Upgrade
+                  </button>
+                } @else {
+                  <button
+                    class="btn btn-downgrade"
+                    [disabled]="isLoading()"
+                    (click)="changePlan(tier.key)">
+                    Downgrade
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
   </div>
 
   @if (showCancelModal()) {

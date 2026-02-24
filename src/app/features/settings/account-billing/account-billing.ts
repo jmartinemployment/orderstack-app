@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } 
 import { DatePipe } from '@angular/common';
 import { SubscriptionService } from '@services/subscription';
 import { CancelSubscription } from '../cancel-subscription';
+import { PLAN_TIERS, PlanTierKey } from '@models/index';
 
 @Component({
   selector: 'os-account-billing',
@@ -21,8 +22,14 @@ export class AccountBilling implements OnInit {
   readonly trialProgress = this.subscriptionService.trialProgress;
   readonly formattedAmount = this.subscriptionService.formattedAmount;
   readonly isLoading = this.subscriptionService.isLoading;
+  readonly currentTier = this.subscriptionService.planTier;
 
   readonly showCancelModal = signal(false);
+  readonly _showPlanComparison = signal(false);
+  readonly _billingInterval = signal<'month' | 'year'>('month');
+  readonly _selectedProcessor = signal<'stripe' | 'paypal'>('stripe');
+
+  readonly planTiers = PLAN_TIERS;
 
   readonly statusLabel = computed(() => {
     switch (this.status()) {
@@ -46,6 +53,11 @@ export class AccountBilling implements OnInit {
     }
   });
 
+  readonly annualSavingsPercent = computed(() => {
+    // Plus: $25/mo vs $20/mo = 20% savings
+    return 20;
+  });
+
   ngOnInit(): void {
     this.subscriptionService.loadSubscription();
   }
@@ -56,5 +68,44 @@ export class AccountBilling implements OnInit {
 
   closeCancelModal(): void {
     this.showCancelModal.set(false);
+  }
+
+  togglePlanComparison(): void {
+    this._showPlanComparison.update(v => !v);
+  }
+
+  setBillingInterval(interval: 'month' | 'year'): void {
+    this._billingInterval.set(interval);
+  }
+
+  setProcessor(processor: 'stripe' | 'paypal'): void {
+    this._selectedProcessor.set(processor);
+  }
+
+  formatPrice(tier: typeof PLAN_TIERS[number]): string {
+    const interval = this._billingInterval();
+    const cents = interval === 'year' ? tier.annualPriceCents : tier.monthlyPriceCents;
+    if (cents === 0) return '$0';
+    return `$${cents / 100}`;
+  }
+
+  getProcessingRates(tier: typeof PLAN_TIERS[number]): { inPerson: string; online: string } {
+    const processor = this._selectedProcessor();
+    return tier.processingRates[processor];
+  }
+
+  isCurrentTier(tierKey: PlanTierKey): boolean {
+    return this.currentTier() === tierKey;
+  }
+
+  isUpgrade(tierKey: PlanTierKey): boolean {
+    const order: PlanTierKey[] = ['free', 'plus', 'premium'];
+    return order.indexOf(tierKey) > order.indexOf(this.currentTier());
+  }
+
+  async changePlan(tierKey: PlanTierKey): Promise<void> {
+    if (this.isCurrentTier(tierKey)) return;
+    await this.subscriptionService.changePlan(tierKey);
+    this._showPlanComparison.set(false);
   }
 }
