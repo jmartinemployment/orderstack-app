@@ -739,4 +739,22 @@ ng build --configuration=production
 - **Updated CLAUDE.md:** specs reference section updated to reflect all specs complete and deleted
 - Next: End-to-end testing with live backend. Vendor testing phase.
 
-*Last Updated: February 24, 2026 (Session 34)*
+**[February 24, 2026] (Session 35) — Onboarding Overhaul + Sidebar Restructure (Square Parity):**
+- **Plan:** `.claude/plans/serene-waddling-clover.md` — 6-step plan, ALL COMPLETE
+- **Step 1 (Simplify Setup Wizard 12→5 steps):** Full rewrite of `setup-wizard.ts`, `.html`, `.scss`. Steps: Business Name+Address → Business Type (searchable, all ~120 types across all verticals) → Annual Revenue → Welcome Screen ("Let's get growing") → Done (navigate to /home). Removed: complexity, mode selection, tax, hours, payment, menu builder, owner PIN, review steps. `BUSINESS_TYPE_MODE_MAP` expanded from 12 to ~120 entries covering all verticals (retail→'retail', beauty→'bookings', healthcare→'services', fitness→'bookings', professional→'services', etc.). Mode auto-detected from business type — no user selection. `submitAndContinue()` sends defaults for removed steps. Welcome screen has "Set up payments" CTA + "I'll do this later" skip.
+- **Step 2 (Expand Home Dashboard Setup Guide):** Full rewrite of `home-dashboard.ts`, `.html`, `.scss`. 9 setup tasks split into essential (5: payments, items, taxes, team, hours) and advanced (4: online, display, discounts, PIN). Mode-aware labels: retail shows "Add your first products" → `/retail/catalog`, services shows "Create your first services" → `/menu`, restaurant shows "Create your first menu items" → `/menu`. SVG progress ring with percentage. Quick actions mode-aware (retail: "Scan item", services: "New invoice", restaurant: "Take payment"). Tasks persisted in localStorage (`os-setup-tasks`). Advanced tasks collapsible. Setup guide hidden when all essential tasks complete.
+- **Step 3 (Restructure Sidebar Navigation):** Rewrote `main-layout.component.ts` from ~30 grouped nav items to ~12 flat mode-aware items. Removed `NavItem.group`, `NavItem.requiredModule`, `NavItem.requiredFlag` — replaced with computed logic using `PlatformService` mode signals. Always visible: Home, Customers, Reports, Staff, Settings. Mode-conditional: Orders+POS (not services), Items (mode-aware label/route), Online (retail→ecommerce, restaurant→settings), Inventory (mode-aware route). Mode-specific additions: Floor Plan+Reservations (full_service/bar), Vendors+Fulfillment (retail), Appointments (bookings), Invoices (services). Removed group labels from template and SCSS.
+- **Step 4 (Enable All Business Verticals):** Removed food_and_drink-only filter from `filteredBusinessTypes` computed in setup-wizard. All `BUSINESS_CATEGORIES` (~120 types across 12 verticals) now selectable during onboarding.
+- **Step 5 (Device Mode Guard):** Simplified `device-mode.guard.ts` — all modes now redirect to `/home` (was mode-specific routing).
+- **Step 6 (Build + Tests):** `ng build --configuration=production` — zero errors. 9 test files, 276 tests passing (92 new + 184 existing). 55 pre-existing failures in KDS/POS/reports test files (unrelated).
+- **New test files (3, 92 tests):**
+  - `home-dashboard.spec.ts` — 30 tests: setup task construction (9 tasks, 5 essential + 4 advanced), task completion state, mode-aware labels (retail/service/restaurant), essential progress (0%/20%/60%/100%), isEssentialComplete, KPI computeds (avgTicket, salesChangePercent), quick actions per mode, formatCurrency, formatPercent
+  - `setup-wizard.spec.ts` — 32 tests: mode auto-detection (16 business types → correct mode, null/unmapped → standard), business type filtering (empty/whitespace/case-insensitive/no-match/specific), all verticals present in BUSINESS_CATEGORIES, step validation (5 steps), progress percent, revenue ranges structure
+  - `main-layout.spec.ts` — 30 tests: full_service nav (10 assertions), retail nav (8 assertions), services nav (4 assertions), bookings nav, bar nav, quick_service minimal nav, always-present items across 5 modes
+- **Files rewritten (7):** `setup-wizard.ts`, `.html`, `.scss`, `home-dashboard.ts`, `.html`, `.scss`, `device-mode.guard.ts`
+- **Files modified (3):** `main-layout.component.ts`, `main-layout.component.html`, `main-layout.component.scss`
+- **Files created (3):** `home-dashboard.spec.ts`, `setup-wizard.spec.ts`, `main-layout.spec.ts`
+- **Build: zero errors**
+- Next: End-to-end testing with live backend. "Add More" feature marketplace drawer (deferred).
+
+*Last Updated: February 24, 2026 (Session 35)*

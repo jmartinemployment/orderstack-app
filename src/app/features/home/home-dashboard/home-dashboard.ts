@@ -4,12 +4,14 @@ import { Router } from '@angular/router';
 import { PlatformService } from '@services/platform';
 import { AnalyticsService } from '@services/analytics';
 
-interface SetupCheckItem {
+interface SetupTask {
+  id: string;
   label: string;
   description: string;
   icon: string;
   route: string;
   done: boolean;
+  category: 'essential' | 'advanced';
 }
 
 interface QuickAction {
@@ -34,6 +36,10 @@ export class HomeDashboard implements OnInit {
 
   readonly businessName = computed(() => this.platform.merchantProfile()?.businessName ?? 'Your Business');
   readonly todayDate = signal(new Date());
+
+  readonly isRetailMode = this.platform.isRetailMode;
+  readonly isServiceMode = this.platform.isServiceMode;
+  readonly isRestaurantMode = this.platform.isRestaurantMode;
 
   readonly _todayNetSales = signal(0);
   readonly _todayOrderCount = signal(0);
@@ -60,58 +66,159 @@ export class HomeDashboard implements OnInit {
     return ((today - yesterday) / yesterday) * 100;
   });
 
-  readonly _menuSetUp = signal(false);
-  readonly _paymentsConfigured = signal(false);
-  readonly _teamAdded = signal(false);
+  // Setup task completion state (persisted in localStorage)
+  readonly _completedTasks = signal<Set<string>>(new Set());
+  readonly _showAdvancedTasks = signal(false);
 
-  readonly setupChecklist = computed<SetupCheckItem[]>(() => [
-    {
-      label: 'Set up your menu',
-      description: 'Add items, categories, and modifiers',
-      icon: 'bi-book',
-      route: '/menu',
-      done: this._menuSetUp(),
-    },
-    {
-      label: 'Configure payments',
-      description: 'Connect a payment processor',
-      icon: 'bi-credit-card',
-      route: '/settings',
-      done: this._paymentsConfigured(),
-    },
-    {
-      label: 'Add team members',
-      description: 'Invite staff and set permissions',
-      icon: 'bi-people',
-      route: '/settings',
-      done: this._teamAdded(),
-    },
-    {
-      label: 'Take your first order',
-      description: 'Process a test transaction',
-      icon: 'bi-receipt',
-      route: '/pos',
-      done: this._todayOrderCount() > 0,
-    },
-  ]);
+  readonly setupTasks = computed<SetupTask[]>(() => {
+    const done = this._completedTasks();
+    const retail = this.isRetailMode();
+    const service = this.isServiceMode();
 
-  readonly setupProgress = computed(() => {
-    const items = this.setupChecklist();
-    const done = items.filter(i => i.done).length;
-    return Math.round((done / items.length) * 100);
+    const itemsLabel = retail ? 'Add your first products' : service ? 'Create your first services' : 'Create your first menu items';
+    const itemsDesc = retail ? 'Add products to your catalog' : service ? 'Set up your service offerings' : 'Add items, categories, and modifiers';
+    const itemsRoute = retail ? '/retail/catalog' : '/menu';
+    const itemsIcon = retail ? 'bi-grid-3x3-gap' : 'bi-book';
+
+    const onlineLabel = retail ? 'Set up your online store' : 'Set up online ordering';
+    const onlineRoute = retail ? '/retail/ecommerce' : '/settings';
+
+    return [
+      // Essential tasks
+      {
+        id: 'payments',
+        label: 'Set up payments',
+        description: 'Connect Stripe or PayPal to accept card payments',
+        icon: 'bi-credit-card',
+        route: '/settings',
+        done: done.has('payments'),
+        category: 'essential',
+      },
+      {
+        id: 'items',
+        label: itemsLabel,
+        description: itemsDesc,
+        icon: itemsIcon,
+        route: itemsRoute,
+        done: done.has('items'),
+        category: 'essential',
+      },
+      {
+        id: 'taxes',
+        label: 'Set up taxes',
+        description: 'Configure tax rates for your location',
+        icon: 'bi-percent',
+        route: '/settings',
+        done: done.has('taxes'),
+        category: 'essential',
+      },
+      {
+        id: 'team',
+        label: 'Add team members',
+        description: 'Invite staff and set permissions',
+        icon: 'bi-people',
+        route: '/settings',
+        done: done.has('team'),
+        category: 'essential',
+      },
+      {
+        id: 'hours',
+        label: 'Set your business hours',
+        description: 'Configure your regular operating hours',
+        icon: 'bi-clock',
+        route: '/settings',
+        done: done.has('hours'),
+        category: 'essential',
+      },
+      // Advanced tasks
+      {
+        id: 'online',
+        label: onlineLabel,
+        description: 'Let customers order from your website',
+        icon: 'bi-globe',
+        route: onlineRoute,
+        done: done.has('online'),
+        category: 'advanced',
+      },
+      {
+        id: 'display',
+        label: 'Configure your display',
+        description: 'Set up KDS, customer display, or kiosk',
+        icon: 'bi-display',
+        route: '/settings',
+        done: done.has('display'),
+        category: 'advanced',
+      },
+      {
+        id: 'discounts',
+        label: 'Create discounts',
+        description: 'Set up promotions and special offers',
+        icon: 'bi-tag',
+        route: '/settings',
+        done: done.has('discounts'),
+        category: 'advanced',
+      },
+      {
+        id: 'pin',
+        label: 'Set owner PIN',
+        description: 'Security PIN for POS access and clock-in',
+        icon: 'bi-shield-lock',
+        route: '/settings',
+        done: done.has('pin'),
+        category: 'advanced',
+      },
+    ];
   });
 
-  readonly isSetupComplete = computed(() => this.setupProgress() === 100);
+  readonly essentialTasks = computed(() =>
+    this.setupTasks().filter(t => t.category === 'essential')
+  );
 
-  readonly quickActions: QuickAction[] = [
-    { label: 'Take payment', icon: 'bi-tv', route: '/pos', color: 'blue' },
-    { label: 'View orders', icon: 'bi-receipt', route: '/orders', color: 'green' },
-    { label: 'Add item', icon: 'bi-plus-circle', route: '/menu', color: 'purple' },
-    { label: 'View reports', icon: 'bi-graph-up', route: '/command-center', color: 'amber' },
-  ];
+  readonly advancedTasks = computed(() =>
+    this.setupTasks().filter(t => t.category === 'advanced')
+  );
+
+  readonly essentialProgress = computed(() => {
+    const tasks = this.essentialTasks();
+    const done = tasks.filter(t => t.done).length;
+    return Math.round((done / tasks.length) * 100);
+  });
+
+  readonly isEssentialComplete = computed(() => this.essentialProgress() === 100);
+
+  readonly quickActions = computed<QuickAction[]>(() => {
+    const retail = this.isRetailMode();
+    const service = this.isServiceMode();
+
+    if (retail) {
+      return [
+        { label: 'Scan item', icon: 'bi-upc-scan', route: '/retail/pos', color: 'blue' },
+        { label: 'View orders', icon: 'bi-receipt', route: '/orders', color: 'green' },
+        { label: 'Add product', icon: 'bi-plus-circle', route: '/retail/catalog', color: 'purple' },
+        { label: 'View reports', icon: 'bi-graph-up', route: '/reports', color: 'amber' },
+      ];
+    }
+
+    if (service) {
+      return [
+        { label: 'New invoice', icon: 'bi-file-earmark-text', route: '/invoicing', color: 'blue' },
+        { label: 'Appointments', icon: 'bi-calendar-check', route: '/reservations', color: 'green' },
+        { label: 'Add service', icon: 'bi-plus-circle', route: '/menu', color: 'purple' },
+        { label: 'View reports', icon: 'bi-graph-up', route: '/reports', color: 'amber' },
+      ];
+    }
+
+    return [
+      { label: 'Take payment', icon: 'bi-tv', route: '/pos', color: 'blue' },
+      { label: 'View orders', icon: 'bi-receipt', route: '/orders', color: 'green' },
+      { label: 'Add item', icon: 'bi-plus-circle', route: '/menu', color: 'purple' },
+      { label: 'View reports', icon: 'bi-graph-up', route: '/reports', color: 'amber' },
+    ];
+  });
 
   ngOnInit(): void {
     this.loadTodayStats();
+    this.loadCompletedTasks();
   }
 
   private async loadTodayStats(): Promise<void> {
@@ -128,8 +235,45 @@ export class HomeDashboard implements OnInit {
     }
   }
 
+  private loadCompletedTasks(): void {
+    const raw = localStorage.getItem('os-setup-tasks');
+    if (raw) {
+      try {
+        const arr = JSON.parse(raw) as string[];
+        this._completedTasks.set(new Set(arr));
+      } catch {
+        // Ignore invalid data
+      }
+    }
+  }
+
+  private saveCompletedTasks(): void {
+    const arr = [...this._completedTasks()];
+    localStorage.setItem('os-setup-tasks', JSON.stringify(arr));
+  }
+
+  markTaskDone(taskId: string): void {
+    this._completedTasks.update(set => {
+      const next = new Set(set);
+      next.add(taskId);
+      return next;
+    });
+    this.saveCompletedTasks();
+  }
+
+  toggleAdvancedTasks(): void {
+    this._showAdvancedTasks.update(v => !v);
+  }
+
   navigateTo(route: string): void {
     this.router.navigate([route]);
+  }
+
+  navigateAndMark(task: SetupTask): void {
+    if (!task.done) {
+      this.markTaskDone(task.id);
+    }
+    this.router.navigate([task.route]);
   }
 
   formatCurrency(amount: number): string {

@@ -4,23 +4,15 @@ import { FormsModule } from '@angular/forms';
 import {
   BusinessVertical,
   BusinessAddress,
-  PlatformComplexity,
   DevicePosMode,
-  DevicePosModeConfig,
-  TaxLocaleConfig,
-  BusinessHoursDay,
-  OnboardingPinData,
   BusinessCategory,
   BUSINESS_CATEGORIES,
   REVENUE_RANGES,
   BUSINESS_VERTICAL_CATALOG,
   DEVICE_POS_MODE_CATALOG,
-  getModesForVerticals,
-  getModulesForVerticals,
   defaultBusinessAddress,
   defaultTaxLocaleConfig,
   defaultBusinessHours,
-  PaymentProcessorType,
 } from '@models/index';
 import { Router } from '@angular/router';
 import { PlatformService, OnboardingPayload } from '@services/platform';
@@ -47,134 +39,11 @@ const US_STATES = [
   { code: 'WI', name: 'Wisconsin' }, { code: 'WY', name: 'Wyoming' }, { code: 'DC', name: 'Washington DC' },
 ];
 
-const TOTAL_STEPS = 12;
+const TOTAL_STEPS = 5;
 
-type QuickAddItemType = 'item' | 'combo' | 'inventory';
-
-interface QuickSuggestion {
-  name: string;
-  price: number;
-  category: string;
-  unit?: string;
-  comboItems?: string;
-  sideUpgrades?: string;
-  includes?: string;
-}
-
-interface SuggestionGroup {
-  category: string;
-  items: QuickSuggestion[];
-}
-
-const MENU_SUGGESTIONS_BEFORE_SIDES: SuggestionGroup[] = [
-  {
-    category: 'Appetizers',
-    items: [
-      { name: 'Wings', price: 12.99, category: 'Appetizers', includes: 'Choice of Buffalo, BBQ, or Garlic Parmesan sauce, celery, ranch' },
-      { name: 'Mozzarella Sticks', price: 9.99, category: 'Appetizers', includes: 'Marinara sauce' },
-      { name: 'Nachos', price: 11.99, category: 'Appetizers', includes: 'Cheese, jalapeños, sour cream, pico de gallo' },
-      { name: 'Soup of the Day', price: 6.99, category: 'Appetizers', includes: 'Crackers' },
-      { name: 'Onion Rings', price: 8.99, category: 'Appetizers', includes: 'Ranch dipping sauce' },
-      { name: 'Bruschetta', price: 9.99, category: 'Appetizers', includes: 'Diced tomatoes, basil, garlic, olive oil, toasted bread' },
-    ],
-  },
-  {
-    category: 'Entrees',
-    items: [
-      { name: 'Cheeseburger', price: 13.99, category: 'Entrees', includes: 'Lettuce, tomato, pickle, onion, ketchup, mustard' },
-      { name: 'Grilled Chicken', price: 16.99, category: 'Entrees', includes: 'Seasonal vegetables, rice' },
-      { name: 'Salmon', price: 22.99, category: 'Entrees', includes: 'Lemon butter sauce, rice, asparagus' },
-      { name: 'Ribeye Steak', price: 28.99, category: 'Entrees', includes: 'Baked potato, steamed broccoli' },
-      { name: 'Fish & Chips', price: 15.99, category: 'Entrees', includes: 'Beer-battered cod, french fries, coleslaw, tartar sauce' },
-      { name: 'Pasta Primavera', price: 14.99, category: 'Entrees', includes: 'Penne, sautéed vegetables, cream sauce, parmesan' },
-      { name: 'Chicken Sandwich', price: 12.99, category: 'Entrees', includes: 'Lettuce, tomato, pickle, mayo, brioche bun' },
-      { name: 'Tacos', price: 11.99, category: 'Entrees', includes: 'Lettuce, cheese, pico de gallo, sour cream, salsa' },
-      { name: 'Pizza', price: 14.99, category: 'Entrees', includes: 'Mozzarella, tomato sauce (add toppings for extra)' },
-    ],
-  },
-];
-
-const MENU_SUGGESTIONS_AFTER_SIDES: SuggestionGroup[] = [
-  {
-    category: 'Drinks',
-    items: [
-      { name: 'Soft Drink', price: 2.99, category: 'Drinks', includes: 'Coke, Sprite, Dr Pepper, Lemonade' },
-      { name: 'Iced Tea', price: 2.99, category: 'Drinks', includes: 'Sweet or unsweetened' },
-      { name: 'Coffee', price: 3.49, category: 'Drinks', includes: 'Regular or decaf, cream & sugar' },
-      { name: 'Lemonade', price: 3.49, category: 'Drinks', includes: 'Fresh-squeezed' },
-      { name: 'Juice', price: 3.99, category: 'Drinks', includes: 'Orange, apple, or cranberry' },
-      { name: 'Milkshake', price: 5.99, category: 'Drinks', includes: 'Chocolate, vanilla, or strawberry, whipped cream' },
-      { name: 'Water', price: 1.49, category: 'Drinks' },
-    ],
-  },
-  {
-    category: 'Desserts',
-    items: [
-      { name: 'Chocolate Cake', price: 8.99, category: 'Desserts', includes: 'Triple layer, chocolate ganache' },
-      { name: 'Cheesecake', price: 8.99, category: 'Desserts', includes: 'Berry compote, whipped cream' },
-      { name: 'Ice Cream Sundae', price: 6.99, category: 'Desserts', includes: 'Vanilla, chocolate, or strawberry, whipped cream, cherry' },
-      { name: 'Brownie', price: 7.99, category: 'Desserts', includes: 'Warm brownie, vanilla ice cream, chocolate drizzle' },
-    ],
-  },
-];
-
-const SIDE_SUGGESTIONS: string[] = [
-  'French Fries', 'Sweet Potato Fries', 'Onion Rings', 'Coleslaw',
-  'Side Salad', 'Baked Potato', 'Mashed Potatoes', 'Rice',
-  'Steamed Vegetables', 'Mac & Cheese', 'Corn on the Cob', 'Fruit Cup',
-];
-
-const INVENTORY_SUGGESTIONS: SuggestionGroup[] = [
-  {
-    category: 'Produce',
-    items: [
-      { name: 'Lettuce', price: 2.50, category: 'Produce', unit: 'head' },
-      { name: 'Tomatoes', price: 2.99, category: 'Produce', unit: 'lb' },
-      { name: 'Onions', price: 1.49, category: 'Produce', unit: 'lb' },
-      { name: 'Pickles', price: 4.99, category: 'Produce', unit: 'jar' },
-      { name: 'Jalapeños', price: 1.99, category: 'Produce', unit: 'lb' },
-      { name: 'Avocado', price: 1.50, category: 'Produce', unit: 'each' },
-      { name: 'Lemons', price: 0.50, category: 'Produce', unit: 'each' },
-      { name: 'Mushrooms', price: 3.99, category: 'Produce', unit: 'lb' },
-    ],
-  },
-  {
-    category: 'Dairy & Cheese',
-    items: [
-      { name: 'Cheddar Cheese', price: 6.99, category: 'Dairy & Cheese', unit: 'lb' },
-      { name: 'Mozzarella', price: 5.99, category: 'Dairy & Cheese', unit: 'lb' },
-      { name: 'Sour Cream', price: 3.49, category: 'Dairy & Cheese', unit: 'tub' },
-      { name: 'Butter', price: 4.99, category: 'Dairy & Cheese', unit: 'lb' },
-      { name: 'Heavy Cream', price: 5.49, category: 'Dairy & Cheese', unit: 'qt' },
-      { name: 'Eggs', price: 4.99, category: 'Dairy & Cheese', unit: 'dozen' },
-    ],
-  },
-  {
-    category: 'Sauces & Condiments',
-    items: [
-      { name: 'Ketchup', price: 4.99, category: 'Sauces & Condiments', unit: 'bottle' },
-      { name: 'Mustard', price: 3.49, category: 'Sauces & Condiments', unit: 'bottle' },
-      { name: 'Mayo', price: 4.49, category: 'Sauces & Condiments', unit: 'jar' },
-      { name: 'BBQ Sauce', price: 5.99, category: 'Sauces & Condiments', unit: 'bottle' },
-      { name: 'Hot Sauce', price: 3.99, category: 'Sauces & Condiments', unit: 'bottle' },
-      { name: 'Ranch Dressing', price: 4.99, category: 'Sauces & Condiments', unit: 'bottle' },
-    ],
-  },
-];
-
-interface QuickAddItem {
-  name: string;
-  price: number;
-  category: string;
-  type: QuickAddItemType;
-  unit?: string;
-  includes?: string;
-  comboItems?: string;
-  sideUpgrades?: string;
-}
-
-// --- Business type → mode mapping ---
+// --- Business type -> mode mapping ---
 const BUSINESS_TYPE_MODE_MAP: Record<string, DevicePosMode> = {
+  // Food & Drink
   'Fine Dining': 'full_service',
   'Casual Dining': 'full_service',
   'Club / Lounge': 'full_service',
@@ -187,6 +56,137 @@ const BUSINESS_TYPE_MODE_MAP: Record<string, DevicePosMode> = {
   'Caterer': 'quick_service',
   'Bar': 'bar',
   'Brewery': 'bar',
+
+  // Retail
+  'Specialty Shop': 'retail',
+  'Electronics': 'retail',
+  'Clothing and Accessories': 'retail',
+  'Outdoor Markets': 'retail',
+  'Books / Mags / Music / Video': 'retail',
+  'Jewelry and Watches': 'retail',
+  'Beer / Wine Bottle Shops': 'retail',
+  'Baby / Children\'s Goods': 'retail',
+  'Sporting Goods': 'retail',
+  'Antique Shop': 'retail',
+  'Art / Photo / Film Shop': 'retail',
+  'Beauty Supplies': 'retail',
+  'Convenience Store': 'retail',
+  'Eyewear': 'retail',
+  'Flowers and Gifts': 'retail',
+  'Furniture / Home Goods': 'retail',
+  'Grocery / Market': 'retail',
+  'Hobby / Toy / Game Shop': 'retail',
+  'Pet Store': 'retail',
+  'Other Retail': 'retail',
+  'Miscellaneous Goods': 'retail',
+
+  // Beauty & Wellness (bookings)
+  'Blow Dry Bar': 'bookings',
+  'Brows / Lashes': 'bookings',
+  'Ear / Body Piercing': 'bookings',
+  'Hair Salon': 'bookings',
+  'Makeup Artistry': 'bookings',
+  'Nail Salon': 'bookings',
+  'Skin Care / Esthetics': 'bookings',
+  'Tanning Salon': 'bookings',
+  'Body Grooming': 'bookings',
+  'Day Spa': 'bookings',
+  'Barber Shop': 'bookings',
+  'Other Beauty & Personal Care': 'bookings',
+
+  // Sports & Fitness (bookings)
+  'Barre': 'bookings',
+  'Boxing Gym': 'bookings',
+  'Dance Studio': 'bookings',
+  'Fitness Studio': 'bookings',
+  'Gym / Health Club': 'bookings',
+  'Martial Arts': 'bookings',
+  'Pilates Studio': 'bookings',
+  'Swimming / Water Aerobics': 'bookings',
+  'Yoga Studio': 'bookings',
+  'Other Fitness': 'bookings',
+
+  // Healthcare (services)
+  'Audiology': 'services',
+  'Anesthesiology': 'services',
+  'Chiropractor': 'services',
+  'Cardiology': 'services',
+  'Dentistry': 'services',
+  'Emergency Medicine': 'services',
+  'Family Medicine': 'services',
+  'Nutrition / Dietetics': 'services',
+  'Obstetrics / Gynecology': 'services',
+  'Optometry / Eyewear': 'services',
+  'Pathology': 'services',
+  'Psychotherapy': 'services',
+  'Other Healthcare': 'services',
+
+  // Home & Repair (services)
+  'Automotive Services': 'services',
+  'Cleaning': 'services',
+  'Clothing / Shoe Repair / Alterations': 'services',
+  'Computer / Electronics / Appliances': 'services',
+  'Flooring': 'services',
+  'Heating and Air Conditioning': 'services',
+  'Installation Services': 'services',
+  'Locksmith Services': 'services',
+  'Moving and Storage': 'services',
+  'Plumbing': 'services',
+  'Towing Services': 'services',
+  'Other Home & Repair': 'services',
+
+  // Professional Services (services)
+  'Consulting': 'services',
+  'Software Development': 'services',
+  'Art and Design': 'services',
+  'Marketing / Advertising': 'services',
+  'Accounting': 'services',
+  'Architect': 'services',
+  'Photography': 'services',
+  'Printing Services': 'services',
+  'Real Estate': 'services',
+  'Interior Design': 'services',
+  'Child Care': 'services',
+  'Graphic Design': 'services',
+  'Car Washes': 'services',
+  'Delivery': 'services',
+  'Other Professional Services': 'services',
+
+  // Leisure & Entertainment (services)
+  'Events / Festivals': 'services',
+  'Movies / Film': 'services',
+  'Museum / Cultural': 'services',
+  'Music': 'services',
+  'Performing Arts': 'services',
+  'Sports Recreation': 'services',
+  'Tourism': 'services',
+  'Other Leisure & Entertainment': 'services',
+
+  // Charities, Education (services)
+  'Charitable Organization': 'services',
+  'Instructor / Teacher': 'bookings',
+  'Membership Organization': 'services',
+  'School': 'services',
+  'Tutor': 'bookings',
+  'Other Education & Membership': 'services',
+
+  // Pet Care (services)
+  'Pet Boarding / Daycare': 'bookings',
+  'Pet Sitting': 'bookings',
+  'Pet Store (Services)': 'services',
+  'Other Pet Care': 'services',
+
+  // Transportation (services)
+  'Bus': 'services',
+  'Delivery Service': 'services',
+  'Private Shuttle': 'services',
+  'Taxi': 'services',
+  'Town Car': 'services',
+  'Other Transportation': 'services',
+
+  // Casual
+  'Miscellaneous Services': 'services',
+  'Other': 'standard',
 };
 
 @Component({
@@ -206,10 +206,6 @@ export class SetupWizard {
   readonly usStates = US_STATES;
   readonly revenueRanges = REVENUE_RANGES;
   readonly totalSteps = TOTAL_STEPS;
-  readonly menuSuggestionsBeforeSides = MENU_SUGGESTIONS_BEFORE_SIDES;
-  readonly menuSuggestionsAfterSides = MENU_SUGGESTIONS_AFTER_SIDES;
-  readonly inventorySuggestions = INVENTORY_SUGGESTIONS;
-  readonly sideSuggestions = SIDE_SUGGESTIONS;
 
   // --- Wizard navigation ---
   readonly _currentStep = signal(1);
@@ -226,17 +222,14 @@ export class SetupWizard {
   readonly _address = signal<BusinessAddress>(defaultBusinessAddress());
   readonly _phone = signal('');
 
-  // --- Step 2: Business Type (replaces old verticals + primary) ---
+  // --- Step 2: Business Type ---
   readonly _businessTypeSearch = signal('');
   readonly _selectedBusinessType = signal<BusinessCategory | null>(null);
 
-  // Filter to Food & Drink only for now (other verticals hidden)
-  private readonly enabledBusinessTypes = BUSINESS_CATEGORIES.filter(c => c.vertical === 'food_and_drink');
-
   readonly filteredBusinessTypes = computed(() => {
     const search = this._businessTypeSearch().toLowerCase().trim();
-    if (!search) return this.enabledBusinessTypes;
-    return this.enabledBusinessTypes.filter(c =>
+    if (!search) return BUSINESS_CATEGORIES;
+    return BUSINESS_CATEGORIES.filter(c =>
       c.name.toLowerCase().includes(search)
     );
   });
@@ -254,105 +247,22 @@ export class SetupWizard {
   // --- Step 3: Annual Revenue ---
   readonly _selectedRevenue = signal<string | null>(null);
 
-  // --- Step 4: Complexity ---
-  readonly _complexity = signal<PlatformComplexity>('full');
-
-  // --- Step 5: Recommended Mode ---
-  readonly _selectedMode = signal<DevicePosMode>('full_service');
-  readonly _showAllModes = signal(false);
-
-  private readonly hiddenModes: DevicePosMode[] = ['retail', 'services'];
-
-  readonly availableModes = computed<DevicePosModeConfig[]>(() => {
-    const modes = getModesForVerticals(this.selectedVerticals());
-    return DEVICE_POS_MODE_CATALOG.filter(c => modes.includes(c.mode) && !this.hiddenModes.includes(c.mode));
-  });
-
-  readonly otherModes = computed<DevicePosModeConfig[]>(() => {
-    const modes = getModesForVerticals(this.selectedVerticals());
-    return DEVICE_POS_MODE_CATALOG.filter(c => !modes.includes(c.mode) && !this.hiddenModes.includes(c.mode));
-  });
-
-  readonly recommendedMode = computed<DevicePosModeConfig | undefined>(() => {
-    // First: check business type → mode map
+  // --- Auto-detect mode from business type ---
+  readonly autoDetectedMode = computed<DevicePosMode>(() => {
     const bt = this._selectedBusinessType();
     if (bt) {
-      const mappedMode = BUSINESS_TYPE_MODE_MAP[bt.name];
-      if (mappedMode) {
-        return DEVICE_POS_MODE_CATALOG.find(c => c.mode === mappedMode);
-      }
+      const mapped = BUSINESS_TYPE_MODE_MAP[bt.name];
+      if (mapped) return mapped;
     }
-
-    // Fallback: complexity-based logic
-    const primary = this.effectivePrimaryVertical();
-    const complexity = this._complexity();
-    let mode: DevicePosMode = 'full_service';
-    if (primary === 'food_and_drink') {
-      switch (complexity) {
-        case 'full': mode = 'full_service'; break;
-        case 'catalog': mode = 'quick_service'; break;
-        case 'payments_only': mode = 'standard'; break;
-      }
-    } else if (primary === 'retail' || primary === 'grocery') {
-      mode = 'retail';
-    } else {
-      mode = 'standard';
-    }
-    return DEVICE_POS_MODE_CATALOG.find(c => c.mode === mode);
+    return 'standard';
   });
 
-  // --- Step 6: Tax & Locale ---
-  readonly _taxLocale = signal<TaxLocaleConfig>(defaultTaxLocaleConfig());
-  readonly _isAutoDetecting = signal(false);
-
-  // --- Step 7: Business Hours ---
-  readonly _businessHours = signal<BusinessHoursDay[]>(defaultBusinessHours());
-
-  // --- Step 8: Payment ---
-  readonly _paymentProcessor = signal<PaymentProcessorType>('none');
-
-  // --- Step 9: Menu Setup ---
-  readonly _menuTemplates = this.platformService.menuTemplates;
-  readonly _selectedTemplateId = signal<string | null>(null);
-  readonly _quickAddItems = signal<QuickAddItem[]>([]);
-  readonly _quickAddName = signal('');
-  readonly _quickAddPrice = signal(0);
-  readonly _quickAddCategory = signal('');
-  readonly _quickAddType = signal<QuickAddItemType>('item');
-  readonly _quickAddUnit = signal('');
-  readonly _quickAddComboItems = signal('');
-  readonly _quickAddIncludes = signal('');
-  readonly _quickAddSideUpgrades = signal('');
-  readonly _quickAddUpcharge = signal(0);
-
-  readonly quickAddItemsByType = computed(() => {
-    const items = this._quickAddItems();
-    return {
-      items: items.filter(i => i.type === 'item'),
-      combos: items.filter(i => i.type === 'combo'),
-      inventory: items.filter(i => i.type === 'inventory'),
-    };
+  readonly autoDetectedModeLabel = computed(() => {
+    const mode = this.autoDetectedMode();
+    return DEVICE_POS_MODE_CATALOG.find(c => c.mode === mode)?.label ?? mode;
   });
 
-  readonly addedItemNames = computed(() =>
-    new Set(this._quickAddItems().map(i => i.name))
-  );
-
-  // --- Step 11: Owner PIN ---
-  readonly _ownerName = signal('');
-  readonly _ownerPin = signal('');
-  readonly _ownerPinConfirm = signal('');
-  readonly _pinConfirming = signal(false);
-  readonly _ownerEmail = signal('');
-  readonly _ownerPassword = signal('');
-
-  readonly pinMatch = computed(() => {
-    const pin = this._ownerPin();
-    const confirm = this._ownerPinConfirm();
-    return pin.length >= 4 && pin === confirm;
-  });
-
-  // --- Step 12: Confirmation ---
+  // --- Submission ---
   readonly _isSubmitting = signal(false);
   readonly _submitError = signal<string | null>(null);
   readonly _submitSuccess = signal(false);
@@ -360,22 +270,14 @@ export class SetupWizard {
   readonly isLoading = this.platformService.isLoading;
 
   // --- Step validation ---
-
   readonly canProceed = computed(() => {
     const step = this._currentStep();
     switch (step) {
       case 1: return this._businessName().trim().length > 0;
       case 2: return this._selectedBusinessType() !== null;
       case 3: return this._selectedRevenue() !== null;
-      case 4: return true;
-      case 5: return this._selectedMode() !== null;
-      case 6: return this._taxLocale().taxRate > 0;
-      case 7: return true;
-      case 8: return true;
-      case 9: return true;
-      case 10: return true;
-      case 11: return this._ownerName().trim().length > 0 && this.pinMatch() && this._ownerEmail().includes('@') && this._ownerPassword().length >= 6;
-      case 12: return !this._isSubmitting();
+      case 4: return true; // welcome screen — always can proceed
+      case 5: return !this._isSubmitting();
       default: return false;
     }
   });
@@ -385,18 +287,7 @@ export class SetupWizard {
   next(): void {
     const current = this._currentStep();
     if (current < TOTAL_STEPS) {
-      const nextStep = current + 1;
-      if (nextStep === 5) {
-        this._showAllModes.set(false);
-        const rec = this.recommendedMode();
-        if (rec) {
-          this._selectedMode.set(rec.mode);
-        }
-      }
-      if (nextStep === 9 && this._complexity() !== 'payments_only') {
-        this.platformService.loadMenuTemplates(this.effectivePrimaryVertical());
-      }
-      this._currentStep.set(nextStep);
+      this._currentStep.set(current + 1);
     }
   }
 
@@ -404,12 +295,6 @@ export class SetupWizard {
     const current = this._currentStep();
     if (current > 1) {
       this._currentStep.set(current - 1);
-    }
-  }
-
-  goToStep(step: number): void {
-    if (step >= 1 && step <= this._currentStep()) {
-      this._currentStep.set(step);
     }
   }
 
@@ -435,243 +320,32 @@ export class SetupWizard {
     this._selectedRevenue.set(id);
   }
 
-  // --- Step 6: Tax auto-detect ---
+  // --- Step 4: Welcome → Submit onboarding ---
 
-  async autoDetectTax(): Promise<void> {
-    const profile = this.platformService.merchantProfile();
-    const address = profile?.address ?? this._address();
-
-    this._isAutoDetecting.set(true);
-
-    let rate: number | null = null;
-    if (address.state) {
-      rate = await this.platformService.lookupTaxRate(address.state, address.zip);
-    }
-    if (rate === null) {
-      rate = this.estimateStateTaxRate(address.state);
-    }
-
-    this._isAutoDetecting.set(false);
-
-    if (rate !== null) {
-      this._taxLocale.update(t => ({ ...t, taxRate: rate }));
-    }
-  }
-
-  private estimateStateTaxRate(state: string): number {
-    const rates: Record<string, number> = {
-      AL: 4, AK: 0, AZ: 5.6, AR: 6.5, CA: 7.25, CO: 2.9, CT: 6.35,
-      DE: 0, FL: 6, GA: 4, HI: 4, ID: 6, IL: 6.25, IN: 7, IA: 6,
-      KS: 6.5, KY: 6, LA: 4.45, ME: 5.5, MD: 6, MA: 6.25, MI: 6,
-      MN: 6.875, MS: 7, MO: 4.225, MT: 0, NE: 5.5, NV: 6.85,
-      NH: 0, NJ: 6.625, NM: 5.125, NY: 4, NC: 4.75, ND: 5, OH: 5.75,
-      OK: 4.5, OR: 0, PA: 6, RI: 7, SC: 6, SD: 4.5, TN: 7,
-      TX: 6.25, UT: 6.1, VT: 6, VA: 5.3, WA: 6.5, WV: 6, WI: 5, WY: 4, DC: 6,
-    };
-    return rates[state] ?? 6;
-  }
-
-  updateTaxLocale(field: keyof TaxLocaleConfig, value: unknown): void {
-    this._taxLocale.update(t => ({ ...t, [field]: value }));
-  }
-
-  // --- Step 7: Business Hours ---
-
-  updateHoursField(dayIndex: number, field: 'open' | 'close', value: string): void {
-    this._businessHours.update(days => {
-      const updated = [...days];
-      updated[dayIndex] = { ...updated[dayIndex], [field]: value };
-      return updated;
-    });
-  }
-
-  toggleClosed(dayIndex: number): void {
-    this._businessHours.update(days => {
-      const updated = [...days];
-      updated[dayIndex] = { ...updated[dayIndex], closed: !updated[dayIndex].closed };
-      return updated;
-    });
-  }
-
-  copyToAll(dayIndex: number): void {
-    const source = this._businessHours()[dayIndex];
-    this._businessHours.update(days =>
-      days.map(d => ({ ...d, open: source.open, close: source.close, closed: source.closed }))
-    );
-  }
-
-  applyHoursPreset(open: string, close: string): void {
-    this._businessHours.update(days =>
-      days.map(d => ({ ...d, open, close, closed: false }))
-    );
-  }
-
-  // --- Step 5: Mode selection ---
-
-  selectMode(mode: DevicePosMode): void {
-    this._selectedMode.set(mode);
-    this._showAllModes.set(false);
-  }
-
-  acceptRecommendedMode(): void {
-    const rec = this.recommendedMode();
-    if (rec) {
-      this._selectedMode.set(rec.mode);
-    }
-  }
-
-  toggleAllModes(): void {
-    this._showAllModes.update(v => !v);
-  }
-
-  // --- Step 9: Menu templates ---
-
-  async loadTemplates(): Promise<void> {
-    await this.platformService.loadMenuTemplates(this.effectivePrimaryVertical());
-  }
-
-  selectTemplate(id: string | null): void {
-    this._selectedTemplateId.set(id);
-  }
-
-  addQuickItem(): void {
-    const name = this._quickAddName().trim();
-    const price = this._quickAddPrice();
-    const category = this._quickAddCategory().trim();
-    const includes = this._quickAddIncludes().trim();
-    const sideUpgrades = this._quickAddSideUpgrades().trim();
-    const upcharge = this._quickAddUpcharge();
-
-    if (!name || price <= 0) return;
-
-    let sideUpgradesFinal = sideUpgrades;
-    if (sideUpgrades && upcharge > 0) {
-      sideUpgradesFinal = `${sideUpgrades} +$${upcharge.toFixed(2)}`;
-    }
-
-    const item: QuickAddItem = {
-      name,
-      price,
-      category: category || 'General',
-      type: 'item',
-      ...(includes ? { includes } : {}),
-      ...(sideUpgradesFinal ? { sideUpgrades: sideUpgradesFinal } : {}),
-    };
-
-    this._quickAddItems.update(items => [...items, item]);
-    this._quickAddName.set('');
-    this._quickAddPrice.set(0);
-    this._quickAddCategory.set('');
-    this._quickAddIncludes.set('');
-    this._quickAddSideUpgrades.set('');
-    this._quickAddUpcharge.set(0);
-  }
-
-  removeQuickItem(index: number): void {
-    this._quickAddItems.update(items => items.filter((_, i) => i !== index));
-  }
-
-  addSuggestion(suggestion: QuickSuggestion, type: QuickAddItemType): void {
-    if (this.addedItemNames().has(suggestion.name)) {
-      this._quickAddItems.update(items => items.filter(i => i.name !== suggestion.name));
-      return;
-    }
-
-    this._quickAddName.set(suggestion.name);
-    this._quickAddPrice.set(suggestion.price);
-    this._quickAddCategory.set(suggestion.category);
-  }
-
-  toggleIngredient(name: string): void {
-    const current = this._quickAddIncludes();
-    const ingredients = current ? current.split(',').map(s => s.trim()).filter(Boolean) : [];
-    const index = ingredients.indexOf(name);
-    if (index >= 0) {
-      ingredients.splice(index, 1);
-    } else {
-      ingredients.push(name);
-    }
-    this._quickAddIncludes.set(ingredients.join(', '));
-  }
-
-  readonly includedIngredientNames = computed(() => {
-    const includes = this._quickAddIncludes();
-    if (!includes) return new Set<string>();
-    return new Set(includes.split(',').map(s => s.trim()).filter(Boolean));
-  });
-
-  toggleSide(name: string): void {
-    const current = this._quickAddSideUpgrades();
-    const sides = current ? current.split(',').map(s => s.trim()).filter(Boolean) : [];
-    const index = sides.indexOf(name);
-    if (index >= 0) {
-      sides.splice(index, 1);
-    } else {
-      sides.push(name);
-    }
-    this._quickAddSideUpgrades.set(sides.join(', '));
-  }
-
-  readonly selectedSideNames = computed(() => {
-    const sides = this._quickAddSideUpgrades();
-    if (!sides) return new Set<string>();
-    return new Set(sides.split(',').map(s => s.trim()).filter(Boolean));
-  });
-
-  // --- Step 11: PIN helpers ---
-
-  appendPinDigit(digit: string): void {
-    const current = this._ownerPin();
-    if (current.length < 6) {
-      this._ownerPin.set(current + digit);
-    }
-  }
-
-  confirmPinEntry(): void {
-    this._pinConfirming.set(true);
-  }
-
-  clearPin(): void {
-    this._ownerPin.set('');
-    this._pinConfirming.set(false);
-    this._ownerPinConfirm.set('');
-  }
-
-  appendConfirmDigit(digit: string): void {
-    const current = this._ownerPinConfirm();
-    if (current.length < 6) {
-      this._ownerPinConfirm.set(current + digit);
-    }
-  }
-
-  clearConfirmPin(): void {
-    this._ownerPinConfirm.set('');
-  }
-
-  // --- Step 12: Submit ---
-
-  async submit(): Promise<void> {
+  async submitAndContinue(): Promise<void> {
     this._isSubmitting.set(true);
     this._submitError.set(null);
+
+    const detectedMode = this.autoDetectedMode();
 
     const payload: OnboardingPayload = {
       businessName: this._businessName(),
       address: { ...this._address(), phone: this._phone() || null },
       verticals: this.selectedVerticals(),
       primaryVertical: this.effectivePrimaryVertical(),
-      complexity: this._complexity(),
-      defaultDeviceMode: this._selectedMode(),
-      taxLocale: this._taxLocale(),
-      businessHours: this._businessHours(),
-      paymentProcessor: this._paymentProcessor(),
-      menuTemplateId: this._selectedTemplateId(),
+      complexity: 'full',
+      defaultDeviceMode: detectedMode,
+      taxLocale: defaultTaxLocaleConfig(),
+      businessHours: defaultBusinessHours(),
+      paymentProcessor: 'none',
+      menuTemplateId: null,
       ownerPin: {
-        displayName: this._ownerName(),
-        pin: this._ownerPin(),
+        displayName: '',
+        pin: '',
         role: 'owner',
       },
-      ownerEmail: this._ownerEmail(),
-      ownerPassword: this._ownerPassword(),
+      ownerEmail: '',
+      ownerPassword: '',
     };
 
     const result = await this.platformService.completeOnboarding(payload);
@@ -681,85 +355,24 @@ export class SetupWizard {
     if (result) {
       this.authService.selectRestaurant(result.restaurantId, payload.businessName);
       this._submitSuccess.set(true);
+      await this.goToDashboard(detectedMode);
     } else {
       this._submitError.set(this.platformService.error() ?? 'Something went wrong');
     }
   }
 
-  // --- Summary helpers for Step 12 ---
-
-  getBusinessTypeLabel(): string {
-    return this._selectedBusinessType()?.name ?? 'Not selected';
+  async skipToHome(): Promise<void> {
+    await this.submitAndContinue();
   }
 
-  getModeLabel(): string {
-    return DEVICE_POS_MODE_CATALOG.find(c => c.mode === this._selectedMode())?.label ?? this._selectedMode();
-  }
-
-  getComplexityLabel(): string {
-    switch (this._complexity()) {
-      case 'full': return 'Full (Payments + Catalog + Inventory)';
-      case 'catalog': return 'Catalog (Payments + Catalog)';
-      case 'payments_only': return 'Payments Only';
-    }
-  }
-
-  getPaymentLabel(): string {
-    switch (this._paymentProcessor()) {
-      case 'paypal': return 'PayPal Zettle';
-      case 'stripe': return 'Stripe';
-      case 'none': return 'Cash Only / Set Up Later';
-    }
-  }
-
-  getRevenueLabel(): string {
-    const id = this._selectedRevenue();
-    return REVENUE_RANGES.find(r => r.id === id)?.label ?? 'Not selected';
-  }
-
-  getTemplateName(): string {
-    const id = this._selectedTemplateId();
-    if (!id) return 'Start from scratch';
-    return this._menuTemplates()?.find(t => t.id === id)?.name ?? id;
-  }
-
-  // --- Time generation ---
-
-  readonly timeOptions = this.generateTimeOptions();
-
-  private generateTimeOptions(): string[] {
-    const options: string[] = [];
-    for (let h = 0; h < 24; h++) {
-      for (let m = 0; m < 60; m += 15) {
-        const hh = String(h).padStart(2, '0');
-        const mm = String(m).padStart(2, '0');
-        options.push(`${hh}:${mm}`);
-      }
-    }
-    return options;
-  }
-
-  formatTime(time: string): string {
-    const [h, m] = time.split(':').map(Number);
-    const period = h >= 12 ? 'PM' : 'AM';
-    const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
-    return `${hour}:${String(m).padStart(2, '0')} ${period}`;
-  }
-
-  capitalizeDay(day: string): string {
-    return day.charAt(0).toUpperCase() + day.slice(1);
-  }
-
-  async goToDashboard(): Promise<void> {
-    const defaultMode = this._selectedMode();
-
-    const device = await this.deviceService.registerBrowserDevice(defaultMode);
+  private async goToDashboard(mode: DevicePosMode): Promise<void> {
+    const device = await this.deviceService.registerBrowserDevice(mode);
     if (!device) {
       this._submitError.set(this.deviceService.error() ?? 'Failed to register device');
       return;
     }
 
-    this.platformService.setDeviceModeFromDevice(defaultMode);
+    this.platformService.setDeviceModeFromDevice(mode);
     this.router.navigate(['/home']);
   }
 }

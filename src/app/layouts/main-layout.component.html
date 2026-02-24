@@ -30,22 +30,17 @@
     </div>
 
     <nav class="sidebar-nav">
-      @for (group of navGroups(); track group.name) {
-        @if (!sidebarCollapsed()) {
-          <div class="nav-group-label">{{ group.name }}</div>
-        }
-        @for (item of group.items; track item.route) {
-          <a class="nav-item"
-             [routerLink]="item.route"
-             routerLinkActive="active"
-             (click)="closeMobileMenu()"
-             [title]="sidebarCollapsed() ? item.label : ''">
-            <i class="bi {{ item.icon }}"></i>
-            @if (!sidebarCollapsed()) {
-              <span class="nav-label">{{ item.label }}</span>
-            }
-          </a>
-        }
+      @for (item of navItems(); track item.route) {
+        <a class="nav-item"
+           [routerLink]="item.route"
+           routerLinkActive="active"
+           (click)="closeMobileMenu()"
+           [title]="sidebarCollapsed() ? item.label : ''">
+          <i class="bi {{ item.icon }}"></i>
+          @if (!sidebarCollapsed()) {
+            <span class="nav-label">{{ item.label }}</span>
+          }
+        </a>
       }
     </nav>
 

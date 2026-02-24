@@ -168,102 +168,6 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
   }
 }
 
-.form-row {
-  display: flex;
-  gap: 0.75rem;
-
-  .flex-1 { flex: 1; }
-  .flex-2 { flex: 2; }
-}
-
-.form-check {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  margin-top: 1.25rem;
-
-  .form-check-input {
-    accent-color: $blue;
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-  }
-
-  .form-check-label {
-    color: $text-secondary;
-    font-size: 0.875rem;
-    cursor: pointer;
-  }
-}
-
-// --- Selection Cards (shared pattern) ---
-
-%selection-card {
-  position: relative;
-  padding: 1.125rem 1.25rem;
-  background: $bg-page;
-  border: 1.5px solid $border-color;
-  border-radius: $radius-md;
-  cursor: pointer;
-  text-align: left;
-  color: $text-primary;
-  transition: all 0.15s ease;
-  box-shadow: $shadow-sm;
-
-  &:hover {
-    border-color: color.adjust($blue, $alpha: -0.6);
-    box-shadow: $shadow-md;
-  }
-
-  &.selected {
-    border-color: $blue;
-    background: $blue-light;
-    box-shadow: 0 0 0 3px rgba($blue, 0.1);
-  }
-
-  h3 {
-    font-size: 0.9375rem;
-    font-weight: 600;
-    margin-bottom: 0.125rem;
-    color: $text-primary;
-  }
-
-  p {
-    font-size: 0.8125rem;
-    color: $text-secondary;
-    margin: 0;
-    line-height: 1.45;
-  }
-
-  .card-icon, .mode-icon, .template-icon, .vertical-icon {
-    font-size: 1.375rem;
-    color: $blue;
-    margin-bottom: 0.625rem;
-    display: block;
-  }
-
-  .check-icon {
-    position: absolute;
-    top: 0.875rem;
-    right: 0.875rem;
-    color: $blue;
-    font-size: 1rem;
-  }
-
-  .tag {
-    display: inline-block;
-    margin-top: 0.5rem;
-    padding: 0.125rem 0.625rem;
-    background: $blue-light;
-    color: $blue;
-    border-radius: $radius-pill;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-}
-
 // --- Address Section (Step 1) ---
 
 .address-section {
@@ -394,13 +298,6 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
   padding: 2rem 1rem;
   color: $text-secondary;
   font-size: 0.875rem;
-
-  i {
-    display: block;
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-    color: $text-tertiary;
-  }
 }
 
 // --- Revenue Cards (Step 3) ---
@@ -456,724 +353,77 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
   }
 }
 
-// --- Complexity Cards (Step 4) ---
+// --- Welcome Screen (Step 4) ---
 
-.complexity-cards {
+.welcome-screen {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-
-.complexity-card {
-  @extend %selection-card;
-}
-
-// --- Recommended Mode (Step 5) ---
-
-.recommended-mode-card {
-  padding: 1.5rem;
-  background: $bg-page;
-  border: 1.5px solid $blue;
-  border-radius: $radius-md;
-  box-shadow: 0 0 0 3px rgba($blue, 0.1);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  margin-bottom: 1.5rem;
-
-  .rec-mode-hero {
-    width: 100%;
-    height: 140px;
-    background: linear-gradient(135deg, rgba($blue, 0.08), rgba($blue, 0.02));
-    border-radius: $radius-sm;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1.25rem;
-
-    i {
-      font-size: 3rem;
-      color: $blue;
-    }
-  }
-
-  h3 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 0.375rem;
-    color: $text-primary;
-  }
-
-  .rec-mode-desc {
-    font-size: 0.875rem;
-    color: $text-secondary;
-    line-height: 1.5;
-    margin-bottom: 1rem;
-  }
-
-  .rec-mode-features {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-
-    @media (max-width: 400px) {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .rec-feature {
-    font-size: 0.8125rem;
-    color: $text-primary;
-    font-weight: 500;
-
-    i {
-      color: $blue;
-      margin-right: 0.375rem;
-    }
-  }
-}
-
-.select-another-mode {
+  align-items: center;
   text-align: center;
-  padding-top: 1rem;
-  border-top: 1px solid $border-color;
+  padding-top: 2rem;
+}
 
-  .another-mode-label {
-    display: block;
-    font-size: 0.8125rem;
-    color: $text-tertiary;
-    margin-bottom: 0.375rem;
+.welcome-hero {
+  margin-bottom: 2.5rem;
+
+  h2 {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
   }
 
-  .another-mode-link {
-    background: none;
-    border: none;
-    color: $blue;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: $font-family;
-    padding: 0.5rem;
-    transition: opacity 0.15s;
-
-    &:hover { opacity: 0.8; }
-
-    i { font-size: 0.75rem; margin-left: 0.25rem; }
+  .step-subtitle {
+    max-width: 420px;
+    margin: 0 auto;
   }
 }
 
-// --- Tax Auto-Detect (Step 7) ---
-
-.tax-row {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.tax-input {
-  max-width: 120px;
-}
-
-.auto-detect-btn {
-  white-space: nowrap;
-}
-
-// --- Business Hours (Step 6) ---
-
-.presets {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.hours-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-}
-
-.hours-row {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid rgba($border-color, 0.5);
-
-  &:last-child { border-bottom: none; }
-
-  &.closed {
-    opacity: 0.4;
-  }
-
-  .day-label {
-    width: 90px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    flex-shrink: 0;
-    color: $text-primary;
-  }
-
-  .time-select {
-    width: 110px;
-    padding: 0.5rem 0.625rem;
-    font-size: 0.8125rem;
-  }
-
-  .time-sep {
-    color: $text-tertiary;
-    font-size: 0.8125rem;
-  }
-}
-
-.btn-icon {
-  background: transparent;
-  border: none;
-  color: $text-tertiary;
-  padding: 0.25rem 0.5rem;
-  cursor: pointer;
-  font-size: 1.1rem;
-  border-radius: $radius-sm;
-  transition: all 0.15s;
-
-  &:hover { color: $blue; background: $blue-light; }
-  &.active { color: $danger; }
-}
-
-// --- Mode Grid & Group Labels (Step 5) ---
-
-.mode-group-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: $text-secondary;
-  margin: 1.5rem 0 0.625rem;
-
-  &:first-of-type {
-    margin-top: 0;
-  }
-}
-
-.mode-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
-
-  @media (max-width: 500px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.mode-card {
-  @extend %selection-card;
-}
-
-// --- Payment Options (Step 8) ---
-
-.payment-options {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.payment-card {
-  @extend %selection-card;
-}
-
-// --- Template Grid (Step 9) ---
-
-.template-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
-
-  @media (max-width: 500px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.template-card {
-  @extend %selection-card;
-
-  h4 {
-    font-size: 0.9375rem;
-    font-weight: 600;
-    margin-bottom: 0.125rem;
-  }
-}
-
-// --- Quick-Add Menu (Step 10: Build Your Menu) ---
-
-.type-tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
-}
-
-.type-tab {
-  flex: 1;
+.welcome-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba($blue, 0.12), rgba($blue, 0.04));
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.375rem;
-  padding: 0.625rem 0.75rem;
-  border: 1px solid $border-color;
-  border-radius: $radius-sm;
-  background: #fff;
-  color: #000;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
+  margin: 0 auto 1.5rem;
 
-  &:hover {
-    border-color: color.adjust($border-color, $lightness: -10%);
-    color: #000;
-  }
-
-  &.active {
-    border-color: $blue;
-    background: $blue-light;
+  i {
+    font-size: 2.25rem;
     color: $blue;
   }
-
-  i {
-    font-size: 0.9375rem;
-  }
 }
 
-// --- Suggestion Chips ---
-
-.suggestion-panel {
-  max-height: 280px;
-  overflow-y: auto;
-  padding: 0.75rem;
-  border: 1px solid $border-color;
-  border-radius: $radius-sm;
-  background: #fff;
-  margin-bottom: 1rem;
-}
-
-.suggestion-group {
-  & + & {
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid $border-color;
-  }
-}
-
-.suggestion-group-label {
-  display: block;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #000;
-  margin-bottom: 0.375rem;
-}
-
-.suggestion-chips {
+.welcome-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-}
-
-.suggestion-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.3125rem 0.625rem;
-  border: 1px solid $border-color;
-  border-radius: $radius-pill;
-  background: #f0f0f0;
-  font-size: 0.8125rem;
-  color: #000;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-
-  i {
-    font-size: 0.75rem;
-    color: $text-secondary;
-  }
-
-  &:hover {
-    border-color: color.adjust($border-color, $lightness: -10%);
-    background: #e5e5e5;
-  }
-
-  &.added {
-    border-color: $blue;
-    background: $blue-light;
-    color: $blue;
-
-    i {
-      color: $blue;
-    }
-  }
-}
-
-.suggestion-price {
-  font-size: 0.6875rem;
-  color: $text-secondary;
-  margin-left: 0.125rem;
-}
-
-.quick-add-custom {
-  margin-bottom: 0.5rem;
-
-  h5 {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #000;
-    margin: 0;
-  }
-}
-
-.quick-add-group {
-  margin-top: 1.25rem;
-
-  h5 {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: $text-secondary;
-    margin-bottom: 0.375rem;
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-
-    i {
-      font-size: 0.8125rem;
-    }
-  }
-}
-
-.quick-add-unit {
-  max-width: 120px;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 2rem 1rem;
-  color: $text-secondary;
-  border: 1px dashed $border-color;
-  border-radius: $radius-sm;
-  margin-bottom: 1rem;
-
-  i {
-    font-size: 2rem;
-    display: block;
-    margin-bottom: 0.5rem;
-  }
-
-  p {
-    margin: 0;
-    font-size: 0.875rem;
-  }
-}
-
-.quick-add-list {
-  margin-bottom: 1rem;
-  border: 1px solid $border-color;
-  border-radius: $radius-sm;
-  overflow: hidden;
-}
-
-.quick-add-item {
-  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.625rem 0.75rem;
-
-  &.combo-item {
-    align-items: flex-start;
-    padding: 0.75rem;
-  }
-
-  & + & {
-    border-top: 1px solid $border-color;
-  }
-
-  &-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  &-name {
-    font-weight: 500;
-    font-size: 0.875rem;
-    display: block;
-  }
-
-  &-category {
-    font-size: 0.75rem;
-    color: $text-secondary;
-  }
-
-  &-detail {
-    font-size: 0.75rem;
-    color: $text-secondary;
-
-    strong {
-      font-weight: 600;
-      color: $text-primary;
-    }
-  }
-
-  &-upgrades {
-    font-size: 0.6875rem;
-    color: color.adjust($text-secondary, $lightness: 10%);
-
-    i {
-      font-size: 0.625rem;
-    }
-  }
-
-  &-price {
-    font-weight: 600;
-    font-size: 0.875rem;
-    white-space: nowrap;
-  }
+  width: 100%;
+  max-width: 320px;
 }
 
-.btn-icon-sm {
+.welcome-cta {
+  width: 100%;
+}
+
+.skip-link {
   background: none;
   border: none;
   color: $text-secondary;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
-
-  &:hover {
-    color: #dc3545;
-    background: rgba(#dc3545, 0.08);
-  }
-}
-
-.quick-add-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.quick-add-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-
-  .form-control {
-    flex: 1;
-  }
-
-  .quick-add-price {
-    max-width: 100px;
-  }
-
-  .btn {
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-}
-
-// --- Template Preview (Step 9: Selected Template) ---
-
-.template-preview {
-  margin-top: 1.75rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid $border-color;
-
-  h4 {
-    font-size: 1rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-  }
-}
-
-.template-categories {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.template-category {
-  h5 {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: $text-secondary;
-    margin-bottom: 0.375rem;
-  }
-}
-
-.template-items {
-  border: 1px solid $border-color;
-  border-radius: $radius-sm;
-  overflow: hidden;
-}
-
-.template-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-
-  & + & {
-    border-top: 1px solid $border-color;
-  }
-
-  span:first-child {
-    font-weight: 500;
-  }
-}
-
-.template-item-price {
-  color: $text-secondary;
-  font-weight: 500;
-}
-
-// --- PIN Section (Step 10) ---
-
-.pin-section {
-  margin-top: 1.75rem;
-
-  .pin-hint {
-    font-size: 0.8125rem;
-    color: $text-secondary;
-    margin-bottom: 1.25rem;
-    line-height: 1.5;
-  }
-}
-
-.pin-display {
-  display: flex;
-  gap: 0.875rem;
-  justify-content: center;
-  margin-bottom: 1.25rem;
-}
-
-.pin-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: $border-color;
-  transition: all 0.2s;
-
-  &.filled {
-    background: $blue;
-    box-shadow: 0 0 0 3px rgba($blue, 0.15);
-  }
-}
-
-.pin-keypad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  max-width: 260px;
-  margin: 0 auto;
-}
-
-.keypad-btn {
-  height: 52px;
-  border-radius: $radius-md;
-  border: 1.5px solid $border-color;
-  background: $bg-page;
-  color: $text-primary;
-  font-size: 1.25rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.1s;
   font-family: $font-family;
-
-  &:hover { background: $bg-card; }
-  &:active { background: $bg-hover; transform: scale(0.97); }
-}
-
-.keypad-spacer {
-}
-
-.pin-match {
-  text-align: center;
-  margin-top: 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-
-  &.success { color: $success; }
-  &.error { color: $danger; }
-
-  i { margin-right: 0.25rem; }
-}
-
-.mt-3 { margin-top: 1rem; }
-.mt-4 { margin-top: 1.5rem; }
-
-// --- Review Sections (Step 11) ---
-
-.review-sections {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.review-section {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 1rem 1.25rem;
-  background: $bg-card;
-  border-radius: $radius-md;
-  cursor: pointer;
-  transition: background 0.15s;
-  position: relative;
+  padding: 0.5rem 1rem;
+  transition: color 0.15s;
 
   &:hover {
-    background: $bg-hover;
-
-    .edit-icon { opacity: 1; }
+    color: $blue;
   }
 
-  .review-label {
-    font-size: 0.6875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: $text-tertiary;
-    font-weight: 600;
-    width: 100%;
-  }
-
-  .review-value {
-    font-weight: 600;
-    font-size: 0.9375rem;
-    color: $text-primary;
-  }
-
-  .review-detail {
-    font-size: 0.8125rem;
-    color: $text-secondary;
-    width: 100%;
-  }
-
-  .edit-icon {
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: $text-tertiary;
-    opacity: 0;
-    transition: opacity 0.15s;
-    font-size: 0.875rem;
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
@@ -1187,6 +437,8 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
   margin-top: 1rem;
+  width: 100%;
+  text-align: left;
 }
 
 // --- Footer ---
@@ -1253,47 +505,7 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
   }
 }
 
-.btn-sm {
-  padding: 0.375rem 0.875rem;
-  font-size: 0.8125rem;
-  border-radius: $radius-sm;
-}
-
-// --- Success Screen ---
-
-.success-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  text-align: center;
-  animation: fadeIn 0.5s ease;
-
-  .success-icon {
-    font-size: 3.5rem;
-    color: $success;
-    margin-bottom: 1.5rem;
-    animation: scaleIn 0.4s ease;
-  }
-
-  h2 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    color: $text-primary;
-  }
-
-  p {
-    color: $text-secondary;
-    font-size: 1rem;
-  }
-}
-
-@keyframes scaleIn {
-  from { transform: scale(0.5); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
+.mt-3 { margin-top: 1rem; }
 
 // --- Spin animation ---
 
