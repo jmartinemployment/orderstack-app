@@ -190,6 +190,24 @@ const BUSINESS_TYPE_MODE_MAP: Record<string, DevicePosMode> = {
   'Other': 'standard',
 };
 
+// Search aliases so common keywords match business types that don't contain them literally
+const BUSINESS_TYPE_SEARCH_ALIASES: Record<string, string[]> = {
+  'Fine Dining': ['restaurant', 'dining', 'sit down', 'dine in'],
+  'Casual Dining': ['restaurant', 'dining', 'sit down', 'dine in'],
+  'Club / Lounge': ['restaurant', 'nightclub', 'bar'],
+  'Bakery / Pastry Shop': ['restaurant', 'cafe', 'dessert'],
+  'Coffee / Tea Cafe': ['restaurant', 'cafe', 'shop'],
+  'Ghost / Virtual Kitchen': ['restaurant', 'delivery', 'cloud kitchen'],
+  'Caterer': ['restaurant', 'events', 'catering'],
+  'Hair Salon': ['salon', 'haircut', 'stylist'],
+  'Barber Shop': ['salon', 'haircut'],
+  'Day Spa': ['salon', 'massage', 'wellness'],
+  'Gym / Health Club': ['gym', 'fitness', 'workout'],
+  'Fitness Studio': ['gym', 'workout'],
+  'Grocery / Market': ['store', 'supermarket', 'food'],
+  'Convenience Store': ['store', 'shop', 'market'],
+};
+
 @Component({
   selector: 'os-setup-wizard',
   standalone: true,
@@ -231,9 +249,17 @@ export class SetupWizard {
   readonly filteredBusinessTypes = computed(() => {
     const search = this._businessTypeSearch().toLowerCase().trim();
     if (!search) return BUSINESS_CATEGORIES;
-    return BUSINESS_CATEGORIES.filter(c =>
-      c.name.toLowerCase().includes(search)
-    );
+    return BUSINESS_CATEGORIES.filter(c => {
+      const name = c.name.toLowerCase();
+      const verticalLabel = this.getVerticalLabel(c.vertical).toLowerCase();
+      // Match against name, vertical label, and keyword aliases
+      if (name.includes(search)) return true;
+      if (verticalLabel.includes(search)) return true;
+      // Common keyword aliases
+      const aliases = BUSINESS_TYPE_SEARCH_ALIASES[c.name];
+      if (aliases?.some(a => a.includes(search))) return true;
+      return false;
+    });
   });
 
   // Derive vertical from business type selection
