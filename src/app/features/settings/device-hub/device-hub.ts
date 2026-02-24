@@ -1,11 +1,12 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { DatePipe, TitleCasePipe } from '@angular/common';
+import { DatePipe, TitleCasePipe, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DeviceService } from '@services/device';
 import { PlatformService } from '@services/platform';
 import { PrinterService } from '@services/printer';
 import { StationService } from '@services/station';
 import { MenuService } from '@services/menu';
+import { PaymentConnectService, ConnectStatus } from '@services/payment-connect';
 import { PrinterSettings } from '../printer-settings';
 import { StationSettings } from '../station-settings';
 import {
@@ -26,6 +27,9 @@ import {
   KioskProfile,
   KioskProfileFormData,
   CustomerDisplayConfig,
+  HardwareProduct,
+  HardwareCategory,
+  HardwareChecklist,
   defaultModeSettings,
   defaultModeSettingsForPosMode,
   defaultCustomerDisplayConfig,
@@ -73,10 +77,331 @@ const PERIPHERAL_TYPE_ICONS: Record<PeripheralType, string> = {
   scale: 'bi-speedometer',
 };
 
+const HARDWARE_CATEGORY_LABELS: Record<HardwareCategory, string> = {
+  tablet: 'Tablets & Terminals',
+  card_reader: 'Card Readers',
+  receipt_printer: 'Receipt Printers',
+  cash_drawer: 'Cash Drawers',
+  kitchen_display: 'Kitchen Displays',
+  barcode_scanner: 'Barcode Scanners',
+  label_printer: 'Label Printers',
+  customer_display: 'Customer Displays',
+};
+
+const HARDWARE_CATEGORY_ICONS: Record<HardwareCategory, string> = {
+  tablet: 'bi-tablet-landscape',
+  card_reader: 'bi-credit-card',
+  receipt_printer: 'bi-printer',
+  cash_drawer: 'bi-box-seam',
+  kitchen_display: 'bi-display',
+  barcode_scanner: 'bi-upc-scan',
+  label_printer: 'bi-tag',
+  customer_display: 'bi-tv',
+};
+
+const HARDWARE_CATALOG: HardwareProduct[] = [
+  // --- Tablets ---
+  {
+    id: 'ipad-10',
+    name: 'iPad (10th generation)',
+    category: 'tablet',
+    tier: 'better',
+    price: 349,
+    description: '10.9" Retina display, A14 chip, USB-C. The most popular POS tablet.',
+    whyRecommended: 'Best all-around tablet for POS, KDS, and customer display',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.apple.com/shop/buy-ipad/ipad',
+    icon: 'bi-tablet-landscape',
+  },
+  {
+    id: 'ipad-mini',
+    name: 'iPad mini (7th generation)',
+    category: 'tablet',
+    tier: 'best',
+    price: 499,
+    description: '8.3" Liquid Retina, A17 Pro chip. Compact and powerful for tableside service.',
+    whyRecommended: 'Perfect for servers taking orders tableside',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.apple.com/shop/buy-ipad/ipad-mini',
+    icon: 'bi-tablet',
+  },
+  {
+    id: 'galaxy-tab-a9',
+    name: 'Samsung Galaxy Tab A9+',
+    category: 'tablet',
+    tier: 'good',
+    price: 219,
+    description: '11" LCD, 4GB RAM, long battery life. Budget-friendly Android option.',
+    whyRecommended: 'Affordable option for businesses on a budget',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.samsung.com/us/tablets/galaxy-tab-a9-plus/',
+    icon: 'bi-tablet-landscape',
+  },
+  {
+    id: 'fire-hd-10',
+    name: 'Amazon Fire HD 10',
+    category: 'tablet',
+    tier: 'good',
+    price: 139,
+    description: '10.1" display, octa-core, 3GB RAM. Great for dedicated KDS screens.',
+    whyRecommended: 'Best value for a dedicated kitchen display or kiosk',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.amazon.com/dp/B0BHZT5S12',
+    icon: 'bi-display',
+  },
+  // --- Card Readers ---
+  {
+    id: 'stripe-s700',
+    name: 'Stripe Reader S700',
+    category: 'card_reader',
+    tier: 'best',
+    price: 349,
+    description: 'Countertop reader with touchscreen. Tap, chip, and swipe. WiFi + Ethernet.',
+    whyRecommended: 'Full-featured countertop terminal with built-in display for tips',
+    processorCompat: 'stripe',
+    buyUrl: 'https://stripe.com/terminal/readers/s700',
+    icon: 'bi-credit-card',
+  },
+  {
+    id: 'stripe-m2',
+    name: 'Stripe Reader M2',
+    category: 'card_reader',
+    tier: 'good',
+    price: 59,
+    description: 'Mobile Bluetooth reader. Tap and chip. Compact and portable.',
+    whyRecommended: 'Portable and affordable — great for tableside, events, or food trucks',
+    processorCompat: 'stripe',
+    buyUrl: 'https://stripe.com/terminal/readers/m2',
+    icon: 'bi-credit-card',
+  },
+  {
+    id: 'zettle-reader-2',
+    name: 'PayPal Zettle Reader 2',
+    category: 'card_reader',
+    tier: 'good',
+    price: 29,
+    description: 'Bluetooth card reader. Tap, chip, and contactless. Accepts PayPal and Venmo.',
+    whyRecommended: 'Lowest cost reader — accepts PayPal, Venmo, Apple Pay, Google Pay',
+    processorCompat: 'paypal',
+    buyUrl: 'https://www.zettle.com/us/card-reader',
+    icon: 'bi-credit-card',
+  },
+  {
+    id: 'zettle-terminal',
+    name: 'PayPal Zettle Terminal',
+    category: 'card_reader',
+    tier: 'better',
+    price: 199,
+    description: 'Standalone terminal with 5.5" touchscreen, receipt printer, and barcode scanner.',
+    whyRecommended: 'All-in-one terminal — no tablet needed for simple setups',
+    processorCompat: 'paypal',
+    buyUrl: 'https://www.zettle.com/us/terminal',
+    icon: 'bi-phone',
+  },
+  // --- Receipt Printers ---
+  {
+    id: 'star-tsp143iv',
+    name: 'Star Micronics TSP143IV',
+    category: 'receipt_printer',
+    tier: 'best',
+    price: 399,
+    description: 'WiFi + USB thermal receipt printer. 250mm/sec print speed. Auto-cutter.',
+    whyRecommended: 'Industry standard — fast, reliable, supports WebSocket printing',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.amazon.com/dp/B0C2QH5B8T',
+    icon: 'bi-printer',
+  },
+  {
+    id: 'epson-tm-m30iii',
+    name: 'Epson TM-m30III',
+    category: 'receipt_printer',
+    tier: 'better',
+    price: 349,
+    description: 'Compact WiFi/Bluetooth thermal printer. 200mm/sec. Top or front exit.',
+    whyRecommended: 'Compact design — fits tight counter spaces',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.amazon.com/dp/B0BNKXT7JF',
+    icon: 'bi-printer',
+  },
+  {
+    id: 'star-sm-l200',
+    name: 'Star Micronics SM-L200',
+    category: 'receipt_printer',
+    tier: 'good',
+    price: 259,
+    description: 'Portable Bluetooth thermal printer. 2" receipts. Rechargeable battery.',
+    whyRecommended: 'Portable — great for tableside, food trucks, and catering',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.amazon.com/dp/B071RDNCWJ',
+    icon: 'bi-printer',
+  },
+  // --- Cash Drawers ---
+  {
+    id: 'apg-vasario-1616',
+    name: 'APG Vasario 1616',
+    category: 'cash_drawer',
+    tier: 'better',
+    price: 99,
+    description: '16" x 16" steel cash drawer. 5 bill / 5 coin slots. Printer-driven kick.',
+    whyRecommended: 'Compact and reliable — auto-opens when receipt prints',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.amazon.com/dp/B00ECCMLIS',
+    icon: 'bi-box-seam',
+  },
+  {
+    id: 'star-smd2',
+    name: 'Star Micronics SMD2',
+    category: 'cash_drawer',
+    tier: 'good',
+    price: 79,
+    description: '13" compact cash drawer. 4 bill / 4 coin slots. DK port connection.',
+    whyRecommended: 'Budget-friendly for small counters',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.amazon.com/dp/B00F3N9GTS',
+    icon: 'bi-box-seam',
+  },
+  {
+    id: 'apg-vasario-1820',
+    name: 'APG Vasario 1820',
+    category: 'cash_drawer',
+    tier: 'best',
+    price: 139,
+    description: '18" x 20" full-size cash drawer. 5 bill / 8 coin slots. Heavy duty.',
+    whyRecommended: 'Full-size drawer for high-volume cash businesses',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.amazon.com/dp/B00ECCLYLQ',
+    icon: 'bi-box-seam',
+  },
+  // --- Kitchen Displays ---
+  {
+    id: 'fire-tv-stick',
+    name: 'Amazon Fire TV Stick 4K + Any TV',
+    category: 'kitchen_display',
+    tier: 'good',
+    price: 49,
+    description: 'Run KDS on any TV or monitor via Fire TV Stick in kiosk mode.',
+    whyRecommended: 'Cheapest option — use any existing TV as a kitchen display',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.amazon.com/dp/B0CX5168R2',
+    icon: 'bi-display',
+  },
+  {
+    id: 'elo-touch-15',
+    name: 'Elo 15" I-Series Touchscreen',
+    category: 'kitchen_display',
+    tier: 'best',
+    price: 899,
+    description: '15.6" commercial-grade touchscreen with Android. IP54 rated for kitchen use.',
+    whyRecommended: 'Commercial-grade — designed for hot, greasy kitchen environments',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.elotouch.com/i-series-4',
+    icon: 'bi-display',
+  },
+  {
+    id: 'lg-monitor-24',
+    name: 'LG 24" IPS Monitor',
+    category: 'kitchen_display',
+    tier: 'better',
+    price: 149,
+    description: '24" IPS display, HDMI. Wall-mountable. Pair with Fire TV Stick or mini PC.',
+    whyRecommended: 'Good mid-range option — large screen, easy wall mount',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.amazon.com/dp/B0BX2GJG3V',
+    icon: 'bi-display',
+  },
+  // --- Barcode Scanners ---
+  {
+    id: 'socket-s740',
+    name: 'Socket Mobile S740',
+    category: 'barcode_scanner',
+    tier: 'best',
+    price: 399,
+    description: 'Bluetooth 1D/2D barcode scanner. iOS/Android/Windows. All-day battery.',
+    whyRecommended: 'Premium scanner — fast, accurate, works with any device',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.amazon.com/dp/B0BQ62BKM8',
+    icon: 'bi-upc-scan',
+  },
+  {
+    id: 'tera-hw0002',
+    name: 'Tera HW0002 USB Scanner',
+    category: 'barcode_scanner',
+    tier: 'good',
+    price: 39,
+    description: 'Wired USB 1D/2D barcode scanner. Plug and play. Ergonomic design.',
+    whyRecommended: 'Budget-friendly — plug in and start scanning',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.amazon.com/dp/B083QK93CL',
+    icon: 'bi-upc-scan',
+  },
+  {
+    id: 'netum-c750',
+    name: 'NETUM C750 Bluetooth Scanner',
+    category: 'barcode_scanner',
+    tier: 'better',
+    price: 59,
+    description: 'Wireless Bluetooth 1D/2D scanner. 100m range. USB charging.',
+    whyRecommended: 'Wireless freedom at a budget price',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.amazon.com/dp/B08HCBZYDB',
+    icon: 'bi-upc-scan',
+  },
+  // --- Label Printers ---
+  {
+    id: 'dymo-450',
+    name: 'DYMO LabelWriter 450',
+    category: 'label_printer',
+    tier: 'good',
+    price: 79,
+    description: 'Direct thermal label printer. USB. Prints up to 51 labels/minute.',
+    whyRecommended: 'Great for product labels and price tags',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.amazon.com/dp/B01DPC4BIG',
+    icon: 'bi-tag',
+  },
+  {
+    id: 'zebra-zd421',
+    name: 'Zebra ZD421',
+    category: 'label_printer',
+    tier: 'best',
+    price: 399,
+    description: 'Commercial thermal label printer. WiFi/Bluetooth/USB. 4" labels.',
+    whyRecommended: 'Commercial-grade — fast, supports barcode and shelf labels',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.amazon.com/dp/B09SZHCLYP',
+    icon: 'bi-tag',
+  },
+  // --- Customer Displays ---
+  {
+    id: 'ipad-customer-display',
+    name: 'iPad (10th gen) + Stand',
+    category: 'customer_display',
+    tier: 'better',
+    price: 399,
+    description: 'Use a second iPad as a customer-facing display with checkout and tip prompt.',
+    whyRecommended: 'Dual-screen setup — customers see their order and tip on a separate screen',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.apple.com/shop/buy-ipad/ipad',
+    icon: 'bi-tv',
+  },
+  {
+    id: 'elo-customer-facing',
+    name: 'Elo 10" Customer-Facing Display',
+    category: 'customer_display',
+    tier: 'best',
+    price: 549,
+    description: '10.1" touchscreen, pole-mounted. Shows order, loyalty, and tip prompt.',
+    whyRecommended: 'Purpose-built customer display — pole-mounted for countertop use',
+    processorCompat: 'universal',
+    buyUrl: 'https://www.elotouch.com/customer-facing-display',
+    icon: 'bi-tv',
+  },
+];
+
 @Component({
   selector: 'os-device-hub',
   standalone: true,
-  imports: [DatePipe, TitleCasePipe, FormsModule, PrinterSettings, StationSettings],
+  imports: [DatePipe, TitleCasePipe, CurrencyPipe, FormsModule, PrinterSettings, StationSettings],
   templateUrl: './device-hub.html',
   styleUrl: './device-hub.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -87,6 +412,7 @@ export class DeviceHub implements OnInit {
   private readonly printerService = inject(PrinterService);
   private readonly stationService = inject(StationService);
   private readonly menuService = inject(MenuService);
+  private readonly connectService = inject(PaymentConnectService);
 
   // --- Tab state ---
   readonly activeTab = signal<DeviceHubTab>('devices');
@@ -124,6 +450,7 @@ export class DeviceHub implements OnInit {
     if (this.showKioskTab()) {
       base.push({ key: 'kiosk-profiles', label: 'Kiosk Profiles', icon: 'bi-phone' });
     }
+    base.push({ key: 'hardware-recs', label: 'Recommended Hardware', icon: 'bi-bag-check' });
     return base;
   });
 
@@ -134,6 +461,125 @@ export class DeviceHub implements OnInit {
   readonly unassignedStations = computed(() =>
     this.stations().filter(s => !s.boundDeviceId)
   );
+
+  // --- Hardware Recommendations ---
+
+  readonly stripeStatus = this.connectService.stripeStatus;
+  readonly paypalStatus = this.connectService.paypalStatus;
+
+  readonly connectedProcessor = computed<'stripe' | 'paypal' | 'none'>(() => {
+    if (this.stripeStatus() === 'connected') return 'stripe';
+    if (this.paypalStatus() === 'connected') return 'paypal';
+    return 'none';
+  });
+
+  readonly hwFilterCategory = signal<HardwareCategory | 'all'>('all');
+
+  readonly hardwareChecklist = computed<HardwareChecklist[]>(() => {
+    const isRetail = this.platformService.isRetailMode();
+    const isService = this.platformService.isServiceMode();
+    const isRestaurant = this.platformService.isRestaurantMode();
+    const mode = this.platformService.currentDeviceMode();
+
+    const checklist: HardwareChecklist[] = [
+      { category: 'tablet', label: 'Tablet or terminal', icon: 'bi-tablet-landscape', required: true },
+      { category: 'card_reader', label: 'Card reader', icon: 'bi-credit-card', required: true },
+      { category: 'receipt_printer', label: 'Receipt printer', icon: 'bi-printer', required: true },
+    ];
+
+    if (isRetail || mode === 'quick_service') {
+      checklist.push({ category: 'cash_drawer', label: 'Cash drawer', icon: 'bi-box-seam', required: false });
+    }
+
+    if (isRestaurant && (mode === 'full_service' || mode === 'bar')) {
+      checklist.push({ category: 'kitchen_display', label: 'Kitchen display', icon: 'bi-display', required: false });
+      checklist.push({ category: 'customer_display', label: 'Customer display', icon: 'bi-tv', required: false });
+    }
+
+    if (mode === 'quick_service') {
+      checklist.push({ category: 'customer_display', label: 'Customer display', icon: 'bi-tv', required: false });
+    }
+
+    if (isRetail) {
+      checklist.push({ category: 'barcode_scanner', label: 'Barcode scanner', icon: 'bi-upc-scan', required: false });
+      checklist.push({ category: 'label_printer', label: 'Label printer', icon: 'bi-tag', required: false });
+    }
+
+    if (isService) {
+      // Services mode: minimal setup — just tablet + card reader + printer (already in base)
+    }
+
+    return checklist;
+  });
+
+  readonly relevantCategories = computed<HardwareCategory[]>(() =>
+    this.hardwareChecklist().map(c => c.category)
+  );
+
+  readonly filteredProducts = computed<HardwareProduct[]>(() => {
+    const processor = this.connectedProcessor();
+    const relevant = this.relevantCategories();
+    const filterCat = this.hwFilterCategory();
+
+    return HARDWARE_CATALOG.filter(p => {
+      // Filter by relevant categories for this mode
+      if (!relevant.includes(p.category)) return false;
+
+      // Filter by selected category
+      if (filterCat !== 'all' && p.category !== filterCat) return false;
+
+      // Filter by processor compatibility
+      if (processor !== 'none' && p.processorCompat !== 'universal' && p.processorCompat !== 'both' && p.processorCompat !== processor) {
+        return false;
+      }
+
+      return true;
+    });
+  });
+
+  readonly productsByCategory = computed(() => {
+    const products = this.filteredProducts();
+    const groups: { category: HardwareCategory; label: string; icon: string; products: HardwareProduct[] }[] = [];
+
+    for (const cat of this.relevantCategories()) {
+      const catProducts = products.filter(p => p.category === cat);
+      if (catProducts.length > 0) {
+        groups.push({
+          category: cat,
+          label: HARDWARE_CATEGORY_LABELS[cat],
+          icon: HARDWARE_CATEGORY_ICONS[cat],
+          products: catProducts.sort((a, b) => {
+            const tierOrder = { good: 0, better: 1, best: 2 };
+            return tierOrder[a.tier] - tierOrder[b.tier];
+          }),
+        });
+      }
+    }
+
+    return groups;
+  });
+
+  readonly hwCategoryLabels = HARDWARE_CATEGORY_LABELS;
+  readonly hwCategoryIcons = HARDWARE_CATEGORY_ICONS;
+
+  setHwFilter(category: HardwareCategory | 'all'): void {
+    this.hwFilterCategory.set(category);
+  }
+
+  getTierLabel(tier: 'good' | 'better' | 'best'): string {
+    return tier === 'good' ? 'Good' : tier === 'better' ? 'Better' : 'Best';
+  }
+
+  getTierClass(tier: 'good' | 'better' | 'best'): string {
+    return `tier-${tier}`;
+  }
+
+  getCompatLabel(compat: string): string {
+    if (compat === 'stripe') return 'Stripe';
+    if (compat === 'paypal') return 'PayPal';
+    if (compat === 'both') return 'Stripe & PayPal';
+    return 'Any Processor';
+  }
 
   // --- Device code generation ---
   readonly showCodeForm = signal(false);
@@ -269,12 +715,10 @@ export class DeviceHub implements OnInit {
   }
 
   async assignStation(deviceId: string, stationId: string): Promise<void> {
-    // Unbind any station previously bound to this device
     const oldStation = this.stations().find(s => s.boundDeviceId === deviceId);
     if (oldStation) {
       await this.stationService.updateStation(oldStation.id, { boundDeviceId: null });
     }
-    // Bind new station
     if (stationId) {
       await this.stationService.updateStation(stationId, { boundDeviceId: deviceId });
     }
@@ -424,7 +868,6 @@ export class DeviceHub implements OnInit {
 
   testPeripheral(peripheral: PeripheralDevice): void {
     this.peripheralTestResult.set({ id: peripheral.id, result: 'testing' });
-    // Simulate a test — in production this would call device APIs via WebSocket
     setTimeout(() => {
       this.peripheralTestResult.set({ id: peripheral.id, result: 'success' });
       setTimeout(() => this.peripheralTestResult.set(null), 3000);

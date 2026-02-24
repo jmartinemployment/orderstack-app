@@ -240,7 +240,33 @@ export interface DeviceHealthSummary {
 
 // --- DeviceHub Tab Navigation ---
 
-export type DeviceHubTab = 'devices' | 'modes' | 'printer-profiles' | 'peripherals' | 'kiosk-profiles';
+export type DeviceHubTab = 'devices' | 'modes' | 'printer-profiles' | 'peripherals' | 'kiosk-profiles' | 'hardware-recs';
+
+// --- Hardware Recommendations ---
+
+export type HardwareTier = 'good' | 'better' | 'best';
+export type HardwareCategory = 'tablet' | 'card_reader' | 'receipt_printer' | 'cash_drawer' | 'kitchen_display' | 'barcode_scanner' | 'label_printer' | 'customer_display';
+export type ProcessorCompat = 'stripe' | 'paypal' | 'both' | 'universal';
+
+export interface HardwareProduct {
+  id: string;
+  name: string;
+  category: HardwareCategory;
+  tier: HardwareTier;
+  price: number;
+  description: string;
+  whyRecommended: string;
+  processorCompat: ProcessorCompat;
+  buyUrl: string;
+  icon: string;
+}
+
+export interface HardwareChecklist {
+  category: HardwareCategory;
+  label: string;
+  icon: string;
+  required: boolean;
+}
 
 // --- Factory Functions ---
 
