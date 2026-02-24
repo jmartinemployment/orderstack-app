@@ -7,6 +7,31 @@
     </div>
   </div>
 
+  <!-- PWA Install Banner -->
+  @if (pwaInstall.shouldShowInstallPrompt) {
+    <div class="install-banner">
+      <div class="install-banner-content">
+        <i class="bi bi-phone install-banner-icon"></i>
+        <div class="install-banner-text">
+          <strong>Install OrderStack</strong>
+          @if (pwaInstall.isIos) {
+            <span>Tap <i class="bi bi-box-arrow-up"></i> then "Add to Home Screen" for the best experience.</span>
+          } @else {
+            <span>Get the app for a faster, native experience.</span>
+          }
+        </div>
+      </div>
+      <div class="install-banner-actions">
+        @if (pwaInstall.canInstall()) {
+          <button type="button" class="btn-install-banner" (click)="installApp()">Install</button>
+        }
+        <button type="button" class="btn-dismiss-banner" (click)="dismissInstallBanner()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+  }
+
   <div class="home-grid">
     <!-- Main Column -->
     <div class="home-main">

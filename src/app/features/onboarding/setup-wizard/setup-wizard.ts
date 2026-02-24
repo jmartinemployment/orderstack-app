@@ -18,6 +18,8 @@ import { Router } from '@angular/router';
 import { PlatformService, OnboardingPayload } from '@services/platform';
 import { AuthService } from '@services/auth';
 import { DeviceService } from '@services/device';
+import { PaymentConnectService } from '@services/payment-connect';
+import { PwaInstallService } from '@services/pwa-install';
 
 const US_STATES = [
   { code: 'AL', name: 'Alabama' }, { code: 'AK', name: 'Alaska' }, { code: 'AZ', name: 'Arizona' },
@@ -201,6 +203,8 @@ export class SetupWizard {
   private readonly platformService = inject(PlatformService);
   private readonly authService = inject(AuthService);
   private readonly deviceService = inject(DeviceService);
+  private readonly paymentConnect = inject(PaymentConnectService);
+  readonly pwaInstall = inject(PwaInstallService);
   private readonly router = inject(Router);
 
   readonly usStates = US_STATES;
@@ -247,6 +251,17 @@ export class SetupWizard {
   // --- Step 3: Annual Revenue ---
   readonly _selectedRevenue = signal<string | null>(null);
 
+  // --- Step 4: Payment Connect ---
+  readonly stripeStatus = this.paymentConnect.stripeStatus;
+  readonly paypalStatus = this.paymentConnect.paypalStatus;
+  readonly isConnecting = this.paymentConnect.isConnecting;
+  readonly _connectError = signal<string | null>(null);
+  readonly _isPolling = signal(false);
+
+  readonly hasConnectedProcessor = computed(() =>
+    this.stripeStatus() === 'connected' || this.paypalStatus() === 'connected'
+  );
+
   // --- Auto-detect mode from business type ---
   readonly autoDetectedMode = computed<DevicePosMode>(() => {
     const bt = this._selectedBusinessType();
@@ -266,6 +281,7 @@ export class SetupWizard {
   readonly _isSubmitting = signal(false);
   readonly _submitError = signal<string | null>(null);
   readonly _submitSuccess = signal(false);
+  readonly _onboardingDone = signal(false);
 
   readonly isLoading = this.platformService.isLoading;
 
@@ -276,7 +292,7 @@ export class SetupWizard {
       case 1: return this._businessName().trim().length > 0;
       case 2: return this._selectedBusinessType() !== null;
       case 3: return this._selectedRevenue() !== null;
-      case 4: return true; // welcome screen — always can proceed
+      case 4: return true; // payment step — always can proceed (skip or connect)
       case 5: return !this._isSubmitting();
       default: return false;
     }
@@ -284,8 +300,15 @@ export class SetupWizard {
 
   // --- Navigation ---
 
-  next(): void {
+  async next(): Promise<void> {
     const current = this._currentStep();
+
+    // When moving from step 3 to step 4, submit onboarding first
+    if (current === 3 && !this._onboardingDone()) {
+      await this.submitOnboarding();
+      if (!this._onboardingDone()) return; // submission failed
+    }
+
     if (current < TOTAL_STEPS) {
       this._currentStep.set(current + 1);
     }
@@ -320,9 +343,9 @@ export class SetupWizard {
     this._selectedRevenue.set(id);
   }
 
-  // --- Step 4: Welcome → Submit onboarding ---
+  // --- Onboarding submission (happens between step 3 and 4) ---
 
-  async submitAndContinue(): Promise<void> {
+  private async submitOnboarding(): Promise<void> {
     this._isSubmitting.set(true);
     this._submitError.set(null);
 
@@ -354,25 +377,71 @@ export class SetupWizard {
 
     if (result) {
       this.authService.selectRestaurant(result.restaurantId, payload.businessName);
-      this._submitSuccess.set(true);
-      await this.goToDashboard(detectedMode);
+      this._onboardingDone.set(true);
+
+      // Register device in background
+      const device = await this.deviceService.registerBrowserDevice(detectedMode);
+      if (device) {
+        this.platformService.setDeviceModeFromDevice(detectedMode);
+      }
     } else {
       this._submitError.set(this.platformService.error() ?? 'Something went wrong');
     }
   }
 
-  async skipToHome(): Promise<void> {
-    await this.submitAndContinue();
+  // --- Step 4: Payment Connect ---
+
+  async connectStripe(): Promise<void> {
+    this._connectError.set(null);
+    const url = await this.paymentConnect.startStripeConnect();
+    if (url) {
+      // Open Stripe hosted onboarding in new tab
+      window.open(url, '_blank');
+      // Start polling for completion
+      this._isPolling.set(true);
+      const connected = await this.paymentConnect.pollStripeUntilConnected();
+      this._isPolling.set(false);
+      if (!connected) {
+        this._connectError.set('Stripe setup timed out. You can finish this in Settings later.');
+      }
+    } else if (this.paymentConnect.error()) {
+      this._connectError.set(this.paymentConnect.error());
+    }
   }
 
-  private async goToDashboard(mode: DevicePosMode): Promise<void> {
-    const device = await this.deviceService.registerBrowserDevice(mode);
-    if (!device) {
-      this._submitError.set(this.deviceService.error() ?? 'Failed to register device');
-      return;
+  async connectPayPal(): Promise<void> {
+    this._connectError.set(null);
+    const url = await this.paymentConnect.startPayPalConnect();
+    if (url) {
+      // Open PayPal onboarding in new tab
+      window.open(url, '_blank');
+      // Start polling for completion
+      this._isPolling.set(true);
+      const connected = await this.paymentConnect.pollPayPalUntilConnected();
+      this._isPolling.set(false);
+      if (!connected) {
+        this._connectError.set('PayPal setup timed out. You can finish this in Settings later.');
+      }
+    } else if (this.paymentConnect.error()) {
+      this._connectError.set(this.paymentConnect.error());
     }
+  }
 
-    this.platformService.setDeviceModeFromDevice(mode);
+  // --- Step 4: Skip payment ---
+
+  skipPayment(): void {
+    this._currentStep.set(5);
+  }
+
+  // --- Step 5: Go to dashboard ---
+
+  goToDashboard(): void {
     this.router.navigate(['/home']);
+  }
+
+  // --- PWA install ---
+
+  async installApp(): Promise<void> {
+    await this.pwaInstall.promptInstall();
   }
 }

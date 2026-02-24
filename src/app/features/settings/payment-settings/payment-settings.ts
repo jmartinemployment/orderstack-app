@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
-import { PaymentProcessorType, PaymentSettings, ScanToPaySettings, defaultScanToPaySettings } from '@models/index';
+import { PaymentConnectService, ConnectStatus } from '@services/payment-connect';
+import { PaymentProcessorType, PaymentSettings, ScanToPaySettings } from '@models/index';
 
 @Component({
   selector: 'os-payment-settings',
@@ -10,6 +11,7 @@ import { PaymentProcessorType, PaymentSettings, ScanToPaySettings, defaultScanTo
 })
 export class PaymentSettingsComponent implements OnInit {
   private readonly settingsService = inject(RestaurantSettingsService);
+  private readonly connectService = inject(PaymentConnectService);
 
   // --- Payment Processor ---
   private readonly _processor = signal<PaymentProcessorType>('none');
@@ -24,6 +26,12 @@ export class PaymentSettingsComponent implements OnInit {
   readonly surchargePercent = this._surchargePercent.asReadonly();
   readonly isSaving = this.settingsService.isSaving;
   readonly saved = this._saved.asReadonly();
+
+  // --- Connect Status ---
+  readonly stripeStatus = this.connectService.stripeStatus;
+  readonly paypalStatus = this.connectService.paypalStatus;
+  readonly isConnecting = this.connectService.isConnecting;
+  readonly connectError = this.connectService.error;
 
   readonly isDirty = computed(() => {
     const current = this.settingsService.paymentSettings();
@@ -80,6 +88,10 @@ export class PaymentSettingsComponent implements OnInit {
     this._stpAllowSplit.set(stp.allowSplitPay);
     this._stpQrOnReceipts.set(stp.includeQrOnPrintedReceipts);
     this._stpEmailReceipt.set(stp.emailReceiptEnabled);
+
+    // Load connection status
+    this.connectService.checkStripeStatus();
+    this.connectService.checkPayPalStatus();
   }
 
   // --- Payment Processor handlers ---
@@ -123,6 +135,24 @@ export class PaymentSettingsComponent implements OnInit {
     this._surchargeEnabled.set(s.surchargeEnabled);
     this._surchargePercent.set(s.surchargePercent);
     this._saved.set(false);
+  }
+
+  // --- Connect actions ---
+
+  async connectStripe(): Promise<void> {
+    const url = await this.connectService.startStripeConnect();
+    if (url) {
+      window.open(url, '_blank');
+      await this.connectService.pollStripeUntilConnected();
+    }
+  }
+
+  async connectPayPal(): Promise<void> {
+    const url = await this.connectService.startPayPalConnect();
+    if (url) {
+      window.open(url, '_blank');
+      await this.connectService.pollPayPalUntilConnected();
+    }
   }
 
   // --- Scan to Pay handlers ---

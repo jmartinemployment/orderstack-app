@@ -117,40 +117,6 @@
             </button>
           }
         </div>
-      </div>
-    }
-
-    <!-- ============ STEP 4: Welcome Screen ============ -->
-    @if (currentStep() === 4) {
-      <div class="step-content welcome-screen">
-        <div class="welcome-hero">
-          <div class="welcome-icon">
-            <i class="bi bi-rocket-takeoff-fill"></i>
-          </div>
-          <h2>Let's get growing, {{ _businessName() || 'friend' }}!</h2>
-          <p class="step-subtitle">Your account is almost ready. You can finish setting up payments, items, and more from your dashboard.</p>
-        </div>
-
-        <div class="welcome-actions">
-          <button
-            type="button"
-            class="btn btn-primary btn-lg welcome-cta"
-            [disabled]="_isSubmitting()"
-            (click)="submitAndContinue()">
-            @if (_isSubmitting()) {
-              <i class="bi bi-arrow-repeat spin"></i> Setting up...
-            } @else {
-              Set up payments <i class="bi bi-arrow-right"></i>
-            }
-          </button>
-          <button
-            type="button"
-            class="btn btn-link skip-link"
-            [disabled]="_isSubmitting()"
-            (click)="skipToHome()">
-            I'll do this later
-          </button>
-        </div>
 
         @if (_submitError()) {
           <div class="alert alert-danger mt-3">{{ _submitError() }}</div>
@@ -158,10 +124,165 @@
       </div>
     }
 
-    <!-- Step 5 is never shown — submitAndContinue navigates away -->
+    <!-- ============ STEP 4: Accept Payments ============ -->
+    @if (currentStep() === 4) {
+      <div class="step-content">
+        <h2>Accept payments</h2>
+        <p class="step-subtitle">Connect a payment processor to start accepting card payments. OrderStack works with Stripe and PayPal.</p>
+
+        <div class="processor-cards">
+          <!-- Stripe Card -->
+          <div class="processor-card" [class.connected]="stripeStatus() === 'connected'" [class.disabled]="paypalStatus() === 'connected'">
+            <div class="processor-logo">
+              <i class="bi bi-stripe"></i>
+            </div>
+            <div class="processor-info">
+              <h3>Stripe</h3>
+              <p>2.9% + 30 cents per transaction. Cards, Apple Pay, Google Pay.</p>
+            </div>
+            @if (stripeStatus() === 'connected') {
+              <span class="processor-badge connected">
+                <i class="bi bi-check-circle-fill"></i> Connected
+              </span>
+            } @else if (_isPolling() && paypalStatus() !== 'connected') {
+              <span class="processor-badge pending">
+                <i class="bi bi-arrow-repeat spin"></i> Waiting...
+              </span>
+            } @else {
+              <button
+                type="button"
+                class="btn btn-processor"
+                [disabled]="isConnecting() || paypalStatus() === 'connected'"
+                (click)="connectStripe()">
+                @if (isConnecting() && paypalStatus() !== 'connected' && stripeStatus() !== 'connected') {
+                  <i class="bi bi-arrow-repeat spin"></i> Connecting...
+                } @else {
+                  Connect <i class="bi bi-arrow-right"></i>
+                }
+              </button>
+            }
+          </div>
+
+          <div class="processor-divider">
+            <span>or</span>
+          </div>
+
+          <!-- PayPal Card -->
+          <div class="processor-card" [class.connected]="paypalStatus() === 'connected'" [class.disabled]="stripeStatus() === 'connected'">
+            <div class="processor-logo paypal">
+              <i class="bi bi-paypal"></i>
+            </div>
+            <div class="processor-info">
+              <h3>PayPal</h3>
+              <p>2.29% + 9 cents per transaction. PayPal, Venmo, and cards.</p>
+            </div>
+            @if (paypalStatus() === 'connected') {
+              <span class="processor-badge connected">
+                <i class="bi bi-check-circle-fill"></i> Connected
+              </span>
+            } @else if (_isPolling() && stripeStatus() !== 'connected') {
+              <span class="processor-badge pending">
+                <i class="bi bi-arrow-repeat spin"></i> Waiting...
+              </span>
+            } @else {
+              <button
+                type="button"
+                class="btn btn-processor"
+                [disabled]="isConnecting() || stripeStatus() === 'connected'"
+                (click)="connectPayPal()">
+                @if (isConnecting() && stripeStatus() !== 'connected' && paypalStatus() !== 'connected') {
+                  <i class="bi bi-arrow-repeat spin"></i> Connecting...
+                } @else {
+                  Connect <i class="bi bi-arrow-right"></i>
+                }
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (_connectError()) {
+          <div class="alert alert-warning mt-3">{{ _connectError() }}</div>
+        }
+
+        @if (hasConnectedProcessor()) {
+          <div class="payment-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>You're ready to accept payments!</span>
+          </div>
+        }
+
+        <div class="payment-actions">
+          @if (hasConnectedProcessor()) {
+            <button
+              type="button"
+              class="btn btn-primary btn-lg"
+              (click)="next()">
+              Continue <i class="bi bi-arrow-right"></i>
+            </button>
+          }
+          <button
+            type="button"
+            class="btn btn-link skip-link"
+            [disabled]="isConnecting() || _isPolling()"
+            (click)="skipPayment()">
+            I'll do this later
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- ============ STEP 5: You're All Set ============ -->
+    @if (currentStep() === 5) {
+      <div class="step-content welcome-screen">
+        <div class="welcome-hero">
+          <div class="welcome-icon">
+            <i class="bi bi-rocket-takeoff-fill"></i>
+          </div>
+          <h2>You're all set, {{ _businessName() || 'friend' }}!</h2>
+          <p class="step-subtitle">Your account is ready. Head to your dashboard to add items, invite team members, and start selling.</p>
+        </div>
+
+        <!-- PWA Install Prompt -->
+        @if (pwaInstall.canInstall() && !pwaInstall.isInstalled()) {
+          <div class="install-prompt">
+            <div class="install-icon">
+              <i class="bi bi-phone"></i>
+            </div>
+            <div class="install-info">
+              <strong>Install OrderStack</strong>
+              <span>Get the app for a faster, native experience.</span>
+            </div>
+            <button type="button" class="btn btn-install" (click)="installApp()">
+              Install
+            </button>
+          </div>
+        }
+
+        @if (pwaInstall.isIos && !pwaInstall.isInstalled()) {
+          <div class="install-prompt ios-prompt">
+            <div class="install-icon">
+              <i class="bi bi-phone"></i>
+            </div>
+            <div class="install-info">
+              <strong>Add to Home Screen</strong>
+              <span>Tap <i class="bi bi-box-arrow-up"></i> then "Add to Home Screen" for the best experience.</span>
+            </div>
+          </div>
+        }
+
+        <div class="welcome-actions">
+          <button
+            type="button"
+            class="btn btn-primary btn-lg welcome-cta"
+            (click)="goToDashboard()">
+            Go to Dashboard <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    }
   </div>
 
-  <!-- Navigation Footer -->
+  <!-- Navigation Footer (Steps 1-3 only) -->
   @if (currentStep() < 4) {
     <div class="wizard-footer">
       @if (currentStep() > 1) {
@@ -174,9 +295,13 @@
 
       <button
         class="btn btn-primary"
-        [disabled]="!canProceed()"
+        [disabled]="!canProceed() || _isSubmitting()"
         (click)="next()">
-        Continue <i class="bi bi-arrow-right"></i>
+        @if (_isSubmitting()) {
+          <i class="bi bi-arrow-repeat spin"></i> Setting up...
+        } @else {
+          Continue <i class="bi bi-arrow-right"></i>
+        }
       </button>
     </div>
   }

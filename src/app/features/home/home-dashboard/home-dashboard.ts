@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { PlatformService } from '@services/platform';
 import { AnalyticsService } from '@services/analytics';
+import { PwaInstallService } from '@services/pwa-install';
 
 interface SetupTask {
   id: string;
@@ -33,6 +34,7 @@ export class HomeDashboard implements OnInit {
   private readonly router = inject(Router);
   private readonly platform = inject(PlatformService);
   private readonly analytics = inject(AnalyticsService);
+  readonly pwaInstall = inject(PwaInstallService);
 
   readonly businessName = computed(() => this.platform.merchantProfile()?.businessName ?? 'Your Business');
   readonly todayDate = signal(new Date());
@@ -274,6 +276,14 @@ export class HomeDashboard implements OnInit {
       this.markTaskDone(task.id);
     }
     this.router.navigate([task.route]);
+  }
+
+  dismissInstallBanner(): void {
+    this.pwaInstall.dismissInstall();
+  }
+
+  async installApp(): Promise<void> {
+    await this.pwaInstall.promptInstall();
   }
 
   formatCurrency(amount: number): string {

@@ -1,4 +1,76 @@
 <div class="payment-settings">
+  <!-- Connection Status Section -->
+  <div class="connect-section mb-4">
+    <h5 class="mb-3">Payment Processor Connection</h5>
+    <p class="text-muted small mb-3">
+      Connect a payment processor to accept card payments. Your platform fee is included in each transaction.
+    </p>
+
+    <div class="connect-cards">
+      <!-- Stripe -->
+      <div class="connect-card" [class.connected]="stripeStatus() === 'connected'">
+        <div class="connect-card-header">
+          <div class="connect-logo stripe">
+            <i class="bi bi-stripe"></i>
+          </div>
+          <div class="connect-info">
+            <strong>Stripe</strong>
+            <span>2.9% + 30 cents per transaction</span>
+          </div>
+          @if (stripeStatus() === 'connected') {
+            <span class="connect-badge connected">
+              <i class="bi bi-check-circle-fill"></i> Connected
+            </span>
+          } @else {
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-primary"
+              [disabled]="isConnecting() || paypalStatus() === 'connected'"
+              (click)="connectStripe()">
+              @if (isConnecting()) {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+              }
+              Connect
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- PayPal -->
+      <div class="connect-card" [class.connected]="paypalStatus() === 'connected'">
+        <div class="connect-card-header">
+          <div class="connect-logo paypal">
+            <i class="bi bi-paypal"></i>
+          </div>
+          <div class="connect-info">
+            <strong>PayPal</strong>
+            <span>2.29% + 9 cents per transaction</span>
+          </div>
+          @if (paypalStatus() === 'connected') {
+            <span class="connect-badge connected">
+              <i class="bi bi-check-circle-fill"></i> Connected
+            </span>
+          } @else {
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-primary"
+              [disabled]="isConnecting() || stripeStatus() === 'connected'"
+              (click)="connectPayPal()">
+              @if (isConnecting()) {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+              }
+              Connect
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    @if (connectError()) {
+      <div class="alert alert-danger mt-2 small">{{ connectError() }}</div>
+    }
+  </div>
+
   <h5 class="mb-3">Payment Processor</h5>
   <p class="text-muted small mb-3">
     Select how your restaurant processes payments. Changes take effect immediately for new orders.

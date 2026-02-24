@@ -778,4 +778,32 @@ ng build --configuration=production
 - **Build: zero errors** (frontend + backend)
 - Next: End-to-end test with live backend. Verify device scoping across multiple browser tabs.
 
-*Last Updated: February 24, 2026 (Session 36)*
+**[February 24, 2026] (Session 37) — Payment Processor Onboarding + PWA Install Prompt (Full Plan):**
+- **Plan:** `.claude/plans/elegant-sparking-pearl.md` — ALL COMPLETE (Phase 1-4)
+- **Phase 1 (Backend — Stripe Connect + PayPal Partner Referrals):**
+  - Prisma schema: Added `stripeConnectedAccountId`, `paypalMerchantId`, `paymentProcessor`, `platformFeePercent` (default 2.9), `platformFeeFixed` (default 30 cents) to Restaurant model
+  - Created `src/config/platform-fees.ts` — fee tier config (free/plus/premium) + `calculatePlatformFee()` helper
+  - Created `src/app/payment-connect.routes.ts` — 6 endpoints: Stripe create-account, account-link, status; PayPal create-referral, status, complete. Uses Stripe Express accounts and PayPal Partner Referrals — processors handle all merchant verification
+  - Modified `stripe.service.ts` — `application_fee_amount` + `transfer_data.destination` on PaymentIntents when connected
+  - Modified `paypal.service.ts` — `payee.merchant_id` + `payment_instruction.platform_fees` on Orders when connected
+  - Mounted routes in `app.ts`
+- **Phase 2 (Frontend — Payment Choice in Onboarding):**
+  - Created `services/payment-connect.ts` — signals for stripeStatus/paypalStatus/isConnecting/error, methods for Stripe Connect + PayPal flows with polling (30 attempts, 3s interval)
+  - Rewrote setup wizard: new Step 4 "Accept Payments" with Stripe/PayPal connect cards, polling/connected states. Onboarding submission moved to step 3→4 transition (restaurantId needed for API calls). "I'll do this later" skip link styled subtly (tertiary color) — payment connection is the primary flow
+  - New Step 5 "You're All Set" with PWA install prompt
+- **Phase 3 (PWA Install Prompt):**
+  - Created `services/pwa-install.ts` — listens `beforeinstallprompt` + `appinstalled`, detects iOS/Android/desktop, localStorage dismiss tracking
+  - Home dashboard: dismissible install banner with iOS manual instructions vs native Install button
+  - Setup wizard Step 5: PWA install section
+- **Phase 4 (Payment Settings Enhancement):**
+  - Payment settings: added Connection Status section with Stripe/PayPal connect cards showing status badges, connect buttons (disabled when other processor connected), error display
+  - Added connect card styles to payment-settings.scss
+- **Key design decision:** Skip link is intentionally subtle — payment processing is the revenue model (platform fee on every transaction). Testers can skip, but real merchants see payment connection as the primary action.
+- **Backend files created (2):** `config/platform-fees.ts`, `app/payment-connect.routes.ts`
+- **Backend files modified (3):** `prisma/schema.prisma`, `app/app.ts`, `services/stripe.service.ts`, `services/paypal.service.ts`
+- **Frontend files created (2):** `services/payment-connect.ts`, `services/pwa-install.ts`
+- **Frontend files modified (7):** `setup-wizard.ts`, `setup-wizard.html`, `setup-wizard.scss`, `home-dashboard.ts`, `home-dashboard.html`, `home-dashboard.scss`, `payment-settings.ts`, `payment-settings.html`, `payment-settings.scss`
+- **Build: zero errors** — both frontend (`ng build --configuration=production`) and backend (`tsc --noEmit` after `prisma generate`)
+- Next: End-to-end test with live backend. Verify Stripe Connect + PayPal flows.
+
+*Last Updated: February 24, 2026 (Session 37)*
