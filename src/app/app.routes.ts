@@ -66,6 +66,18 @@ export const routes: Routes = [
     loadComponent: () => import('./features/pos/customer-display/customer-display').then(m => m.CustomerDisplay),
   },
   {
+    path: 'shop/:storeSlug',
+    loadComponent: () => import('./features/retail/ecommerce/product-list/product-list').then(m => m.ProductList),
+  },
+  {
+    path: 'shop/:storeSlug/product/:productId',
+    loadComponent: () => import('./features/retail/ecommerce/product-detail/product-detail').then(m => m.ProductDetail),
+  },
+  {
+    path: 'shop/:storeSlug/checkout',
+    loadComponent: () => import('./features/retail/ecommerce/retail-checkout/retail-checkout').then(m => m.RetailCheckout),
+  },
+  {
     path: 'select-restaurant',
     canActivate: [authGuard],
     loadComponent: () => import('./features/auth/restaurant-select/restaurant-select').then(m => m.RestaurantSelect),
@@ -129,6 +141,18 @@ export const routes: Routes = [
       { path: 'dynamic-pricing', loadComponent: () => import('./features/pricing/dynamic-pricing/dynamic-pricing').then(m => m.DynamicPricing) },
       { path: 'waste-tracker', loadComponent: () => import('./features/waste/waste-tracker/waste-tracker').then(m => m.WasteTracker) },
       { path: 'sentiment', loadComponent: () => import('./features/sentiment/sentiment-dashboard/sentiment-dashboard').then(m => m.SentimentDashboard) },
+
+      // Retail
+      { path: 'retail/catalog', loadComponent: () => import('./features/retail/catalog-management/catalog-management').then(m => m.CatalogManagement) },
+      { path: 'retail/variations', loadComponent: () => import('./features/retail/variation-editor/variation-editor').then(m => m.VariationEditor) },
+      { path: 'retail/inventory', loadComponent: () => import('./features/retail/inventory/retail-inventory/retail-inventory').then(m => m.RetailInventory) },
+      { path: 'retail/pos', loadComponent: () => import('./features/retail/retail-pos/retail-pos').then(m => m.RetailPos) },
+      { path: 'retail/returns', loadComponent: () => import('./features/retail/returns/returns').then(m => m.ReturnProcessing) },
+      { path: 'retail/vendors', loadComponent: () => import('./features/retail/vendor-management/vendor-management').then(m => m.RetailVendorManagement) },
+      { path: 'retail/purchase-orders', loadComponent: () => import('./features/retail/purchase-orders/purchase-orders').then(m => m.RetailPurchaseOrders) },
+      { path: 'retail/reports', loadComponent: () => import('./features/retail/reports/retail-reports').then(m => m.RetailReports) },
+      { path: 'retail/fulfillment', loadComponent: () => import('./features/retail/fulfillment/fulfillment-dashboard').then(m => m.FulfillmentDashboard) },
+      { path: 'retail/ecommerce', loadComponent: () => import('./features/retail/fulfillment/fulfillment-dashboard').then(m => m.FulfillmentDashboard) },
 
       // Admin
       { path: 'multi-location', loadComponent: () => import('./features/multi-location/multi-location-dashboard/multi-location-dashboard').then(m => m.MultiLocationDashboard) },

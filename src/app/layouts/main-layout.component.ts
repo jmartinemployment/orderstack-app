@@ -69,6 +69,18 @@ export class MainLayoutComponent {
     { label: 'Cash Drawer', icon: 'bi-cash-stack', route: '/cash-drawer', group: 'Operations' },
     { label: 'Monitoring', icon: 'bi-shield-check', route: '/monitoring', group: 'Operations' },
 
+    // Retail
+    { label: 'Catalog', icon: 'bi-grid-3x3-gap', route: '/retail/catalog', group: 'Retail', requiredFlag: 'enableBarcodeScanning' },
+    { label: 'Variations', icon: 'bi-diagram-3', route: '/retail/variations', group: 'Retail', requiredFlag: 'enableBarcodeScanning' },
+    { label: 'Retail POS', icon: 'bi-upc-scan', route: '/retail/pos', group: 'Retail', requiredFlag: 'enableBarcodeScanning' },
+    { label: 'Returns', icon: 'bi-arrow-return-left', route: '/retail/returns', group: 'Retail', requiredFlag: 'enableBarcodeScanning' },
+    { label: 'Inventory', icon: 'bi-box-seam', route: '/retail/inventory', group: 'Retail', requiredFlag: 'enableBarcodeScanning' },
+    { label: 'Vendors', icon: 'bi-truck', route: '/retail/vendors', group: 'Retail', requiredFlag: 'enableBarcodeScanning' },
+    { label: 'Purchase Orders', icon: 'bi-clipboard-check', route: '/retail/purchase-orders', group: 'Retail', requiredFlag: 'enableBarcodeScanning' },
+    { label: 'Reports', icon: 'bi-bar-chart-line', route: '/retail/reports', group: 'Retail', requiredFlag: 'enableBarcodeScanning' },
+    { label: 'Fulfillment', icon: 'bi-box2', route: '/retail/fulfillment', group: 'Retail', requiredFlag: 'enableBarcodeScanning' },
+    { label: 'Online Store', icon: 'bi-globe', route: '/retail/ecommerce', group: 'Retail', requiredFlag: 'enableBarcodeScanning' },
+
     // AI Tools
     { label: 'AI Chat', icon: 'bi-chat-dots', route: '/ai-chat', group: 'AI Tools' },
     { label: 'Voice Order', icon: 'bi-mic', route: '/voice-order', group: 'AI Tools' },

@@ -11,9 +11,8 @@
 This is the **canonical OrderStack** restaurant management SaaS application — a standalone Angular 21 app. This is the active, correct project for all OrderStack development.
 
 **Related Documentation:**
-- **`specs/`** — GOS-SPEC-11 (Phases 1-3). GOS-SPEC-01 through 10 fully delivered and deleted.
-- **`specs/GAP-R01..R09`** — 9 restaurant POS gap specs (Square parity features — GAP-R04 and GAP-R10 delivered and deleted)
-- **`specs/GOS-SPEC-20..24`** — 5 retail vertical specs — **ON HOLD** until all GAP-R specs are 100% complete. Retail vertical will be developed in a separate project while vendor testing of the restaurant vertical occurs.
+- **`specs/`** — All specs 100% complete and deleted. GOS-SPEC-01 through 11, GAP-R01 through R10, GOS-SPEC-20 through 24 all delivered.
+- **Testing:** Vitest (`npm test`) — 184 tests across 6 test files covering retail ecommerce models, services, and components.
 
 **Predecessor:** `Get-Order-Stack-Restaurant-Frontend-Workspace/` (Angular Elements + WordPress — archived, do not use)
 
@@ -682,4 +681,62 @@ ng build --configuration=production
 - **ALL GAP-R specs complete (10/10):** GAP-R01 through R10 all delivered and spec files deleted. Only retail vertical specs (GOS-SPEC-20-24) remain — ON HOLD per project plan.
 - Next: Retail vertical specs (GOS-SPEC-20-24) when ready to begin. End-to-end test with live backend.
 
-*Last Updated: February 23, 2026 (Session 32)*
+**[February 23, 2026] (Session 33+) — Retail Vertical Complete (GOS-SPEC-20 through 24, all 15 phases):**
+- **ALL 5 RETAIL SPECS 100% COMPLETE** — 15 phases, 72 steps delivered across multiple sessions
+- **SPEC-20 (Retail Catalog & Variations):** Phases 1-3 complete — models, service, catalog management UI, variation editor, hierarchical categories, collections, bulk ops, CSV import/export, bundles & kits
+- **SPEC-21 (Retail POS Checkout):** Phases 1-3 complete — barcode checkout, quick keys, split tender, gift card/store credit/layaway, receipt customization, return/exchange processing, return policy enforcement
+- **SPEC-22 (Retail Inventory Management):** Phases 1-3 complete — stock tracking, adjustments, transfers, cycle counts, vendor management, purchase orders, PO receiving, auto-reorder, FIFO valuation, barcode label printing
+- **SPEC-23 (Retail Reporting & Analytics):** Phases 1-3 complete — sales reports (6 tabs), COGS/vendor/projected profit reports, sales forecast, demand planning, year-over-year comparison
+- **SPEC-24 (Retail Ecommerce Integration):** Phases 1-3 complete — online storefront, product detail, cart + checkout, fulfillment dashboard, channel sync config
+
+**SPEC-24 Phase 1 (Online Store):**
+- Step 1: Created `models/retail-ecommerce.model.ts` — `ProductListing`, `ProductImage`, `ProductListingFormData`, `ShippingMethod`, `ShippingMethodFormData`, `EcommerceOrderItem`, `ShippingAddress`, `EcommerceOrder`, `ShippingLabel`, `EcommerceCartItem`, `EcommerceCheckoutStep`, `StoreConfig`, `ProductSortOption`, `ProductFilterState`, `EcommerceFulfillmentStatus` (renamed from `FulfillmentStatus` to avoid collision with `order.model.ts`), `FulfillmentOption`
+- Step 2: Created `services/retail-ecommerce.ts` — `RetailEcommerceService` with listings CRUD, orders CRUD, shipping methods CRUD, store config, public catalog, order submission, fulfillment actions. Uses `authService.selectedRestaurantId()` pattern.
+- Steps 3-4: Created `features/retail/ecommerce/product-list/` (public storefront grid with search, sort, category filter, cart drawer), `features/retail/ecommerce/product-detail/` (variation selector, quantity picker, add-to-cart with feedback), `features/retail/ecommerce/retail-checkout/` (3-step checkout: cart → shipping/fulfillment → payment, order summary sidebar)
+- Step 5: Added 3 public routes (`/shop/:storeSlug`, `/shop/:storeSlug/product/:productId`, `/shop/:storeSlug/checkout`). Added "Online Store" nav item.
+
+**SPEC-24 Phase 2 (Fulfillment):**
+- Steps 6-10: Created `features/retail/fulfillment/fulfillment-dashboard.ts` — pick-pack-ship workflow with 5-status pipeline (Pending → Processing → Ready → Shipped → Completed). KPI bar with counts per stage. Order list + detail panel layout. Actions per status (Start Processing, Mark Ready for Pickup, Mark Shipped with tracking, Out for Delivery, Mark Delivered, Cancel). Pick list view, customer/address info, order totals, tracking info.
+- Added `FulfillmentDashboardTab`, `PickListItem`, `PackingSlip`, `CustomerNotificationConfig`, `BopisConfig` models.
+- Added `/retail/fulfillment` and `/retail/ecommerce` routes. Added "Fulfillment" nav item.
+
+**SPEC-24 Phase 3 (Channel Sync):**
+- Steps 11-14: Added `ChannelSyncConfig`, `ChannelSyncConfigFormData`, `ChannelPriceOverride`, `SalePricing`, `SalePricingFormData`, `ChannelVisibilitySetting`, `SyncChannel` models. Added 10+ service methods: `loadSyncConfig()`, `saveSyncConfig()`, `loadPriceOverrides()`, `savePriceOverride()`, `loadSalePricings()`, `createSalePricing()`, `deleteSalePricing()`, `loadChannelVisibility()`, `updateChannelVisibility()`.
+- `activeSales` computed for filtering active sale pricing entries.
+
+**Build fixes:**
+- `FulfillmentStatus` naming collision with `order.model.ts` → renamed to `EcommerceFulfillmentStatus`
+- `authService.restaurantId()` doesn't exist → fixed to `authService.selectedRestaurantId()`
+- `item.sku` nullable on `RetailItem` → added `?? ''` fallback
+
+**Files created (8):**
+- `src/app/models/retail-ecommerce.model.ts`
+- `src/app/services/retail-ecommerce.ts`
+- `src/app/features/retail/ecommerce/product-list/` (ts, html, scss)
+- `src/app/features/retail/ecommerce/product-detail/` (ts, html, scss)
+- `src/app/features/retail/ecommerce/retail-checkout/` (ts, html, scss)
+- `src/app/features/retail/fulfillment/` (ts, html, scss)
+
+**Files modified (3):**
+- `src/app/models/index.ts` — added retail-ecommerce.model export
+- `src/app/app.routes.ts` — added 6 routes (3 public + 3 authenticated)
+- `src/app/layouts/main-layout.component.ts` — added Fulfillment + Online Store nav items
+
+**Build: zero errors** after each phase
+- **RETAIL VERTICAL COMPLETE** — All 5 specs (GOS-SPEC-20 through 24), 15 phases, 72 steps delivered.
+
+**[February 24, 2026] (Session 34) — Spec Cleanup, Vitest Setup, Comprehensive Unit Tests:**
+- **Deleted 5 completed spec files:** GOS-SPEC-20, 21, 22, 23, 24 — all retail vertical specs 100% complete
+- **Vitest configuration:** Created `vitest.config.ts` with jsdom environment, path aliases (`@models`, `@services`, `@shared`, `@environments`), globals enabled
+- **Package.json:** Updated test scripts — `npm test` → `vitest run`, added `npm run test:watch` → `vitest`
+- **6 test files created (184 tests, all passing):**
+  - `src/app/models/retail-ecommerce.model.spec.ts` — 37 tests: type construction for all 25+ interfaces/types (FulfillmentOption, EcommerceFulfillmentStatus, ProductImage, ProductListing, ShippingMethod, EcommerceOrder, ShippingLabel, CartItem, StoreConfig, PickListItem, PackingSlip, BopisConfig, SyncChannel, ChannelSyncConfig, SalePricing, ChannelVisibilitySetting, ProductSortOption, ProductFilterState)
+  - `src/app/services/retail-ecommerce.spec.ts` — 20 tests: computed signal logic (publishedListings, pendingOrders, readyForPickupOrders, shippedOrders, activeShippingMethods, activeSales) + signal mutation logic (updateListingInList, removeListingFromList, updateOrderInList, upsertPriceOverride, upsertVisibility)
+  - `src/app/features/retail/fulfillment/fulfillment-dashboard.spec.ts` — 25 tests: KPI counts, filterByTab (all 5 tabs + unknown), getStatusLabel, getStatusClass, getFulfillmentIcon, getFulfillmentLabel, getTimeSince (minutes/hours/days/same-time), selectedOrder lookup
+  - `src/app/features/retail/ecommerce/product-list/product-list.spec.ts` — 37 tests: filterAndSortItems (inactive, offline, search by name/SKU, null SKU, category, min/max price, combined filters), all 5 sort options, getPriceRange (no variations, same price, different prices, inactive variations), hasVariations, cart operations (cartItemCount, cartTotal, addToCart new/existing/variation, removeFromCart, updateCartQuantity including remove-on-zero)
+  - `src/app/features/retail/ecommerce/product-detail/product-detail.spec.ts` — 33 tests: findVariation, getCurrentPrice, getCurrentImageUrl, isInStock, hasVariations, getActiveVariations, buildCartItem (with/without variation, null SKU), addToCart (new/increment/different variation), findProduct, autoSelectVariation
+  - `src/app/features/retail/ecommerce/retail-checkout/retail-checkout.spec.ts` — 32 tests: cartSubtotal, cartItemCount, findShippingMethod, calculateShippingCost (non-ship/no method/flat rate/free threshold/below threshold/null freeAbove), calculateTax, calculateOrderTotal, canProceedToShipping, canProceedToPayment (missing name/email, non-ship, ship with valid/missing address fields), updateCartQuantity (update/remove), removeItem, handleFulfillmentTypeChange
+- **Updated CLAUDE.md:** specs reference section updated to reflect all specs complete and deleted
+- Next: End-to-end testing with live backend. Vendor testing phase.
+
+*Last Updated: February 24, 2026 (Session 34)*

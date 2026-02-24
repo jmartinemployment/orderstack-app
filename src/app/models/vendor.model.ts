@@ -4,9 +4,12 @@ export interface Vendor {
   name: string;
   contactName: string | null;
   contactEmail: string | null;
+  email: string | null;
   phone: string | null;
   address: string | null;
   notes: string | null;
+  paymentTerms: string | null;
+  leadTimeDays: number | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -14,11 +17,14 @@ export interface Vendor {
 
 export interface VendorFormData {
   name: string;
-  contactName?: string;
-  contactEmail?: string;
-  phone?: string;
-  address?: string;
-  notes?: string;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  notes?: string | null;
+  paymentTerms?: string | null;
+  leadTimeDays?: number | null;
 }
 
 export type PurchaseInvoiceStatus = 'pending_review' | 'approved' | 'paid';
@@ -141,6 +147,7 @@ export interface PurchaseOrder {
   shipping: number;
   total: number;
   notes: string | null;
+  expectedDeliveryDate: string | null;
   submittedAt: string | null;
   receivedAt: string | null;
   createdAt: string;
@@ -156,6 +163,7 @@ export interface PurchaseOrderLineItem {
 
 export interface PurchaseOrderFormData {
   vendorId: string;
-  notes?: string;
+  expectedDeliveryDate?: string | null;
+  notes?: string | null;
   lineItems: Omit<PurchaseOrderLineItem, 'receivedQuantity'>[];
 }

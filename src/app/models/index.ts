@@ -35,3 +35,6 @@ export * from './platform.model';
 export * from './device.model';
 export * from './subscription.model';
 export * from './report.model';
+export * from './retail.model';
+export * from './retail-inventory.model';
+export * from './retail-ecommerce.model';

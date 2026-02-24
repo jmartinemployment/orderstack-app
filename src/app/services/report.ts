@@ -21,6 +21,18 @@ import {
   TeamMemberSalesRow,
   TaxServiceChargeReport,
   RealTimeKpi,
+  RetailSalesReport,
+  RetailItemSalesRow,
+  RetailCategorySalesRow,
+  RetailEmployeeSalesRow,
+  RetailDiscountReport,
+  RetailTaxReport,
+  RetailCogsReport,
+  RetailVendorSalesRow,
+  RetailProjectedProfitReport,
+  RetailSalesForecast,
+  RetailDemandForecastItem,
+  RetailYoyReport,
 } from '@models/report.model';
 
 const ALL_REPORT_BLOCKS: ReportBlock[] = [
@@ -414,6 +426,250 @@ export class ReportService {
       console.error('[ReportService] getRealTimeKpis failed:', message);
       this._error.set(message);
       return null;
+    }
+  }
+
+  // --- Retail Sales Reports (SPEC-23) ---
+
+  async getRetailSalesReport(dateRange: ReportDateRange, locationId?: string): Promise<RetailSalesReport | null> {
+    if (!this.restaurantId) return null;
+    this._isLoading.set(true);
+    this._error.set(null);
+    try {
+      const params: Record<string, string> = {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+      };
+      if (dateRange.comparisonPeriod) params['comparisonPeriod'] = dateRange.comparisonPeriod;
+      if (dateRange.comparisonStartDate) params['comparisonStartDate'] = dateRange.comparisonStartDate;
+      if (dateRange.comparisonEndDate) params['comparisonEndDate'] = dateRange.comparisonEndDate;
+      if (locationId) params['locationId'] = locationId;
+      return await firstValueFrom(
+        this.http.get<RetailSalesReport>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/sales`,
+          { params }
+        )
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load retail sales report';
+      this._error.set(message);
+      return null;
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
+
+  async getRetailItemSales(dateRange: ReportDateRange, categoryId?: string, vendorId?: string): Promise<RetailItemSalesRow[]> {
+    if (!this.restaurantId) return [];
+    this._error.set(null);
+    try {
+      const params: Record<string, string> = {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+      };
+      if (categoryId) params['categoryId'] = categoryId;
+      if (vendorId) params['vendorId'] = vendorId;
+      const rows = await firstValueFrom(
+        this.http.get<RetailItemSalesRow[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/item-sales`,
+          { params }
+        )
+      );
+      return rows ?? [];
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load retail item sales';
+      this._error.set(message);
+      return [];
+    }
+  }
+
+  async getRetailCategorySales(dateRange: ReportDateRange): Promise<RetailCategorySalesRow[]> {
+    if (!this.restaurantId) return [];
+    this._error.set(null);
+    try {
+      const rows = await firstValueFrom(
+        this.http.get<RetailCategorySalesRow[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/category-sales`,
+          { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
+        )
+      );
+      return rows ?? [];
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load retail category sales';
+      this._error.set(message);
+      return [];
+    }
+  }
+
+  async getRetailEmployeeSales(dateRange: ReportDateRange): Promise<RetailEmployeeSalesRow[]> {
+    if (!this.restaurantId) return [];
+    this._error.set(null);
+    try {
+      const rows = await firstValueFrom(
+        this.http.get<RetailEmployeeSalesRow[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/employee-sales`,
+          { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
+        )
+      );
+      return rows ?? [];
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load retail employee sales';
+      this._error.set(message);
+      return [];
+    }
+  }
+
+  async getRetailDiscountReport(dateRange: ReportDateRange): Promise<RetailDiscountReport[]> {
+    if (!this.restaurantId) return [];
+    this._error.set(null);
+    try {
+      const rows = await firstValueFrom(
+        this.http.get<RetailDiscountReport[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/discounts`,
+          { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
+        )
+      );
+      return rows ?? [];
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load retail discount report';
+      this._error.set(message);
+      return [];
+    }
+  }
+
+  // --- Retail Inventory Reports (SPEC-23 Phase 2) ---
+
+  async getRetailCogsReport(dateRange: ReportDateRange): Promise<RetailCogsReport | null> {
+    if (!this.restaurantId) return null;
+    this._isLoading.set(true);
+    this._error.set(null);
+    try {
+      return await firstValueFrom(
+        this.http.get<RetailCogsReport>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/cogs`,
+          { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
+        )
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load COGS report';
+      this._error.set(message);
+      return null;
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
+
+  async getRetailVendorSales(dateRange: ReportDateRange): Promise<RetailVendorSalesRow[]> {
+    if (!this.restaurantId) return [];
+    this._error.set(null);
+    try {
+      const rows = await firstValueFrom(
+        this.http.get<RetailVendorSalesRow[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/vendor-sales`,
+          { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
+        )
+      );
+      return rows ?? [];
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load vendor sales report';
+      this._error.set(message);
+      return [];
+    }
+  }
+
+  async getRetailProjectedProfit(): Promise<RetailProjectedProfitReport | null> {
+    if (!this.restaurantId) return null;
+    this._isLoading.set(true);
+    this._error.set(null);
+    try {
+      return await firstValueFrom(
+        this.http.get<RetailProjectedProfitReport>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/projected-profit`
+        )
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load projected profit report';
+      this._error.set(message);
+      return null;
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
+
+  // --- Retail Predictive & Comparison (SPEC-23 Phase 3) ---
+
+  async getRetailSalesForecast(days: number): Promise<RetailSalesForecast | null> {
+    if (!this.restaurantId) return null;
+    this._isLoading.set(true);
+    this._error.set(null);
+    try {
+      return await firstValueFrom(
+        this.http.get<RetailSalesForecast>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/forecast`,
+          { params: { days: days.toString() } }
+        )
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load sales forecast';
+      this._error.set(message);
+      return null;
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
+
+  async getRetailDemandForecast(): Promise<RetailDemandForecastItem[]> {
+    if (!this.restaurantId) return [];
+    this._error.set(null);
+    try {
+      const rows = await firstValueFrom(
+        this.http.get<RetailDemandForecastItem[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/demand-forecast`
+        )
+      );
+      return rows ?? [];
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load demand forecast';
+      this._error.set(message);
+      return [];
+    }
+  }
+
+  async getRetailYoyReport(dateRange: ReportDateRange): Promise<RetailYoyReport | null> {
+    if (!this.restaurantId) return null;
+    this._isLoading.set(true);
+    this._error.set(null);
+    try {
+      return await firstValueFrom(
+        this.http.get<RetailYoyReport>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/yoy`,
+          { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
+        )
+      );
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load year-over-year report';
+      this._error.set(message);
+      return null;
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
+
+  async getRetailTaxReport(dateRange: ReportDateRange): Promise<RetailTaxReport[]> {
+    if (!this.restaurantId) return [];
+    this._error.set(null);
+    try {
+      const rows = await firstValueFrom(
+        this.http.get<RetailTaxReport[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/tax`,
+          { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
+        )
+      );
+      return rows ?? [];
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load retail tax report';
+      this._error.set(message);
+      return [];
     }
   }
 

@@ -174,6 +174,202 @@ export interface RealTimeKpi {
   lastUpdated: string;
 }
 
+// --- Retail Sales Reports (SPEC-23) ---
+
+export interface RetailSalesReport {
+  dateRange: ReportDateRange;
+  totalRevenue: number;
+  totalCogs: number;
+  grossProfit: number;
+  grossMarginPercent: number;
+  totalUnits: number;
+  totalTransactions: number;
+  averageTransactionValue: number;
+  salesByItem: RetailItemSalesRow[];
+  salesByCategory: RetailCategorySalesRow[];
+  salesByEmployee: RetailEmployeeSalesRow[];
+  salesByPaymentMethod: RetailPaymentMethodRow[];
+  comparison?: RetailSalesReportComparison;
+}
+
+export interface RetailSalesReportComparison {
+  totalRevenue: number;
+  totalCogs: number;
+  grossProfit: number;
+  grossMarginPercent: number;
+  totalUnits: number;
+  totalTransactions: number;
+  averageTransactionValue: number;
+}
+
+export interface RetailItemSalesRow {
+  itemId: string;
+  itemName: string;
+  variationName: string | null;
+  sku: string;
+  unitsSold: number;
+  revenue: number;
+  cogs: number;
+  profit: number;
+  marginPercent: number;
+  averageSellingPrice: number;
+  discountAmount: number;
+}
+
+export interface RetailCategorySalesRow {
+  categoryId: string;
+  categoryName: string;
+  unitsSold: number;
+  revenue: number;
+  cogs: number;
+  profit: number;
+  marginPercent: number;
+}
+
+export interface RetailEmployeeSalesRow {
+  employeeId: string;
+  employeeName: string;
+  transactionCount: number;
+  revenue: number;
+  averageTransaction: number;
+  commission: number;
+  itemsSold: number;
+}
+
+export interface RetailPaymentMethodRow {
+  method: string;
+  transactionCount: number;
+  totalAmount: number;
+  percentage: number;
+}
+
+export interface RetailDiscountReport {
+  discountName: string;
+  timesUsed: number;
+  totalDiscountAmount: number;
+  revenueImpact: number;
+  averageDiscount: number;
+}
+
+export interface RetailTaxReport {
+  taxRateName: string;
+  taxRate: number;
+  taxableAmount: number;
+  taxCollected: number;
+}
+
+// --- Retail Inventory Reports (SPEC-23 Phase 2) ---
+
+export interface RetailCogsRow {
+  itemId: string;
+  itemName: string;
+  sku: string;
+  unitsSold: number;
+  totalCogs: number;
+  avgCostPerUnit: number;
+  adjustmentBreakdown: { type: string; amount: number }[];
+}
+
+export interface RetailCogsTrend {
+  period: string;
+  totalCogs: number;
+  totalRevenue: number;
+  grossMargin: number;
+}
+
+export interface RetailCogsReport {
+  rows: RetailCogsRow[];
+  trend: RetailCogsTrend[];
+  totalCogs: number;
+  totalRevenue: number;
+  grossMarginPercent: number;
+}
+
+export interface RetailVendorSalesRow {
+  vendorId: string;
+  vendorName: string;
+  itemCount: number;
+  unitsSold: number;
+  revenue: number;
+  cogs: number;
+  profit: number;
+  marginPercent: number;
+  topItems: { itemName: string; revenue: number }[];
+}
+
+export interface RetailProjectedProfitRow {
+  itemId: string;
+  itemName: string;
+  sku: string;
+  quantityOnHand: number;
+  unitCost: number;
+  unitPrice: number;
+  projectedRevenue: number;
+  projectedCogs: number;
+  projectedProfit: number;
+  marginPercent: number;
+}
+
+export interface RetailProjectedProfitReport {
+  rows: RetailProjectedProfitRow[];
+  totalProjectedRevenue: number;
+  totalProjectedCogs: number;
+  totalProjectedProfit: number;
+  overallMarginPercent: number;
+}
+
+// --- Retail Predictive & Comparison (SPEC-23 Phase 3) ---
+
+export interface RetailSalesForecast {
+  forecastDays: number;
+  dailyForecasts: RetailDailyForecast[];
+  totalPredictedRevenue: number;
+  totalPredictedUnits: number;
+  confidencePercent: number;
+}
+
+export interface RetailDailyForecast {
+  date: string;
+  predictedRevenue: number;
+  predictedUnits: number;
+  confidenceLow: number;
+  confidenceHigh: number;
+  confidence: 'high' | 'medium' | 'low';
+}
+
+export interface RetailDemandForecastItem {
+  itemId: string;
+  itemName: string;
+  sku: string;
+  currentStock: number;
+  avgDailyDemand: number;
+  predictedStockoutDate: string | null;
+  daysUntilStockout: number | null;
+  reorderRecommendation: string | null;
+  seasonalPattern: 'peak' | 'normal' | 'low' | null;
+  seasonalMultiplier: number;
+}
+
+export interface RetailYoyComparison {
+  metric: string;
+  thisYear: number;
+  lastYear: number;
+  change: number;
+  changePercent: number;
+}
+
+export interface RetailYoyReport {
+  period: string;
+  summaryMetrics: RetailYoyComparison[];
+  monthlyRevenue: { month: string; thisYear: number; lastYear: number }[];
+  topGrowthItems: { itemName: string; thisYearRevenue: number; lastYearRevenue: number; growthPercent: number }[];
+  topDeclineItems: { itemName: string; thisYearRevenue: number; lastYearRevenue: number; declinePercent: number }[];
+}
+
+export type RetailReportTab = 'overview' | 'items' | 'categories' | 'employees' | 'discounts' | 'tax' | 'cogs' | 'vendor-sales' | 'projected-profit' | 'forecast' | 'demand' | 'yoy';
+
+export type RetailReportPeriod = 'today' | 'yesterday' | 'this_week' | 'last_week' | 'this_month' | 'last_month' | 'custom';
+
 export type ShiftPreset = 'all' | 'morning' | 'afternoon' | 'evening';
 
 export interface ShiftFilter {
