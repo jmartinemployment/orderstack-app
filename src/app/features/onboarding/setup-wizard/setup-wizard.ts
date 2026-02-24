@@ -351,6 +351,8 @@ export class SetupWizard {
 
     const detectedMode = this.autoDetectedMode();
 
+    const user = this.authService.user();
+
     const payload: OnboardingPayload = {
       businessName: this._businessName(),
       address: { ...this._address(), phone: this._phone() || null },
@@ -363,11 +365,11 @@ export class SetupWizard {
       paymentProcessor: 'none',
       menuTemplateId: null,
       ownerPin: {
-        displayName: '',
+        displayName: user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || 'Owner' : 'Owner',
         pin: '',
         role: 'owner',
       },
-      ownerEmail: '',
+      ownerEmail: user?.email ?? '',
       ownerPassword: '',
     };
 

@@ -39,7 +39,7 @@ export interface OnboardingPayload {
 
 export interface OnboardingResult {
   restaurantId: string;
-  token: string;
+  token: string | null;
   deviceId: string;
   restaurant: Record<string, unknown>;
 }
