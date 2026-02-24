@@ -82,7 +82,7 @@ export class TipManagement implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.orderService.loadOrders(500);
+    this.orderService.loadOrders({ limit: 500 });
   }
 
   setTab(tab: TipTab): void {

@@ -757,4 +757,25 @@ ng build --configuration=production
 - **Build: zero errors**
 - Next: End-to-end testing with live backend. "Add More" feature marketplace drawer (deferred).
 
-*Last Updated: February 24, 2026 (Session 35)*
+**[February 24, 2026] (Session 36) — Device-Scoped Order Communication + PWA Offline:**
+- **Plan:** `.claude/plans/elegant-sparking-pearl.md` — ALL COMPLETE (Phase 1 + Phase 2)
+- **Phase 1 (Device-Scoped Communication):**
+  - **Step 1 (SOS device type):** Changed `sos-terminal.ts` from `'pos'` → `'sos'`. Expanded `SocketService._deviceType` to `'pos' | 'kds' | 'sos'`. Backend `broadcastToSourceAndKDS()` now treats `'sos'` same as `'pos'`.
+  - **Step 2+3 (POS sourceDeviceId + socket):** Both `ServerPosTerminal` and `OrderPad` now inject `SocketService`, connect socket in `ngOnInit()` with `'pos'` type, pass `sourceDeviceId: this.socketService.deviceId()` and `orderSource: 'pos'` on `createOrder()`, disconnect in `ngOnDestroy()`. All `loadOrders()` calls pass `sourceDeviceId`.
+  - **Step 4 (Device-scoped loading):** `OrderService.loadOrders()` signature changed from `(limit = 50)` to `(options?: { limit?: number; sourceDeviceId?: string })`. When `sourceDeviceId` is provided, appends `&sourceDeviceId=` query param (backend already supports this filter). Fixed all callers: tip-management, command-center, kds-display.
+  - **Step 5 (Backend broadcast fixes):** `delivery.service.ts` — 3 `broadcastOrderEvent()` calls changed to `broadcastToSourceAndKDS()` (GPS ping `delivery:location_updated` kept as `broadcastOrderEvent` — goes to all devices). `marketplace.service.ts` — 2 `broadcastOrderEvent()` calls changed to `broadcastToSourceAndKDS()`. Marketplace orders have no sourceDeviceId, so they route to KDS only.
+  - **Step 6 (items:ready endpoint):** New `PATCH /:restaurantId/orders/:orderId/items/ready` endpoint. Body: `{ itemIds, stationId, stationName }`. Updates items to 'completed', checks if all items ready → auto-transitions order to 'ready'. Emits `items:ready` to source device only via `sendOrderEventToDevice()`, broadcasts `order:updated` to source + KDS.
+  - **Step 7 (OrderService items:ready):** New `_itemReadyNotifications` signal (queue of recent notifications, max 5). Socket listener `items:ready` pushes to queue. When `allReady === true`, auto-transitions order to `READY_FOR_PICKUP` in local state. `clearItemReadyNotification(id)` method.
+  - **Step 8 (POS Order Tracker Drawer):** Left-side drawer (toggleable via "Track" button in action bar). Shows device's active orders with per-item status. Color-coded items: gray=pending, amber=preparing, green=ready. Order progress indicator ("3 of 7 items ready"). Ready orders get green highlight. Toast stack for `items:ready` events (auto-dismiss 5s, max 3 visible, green border). Offline banner (amber, shows queued count).
+- **Phase 2 (PWA Offline):**
+  - **Step 8 (Angular PWA):** `ng add @angular/pwa` — service worker, manifest, icons. `provideServiceWorker()` in `app.config.ts`.
+  - **Step 9 (ngsw-config.json):** App shell prefetch. Menu/settings API: freshness strategy, 1h cache, 5s timeout. Orders API: freshness, 5m cache, 3s timeout.
+  - **Step 10 (Queue enhancements):** Max 5 retries (`MAX_QUEUE_RETRIES`), 409 conflict handling (duplicate removal), `queueStatus` computed signal (`'idle' | 'syncing' | 'has-failed'`).
+  - **Step 11 (Offline UI):** Offline banner on both ServerPosTerminal and OrderPad with queued count badge.
+- **Frontend files modified (9):** `services/socket.ts`, `services/order.ts`, `features/sos/sos-terminal/sos-terminal.ts`, `features/pos/server-pos-terminal/` (ts, html, scss), `features/pos/order-pad/` (ts, html, scss), `features/tip-mgmt/tip-management/tip-management.ts`, `features/analytics/command-center/command-center.ts`, `features/kds/kds-display/kds-display.ts`, `app.config.ts`
+- **Frontend files created (4):** `ngsw-config.json` (rewritten), `public/manifest.webmanifest`, `public/icons/` (8 icon files)
+- **Backend files modified (3):** `services/socket.service.ts`, `services/delivery.service.ts`, `services/marketplace.service.ts`, `app/app.routes.ts`
+- **Build: zero errors** (frontend + backend)
+- Next: End-to-end test with live backend. Verify device scoping across multiple browser tabs.
+
+*Last Updated: February 24, 2026 (Session 36)*

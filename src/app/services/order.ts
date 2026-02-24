@@ -197,7 +197,14 @@ export class OrderService implements OnDestroy {
   private readonly _queuedOrders = signal<QueuedOrder[]>([]);
   readonly queuedOrders = this._queuedOrders.asReadonly();
   readonly queuedCount = computed(() => this._queuedOrders().length);
+  readonly queueStatus = computed<'idle' | 'syncing' | 'has-failed'>(() => {
+    if (this._isSyncing()) return 'syncing';
+    const failed = this._queuedOrders().filter(q => q.retryCount >= 5);
+    if (failed.length > 0) return 'has-failed';
+    return this._queuedOrders().length > 0 ? 'idle' : 'idle';
+  });
   private readonly _isSyncing = signal(false);
+  private static readonly MAX_QUEUE_RETRIES = 5;
   readonly isSyncing = this._isSyncing.asReadonly();
 
   // Public readonly signals
@@ -217,6 +224,22 @@ export class OrderService implements OnDestroy {
 
   clearCourseNotification(): void {
     this._courseCompleteNotifications.set(null);
+  }
+
+  // Items:ready notifications (per-station partial completion)
+  private readonly _itemReadyNotifications = signal<{
+    id: string;
+    orderId: string;
+    stationId: string;
+    stationName: string;
+    items: { id: string; name: string; status: string }[];
+    allReady: boolean;
+    timestamp: number;
+  }[]>([]);
+  readonly itemReadyNotifications = this._itemReadyNotifications.asReadonly();
+
+  clearItemReadyNotification(id: string): void {
+    this._itemReadyNotifications.update(list => list.filter(n => n.id !== id));
   }
 
   // Mapped order event callbacks
@@ -285,6 +308,40 @@ export class OrderService implements OnDestroy {
           }
         }
         this.loadOrders();
+      }
+    });
+
+    // Items:ready socket listener (per-station partial completion)
+    this.socketService.onCustomEvent('items:ready', (data: any) => {
+      const notification = {
+        id: crypto.randomUUID(),
+        orderId: data.orderId ?? '',
+        stationId: data.stationId ?? '',
+        stationName: data.stationName ?? 'Station',
+        items: (data.items ?? []).map((i: any) => ({
+          id: i.id ?? '',
+          name: i.name ?? '',
+          status: i.status ?? 'ready',
+        })),
+        allReady: data.allReady ?? false,
+        timestamp: Date.now(),
+      };
+
+      // Push to notification queue (max 5)
+      this._itemReadyNotifications.update(list => {
+        const updated = [notification, ...list];
+        return updated.slice(0, 5);
+      });
+
+      // If allReady, update the order status locally
+      if (notification.allReady) {
+        this._orders.update(orders => {
+          const idx = orders.findIndex(o => o.guid === notification.orderId);
+          if (idx === -1) return orders;
+          const updated = [...orders];
+          updated[idx] = { ...updated[idx], guestOrderStatus: 'READY_FOR_PICKUP' };
+          return updated;
+        });
       }
     });
 
@@ -383,24 +440,30 @@ export class OrderService implements OnDestroy {
     };
   }
 
-  async loadOrders(limit = 50): Promise<void> {
+  async loadOrders(options?: { limit?: number; sourceDeviceId?: string }): Promise<void> {
     if (!this.restaurantId) {
       this._error.set('No restaurant selected');
       return;
     }
 
+    const limit = options?.limit ?? 50;
+    const sourceDeviceId = options?.sourceDeviceId;
+
     this._isLoading.set(true);
     this._error.set(null);
 
     try {
+      let url = `${this.apiUrl}/restaurant/${this.restaurantId}/orders?limit=${limit}`;
+      if (sourceDeviceId) {
+        url += `&sourceDeviceId=${encodeURIComponent(sourceDeviceId)}`;
+      }
+
       const raw = await firstValueFrom(
-        this.http.get<any[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders?limit=${limit}`
-        )
+        this.http.get<any[]>(url)
       );
       this._orders.set((raw || []).map(o => this.mapOrder(o)));
-    } catch (err: any) {
-      const message = err?.error?.message ?? 'Failed to load orders';
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load orders';
       this._error.set(message);
     } finally {
       this._isLoading.set(false);
@@ -926,6 +989,11 @@ export class OrderService implements OnDestroy {
     const queue = [...this._queuedOrders()];
 
     for (const queued of queue) {
+      // Skip items that have exceeded max retries
+      if (queued.retryCount >= OrderService.MAX_QUEUE_RETRIES) {
+        continue;
+      }
+
       try {
         const raw = await firstValueFrom(
           this.http.post<any>(
@@ -945,7 +1013,17 @@ export class OrderService implements OnDestroy {
           q.filter(item => item.localId !== queued.localId)
         );
         this.persistQueue();
-      } catch {
+      } catch (err: unknown) {
+        // 409 Conflict = order already exists (duplicate), remove from queue
+        const httpErr = err as { status?: number };
+        if (httpErr.status === 409) {
+          this._queuedOrders.update(q =>
+            q.filter(item => item.localId !== queued.localId)
+          );
+          this.persistQueue();
+          continue;
+        }
+
         // Increment retry, stop sync — network may be down again
         this._queuedOrders.update(q => q.map(item =>
           item.localId === queued.localId

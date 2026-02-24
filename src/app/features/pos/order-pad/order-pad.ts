@@ -15,6 +15,7 @@ import { AuthService } from '@services/auth';
 import { CheckService } from '@services/check';
 import { PlatformService } from '@services/platform';
 import { DeviceService } from '@services/device';
+import { SocketService } from '@services/socket';
 import { ModifierPrompt, ModifierPromptResult } from '../modifier-prompt';
 import {
   RestaurantTable,
@@ -41,6 +42,7 @@ export class OrderPad implements OnInit, OnDestroy {
   private readonly checkService = inject(CheckService);
   private readonly platformService = inject(PlatformService);
   private readonly deviceService = inject(DeviceService);
+  private readonly socketService = inject(SocketService);
 
   // Mode-aware feature flags
   readonly canUseFloorPlan = this.platformService.canUseFloorPlan;
@@ -161,17 +163,27 @@ export class OrderPad implements OnInit, OnDestroy {
   );
   readonly error = this._error.asReadonly();
 
+  // Offline indicator
+  readonly isOffline = computed(() => !this.socketService.isOnline());
+  readonly offlineQueueCount = this.orderService.queuedCount;
+
   // Seat options (1-8)
   readonly seatOptions = [1, 2, 3, 4, 5, 6, 7, 8];
 
   private orderEventCleanup: (() => void) | null = null;
 
   ngOnInit(): void {
+    // Connect socket for real-time device-scoped communication
+    const restaurantId = this.authService.selectedRestaurantId();
+    if (restaurantId) {
+      this.socketService.connect(restaurantId, 'pos');
+    }
+
     this.menuService.loadMenu();
     if (this.canUseFloorPlan()) {
       this.tableService.loadTables();
     }
-    this.orderService.loadOrders();
+    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
 
     const checkMenu = setInterval(() => {
       const cats = this.menuService.categories();
@@ -191,6 +203,7 @@ export class OrderPad implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.orderEventCleanup?.();
+    this.socketService.disconnect();
   }
 
   // --- Table selection ---
@@ -230,6 +243,8 @@ export class OrderPad implements OnInit, OnDestroy {
         tableId: table?.id ?? null,
         tableNumber: table?.tableNumber ?? null,
         items: [],
+        sourceDeviceId: this.socketService.deviceId(),
+        orderSource: 'pos',
       });
 
       if (order) {
@@ -311,7 +326,7 @@ export class OrderPad implements OnInit, OnDestroy {
       );
 
       await this.checkService.addItemToCheck(order.guid, check.guid, request);
-      this.orderService.loadOrders();
+      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
 
       // Auto-progress to payment after modifier confirmation
       if (this.autoProgressEnabled()) {
@@ -345,7 +360,7 @@ export class OrderPad implements OnInit, OnDestroy {
       );
 
       await this.checkService.addItemToCheck(order.guid, check.guid, request);
-      this.orderService.loadOrders();
+      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
 
       // Auto-progress to payment after item add
       if (this.autoProgressEnabled()) {
@@ -380,7 +395,7 @@ export class OrderPad implements OnInit, OnDestroy {
         selection.guid,
         { reason: 'customer_request' }
       );
-      this.orderService.loadOrders();
+      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
     } catch {
       this._error.set('Failed to remove item');
     } finally {
@@ -397,7 +412,7 @@ export class OrderPad implements OnInit, OnDestroy {
   // --- Refresh ---
 
   refreshOrder(): void {
-    this.orderService.loadOrders();
+    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
   }
 
   // --- Error dismiss ---

@@ -29,7 +29,7 @@ export class SocketService implements OnDestroy {
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
   private reconnectAttempts = 0;
   private readonly maxReconnectAttempts = 5;
-  private _deviceType: 'pos' | 'kds' | undefined;
+  private _deviceType: 'pos' | 'kds' | 'sos' | undefined;
 
   // Private writable signals
   private readonly _connectionStatus = signal<SocketConnectionStatus>('disconnected');
@@ -72,7 +72,7 @@ export class SocketService implements OnDestroy {
     return deviceId;
   }
 
-  connect(restaurantId: string, deviceType?: 'pos' | 'kds'): void {
+  connect(restaurantId: string, deviceType?: 'pos' | 'kds' | 'sos'): void {
     if (deviceType) {
       this._deviceType = deviceType;
     }

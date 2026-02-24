@@ -17,6 +17,7 @@ import { PaymentService } from '@services/payment';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { CheckService, AddItemRequest } from '@services/check';
 import { PlatformService } from '@services/platform';
+import { SocketService } from '@services/socket';
 import { ModifierPrompt, ModifierPromptResult } from '../modifier-prompt';
 import { DiscountModal, DiscountResult } from '../discount-modal';
 import { VoidModal, VoidResult, CompResult } from '../void-modal';
@@ -65,6 +66,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   private readonly settingsService = inject(RestaurantSettingsService);
   private readonly checkService = inject(CheckService);
   private readonly platformService = inject(PlatformService);
+  private readonly socketService = inject(SocketService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly tables = this.tableService.tables;
@@ -333,7 +335,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     const notif = this.orderService.courseCompleteNotifications();
     if (notif) {
       this.orderService.fireCourse(notif.orderId, courseGuid);
-      this.orderService.loadOrders();
+      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
     }
     this.dismissCourseNotification();
   }
@@ -356,7 +358,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
       sortOrder++;
     }
 
-    this.orderService.loadOrders();
+    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
     this._activeModal.set('none');
   }
 
@@ -390,15 +392,43 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   private readonly _customerDisplayOpen = signal(false);
   readonly customerDisplayOpen = this._customerDisplayOpen.asReadonly();
 
+  // Items:ready toast notifications
+  private readonly _itemReadyToasts = signal<{ id: string; stationName: string; items: { name: string }[]; timestamp: number }[]>([]);
+  readonly itemReadyToasts = this._itemReadyToasts.asReadonly();
+
+  // Order tracker drawer
+  private readonly _trackerOpen = signal(false);
+  readonly trackerOpen = this._trackerOpen.asReadonly();
+
+  readonly deviceOrders = computed(() => {
+    const deviceId = this.socketService.deviceId();
+    return this.orders().filter(o =>
+      o.device?.guid === deviceId &&
+      o.guestOrderStatus !== 'CLOSED' &&
+      o.guestOrderStatus !== 'VOIDED'
+    );
+  });
+
+  // Offline indicator
+  readonly isOffline = computed(() => !this.socketService.isOnline());
+  readonly offlineQueueCount = this.orderService.queuedCount;
+
   private orderEventCleanup: (() => void) | null = null;
   private scanToPayCleanup: (() => void) | null = null;
+  private itemReadyCleanup: (() => void) | null = null;
 
   ngOnInit(): void {
+    // Connect socket for real-time device-scoped communication
+    const restaurantId = this.authService.selectedRestaurantId();
+    if (restaurantId) {
+      this.socketService.connect(restaurantId, 'pos');
+    }
+
     this.menuService.loadMenu();
     if (this.canUseFloorPlan()) {
       this.tableService.loadTables();
     }
-    this.orderService.loadOrders();
+    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
     this.orderService.loadTemplates();
 
     // Subscribe to menu loaded
@@ -421,9 +451,25 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     // Listen for scan-to-pay completions
     this.scanToPayCleanup = this.orderService.onScanToPayCompleted((data) => {
       this._scanToPayNotification.set(data);
-      this.orderService.loadOrders();
+      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
       // Auto-dismiss after 10 seconds
       setTimeout(() => this._scanToPayNotification.set(null), 10000);
+    });
+
+    // Listen for items:ready events (per-station partial completion)
+    this.itemReadyCleanup = this.socketService.onCustomEvent('items:ready', (data: any) => {
+      const toast = {
+        id: crypto.randomUUID(),
+        stationName: data.stationName ?? 'Station',
+        items: (data.items ?? []).map((i: any) => ({ name: i.name ?? '' })),
+        timestamp: Date.now(),
+      };
+      this._itemReadyToasts.update(list => [toast, ...list].slice(0, 3));
+
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => {
+        this._itemReadyToasts.update(list => list.filter(t => t.id !== toast.id));
+      }, 5000);
     });
 
     // Course timing suggestion tick (1-second interval)
@@ -452,7 +498,9 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.orderEventCleanup?.();
     this.scanToPayCleanup?.();
+    this.itemReadyCleanup?.();
     this.customerDisplayChannel?.close();
+    this.socketService.disconnect();
   }
 
   // --- Table selection ---
@@ -519,7 +567,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     );
 
     await this.checkService.addItemToCheck(order.guid, check.guid, request);
-    this.orderService.loadOrders();
+    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
     this.sendDisplayUpdate();
   }
 
@@ -548,7 +596,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     );
 
     await this.checkService.addItemToCheck(order.guid, check.guid, request);
-    this.orderService.loadOrders();
+    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
     this.sendDisplayUpdate();
   }
 
@@ -562,6 +610,8 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
       tableId: table?.id ?? null,
       tableNumber: table?.tableNumber ?? null,
       items: [],
+      sourceDeviceId: this.socketService.deviceId(),
+      orderSource: 'pos',
     });
 
     if (order) {
@@ -602,7 +652,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
 
     await this.orderService.addCourseToOrder(order.guid, name, sortOrder);
     this._newCourseNameInput.set('');
-    this.orderService.loadOrders();
+    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
   }
 
   async addDefaultCourse(name: string): Promise<void> {
@@ -615,7 +665,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
 
     const sortOrder = existingCourses.length;
     await this.orderService.addCourseToOrder(order.guid, name, sortOrder);
-    this.orderService.loadOrders();
+    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
   }
 
   async removeCourseFromCurrentOrder(courseGuid: string): Promise<void> {
@@ -623,7 +673,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     if (!order) return;
 
     await this.orderService.removeCourseFromOrder(order.guid, courseGuid);
-    this.orderService.loadOrders();
+    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
   }
 
   async assignItemToCourse(selectionGuid: string, courseGuid: string): Promise<void> {
@@ -631,21 +681,21 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     if (!order) return;
 
     await this.orderService.assignSelectionToCourse(order.guid, selectionGuid, courseGuid);
-    this.orderService.loadOrders();
+    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
   }
 
   async doFireCourse(courseGuid: string): Promise<void> {
     const order = this.activeOrder();
     if (!order) return;
     await this.orderService.fireCourse(order.guid, courseGuid);
-    this.orderService.loadOrders();
+    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
   }
 
   async doHoldCourse(courseGuid: string): Promise<void> {
     const order = this.activeOrder();
     if (!order) return;
     await this.orderService.holdCourse(order.guid, courseGuid);
-    this.orderService.loadOrders();
+    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
   }
 
   getFireStatusClass(status: CourseFireStatus): string {
@@ -674,7 +724,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
 
     const check = await this.checkService.addCheck(order.guid);
     if (check) {
-      this.orderService.loadOrders();
+      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
       this._activeCheckIndex.set(order.checks.length); // Select new check
     }
   }
@@ -705,7 +755,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     if (success) {
       this._activeModal.set('none');
       this._voidSelection.set(null);
-      this.orderService.loadOrders();
+      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
     }
   }
 
@@ -723,7 +773,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     if (success) {
       this._activeModal.set('none');
       this._voidSelection.set(null);
-      this.orderService.loadOrders();
+      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
     }
   }
 
@@ -745,7 +795,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
 
     if (success) {
       this._activeModal.set('none');
-      this.orderService.loadOrders();
+      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
     }
   }
 
@@ -779,7 +829,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     }
 
     this._activeModal.set('none');
-    this.orderService.loadOrders();
+    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
   }
 
   // --- Transfer ---
@@ -801,7 +851,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
 
     await this.checkService.transferCheck(order.guid, check.guid, { targetTableId: targetId });
     this._activeModal.set('none');
-    this.orderService.loadOrders();
+    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
   }
 
   // --- Tab ---
@@ -855,14 +905,14 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
 
         if (success) {
           this._activeModal.set('none');
-          this.orderService.loadOrders();
+          this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
         }
       } else {
         // Open tab without pre-auth
         const success = await this.checkService.openTab(order.guid, check.guid, { tabName: name });
         if (success) {
           this._activeModal.set('none');
-          this.orderService.loadOrders();
+          this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
         }
       }
     } finally {
@@ -886,11 +936,11 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
         );
 
         if (captureResult?.success) {
-          this.orderService.loadOrders();
+          this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
         }
       } else {
         await this.checkService.closeTab(order.guid, check.guid);
-        this.orderService.loadOrders();
+        this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
       }
     } finally {
       this._isTabProcessing.set(false);
@@ -952,7 +1002,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
         await this.checkService.addItemToCheck(order.guid, check.guid, request);
       }
 
-      this.orderService.loadOrders();
+      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
       this._activeModal.set('none');
     } finally {
       this._isApplyingTemplate.set(false);
@@ -1115,5 +1165,45 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
 
   resetCustomerDisplay(): void {
     this.customerDisplayChannel?.postMessage({ type: 'reset' });
+  }
+
+  // --- Order Tracker Drawer ---
+
+  toggleTracker(): void {
+    this._trackerOpen.update(v => !v);
+  }
+
+  closeTracker(): void {
+    this._trackerOpen.set(false);
+  }
+
+  getItemReadyNames(toast: { items: { name: string }[] }): string {
+    return toast.items.map(i => i.name).join(', ');
+  }
+
+  dismissItemReadyToast(id: string): void {
+    this._itemReadyToasts.update(list => list.filter(t => t.id !== id));
+  }
+
+  getItemStatusClass(status: string): string {
+    switch (status?.toUpperCase()) {
+      case 'COMPLETED':
+      case 'READY':
+        return 'item-ready';
+      case 'PREPARING':
+      case 'SENT':
+        return 'item-preparing';
+      default:
+        return 'item-pending';
+    }
+  }
+
+  getOrderProgress(order: Order): { ready: number; total: number } {
+    const items = order.checks.flatMap(c => c.selections);
+    const total = items.length;
+    const ready = items.filter(s =>
+      s.fulfillmentStatus === 'SENT' || (s as any).status === 'completed'
+    ).length;
+    return { ready, total };
   }
 }

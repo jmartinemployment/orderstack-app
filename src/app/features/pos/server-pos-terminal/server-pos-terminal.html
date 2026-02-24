@@ -531,6 +531,9 @@
             <button type="button" class="action-btn action-pay" (click)="closeAndPay()" title="Close & Pay">
               <i class="bi bi-credit-card"></i> Pay
             </button>
+            <button type="button" class="action-btn action-tracker" (click)="toggleTracker()" title="Order Tracker">
+              <i class="bi bi-card-checklist"></i> Track
+            </button>
           </div>
         </div>
       }
@@ -1006,5 +1009,86 @@
         </div>
       </div>
     </div>
+  }
+
+  <!-- ==================== Offline Banner ==================== -->
+  @if (isOffline()) {
+    <div class="offline-banner">
+      <i class="bi bi-wifi-off"></i>
+      Offline — orders queued locally
+      @if (offlineQueueCount() > 0) {
+        <span class="offline-badge">{{ offlineQueueCount() }}</span>
+      }
+    </div>
+  }
+
+  <!-- ==================== Items:Ready Toast Stack ==================== -->
+  @if (itemReadyToasts().length > 0) {
+    <div class="item-ready-toasts">
+      @for (toast of itemReadyToasts(); track toast.id) {
+        <div class="item-ready-toast" (click)="dismissItemReadyToast(toast.id)">
+          <i class="bi bi-check-circle-fill"></i>
+          <div class="toast-content">
+            <strong>{{ toast.stationName }}:</strong>
+            {{ getItemReadyNames(toast) }} ready
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ==================== Order Tracker Drawer ==================== -->
+  @if (trackerOpen()) {
+    <div class="tracker-backdrop" (click)="closeTracker()"></div>
+    <aside class="tracker-drawer">
+      <div class="tracker-header">
+        <h6>Order Tracker</h6>
+        <button type="button" class="btn-close" (click)="closeTracker()"></button>
+      </div>
+
+      <div class="tracker-scroll">
+        @if (deviceOrders().length === 0) {
+          <div class="tracker-empty">
+            <i class="bi bi-inbox"></i>
+            <p>No active orders on this device</p>
+          </div>
+        }
+
+        @for (order of deviceOrders(); track order.guid) {
+          <div class="tracker-card" [class.tracker-card-ready]="order.guestOrderStatus === 'READY_FOR_PICKUP'">
+            <div class="tracker-card-header">
+              <span class="tracker-order-num">
+                @if (order.table) {
+                  Table {{ order.table.name }}
+                } @else {
+                  {{ order.orderNumber }}
+                }
+              </span>
+              <span class="tracker-progress">
+                {{ getOrderProgress(order).ready }} of {{ getOrderProgress(order).total }} items ready
+              </span>
+            </div>
+
+            <div class="tracker-items">
+              @for (check of order.checks; track check.guid) {
+                @for (sel of check.selections; track sel.guid) {
+                  <div class="tracker-item" [class]="getItemStatusClass(sel.fulfillmentStatus)">
+                    <span class="tracker-item-name">{{ sel.menuItemName ?? 'Item' }}</span>
+                    <span class="tracker-item-qty">x{{ sel.quantity }}</span>
+                    @if (sel.fulfillmentStatus === 'SENT') {
+                      <i class="bi bi-check-circle-fill tracker-item-icon item-ready"></i>
+                    } @else if (sel.fulfillmentStatus === 'NEW' || sel.fulfillmentStatus === 'HOLD') {
+                      <i class="bi bi-clock tracker-item-icon item-pending"></i>
+                    } @else {
+                      <i class="bi bi-arrow-repeat tracker-item-icon item-preparing"></i>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </aside>
   }
 </div>

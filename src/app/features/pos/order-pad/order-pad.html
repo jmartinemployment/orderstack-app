@@ -219,4 +219,15 @@
       </div>
     </div>
   }
+
+  <!-- Offline Banner -->
+  @if (isOffline()) {
+    <div class="offline-banner">
+      <i class="bi bi-wifi-off"></i>
+      Offline — orders queued locally
+      @if (offlineQueueCount() > 0) {
+        <span class="offline-badge">{{ offlineQueueCount() }}</span>
+      }
+    </div>
+  }
 </div>

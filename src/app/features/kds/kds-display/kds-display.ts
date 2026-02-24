@@ -310,7 +310,7 @@ export class KdsDisplay implements OnInit, OnDestroy {
   }
 
   private loadOrders(): void {
-    this.orderService.loadOrders(50);
+    this.orderService.loadOrders({ limit: 50 });
   }
 
   private async loadCoursePacingMetrics(): Promise<void> {

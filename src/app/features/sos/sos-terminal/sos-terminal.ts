@@ -61,7 +61,7 @@ export class SosTerminal implements OnDestroy {
       const restaurantId = this.authService.selectedRestaurantId();
       if (restaurantId && !this._socketConnected()) {
         this._socketConnected.set(true);
-        this.socketService.connect(restaurantId, 'pos');
+        this.socketService.connect(restaurantId, 'sos');
       }
     });
 

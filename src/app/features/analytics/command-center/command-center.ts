@@ -256,7 +256,7 @@ export class CommandCenter {
         this.analyticsService.loadMenuEngineering(30),
         this.inventoryService.loadAlerts(),
         this.inventoryService.loadPredictions(),
-        this.orderService.loadOrders(20),
+        this.orderService.loadOrders({ limit: 20 }),
         this.loadProfitSummary(),
         this.analyticsService.loadPinnedWidgets(),
         this.analyticsService.loadProactiveInsights(),
