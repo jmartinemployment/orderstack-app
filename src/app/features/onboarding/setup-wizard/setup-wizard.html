@@ -8,7 +8,7 @@
       <div class="progress-bar-fill" [style.width.%]="progressPercent()"></div>
     </div>
     <div class="step-label">
-      <span>Step {{ currentStep() + 1 }} of {{ totalSteps + 1 }}</span>
+      <span>Step {{ currentStep() }} of {{ totalSteps }}</span>
       <span>{{ progressPercent() }}% complete</span>
     </div>
   </div>
@@ -124,8 +124,106 @@
       </div>
     }
 
-    <!-- ============ STEP 4: You're All Set ============ -->
+    <!-- ============ STEP 4: Choose Your Plan ============ -->
     @if (currentStep() === 4) {
+      <div class="step-content plan-step">
+        <h2>Choose your plan</h2>
+        <p class="step-subtitle">Start free and upgrade anytime. All plans include unlimited transactions.</p>
+
+        <!-- Billing interval + Processor toggles -->
+        <div class="plan-toggles">
+          <div class="toggle-group">
+            <button
+              type="button"
+              class="toggle-btn"
+              [class.active]="_billingInterval() === 'month'"
+              (click)="setBillingInterval('month')">
+              Monthly
+            </button>
+            <button
+              type="button"
+              class="toggle-btn"
+              [class.active]="_billingInterval() === 'year'"
+              (click)="setBillingInterval('year')">
+              Annual
+              <span class="savings-badge">Save {{ annualSavingsPercent() }}%</span>
+            </button>
+          </div>
+
+          <div class="toggle-group">
+            <span class="toggle-label">Rates for:</span>
+            <button
+              type="button"
+              class="toggle-btn"
+              [class.active]="_selectedProcessor() === 'stripe'"
+              (click)="setProcessor('stripe')">
+              Stripe
+            </button>
+            <button
+              type="button"
+              class="toggle-btn"
+              [class.active]="_selectedProcessor() === 'paypal'"
+              (click)="setProcessor('paypal')">
+              PayPal
+            </button>
+          </div>
+        </div>
+
+        <!-- Tier cards -->
+        <div class="tier-cards">
+          @for (tier of planTiers; track tier.key) {
+            <button
+              type="button"
+              class="tier-card"
+              [class.highlighted]="tier.highlighted"
+              [class.selected]="_selectedTier() === tier.key"
+              (click)="selectTier(tier.key)">
+
+              @if (tier.highlighted && _selectedTier() !== tier.key) {
+                <div class="popular-badge">Most Popular</div>
+              }
+              @if (_selectedTier() === tier.key) {
+                <div class="selected-badge">
+                  <i class="bi bi-check-circle-fill"></i> Selected
+                </div>
+              }
+
+              <h4 class="tier-name">{{ tier.name }}</h4>
+              <div class="tier-price">
+                <span class="price-amount">{{ formatPrice(tier) }}</span>
+                @if (tier.monthlyPriceCents > 0) {
+                  <span class="price-period">/mo</span>
+                  <span class="price-note">per location</span>
+                }
+              </div>
+
+              <div class="tier-rates">
+                <div class="rate-row">
+                  <span class="rate-label">In-person</span>
+                  <span class="rate-value">{{ getProcessingRates(tier).inPerson }}</span>
+                </div>
+                <div class="rate-row">
+                  <span class="rate-label">Online</span>
+                  <span class="rate-value">{{ getProcessingRates(tier).online }}</span>
+                </div>
+              </div>
+
+              <ul class="tier-features">
+                @for (feature of tier.features; track feature) {
+                  <li>
+                    <i class="bi bi-check2"></i>
+                    <span>{{ feature }}</span>
+                  </li>
+                }
+              </ul>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ============ STEP 5: You're All Set ============ -->
+    @if (currentStep() === 5) {
       <div class="step-content welcome-screen">
         <div class="welcome-hero">
           <div class="welcome-icon">
@@ -175,8 +273,8 @@
     }
   </div>
 
-  <!-- Navigation Footer (Steps 1-3 only) -->
-  @if (currentStep() < 4) {
+  <!-- Navigation Footer (Steps 1-4 only) -->
+  @if (currentStep() < 5) {
     <div class="wizard-footer">
       @if (currentStep() > 1) {
         <button class="btn btn-outline" (click)="prev()">

@@ -13,6 +13,8 @@ import {
   defaultBusinessAddress,
   defaultTaxLocaleConfig,
   defaultBusinessHours,
+  PLAN_TIERS,
+  PlanTierKey,
 } from '@models/index';
 import { Router } from '@angular/router';
 import { PlatformService, OnboardingPayload } from '@services/platform';
@@ -40,7 +42,7 @@ const US_STATES = [
   { code: 'WI', name: 'Wisconsin' }, { code: 'WY', name: 'Wyoming' }, { code: 'DC', name: 'Washington DC' },
 ];
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 // --- Business type -> mode mapping ---
 const BUSINESS_TYPE_MODE_MAP: Record<string, DevicePosMode> = {
@@ -225,6 +227,7 @@ export class SetupWizard {
 
   readonly usStates = US_STATES;
   readonly revenueRanges = REVENUE_RANGES;
+  readonly planTiers = PLAN_TIERS;
   readonly totalSteps = TOTAL_STEPS;
 
   // --- Wizard navigation ---
@@ -232,7 +235,7 @@ export class SetupWizard {
   readonly currentStep = this._currentStep.asReadonly();
 
   readonly progressPercent = computed(() =>
-    Math.round(((this._currentStep() + 1) / (TOTAL_STEPS + 1)) * 100)
+    Math.round((this._currentStep() / TOTAL_STEPS) * 100)
   );
 
   // --- Step 1: Business Info + Address ---
@@ -275,6 +278,13 @@ export class SetupWizard {
   // --- Step 3: Annual Revenue ---
   readonly _selectedRevenue = signal<string | null>(null);
 
+  // --- Step 4: Choose Your Plan ---
+  readonly _selectedTier = signal<PlanTierKey>('free');
+  readonly _billingInterval = signal<'month' | 'year'>('month');
+  readonly _selectedProcessor = signal<'stripe' | 'paypal'>('stripe');
+
+  readonly annualSavingsPercent = computed(() => 20);
+
   // --- Auto-detect mode from business type ---
   readonly autoDetectedMode = computed<DevicePosMode>(() => {
     const bt = this._selectedBusinessType();
@@ -305,7 +315,8 @@ export class SetupWizard {
       case 1: return this._businessName().trim().length > 0;
       case 2: return this._selectedBusinessType() !== null;
       case 3: return this._selectedRevenue() !== null;
-      case 4: return !this._isSubmitting();
+      case 4: return true; // plan selection always has a default (free)
+      case 5: return !this._isSubmitting();
       default: return false;
     }
   });
@@ -353,6 +364,32 @@ export class SetupWizard {
 
   selectRevenue(id: string): void {
     this._selectedRevenue.set(id);
+  }
+
+  // --- Step 4: Plan selection ---
+
+  selectTier(tierKey: PlanTierKey): void {
+    this._selectedTier.set(tierKey);
+  }
+
+  setBillingInterval(interval: 'month' | 'year'): void {
+    this._billingInterval.set(interval);
+  }
+
+  setProcessor(processor: 'stripe' | 'paypal'): void {
+    this._selectedProcessor.set(processor);
+  }
+
+  formatPrice(tier: typeof PLAN_TIERS[number]): string {
+    const interval = this._billingInterval();
+    const cents = interval === 'year' ? tier.annualPriceCents : tier.monthlyPriceCents;
+    if (cents === 0) return '$0';
+    return `$${cents / 100}`;
+  }
+
+  getProcessingRates(tier: typeof PLAN_TIERS[number]): { inPerson: string; online: string } {
+    const processor = this._selectedProcessor();
+    return tier.processingRates[processor];
   }
 
   // --- Onboarding submission (happens between step 3 and 4) ---
@@ -403,7 +440,7 @@ export class SetupWizard {
     }
   }
 
-  // --- Step 4: Go to dashboard ---
+  // --- Step 5: Go to dashboard ---
 
   goToDashboard(): void {
     this.router.navigate(['/home']);
