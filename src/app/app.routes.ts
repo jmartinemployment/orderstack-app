@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
+import { guestGuard } from './guards/guest.guard';
 import { onboardingGuard } from './guards/onboarding.guard';
 import { deviceModeRedirectGuard } from './guards/device-mode.guard';
 import { deviceInitResolver } from './resolvers/device-init.resolver';
@@ -7,9 +8,10 @@ import { MainLayoutComponent } from './layouts/main-layout.component';
 import { AuthLayoutComponent } from './layouts/auth-layout.component';
 
 export const routes: Routes = [
-  // Public routes (no auth)
+  // Public routes (redirect authenticated users away)
   {
     path: 'signup',
+    canActivate: [guestGuard],
     component: AuthLayoutComponent,
     children: [
       { path: '', loadComponent: () => import('./features/auth/login/login').then(m => m.Login) },
@@ -17,6 +19,7 @@ export const routes: Routes = [
   },
   {
     path: 'login',
+    canActivate: [guestGuard],
     component: AuthLayoutComponent,
     children: [
       { path: '', loadComponent: () => import('./features/auth/login/login').then(m => m.Login) },
