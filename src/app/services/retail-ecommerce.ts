@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
   ProductListing,
@@ -92,13 +92,15 @@ export class RetailEcommerceService {
     this._error.set(null);
     try {
       const listings = await firstValueFrom(
-        this.http.get<ProductListing[]>(`${this.apiUrl}/retail/ecommerce/listings`, {
-          params: { restaurantId: this.restaurantId },
-        }),
+        this.http.get<ProductListing[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/listings`),
       );
       this._listings.set(listings);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load listings');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._listings.set([]);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load listings');
+      }
     } finally {
       this._isLoading.set(false);
     }
@@ -108,10 +110,7 @@ export class RetailEcommerceService {
     if (!this.restaurantId) return null;
     try {
       const listing = await firstValueFrom(
-        this.http.post<ProductListing>(`${this.apiUrl}/retail/ecommerce/listings`, {
-          ...data,
-          restaurantId: this.restaurantId,
-        }),
+        this.http.post<ProductListing>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/listings`, data),
       );
       this._listings.update(list => [...list, listing]);
       return listing;
@@ -122,9 +121,10 @@ export class RetailEcommerceService {
   }
 
   async updateListing(id: string, data: Partial<ProductListingFormData>): Promise<void> {
+    if (!this.restaurantId) return;
     try {
       const updated = await firstValueFrom(
-        this.http.put<ProductListing>(`${this.apiUrl}/retail/ecommerce/listings/${id}`, data),
+        this.http.put<ProductListing>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/listings/${id}`, data),
       );
       this._listings.update(list => list.map(l => (l.id === id ? updated : l)));
     } catch (err: unknown) {
@@ -141,9 +141,10 @@ export class RetailEcommerceService {
   }
 
   async deleteListing(id: string): Promise<void> {
+    if (!this.restaurantId) return;
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/retail/ecommerce/listings/${id}`),
+        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/listings/${id}`),
       );
       this._listings.update(list => list.filter(l => l.id !== id));
     } catch (err: unknown) {
@@ -158,22 +159,25 @@ export class RetailEcommerceService {
     this._isLoadingOrders.set(true);
     try {
       const orders = await firstValueFrom(
-        this.http.get<EcommerceOrder[]>(`${this.apiUrl}/retail/ecommerce/orders`, {
-          params: { restaurantId: this.restaurantId },
-        }),
+        this.http.get<EcommerceOrder[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/orders`),
       );
       this._orders.set(orders);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load orders');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._orders.set([]);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load orders');
+      }
     } finally {
       this._isLoadingOrders.set(false);
     }
   }
 
   async getOrder(id: string): Promise<EcommerceOrder | null> {
+    if (!this.restaurantId) return null;
     try {
       return await firstValueFrom(
-        this.http.get<EcommerceOrder>(`${this.apiUrl}/retail/ecommerce/orders/${id}`),
+        this.http.get<EcommerceOrder>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/orders/${id}`),
       );
     } catch (err: unknown) {
       this._error.set(err instanceof Error ? err.message : 'Failed to load order');
@@ -182,9 +186,10 @@ export class RetailEcommerceService {
   }
 
   async updateFulfillmentStatus(orderId: string, status: EcommerceFulfillmentStatus): Promise<void> {
+    if (!this.restaurantId) return;
     try {
       const updated = await firstValueFrom(
-        this.http.patch<EcommerceOrder>(`${this.apiUrl}/retail/ecommerce/orders/${orderId}/fulfillment`, { status }),
+        this.http.patch<EcommerceOrder>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/orders/${orderId}/fulfillment`, { status }),
       );
       this._orders.update(list => list.map(o => (o.id === orderId ? updated : o)));
     } catch (err: unknown) {
@@ -193,9 +198,10 @@ export class RetailEcommerceService {
   }
 
   async addTrackingNumber(orderId: string, trackingNumber: string, trackingUrl: string | null): Promise<void> {
+    if (!this.restaurantId) return;
     try {
       const updated = await firstValueFrom(
-        this.http.patch<EcommerceOrder>(`${this.apiUrl}/retail/ecommerce/orders/${orderId}/tracking`, {
+        this.http.patch<EcommerceOrder>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/orders/${orderId}/tracking`, {
           trackingNumber,
           trackingUrl,
         }),
@@ -212,13 +218,15 @@ export class RetailEcommerceService {
     if (!this.restaurantId) return;
     try {
       const methods = await firstValueFrom(
-        this.http.get<ShippingMethod[]>(`${this.apiUrl}/retail/ecommerce/shipping-methods`, {
-          params: { restaurantId: this.restaurantId },
-        }),
+        this.http.get<ShippingMethod[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/shipping-methods`),
       );
       this._shippingMethods.set(methods);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load shipping methods');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._shippingMethods.set([]);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load shipping methods');
+      }
     }
   }
 
@@ -226,10 +234,7 @@ export class RetailEcommerceService {
     if (!this.restaurantId) return;
     try {
       const method = await firstValueFrom(
-        this.http.post<ShippingMethod>(`${this.apiUrl}/retail/ecommerce/shipping-methods`, {
-          ...data,
-          restaurantId: this.restaurantId,
-        }),
+        this.http.post<ShippingMethod>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/shipping-methods`, data),
       );
       this._shippingMethods.update(list => [...list, method]);
     } catch (err: unknown) {
@@ -238,9 +243,10 @@ export class RetailEcommerceService {
   }
 
   async updateShippingMethod(id: string, data: Partial<ShippingMethodFormData>): Promise<void> {
+    if (!this.restaurantId) return;
     try {
       const updated = await firstValueFrom(
-        this.http.put<ShippingMethod>(`${this.apiUrl}/retail/ecommerce/shipping-methods/${id}`, data),
+        this.http.put<ShippingMethod>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/shipping-methods/${id}`, data),
       );
       this._shippingMethods.update(list => list.map(m => (m.id === id ? updated : m)));
     } catch (err: unknown) {
@@ -249,9 +255,10 @@ export class RetailEcommerceService {
   }
 
   async deleteShippingMethod(id: string): Promise<void> {
+    if (!this.restaurantId) return;
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/retail/ecommerce/shipping-methods/${id}`),
+        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/shipping-methods/${id}`),
       );
       this._shippingMethods.update(list => list.filter(m => m.id !== id));
     } catch (err: unknown) {
@@ -351,13 +358,15 @@ export class RetailEcommerceService {
     if (!this.restaurantId) return;
     try {
       const config = await firstValueFrom(
-        this.http.get<ChannelSyncConfig>(`${this.apiUrl}/retail/ecommerce/channel-sync/config`, {
-          params: { restaurantId: this.restaurantId },
-        }),
+        this.http.get<ChannelSyncConfig>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/channel-sync/config`),
       );
       this._syncConfig.set(config);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load sync config');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._syncConfig.set(null);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load sync config');
+      }
     }
   }
 
@@ -365,10 +374,7 @@ export class RetailEcommerceService {
     if (!this.restaurantId) return;
     try {
       const config = await firstValueFrom(
-        this.http.put<ChannelSyncConfig>(`${this.apiUrl}/retail/ecommerce/channel-sync/config`, {
-          ...data,
-          restaurantId: this.restaurantId,
-        }),
+        this.http.put<ChannelSyncConfig>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/channel-sync/config`, data),
       );
       this._syncConfig.set(config);
     } catch (err: unknown) {
@@ -380,20 +386,23 @@ export class RetailEcommerceService {
     if (!this.restaurantId) return;
     try {
       const overrides = await firstValueFrom(
-        this.http.get<ChannelPriceOverride[]>(`${this.apiUrl}/retail/ecommerce/channel-sync/price-overrides`, {
-          params: { restaurantId: this.restaurantId },
-        }),
+        this.http.get<ChannelPriceOverride[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/channel-sync/price-overrides`),
       );
       this._priceOverrides.set(overrides);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load price overrides');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._priceOverrides.set([]);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load price overrides');
+      }
     }
   }
 
   async savePriceOverride(override: ChannelPriceOverride): Promise<void> {
+    if (!this.restaurantId) return;
     try {
       await firstValueFrom(
-        this.http.put(`${this.apiUrl}/retail/ecommerce/channel-sync/price-overrides`, override),
+        this.http.put(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/channel-sync/price-overrides`, override),
       );
       this._priceOverrides.update(list => {
         const idx = list.findIndex(
@@ -413,13 +422,15 @@ export class RetailEcommerceService {
     if (!this.restaurantId) return;
     try {
       const sales = await firstValueFrom(
-        this.http.get<SalePricing[]>(`${this.apiUrl}/retail/ecommerce/channel-sync/sale-pricing`, {
-          params: { restaurantId: this.restaurantId },
-        }),
+        this.http.get<SalePricing[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/channel-sync/sale-pricing`),
       );
       this._salePricings.set(sales);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load sale pricing');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._salePricings.set([]);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load sale pricing');
+      }
     }
   }
 
@@ -427,10 +438,7 @@ export class RetailEcommerceService {
     if (!this.restaurantId) return;
     try {
       const sale = await firstValueFrom(
-        this.http.post<SalePricing>(`${this.apiUrl}/retail/ecommerce/channel-sync/sale-pricing`, {
-          ...data,
-          restaurantId: this.restaurantId,
-        }),
+        this.http.post<SalePricing>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/channel-sync/sale-pricing`, data),
       );
       this._salePricings.update(list => [...list, sale]);
     } catch (err: unknown) {
@@ -439,9 +447,10 @@ export class RetailEcommerceService {
   }
 
   async deleteSalePricing(id: string): Promise<void> {
+    if (!this.restaurantId) return;
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/retail/ecommerce/channel-sync/sale-pricing/${id}`),
+        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/channel-sync/sale-pricing/${id}`),
       );
       this._salePricings.update(list => list.filter(s => s.id !== id));
     } catch (err: unknown) {
@@ -453,20 +462,23 @@ export class RetailEcommerceService {
     if (!this.restaurantId) return;
     try {
       const visibility = await firstValueFrom(
-        this.http.get<ChannelVisibilitySetting[]>(`${this.apiUrl}/retail/ecommerce/channel-sync/visibility`, {
-          params: { restaurantId: this.restaurantId },
-        }),
+        this.http.get<ChannelVisibilitySetting[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/channel-sync/visibility`),
       );
       this._channelVisibility.set(visibility);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load channel visibility');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._channelVisibility.set([]);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load channel visibility');
+      }
     }
   }
 
   async updateChannelVisibility(setting: ChannelVisibilitySetting): Promise<void> {
+    if (!this.restaurantId) return;
     try {
       await firstValueFrom(
-        this.http.put(`${this.apiUrl}/retail/ecommerce/channel-sync/visibility`, setting),
+        this.http.put(`${this.apiUrl}/restaurant/${this.restaurantId}/retail/ecommerce/channel-sync/visibility`, setting),
       );
       this._channelVisibility.update(list => {
         const idx = list.findIndex(

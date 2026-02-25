@@ -1,3 +1,4 @@
+import '../../test-setup';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { HttpClient } from '@angular/common/http';

@@ -1,7 +1,10 @@
-import { defineConfig } from 'vitest/config';
+/// <reference types="vitest" />
+import { defineConfig } from 'vite';
+import angular from '@analogjs/vite-plugin-angular';
 import { resolve } from 'node:path';
 
 export default defineConfig({
+  plugins: [angular()],
   resolve: {
     alias: {
       '@models': resolve(__dirname, 'src/app/models'),
@@ -14,6 +17,8 @@ export default defineConfig({
     include: ['src/**/*.spec.ts'],
     environment: 'jsdom',
     globals: true,
+    setupFiles: ['./vitest.setup.ts'],
+    pool: 'threads',
     typecheck: {
       enabled: false,
     },

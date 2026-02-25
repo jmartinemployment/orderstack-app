@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Customer, CustomerSegment, CustomerSegmentInfo, SavedAddress, SavedAddressFormData, FeedbackRequest, Referral, ReferralConfig, SmartGroup, SmartGroupFormData, MessageThread, CustomerMessage, MessageTemplate } from '../models';
 import { AuthService } from './auth';
@@ -226,8 +226,12 @@ export class CustomerService {
       );
       this._feedback.set(data ?? []);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load feedback';
-      this._error.set(message);
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._feedback.set([]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to load feedback';
+        this._error.set(message);
+      }
     }
   }
 
