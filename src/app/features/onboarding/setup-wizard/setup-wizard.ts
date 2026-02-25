@@ -22,6 +22,7 @@ import { Router } from '@angular/router';
 import { PlatformService, OnboardingPayload } from '@services/platform';
 import { AuthService } from '@services/auth';
 import { DeviceService } from '@services/device';
+import { MenuService } from '@services/menu';
 import { PwaInstallService } from '@services/pwa-install';
 import { PaymentConnectService } from '@services/payment-connect';
 
@@ -465,6 +466,7 @@ export class SetupWizard implements OnInit {
   private readonly platformService = inject(PlatformService);
   private readonly authService = inject(AuthService);
   private readonly deviceService = inject(DeviceService);
+  private readonly menuService = inject(MenuService);
   readonly pwaInstall = inject(PwaInstallService);
   readonly paymentConnect = inject(PaymentConnectService);
   private readonly router = inject(Router);
@@ -947,6 +949,19 @@ export class SetupWizard implements OnInit {
       const device = await this.deviceService.registerBrowserDevice(detectedMode);
       if (device) {
         this.platformService.setDeviceModeFromDevice(detectedMode);
+      }
+
+      // Seed default menu schedule for food & drink businesses
+      if (this.effectivePrimaryVertical() === 'food_and_drink') {
+        await this.menuService.createMenuSchedule({
+          name: 'Default Schedule',
+          isDefault: true,
+          dayparts: [
+            { name: 'Breakfast', startTime: '06:00', endTime: '11:00', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], isActive: true, displayOrder: 0 },
+            { name: 'Lunch', startTime: '11:00', endTime: '16:00', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], isActive: true, displayOrder: 1 },
+            { name: 'Dinner', startTime: '16:00', endTime: '23:00', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], isActive: true, displayOrder: 2 },
+          ],
+        });
       }
     } else {
       this._submitError.set(this.platformService.error() ?? 'Something went wrong');
