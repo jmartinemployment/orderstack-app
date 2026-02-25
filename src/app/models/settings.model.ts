@@ -3,7 +3,7 @@ import { DeliveryProviderType } from './delivery.model';
 import { PaymentProcessorType } from './payment.model';
 import { TipPoolRule, TipOutRule } from './tip.model';
 
-export type ControlPanelTab = 'hardware' | 'ai-settings' | 'online-pricing' | 'catering-calendar' | 'payments' | 'tip-management' | 'loyalty' | 'delivery' | 'gift-cards' | 'staff' | 'time-clock-config' | 'account-billing';
+export type ControlPanelTab = 'hardware' | 'ai-settings' | 'kitchen-orders' | 'online-pricing' | 'catering-calendar' | 'payments' | 'tip-management' | 'loyalty' | 'delivery' | 'gift-cards' | 'staff' | 'time-clock-config' | 'account-billing';
 
 /**
  * AI Settings — Control Panel > AI Settings tab

@@ -4,6 +4,7 @@ import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { PlatformService } from '@services/platform';
 import { DeviceHub } from '../device-hub';
 import { AiSettings } from '../ai-settings';
+import { KitchenOrders } from '../kitchen-orders';
 import { OnlinePricing } from '../online-pricing';
 import { CateringCalendar } from '../catering-calendar';
 import { PaymentSettingsComponent } from '../payment-settings';
@@ -26,7 +27,7 @@ interface TabConfig {
 
 @Component({
   selector: 'os-control-panel',
-  imports: [DeviceHub, AiSettings, OnlinePricing, CateringCalendar, PaymentSettingsComponent, TipManagement, LoyaltySettings, DeliverySettingsComponent, GiftCardManagement, StaffManagement, BreakConfig, AccountBilling],
+  imports: [DeviceHub, AiSettings, KitchenOrders, OnlinePricing, CateringCalendar, PaymentSettingsComponent, TipManagement, LoyaltySettings, DeliverySettingsComponent, GiftCardManagement, StaffManagement, BreakConfig, AccountBilling],
   templateUrl: './control-panel.html',
   styleUrl: './control-panel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,6 +45,7 @@ export class ControlPanel implements OnInit {
   private readonly allTabs: TabConfig[] = [
     { key: 'hardware', label: 'Hardware' },
     { key: 'ai-settings', label: 'AI Settings', requiredModule: 'menu_management' },
+    { key: 'kitchen-orders', label: 'Kitchen & Orders' },
     { key: 'online-pricing', label: 'Online Pricing', requiredModule: 'online_ordering' },
     { key: 'catering-calendar', label: 'Catering Calendar', requiredModule: 'reservations' },
     { key: 'payments', label: 'Payments' },
