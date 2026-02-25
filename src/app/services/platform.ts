@@ -134,17 +134,10 @@ export class PlatformService {
       );
 
       if (response) {
-        console.log('[PlatformService] API merchant profile:', JSON.stringify({
-          defaultDeviceMode: response.defaultDeviceMode,
-          verticals: response.verticals,
-          enabledModules: response.enabledModules,
-          businessName: response.businessName,
-        }));
         this._merchantProfile.set(response);
         this._currentDeviceMode.set(
           this.resolveDeviceMode(response.defaultDeviceMode)
         );
-        console.log('[PlatformService] Resolved device mode:', this._currentDeviceMode(), 'isRestaurantMode:', this.isRestaurantMode());
         this.persistProfile(response);
       } else {
         this.loadFallbackProfile();

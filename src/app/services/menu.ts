@@ -139,9 +139,6 @@ export class MenuService {
           `${this.apiUrl}/restaurant/${restaurantId}/menu/grouped?lang=${this._currentLanguage()}`
         )
       );
-      console.log('[MenuService] /menu/grouped response:', JSON.stringify(
-        (response || []).map(c => ({ name: c.name, itemCount: c.items?.length ?? 0, subCount: c.subcategories?.length ?? 0 }))
-      ));
       this._categories.set(this.normalizeMenuData(response || []));
       this._crudSupported.set(true);
     } catch (err: unknown) {

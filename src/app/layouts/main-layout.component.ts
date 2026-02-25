@@ -35,8 +35,6 @@ export class MainLayoutComponent {
     const flags = this.platform.featureFlags();
     const modules = this.platform.enabledModules();
 
-    console.log('[Sidebar]', { mode, restaurant, retail, service, modules: modules.slice(0, 5) });
-
     const items: NavItem[] = [
       // Always visible
       { label: 'Dashboard', icon: 'bi-speedometer2', route: '/home' },
