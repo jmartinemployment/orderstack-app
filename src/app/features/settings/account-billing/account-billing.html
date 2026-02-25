@@ -69,26 +69,6 @@
     <!-- Plan Comparison -->
     @if (_showPlanComparison()) {
       <div class="plan-comparison">
-        <!-- Billing interval toggle -->
-        <div class="comparison-toggles">
-          <div class="interval-toggle">
-            <button
-              class="toggle-btn"
-              [class.active]="_billingInterval() === 'month'"
-              (click)="setBillingInterval('month')">
-              Monthly
-            </button>
-            <button
-              class="toggle-btn"
-              [class.active]="_billingInterval() === 'year'"
-              (click)="setBillingInterval('year')">
-              Annual
-              <span class="savings-badge">Save {{ annualSavingsPercent() }}%</span>
-            </button>
-          </div>
-
-        </div>
-
         <!-- Tier cards -->
         <div class="tier-cards">
           @for (tier of planTiers; track tier.key) {
@@ -104,7 +84,7 @@
               <div class="tier-price">
                 <span class="price-amount">{{ formatPrice(tier) }}</span>
                 @if (tier.monthlyPriceCents > 0) {
-                  <span class="price-period">/{{ _billingInterval() === 'year' ? 'mo' : 'mo' }}</span>
+                  <span class="price-period">/mo</span>
                   <span class="price-note">per location</span>
                 }
               </div>
@@ -112,15 +92,15 @@
               <div class="tier-rates">
                 <div class="rate-row">
                   <span class="rate-label">In-person</span>
-                  <span class="rate-value">{{ tier.processingRates.inPerson }}</span>
+                  <span class="rate-value">{{ tier.stripeRates.inPerson }}</span>
                 </div>
                 <div class="rate-row">
                   <span class="rate-label">Online</span>
-                  <span class="rate-value">{{ tier.processingRates.online }}</span>
+                  <span class="rate-value">{{ tier.stripeRates.online }}</span>
                 </div>
                 <div class="rate-row">
                   <span class="rate-label">Keyed-in</span>
-                  <span class="rate-value">{{ tier.processingRates.keyedIn }}</span>
+                  <span class="rate-value">{{ tier.stripeRates.keyedIn }}</span>
                 </div>
               </div>
 

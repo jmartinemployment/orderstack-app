@@ -26,7 +26,6 @@ export class AccountBilling implements OnInit {
 
   readonly showCancelModal = signal(false);
   readonly _showPlanComparison = signal(false);
-  readonly _billingInterval = signal<'month' | 'year'>('month');
 
   readonly planTiers = PLAN_TIERS;
 
@@ -52,11 +51,6 @@ export class AccountBilling implements OnInit {
     }
   });
 
-  readonly annualSavingsPercent = computed(() => {
-    // Plus: $49/mo vs $40/mo annual = ~18% savings
-    return 18;
-  });
-
   ngOnInit(): void {
     this.subscriptionService.loadSubscription();
   }
@@ -73,15 +67,9 @@ export class AccountBilling implements OnInit {
     this._showPlanComparison.update(v => !v);
   }
 
-  setBillingInterval(interval: 'month' | 'year'): void {
-    this._billingInterval.set(interval);
-  }
-
   formatPrice(tier: typeof PLAN_TIERS[number]): string {
-    const interval = this._billingInterval();
-    const cents = interval === 'year' ? tier.annualPriceCents : tier.monthlyPriceCents;
-    if (cents === 0) return '$0';
-    return `$${cents / 100}`;
+    if (tier.monthlyPriceCents === 0) return '$0';
+    return `$${tier.monthlyPriceCents / 100}`;
   }
 
   isCurrentTier(tierKey: PlanTierKey): boolean {

@@ -1,15 +1,19 @@
 export type PlanTierKey = 'free' | 'plus' | 'premium';
 
+export type PaymentProcessor = 'stripe' | 'paypal';
+
+export interface ProcessorRates {
+  inPerson: string;
+  online: string;
+  keyedIn: string;
+}
+
 export interface PlanTier {
   key: PlanTierKey;
   name: string;
   monthlyPriceCents: number;
-  annualPriceCents: number;
-  processingRates: {
-    inPerson: string;
-    online: string;
-    keyedIn: string;
-  };
+  stripeRates: ProcessorRates;
+  paypalRates: ProcessorRates;
   features: string[];
   highlighted?: boolean;
 }
@@ -19,11 +23,15 @@ export const PLAN_TIERS: PlanTier[] = [
     key: 'free',
     name: 'Free',
     monthlyPriceCents: 0,
-    annualPriceCents: 0,
-    processingRates: {
-      inPerson: '2.6% + 15¢',
-      online: '3.3% + 30¢',
+    stripeRates: {
+      inPerson: '2.6% + 10¢',
+      online: '2.9% + 30¢',
       keyedIn: '3.5% + 15¢',
+    },
+    paypalRates: {
+      inPerson: '2.99% + 49¢',
+      online: '3.49% + 49¢',
+      keyedIn: '3.5% + 49¢',
     },
     features: [
       'POS for 1 location',
@@ -37,11 +45,15 @@ export const PLAN_TIERS: PlanTier[] = [
     key: 'plus',
     name: 'Plus',
     monthlyPriceCents: 4900,
-    annualPriceCents: 4000,
-    processingRates: {
-      inPerson: '2.5% + 15¢',
+    stripeRates: {
+      inPerson: '2.5% + 10¢',
       online: '2.9% + 30¢',
       keyedIn: '3.5% + 15¢',
+    },
+    paypalRates: {
+      inPerson: '2.69% + 49¢',
+      online: '3.29% + 49¢',
+      keyedIn: '3.5% + 49¢',
     },
     features: [
       'Everything in Free, plus:',
@@ -58,11 +70,15 @@ export const PLAN_TIERS: PlanTier[] = [
     key: 'premium',
     name: 'Premium',
     monthlyPriceCents: 14900,
-    annualPriceCents: 12900,
-    processingRates: {
-      inPerson: '2.4% + 15¢',
+    stripeRates: {
+      inPerson: '2.4% + 10¢',
       online: '2.9% + 30¢',
       keyedIn: '3.5% + 15¢',
+    },
+    paypalRates: {
+      inPerson: '2.29% + 49¢',
+      online: '2.99% + 49¢',
+      keyedIn: '3.5% + 49¢',
     },
     features: [
       'Everything in Plus, plus:',

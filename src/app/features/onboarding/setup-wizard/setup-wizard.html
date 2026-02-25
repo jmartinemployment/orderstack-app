@@ -1,4 +1,4 @@
-<div class="setup-wizard" [class.wide-step]="currentStep() === 4">
+<div class="setup-wizard" [class.wide-step]="isPlanStep() || isHardwareStep()">
   <!-- Brand + Progress -->
   <div class="wizard-brand">
     <i class="bi bi-stack"></i> OrderStack
@@ -8,13 +8,13 @@
       <div class="progress-bar-fill" [style.width.%]="progressPercent()"></div>
     </div>
     <div class="step-label">
-      <span>Step {{ currentStep() }} of {{ totalSteps }}</span>
+      <span>Step {{ currentStep() }} of {{ totalSteps() }}</span>
       <span>{{ progressPercent() }}% complete</span>
     </div>
   </div>
 
   <div class="wizard-body">
-    <!-- ============ STEP 1: Business Name + Address ============ -->
+    <!-- ============ STEP 1: Business Name + Addresses ============ -->
     @if (currentStep() === 1) {
       <div class="step-content welcome-step">
         <h2>Welcome to OrderStack!</h2>
@@ -32,25 +32,116 @@
           <p class="field-hint">This is how we'll identify you on emails, receipts, and messages to your customers.</p>
         </div>
 
+        <!-- Home Address -->
         <div class="address-section">
-          <label>Business address</label>
+          <label class="section-label">Your home address</label>
+          <p class="section-hint">Used for billing and account verification</p>
+
           <input
             type="text"
             class="form-control"
             placeholder="Street address"
-            [ngModel]="_businessAddress()"
-            (ngModelChange)="_businessAddress.set($event)"
-            [disabled]="_noPhysicalAddress()" />
+            [ngModel]="_homeStreet()"
+            (ngModelChange)="_homeStreet.set($event)" />
+          <input
+            type="text"
+            class="form-control mt-field"
+            placeholder="Apt, suite, etc. (optional)"
+            [ngModel]="_homeStreet2()"
+            (ngModelChange)="_homeStreet2.set($event)" />
+          <div class="address-row">
+            <input
+              type="text"
+              class="form-control"
+              placeholder="City"
+              [ngModel]="_homeCity()"
+              (ngModelChange)="_homeCity.set($event)" />
+            <select
+              class="form-control state-select"
+              [ngModel]="_homeState()"
+              (ngModelChange)="_homeState.set($event)"
+              aria-label="State">
+              <option value="" disabled>State</option>
+              @for (state of usStates; track state.code) {
+                <option [value]="state.code">{{ state.code }}</option>
+              }
+            </select>
+            <input
+              type="text"
+              class="form-control zip-input"
+              placeholder="ZIP"
+              maxlength="10"
+              [ngModel]="_homeZip()"
+              (ngModelChange)="_homeZip.set($event)" />
+          </div>
+        </div>
 
-          <div class="no-address-check">
+        <!-- Business Address -->
+        <div class="address-section">
+          <label class="section-label">Business address</label>
+          <p class="section-hint">Where customers can find you</p>
+
+          <div class="checkbox-row">
             <input
               type="checkbox"
-              id="noAddress"
+              id="sameAsHome"
               class="form-check-input"
-              [ngModel]="_noPhysicalAddress()"
-              (ngModelChange)="_noPhysicalAddress.set($event)" />
-            <label for="noAddress" class="form-check-label">I don't have a permanent business address</label>
+              [checked]="_bizSameAsHome()"
+              (change)="toggleSameAsHome()" />
+            <label for="sameAsHome" class="form-check-label">Same as home address</label>
           </div>
+
+          <div class="checkbox-row">
+            <input
+              type="checkbox"
+              id="noPhysical"
+              class="form-check-input"
+              [checked]="_bizNoPhysical()"
+              (change)="toggleNoPhysical()" />
+            <label for="noPhysical" class="form-check-label">I don't have a physical business location</label>
+          </div>
+
+          @if (!_bizSameAsHome() && !_bizNoPhysical()) {
+            <div class="biz-address-fields">
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Street address"
+                [ngModel]="_bizStreet()"
+                (ngModelChange)="_bizStreet.set($event)" />
+              <input
+                type="text"
+                class="form-control mt-field"
+                placeholder="Apt, suite, etc. (optional)"
+                [ngModel]="_bizStreet2()"
+                (ngModelChange)="_bizStreet2.set($event)" />
+              <div class="address-row">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="City"
+                  [ngModel]="_bizCity()"
+                  (ngModelChange)="_bizCity.set($event)" />
+                <select
+                  class="form-control state-select"
+                  [ngModel]="_bizState()"
+                  (ngModelChange)="_bizState.set($event)"
+                  aria-label="Business state">
+                  <option value="" disabled>State</option>
+                  @for (state of usStates; track state.code) {
+                    <option [value]="state.code">{{ state.code }}</option>
+                  }
+                </select>
+                <input
+                  type="text"
+                  class="form-control zip-input"
+                  placeholder="ZIP"
+                  maxlength="10"
+                  [ngModel]="_bizZip()"
+                  (ngModelChange)="_bizZip.set($event)" />
+              </div>
+            </div>
+          }
         </div>
       </div>
     }
@@ -96,8 +187,47 @@
       </div>
     }
 
-    <!-- ============ STEP 3: Annual Revenue ============ -->
-    @if (currentStep() === 3) {
+    <!-- ============ CUISINE STEP (food_and_drink only, step 3) ============ -->
+    @if (isCuisineStep()) {
+      <div class="step-content">
+        <h2>Tell us what you serve</h2>
+        <p class="step-subtitle">Choose your cuisine to get a customized menu of items. This will help you build your catalog faster.</p>
+        <p class="step-subtitle-secondary">If you don't see your cuisine, try creating new items manually.</p>
+
+        <div class="cuisine-search">
+          <label class="cuisine-label">Cuisine</label>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search cuisines..."
+            [ngModel]="_cuisineSearch()"
+            (ngModelChange)="_cuisineSearch.set($event)" />
+        </div>
+
+        <div class="cuisine-list">
+          @for (cuisine of filteredCuisines(); track cuisine) {
+            <button
+              type="button"
+              class="cuisine-item"
+              [class.selected]="_selectedCuisine() === cuisine"
+              (click)="selectCuisine(cuisine)">
+              <span>{{ cuisine }}</span>
+              @if (_selectedCuisine() === cuisine) {
+                <i class="bi bi-check-circle-fill cuisine-check"></i>
+              }
+            </button>
+          }
+          @if (filteredCuisines().length === 0) {
+            <div class="bt-empty">
+              <p>No results for "{{ _cuisineSearch() }}"</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ============ REVENUE STEP ============ -->
+    @if (isRevenueStep()) {
       <div class="step-content">
         <h2>What's your annual revenue?</h2>
         <p class="step-subtitle">This helps us recommend the right plan and features. No judgment — we serve businesses of all sizes.</p>
@@ -124,36 +254,36 @@
       </div>
     }
 
-    <!-- ============ STEP 4: Choose Plan + Connect Payments ============ -->
-    @if (currentStep() === 4) {
+    <!-- ============ PLAN + PROCESSOR STEP ============ -->
+    @if (isPlanStep()) {
       <div class="step-content plan-step">
-        <h2>Choose your plan and connect payments</h2>
-        <p class="step-subtitle">Pick a plan, then connect a payment processor to start accepting payments.</p>
+        <h2>Choose your plan</h2>
+        <p class="step-subtitle">All plans include unlimited transactions. Upgrade anytime.</p>
 
-        <!-- Billing interval toggle -->
+        <!-- Processor toggle -->
         <div class="plan-toggles">
           <div class="toggle-group">
             <button
               type="button"
               class="toggle-btn"
-              [class.active]="_billingInterval() === 'month'"
-              (click)="setBillingInterval('month')">
-              Monthly
+              [class.active]="_selectedProcessor() === 'stripe'"
+              (click)="selectProcessor('stripe')">
+              <i class="bi bi-stripe"></i> Stripe
             </button>
             <button
               type="button"
               class="toggle-btn"
-              [class.active]="_billingInterval() === 'year'"
-              (click)="setBillingInterval('year')">
-              Annual
-              <span class="savings-badge">Save {{ annualSavingsPercent() }}%</span>
+              [class.active]="_selectedProcessor() === 'paypal'"
+              (click)="selectProcessor('paypal')">
+              <i class="bi bi-paypal"></i> PayPal
             </button>
           </div>
+          <span class="toggle-hint">Rates vary by processor</span>
         </div>
 
         <!-- Tier cards -->
         <div class="tier-cards">
-          @for (tier of planTiers; track tier.key) {
+          @for (tier of planTiers; track tier.key; let i = $index) {
             <button
               type="button"
               class="tier-card"
@@ -182,15 +312,15 @@
               <div class="tier-rates">
                 <div class="rate-row">
                   <span class="rate-label">In-person</span>
-                  <span class="rate-value">{{ tier.processingRates.inPerson }}</span>
+                  <span class="rate-value">{{ getRatesForTier(i).inPerson }}</span>
                 </div>
                 <div class="rate-row">
                   <span class="rate-label">Online</span>
-                  <span class="rate-value">{{ tier.processingRates.online }}</span>
+                  <span class="rate-value">{{ getRatesForTier(i).online }}</span>
                 </div>
                 <div class="rate-row">
                   <span class="rate-label">Keyed-in</span>
-                  <span class="rate-value">{{ tier.processingRates.keyedIn }}</span>
+                  <span class="rate-value">{{ getRatesForTier(i).keyedIn }}</span>
                 </div>
               </div>
 
@@ -206,72 +336,14 @@
           }
         </div>
 
-        <!-- Payment Processor Connect -->
-        <div class="connect-section">
-          <h3 class="connect-heading">Connect a payment processor</h3>
-          <p class="connect-subtitle">Choose Stripe or PayPal to accept payments. Same rates regardless of processor.</p>
-
-          <div class="connect-cards">
-            <!-- Stripe -->
-            <div class="connect-card" [class.connected]="paymentConnect.stripeStatus() === 'connected'">
-              <div class="connect-card-header">
-                <i class="bi bi-stripe connect-logo stripe-logo"></i>
-                <span class="connect-name">Stripe</span>
-                @if (paymentConnect.stripeStatus() === 'connected') {
-                  <span class="connect-status connected"><i class="bi bi-check-circle-fill"></i> Connected</span>
-                }
-              </div>
-              <p class="connect-desc">Accept credit cards, debit cards, Apple Pay, and Google Pay.</p>
-              @if (paymentConnect.stripeStatus() !== 'connected') {
-                <button
-                  type="button"
-                  class="btn btn-connect"
-                  [disabled]="paymentConnect.isConnecting() || paymentConnect.paypalStatus() === 'connected'"
-                  (click)="connectStripe()">
-                  @if (paymentConnect.isConnecting() && paymentConnect.stripeStatus() === 'pending') {
-                    <i class="bi bi-arrow-repeat spin"></i> Connecting...
-                  } @else {
-                    Connect Stripe
-                  }
-                </button>
-              }
-            </div>
-
-            <!-- PayPal -->
-            <div class="connect-card" [class.connected]="paymentConnect.paypalStatus() === 'connected'">
-              <div class="connect-card-header">
-                <i class="bi bi-paypal connect-logo paypal-logo"></i>
-                <span class="connect-name">PayPal</span>
-                @if (paymentConnect.paypalStatus() === 'connected') {
-                  <span class="connect-status connected"><i class="bi bi-check-circle-fill"></i> Connected</span>
-                }
-              </div>
-              <p class="connect-desc">Accept PayPal, Venmo, Pay Later, and credit/debit cards.</p>
-              @if (paymentConnect.paypalStatus() !== 'connected') {
-                <button
-                  type="button"
-                  class="btn btn-connect"
-                  [disabled]="paymentConnect.isConnecting() || paymentConnect.stripeStatus() === 'connected'"
-                  (click)="connectPayPal()">
-                  @if (paymentConnect.isConnecting() && paymentConnect.paypalStatus() === 'pending') {
-                    <i class="bi bi-arrow-repeat spin"></i> Connecting...
-                  } @else {
-                    Connect PayPal
-                  }
-                </button>
-              }
-            </div>
-          </div>
-
-          @if (paymentConnect.error()) {
-            <div class="alert alert-danger mt-3">{{ paymentConnect.error() }}</div>
-          }
-        </div>
+        @if (paymentConnect.error()) {
+          <div class="alert alert-danger mt-3">{{ paymentConnect.error() }}</div>
+        }
       </div>
     }
 
-    <!-- ============ STEP 5: Recommended Hardware ============ -->
-    @if (currentStep() === 5) {
+    <!-- ============ HARDWARE STEP ============ -->
+    @if (isHardwareStep()) {
       <div class="step-content hardware-step">
         <h2>Recommended hardware for {{ _businessName() || 'your business' }}</h2>
         <p class="step-subtitle">OrderStack works on devices you already own. Here's what we recommend to get the most out of your setup.</p>
@@ -285,8 +357,9 @@
             <div class="hw-grid">
               @for (hw of essentialHardware(); track hw.id) {
                 <div class="hw-card essential">
-                  <div class="hw-icon-box">
-                    <i class="bi {{ hw.icon }}"></i>
+                  <div class="hw-image">
+                    <img [src]="hw.imageUrl" [alt]="hw.name" loading="lazy" />
+                    <span class="hw-badge essential-badge">Essential</span>
                   </div>
                   <div class="hw-details">
                     <span class="hw-category">{{ hw.category }}</span>
@@ -296,7 +369,12 @@
                       <i class="bi bi-lightbulb"></i>
                       <span>{{ hw.reason }}</span>
                     </div>
-                    <span class="hw-price">{{ hw.priceRange }}</span>
+                    <div class="hw-footer">
+                      <span class="hw-price">{{ hw.priceRange }}</span>
+                      <a [href]="hw.buyUrl" target="_blank" rel="noopener" class="hw-buy-link">
+                        Where to buy <i class="bi bi-box-arrow-up-right"></i>
+                      </a>
+                    </div>
                   </div>
                 </div>
               }
@@ -311,8 +389,8 @@
             <div class="hw-grid">
               @for (hw of optionalHardware(); track hw.id) {
                 <div class="hw-card">
-                  <div class="hw-icon-box">
-                    <i class="bi {{ hw.icon }}"></i>
+                  <div class="hw-image">
+                    <img [src]="hw.imageUrl" [alt]="hw.name" loading="lazy" />
                   </div>
                   <div class="hw-details">
                     <span class="hw-category">{{ hw.category }}</span>
@@ -322,7 +400,12 @@
                       <i class="bi bi-lightbulb"></i>
                       <span>{{ hw.reason }}</span>
                     </div>
-                    <span class="hw-price">{{ hw.priceRange }}</span>
+                    <div class="hw-footer">
+                      <span class="hw-price">{{ hw.priceRange }}</span>
+                      <a [href]="hw.buyUrl" target="_blank" rel="noopener" class="hw-buy-link">
+                        Where to buy <i class="bi bi-box-arrow-up-right"></i>
+                      </a>
+                    </div>
                   </div>
                 </div>
               }
@@ -337,8 +420,8 @@
       </div>
     }
 
-    <!-- ============ STEP 6: You're All Set ============ -->
-    @if (currentStep() === 6) {
+    <!-- ============ DONE STEP: You're All Set ============ -->
+    @if (isDoneStep()) {
       <div class="step-content welcome-screen">
         <div class="welcome-hero">
           <div class="welcome-icon">
@@ -388,8 +471,8 @@
     }
   </div>
 
-  <!-- Navigation Footer (Steps 1-5 only) -->
-  @if (currentStep() < 6) {
+  <!-- Navigation Footer (not on done step) -->
+  @if (!isDoneStep()) {
     <div class="wizard-footer">
       @if (currentStep() > 1) {
         <button class="btn btn-outline" (click)="prev()">
@@ -399,8 +482,8 @@
         <span></span>
       }
 
-      @if (currentStep() === 4) {
-        <!-- Step 4: skip link + continue -->
+      @if (isPlanStep()) {
+        <!-- Plan step: skip link + continue -->
         <div class="footer-right">
           @if (!isProcessorConnected()) {
             <button class="btn btn-skip" (click)="next()">
@@ -409,8 +492,27 @@
           }
           <button
             class="btn btn-primary"
+            (click)="connectProcessor()">
+            @if (paymentConnect.isConnecting()) {
+              <i class="bi bi-arrow-repeat spin"></i> Connecting...
+            } @else if (isProcessorConnected()) {
+              Continue <i class="bi bi-arrow-right"></i>
+            } @else {
+              Connect {{ _selectedProcessor() === 'stripe' ? 'Stripe' : 'PayPal' }} <i class="bi bi-arrow-right"></i>
+            }
+          </button>
+        </div>
+      } @else if (isCuisineStep()) {
+        <!-- Cuisine step: manual + next -->
+        <div class="footer-right">
+          <button class="btn btn-outline" (click)="skipCuisine()">
+            Create Items Manually
+          </button>
+          <button
+            class="btn btn-primary"
+            [disabled]="!_selectedCuisine()"
             (click)="next()">
-            Continue <i class="bi bi-arrow-right"></i>
+            Next <i class="bi bi-arrow-right"></i>
           </button>
         </div>
       } @else {

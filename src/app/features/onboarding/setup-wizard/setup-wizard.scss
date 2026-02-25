@@ -114,8 +114,15 @@ $paypal-blue: #003087;
 
   .step-subtitle {
     color: $text-secondary;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+
+  .step-subtitle-secondary {
+    color: $text-tertiary;
+    font-size: 0.8125rem;
+    margin-bottom: 2rem;
     line-height: 1.5;
   }
 }
@@ -123,6 +130,10 @@ $paypal-blue: #003087;
 .welcome-step {
   h2 {
     font-size: 1.875rem;
+  }
+
+  .step-subtitle {
+    margin-bottom: 2rem;
   }
 }
 
@@ -179,31 +190,65 @@ $paypal-blue: #003087;
   }
 }
 
-// --- Address Section (Step 1) ---
+.mt-field {
+  margin-top: 0.5rem;
+}
+
+// --- Address Sections (Step 1) ---
 
 .address-section {
-  margin-top: 1.25rem;
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $border-color;
+}
 
-  label {
-    display: block;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: $text-primary;
-    margin-bottom: 0.375rem;
+.section-label {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: $text-primary;
+  margin-bottom: 0.125rem;
+}
+
+.section-hint {
+  font-size: 0.8125rem;
+  color: $text-secondary;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.address-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+
+  .form-control {
+    flex: 1;
   }
 }
 
-.no-address-check {
+.state-select {
+  flex: 0 0 80px !important;
+  min-width: 80px;
+}
+
+.zip-input {
+  flex: 0 0 100px !important;
+  min-width: 100px;
+}
+
+.checkbox-row {
   display: flex;
   align-items: center;
   gap: 0.625rem;
-  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
 
   .form-check-input {
     accent-color: $blue;
     width: 18px;
     height: 18px;
     cursor: pointer;
+    flex-shrink: 0;
   }
 
   .form-check-label {
@@ -211,6 +256,10 @@ $paypal-blue: #003087;
     font-size: 0.875rem;
     cursor: pointer;
   }
+}
+
+.biz-address-fields {
+  margin-top: 0.75rem;
 }
 
 // --- Business Type Selector (Step 2) ---
@@ -311,7 +360,65 @@ $paypal-blue: #003087;
   font-size: 0.875rem;
 }
 
-// --- Revenue Cards (Step 3) ---
+// --- Cuisine Step ---
+
+.cuisine-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $text-primary;
+  margin-bottom: 0.375rem;
+}
+
+.cuisine-search {
+  margin-bottom: 1rem;
+}
+
+.cuisine-list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1.5px solid $border-color;
+  border-radius: $radius-md;
+}
+
+.cuisine-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  background: $bg-page;
+  border: none;
+  border-bottom: 1px solid rgba($border-color, 0.5);
+  cursor: pointer;
+  text-align: left;
+  font-family: $font-family;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: $text-primary;
+  transition: background 0.15s;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: $bg-card;
+  }
+
+  &.selected {
+    background: $blue-light;
+    font-weight: 600;
+  }
+
+  .cuisine-check {
+    color: $blue;
+    font-size: 1.125rem;
+    flex-shrink: 0;
+  }
+}
+
+// --- Revenue Cards ---
 
 .revenue-cards {
   display: flex;
@@ -364,7 +471,7 @@ $paypal-blue: #003087;
   }
 }
 
-// --- Plan + Payment Step (Step 4) ---
+// --- Plan + Processor Step ---
 
 .plan-step {
   max-width: 100%;
@@ -387,11 +494,9 @@ $paypal-blue: #003087;
   padding: 3px;
 }
 
-.toggle-label {
-  font-size: 0.8125rem;
-  color: $text-secondary;
-  padding: 0 8px;
-  white-space: nowrap;
+.toggle-hint {
+  font-size: 0.75rem;
+  color: $text-tertiary;
 }
 
 .toggle-btn {
@@ -420,15 +525,14 @@ $paypal-blue: #003087;
     font-weight: 600;
     box-shadow: $shadow-sm;
   }
-}
 
-.savings-badge {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  color: $success;
-  background: $success-light;
-  padding: 2px 6px;
-  border-radius: 4px;
+  .bi-stripe {
+    color: $stripe-purple;
+  }
+
+  .bi-paypal {
+    color: $paypal-blue;
+  }
 }
 
 .tier-cards {
@@ -584,122 +688,7 @@ $paypal-blue: #003087;
   }
 }
 
-// --- Payment Processor Connect ---
-
-.connect-section {
-  margin-top: 2.5rem;
-  padding-top: 2rem;
-  border-top: 1px solid $border-color;
-}
-
-.connect-heading {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: $black;
-  margin: 0 0 0.25rem;
-}
-
-.connect-subtitle {
-  font-size: 0.875rem;
-  color: $text-secondary;
-  margin-bottom: 1.25rem;
-  line-height: 1.5;
-}
-
-.connect-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-.connect-card {
-  background: $bg-page;
-  border: 1.5px solid $border-color;
-  border-radius: $radius-md;
-  padding: 20px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-
-  &:hover {
-    box-shadow: $shadow-md;
-  }
-
-  &.connected {
-    border-color: $success;
-    background: $success-light;
-  }
-}
-
-.connect-card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-.connect-logo {
-  font-size: 1.5rem;
-
-  &.stripe-logo {
-    color: $stripe-purple;
-  }
-
-  &.paypal-logo {
-    color: $paypal-blue;
-  }
-}
-
-.connect-name {
-  font-size: 1rem;
-  font-weight: 700;
-  color: $text-primary;
-}
-
-.connect-status {
-  margin-left: auto;
-  font-size: 0.75rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-
-  &.connected {
-    color: $success;
-  }
-}
-
-.connect-desc {
-  font-size: 0.8125rem;
-  color: $text-secondary;
-  line-height: 1.5;
-  margin-bottom: 12px;
-}
-
-.btn-connect {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 20px;
-  border-radius: $radius-pill;
-  background: $black;
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.8125rem;
-  border: none;
-  cursor: pointer;
-  font-family: $font-family;
-  transition: all 0.15s;
-
-  &:hover:not(:disabled) {
-    background: lighten($black, 15%);
-  }
-
-  &:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
-}
-
-// --- Hardware Recommendations (Step 5) ---
+// --- Hardware Recommendations ---
 
 .hardware-step {
   max-width: 100%;
@@ -725,18 +714,18 @@ $paypal-blue: #003087;
 }
 
 .hw-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 
 .hw-card {
   display: flex;
-  gap: 16px;
-  padding: 20px;
+  flex-direction: column;
   background: $bg-page;
   border: 1.5px solid $border-color;
   border-radius: $radius-md;
+  overflow: hidden;
   transition: box-shadow 0.2s, border-color 0.2s;
 
   &:hover {
@@ -745,33 +734,49 @@ $paypal-blue: #003087;
 
   &.essential {
     border-color: rgba($blue, 0.25);
-    background: rgba($blue, 0.02);
   }
 }
 
-.hw-icon-box {
-  width: 52px;
-  height: 52px;
-  border-radius: $radius-sm;
+.hw-image {
+  position: relative;
+  width: 100%;
+  height: 180px;
   background: $bg-card;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  overflow: hidden;
 
-  i {
-    font-size: 1.5rem;
-    color: $blue;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 12px;
   }
+}
 
-  .essential & {
-    background: $blue-light;
+.hw-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: $radius-pill;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  &.essential-badge {
+    background: $blue;
+    color: #fff;
   }
 }
 
 .hw-details {
   flex: 1;
-  min-width: 0;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
 }
 
 .hw-category {
@@ -788,7 +793,7 @@ $paypal-blue: #003087;
   font-size: 0.9375rem;
   font-weight: 700;
   color: $text-primary;
-  margin: 0 0 4px;
+  margin: 0 0 6px;
 }
 
 .hw-desc {
@@ -805,7 +810,7 @@ $paypal-blue: #003087;
   font-size: 0.75rem;
   color: $text-secondary;
   line-height: 1.4;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   background: rgba($amber, 0.06);
   padding: 6px 8px;
   border-radius: 6px;
@@ -818,10 +823,37 @@ $paypal-blue: #003087;
   }
 }
 
+.hw-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+}
+
 .hw-price {
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   font-weight: 700;
   color: $text-primary;
+}
+
+.hw-buy-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $blue;
+  text-decoration: none;
+  transition: color 0.15s;
+
+  &:hover {
+    color: $blue-hover;
+    text-decoration: underline;
+  }
+
+  i {
+    font-size: 0.75rem;
+  }
 }
 
 .hw-note {
@@ -844,7 +876,7 @@ $paypal-blue: #003087;
   }
 }
 
-// --- Welcome Screen (Step 6) ---
+// --- Welcome Screen (Done Step) ---
 
 .welcome-screen {
   display: flex;
@@ -1100,18 +1132,46 @@ $paypal-blue: #003087;
 
 // --- Responsive ---
 
-@media (max-width: 768px) {
+@media (max-width: 960px) {
   .setup-wizard.wide-step {
     max-width: 100%;
+  }
+
+  .tier-cards {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+
+    .tier-card:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+      max-width: 50%;
+      justify-self: center;
+    }
+  }
+
+  .hw-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .setup-wizard {
     padding: 1.5rem 1rem;
+
+    &.wide-step {
+      padding: 1.5rem 1rem;
+    }
   }
 
   .tier-cards {
     grid-template-columns: 1fr;
-    gap: 12px;
+
+    .tier-card:last-child:nth-child(odd) {
+      max-width: 100%;
+      grid-column: auto;
+    }
   }
 
-  .connect-cards {
+  .hw-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1123,5 +1183,77 @@ $paypal-blue: #003087;
   .footer-right {
     flex-direction: column;
     gap: 8px;
+  }
+
+  .step-content h2 {
+    font-size: 1.375rem;
+  }
+
+  .welcome-step h2 {
+    font-size: 1.5rem;
+  }
+
+  .address-row {
+    flex-wrap: wrap;
+
+    .state-select {
+      flex: 0 0 100% !important;
+    }
+
+    .zip-input {
+      flex: 0 0 100% !important;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .setup-wizard {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .step-content h2 {
+    font-size: 1.25rem;
+  }
+
+  .tier-card {
+    padding: 18px 14px;
+  }
+
+  .tier-price .price-amount {
+    font-size: 1.5rem;
+  }
+
+  .hw-image {
+    height: 140px;
+  }
+
+  .welcome-hero h2 {
+    font-size: 1.5rem;
+  }
+
+  .wizard-footer {
+    flex-direction: column-reverse;
+    gap: 12px;
+
+    .btn-outline {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .footer-right {
+      width: 100%;
+
+      .btn-primary,
+      .btn-outline,
+      .btn-skip {
+        width: 100%;
+        justify-content: center;
+      }
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, computed, inject, ChangeDetectionStrategy, DestroyRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -15,13 +15,14 @@ import {
   defaultBusinessHours,
   PLAN_TIERS,
   PlanTierKey,
+  PaymentProcessor,
 } from '@models/index';
 import { Router } from '@angular/router';
 import { PlatformService, OnboardingPayload } from '@services/platform';
 import { AuthService } from '@services/auth';
 import { DeviceService } from '@services/device';
 import { PwaInstallService } from '@services/pwa-install';
-import { PaymentConnectService, ConnectStatus } from '@services/payment-connect';
+import { PaymentConnectService } from '@services/payment-connect';
 
 const US_STATES = [
   { code: 'AL', name: 'Alabama' }, { code: 'AK', name: 'Alaska' }, { code: 'AZ', name: 'Arizona' },
@@ -43,7 +44,7 @@ const US_STATES = [
   { code: 'WI', name: 'Wisconsin' }, { code: 'WY', name: 'Wyoming' }, { code: 'DC', name: 'Washington DC' },
 ];
 
-const TOTAL_STEPS = 6;
+const ZIP_REGEX = /^\d{5}(-\d{4})?$/;
 
 // --- Business type -> mode mapping ---
 const BUSINESS_TYPE_MODE_MAP: Record<string, DevicePosMode> = {
@@ -211,6 +212,33 @@ const BUSINESS_TYPE_SEARCH_ALIASES: Record<string, string[]> = {
   'Convenience Store': ['store', 'shop', 'market'],
 };
 
+// --- Cuisine options ---
+const CUISINES = [
+  'American',
+  'BBQ',
+  'Bakery / Coffee Shop',
+  'Bar / Brewery / Lounge',
+  'Chinese',
+  'Ice Cream',
+  'Indian',
+  'Italian',
+  'Japanese',
+  'Korean',
+  'Mediterranean',
+  'Mexican',
+  'Seafood',
+  'Soul Food',
+  'Tex-Mex',
+  'Thai',
+  'Vietnamese',
+];
+
+// Cuisine -> menu template mapping
+const CUISINE_TEMPLATE_MAP: Record<string, string> = {
+  'Bakery / Coffee Shop': 'coffee-shop',
+  'Bar / Brewery / Lounge': 'bar-grill',
+};
+
 // --- Hardware Recommendations ---
 
 export interface HardwareRecommendation {
@@ -222,6 +250,7 @@ export interface HardwareRecommendation {
   reason: string;
   priceRange: string;
   imageUrl: string;
+  buyUrl: string;
   essential: boolean;
   modes: DevicePosMode[];
 }
@@ -231,11 +260,12 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
     id: 'tablet',
     category: 'POS Terminal',
     icon: 'bi-tablet',
-    name: 'iPad or Android Tablet',
-    description: 'iPad 10th gen (10.9"), iPad Air, or Samsung Galaxy Tab A8/S8 — your primary countertop POS.',
-    reason: 'Large touchscreen for order entry, menu browsing, and checkout. Runs OrderStack as a web app or PWA.',
-    priceRange: '$329 – $599',
+    name: 'iPad 10th Generation (10.9")',
+    description: 'Apple\'s latest entry-level iPad — your primary countertop POS. Large touchscreen, long battery life, and runs OrderStack as a web app or PWA.',
+    reason: 'The gold standard for POS terminals. Fast, reliable, and every staff member already knows how to use it.',
+    priceRange: '$349',
     imageUrl: '/assets/hardware/tablet.svg',
+    buyUrl: 'https://www.amazon.com/s?k=iPad+10th+generation',
     essential: true,
     modes: ['full_service', 'quick_service', 'bar', 'retail', 'services', 'bookings', 'standard'],
   },
@@ -243,11 +273,12 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
     id: 'phone',
     category: 'Mobile POS',
     icon: 'bi-phone',
-    name: 'iPhone or Android Phone',
-    description: 'iPhone 13+ or Samsung Galaxy S22+ — for tableside ordering, line-busting, and mobile checkout.',
-    reason: 'Portable, has a camera for barcode scanning, and runs OrderStack PWA anywhere in your business.',
+    name: 'iPhone 13 or newer',
+    description: 'For tableside ordering, line-busting, and mobile checkout anywhere in your business.',
+    reason: 'Portable and pocket-sized — perfect for servers taking orders tableside or staff on the go.',
     priceRange: '$200 – $800',
     imageUrl: '/assets/hardware/phone.svg',
+    buyUrl: 'https://www.amazon.com/s?k=iPhone+13',
     essential: false,
     modes: ['full_service', 'bar', 'retail', 'services', 'bookings', 'standard'],
   },
@@ -255,11 +286,12 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
     id: 'card-reader',
     category: 'Card Reader',
     icon: 'bi-credit-card-2-front',
-    name: 'Tap & Chip Card Reader',
-    description: 'Stripe Terminal (BBPOS WisePad 3) or PayPal Zettle Reader — accepts tap, chip, and contactless payments.',
-    reason: 'Connects to your payment processor for secure in-person card payments. Tap-to-pay, Apple Pay, Google Pay.',
+    name: 'Stripe Reader S700 / PayPal Zettle',
+    description: 'Accepts tap, chip, and contactless payments including Apple Pay and Google Pay.',
+    reason: 'Accept every payment type your customers want to use. Connects to your chosen processor automatically.',
     priceRange: '$29 – $59',
     imageUrl: '/assets/hardware/card-reader.svg',
+    buyUrl: 'https://www.amazon.com/s?k=Stripe+Terminal+card+reader',
     essential: true,
     modes: ['full_service', 'quick_service', 'bar', 'retail', 'services', 'bookings', 'standard'],
   },
@@ -267,11 +299,12 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
     id: 'kds',
     category: 'Order Display',
     icon: 'bi-display',
-    name: 'Kitchen / Order Display',
-    description: 'Wall-mounted tablet or 15"–22" touchscreen monitor for your kitchen or prep area.',
-    reason: 'Shows incoming orders in real-time, manages course timing, and eliminates paper tickets.',
+    name: 'Wall-Mount Touchscreen (15"–22")',
+    description: 'Dedicated kitchen or prep area display for incoming orders and course timing.',
+    reason: 'Eliminates paper tickets, reduces mistakes, and shows real-time order status to your kitchen team.',
     priceRange: '$200 – $700',
     imageUrl: '/assets/hardware/kds.svg',
+    buyUrl: 'https://www.amazon.com/s?k=touchscreen+monitor+wall+mount+kitchen',
     essential: false,
     modes: ['full_service', 'quick_service', 'bar'],
   },
@@ -279,11 +312,12 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
     id: 'kiosk',
     category: 'Self-Order Kiosk',
     icon: 'bi-person-badge',
-    name: 'iPad + Kiosk Stand',
-    description: 'iPad on a kiosk stand (Heckler Design, Bouncepad, or similar) for customer self-ordering.',
-    reason: 'Reduces wait times, increases average order value with upsell prompts, and frees up staff.',
+    name: 'iPad + Heckler Kiosk Stand',
+    description: 'Customer-facing self-ordering station — iPad on a secure kiosk stand.',
+    reason: 'Reduces wait times and increases average order value with upsell prompts. Frees up staff.',
     priceRange: '$400 – $800',
     imageUrl: '/assets/hardware/kiosk.svg',
+    buyUrl: 'https://www.amazon.com/s?k=iPad+kiosk+stand',
     essential: false,
     modes: ['quick_service', 'retail'],
   },
@@ -291,11 +325,12 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
     id: 'barcode-scanner',
     category: 'Barcode Scanner',
     icon: 'bi-upc-scan',
-    name: 'Bluetooth Barcode Scanner',
-    description: 'Socket Mobile SocketScan S740 or similar Bluetooth 2D barcode scanner.',
-    reason: 'Instantly scan product barcodes for fast checkout. Pairs with your tablet or phone via Bluetooth.',
+    name: 'Socket Mobile SocketScan S740',
+    description: 'Bluetooth 2D barcode scanner — pairs with your tablet or phone wirelessly.',
+    reason: 'Scan product barcodes instantly for fast checkout. Essential for high-volume retail.',
     priceRange: '$200 – $400',
     imageUrl: '/assets/hardware/barcode-scanner.svg',
+    buyUrl: 'https://www.amazon.com/s?k=Socket+Mobile+SocketScan+S740',
     essential: false,
     modes: ['retail'],
   },
@@ -303,11 +338,12 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
     id: 'receipt-printer',
     category: 'Receipt Printer',
     icon: 'bi-printer',
-    name: 'Thermal Receipt Printer',
-    description: 'Star Micronics TSP143IV or Epson TM-T88VII — connects via USB, Bluetooth, or Wi-Fi.',
-    reason: 'Print customer receipts, kitchen tickets, and order summaries automatically.',
+    name: 'Star Micronics TSP143IV',
+    description: 'Thermal receipt printer — connects via USB, Bluetooth, or Wi-Fi. Prints receipts and kitchen tickets.',
+    reason: 'Print customer receipts and order tickets automatically. Industry standard for speed and reliability.',
     priceRange: '$300 – $500',
     imageUrl: '/assets/hardware/receipt-printer.svg',
+    buyUrl: 'https://www.amazon.com/s?k=Star+Micronics+TSP143IV',
     essential: false,
     modes: ['full_service', 'quick_service', 'bar', 'retail'],
   },
@@ -315,11 +351,12 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
     id: 'cash-drawer',
     category: 'Cash Drawer',
     icon: 'bi-safe',
-    name: 'Cash Drawer',
-    description: 'APG Vasario or Star Micronics cash drawer — opens automatically when connected to receipt printer.',
-    reason: 'Secure cash storage with automatic drawer pop on cash sales. Integrates with your receipt printer.',
+    name: 'APG Vasario Cash Drawer',
+    description: 'Auto-opens when connected to your receipt printer. Secure cash storage with multiple bill and coin slots.',
+    reason: 'Automatically pops open on cash sales. Integrates with your receipt printer for seamless operation.',
     priceRange: '$50 – $150',
     imageUrl: '/assets/hardware/cash-drawer.svg',
+    buyUrl: 'https://www.amazon.com/s?k=APG+Vasario+cash+drawer',
     essential: false,
     modes: ['full_service', 'quick_service', 'bar', 'retail'],
   },
@@ -333,33 +370,49 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
   styleUrl: './setup-wizard.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SetupWizard {
+export class SetupWizard implements OnInit {
   private readonly platformService = inject(PlatformService);
   private readonly authService = inject(AuthService);
   private readonly deviceService = inject(DeviceService);
   readonly pwaInstall = inject(PwaInstallService);
   readonly paymentConnect = inject(PaymentConnectService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly usStates = US_STATES;
   readonly revenueRanges = REVENUE_RANGES;
   readonly planTiers = PLAN_TIERS;
-  readonly totalSteps = TOTAL_STEPS;
+  readonly cuisines = CUISINES;
+
+  // Total steps: 7 for food & drink, 6 for others
+  readonly totalSteps = computed(() => this.isFoodBusiness() ? 7 : 6);
 
   // --- Wizard navigation ---
   readonly _currentStep = signal(1);
   readonly currentStep = this._currentStep.asReadonly();
 
   readonly progressPercent = computed(() =>
-    Math.round((this._currentStep() / TOTAL_STEPS) * 100)
+    Math.round((this._currentStep() / this.totalSteps()) * 100)
   );
 
-  // --- Step 1: Business Info + Address ---
+  // --- Step 1: Business Name + Addresses ---
   readonly _businessName = signal('');
-  readonly _businessAddress = signal('');
-  readonly _noPhysicalAddress = signal(false);
-  readonly _address = signal<BusinessAddress>(defaultBusinessAddress());
-  readonly _phone = signal('');
+
+  // Home address (billing/legal)
+  readonly _homeStreet = signal('');
+  readonly _homeStreet2 = signal('');
+  readonly _homeCity = signal('');
+  readonly _homeState = signal('');
+  readonly _homeZip = signal('');
+
+  // Business address
+  readonly _bizSameAsHome = signal(false);
+  readonly _bizNoPhysical = signal(false);
+  readonly _bizStreet = signal('');
+  readonly _bizStreet2 = signal('');
+  readonly _bizCity = signal('');
+  readonly _bizState = signal('');
+  readonly _bizZip = signal('');
 
   // --- Step 2: Business Type ---
   readonly _businessTypeSearch = signal('');
@@ -371,10 +424,8 @@ export class SetupWizard {
     return BUSINESS_CATEGORIES.filter(c => {
       const name = c.name.toLowerCase();
       const verticalLabel = this.getVerticalLabel(c.vertical).toLowerCase();
-      // Match against name, vertical label, and keyword aliases
       if (name.includes(search)) return true;
       if (verticalLabel.includes(search)) return true;
-      // Common keyword aliases
       const aliases = BUSINESS_TYPE_SEARCH_ALIASES[c.name];
       if (aliases?.some(a => a.includes(search))) return true;
       return false;
@@ -391,16 +442,34 @@ export class SetupWizard {
     return [this.effectivePrimaryVertical()];
   });
 
-  // --- Step 3: Annual Revenue ---
+  readonly isFoodBusiness = computed(() =>
+    this.effectivePrimaryVertical() === 'food_and_drink'
+  );
+
+  // --- Cuisine (food_and_drink only) ---
+  readonly _selectedCuisine = signal<string | null>(null);
+  readonly _cuisineSearch = signal('');
+
+  readonly filteredCuisines = computed(() => {
+    const search = this._cuisineSearch().toLowerCase().trim();
+    if (!search) return CUISINES;
+    return CUISINES.filter(c => c.toLowerCase().includes(search));
+  });
+
+  readonly _selectedMenuTemplateId = signal<string | null>(null);
+
+  // --- Annual Revenue ---
   readonly _selectedRevenue = signal<string | null>(null);
 
-  // --- Step 4: Choose Your Plan + Connect Payments ---
+  // --- Plan + Processor ---
   readonly _selectedTier = signal<PlanTierKey>('free');
-  readonly _billingInterval = signal<'month' | 'year'>('month');
+  readonly _selectedProcessor = signal<PaymentProcessor>('stripe');
 
-  readonly annualSavingsPercent = computed(() => {
-    // Plus: $49/mo vs $40/mo annual = ~18% savings
-    return 18;
+  readonly currentRates = computed(() => {
+    const processor = this._selectedProcessor();
+    return this.planTiers.map(tier =>
+      processor === 'stripe' ? tier.stripeRates : tier.paypalRates
+    );
   });
 
   readonly isProcessorConnected = computed(() => {
@@ -408,8 +477,7 @@ export class SetupWizard {
       || this.paymentConnect.paypalStatus() === 'connected';
   });
 
-  // --- Step 5: Hardware Recommendations ---
-
+  // --- Hardware Recommendations ---
   readonly recommendedHardware = computed<HardwareRecommendation[]>(() => {
     const mode = this.autoDetectedMode();
     return ALL_HARDWARE.filter(hw => hw.modes.includes(mode));
@@ -446,33 +514,136 @@ export class SetupWizard {
 
   readonly isLoading = this.platformService.isLoading;
 
+  // --- Address validation helpers ---
+  private isValidZip(zip: string): boolean {
+    return ZIP_REGEX.exec(zip.trim()) !== null;
+  }
+
+  private isHomeAddressValid(): boolean {
+    return this._homeStreet().trim().length > 0
+      && this._homeCity().trim().length > 0
+      && this._homeState().trim().length > 0
+      && this.isValidZip(this._homeZip());
+  }
+
+  private isBizAddressValid(): boolean {
+    if (this._bizSameAsHome() || this._bizNoPhysical()) return true;
+    return this._bizStreet().trim().length > 0
+      && this._bizCity().trim().length > 0
+      && this._bizState().trim().length > 0
+      && this.isValidZip(this._bizZip());
+  }
+
   // --- Step validation ---
   readonly canProceed = computed(() => {
     const step = this._currentStep();
+    const isFood = this.isFoodBusiness();
+
+    // Map logical step to content step
+    // Steps: 1=address, 2=biztype, 3=cuisine(food)/revenue(other),
+    //         4=revenue(food)/plan(other), 5=plan(food)/hardware(other),
+    //         6=hardware(food)/done(other), 7=done(food)
     switch (step) {
-      case 1: return this._businessName().trim().length > 0;
-      case 2: return this._selectedBusinessType() !== null;
-      case 3: return this._selectedRevenue() !== null;
-      case 4: return true; // plan selection always has a default (free)
-      case 5: return true; // hardware is informational, always can proceed
-      case 6: return !this._isSubmitting();
-      default: return false;
+      case 1:
+        return this._businessName().trim().length > 0
+          && this.isHomeAddressValid()
+          && this.isBizAddressValid();
+      case 2:
+        return this._selectedBusinessType() !== null;
+      case 3:
+        if (isFood) return true; // cuisine is optional (can skip via "Create Items Manually")
+        return this._selectedRevenue() !== null;
+      case 4:
+        if (isFood) return this._selectedRevenue() !== null;
+        return true; // plan selection always has a default (free)
+      case 5:
+        if (isFood) return true; // plan
+        return true; // hardware is informational
+      case 6:
+        if (isFood) return true; // hardware
+        return !this._isSubmitting(); // done screen
+      case 7:
+        return !this._isSubmitting(); // done screen (food only)
+      default:
+        return false;
     }
   });
+
+  // Which "logical" step is this?
+  readonly stepLabel = computed(() => {
+    const step = this._currentStep();
+    const isFood = this.isFoodBusiness();
+    const labels = isFood
+      ? ['Business Info', 'Business Type', 'Cuisine', 'Revenue', 'Plan & Payment', 'Hardware', 'All Set']
+      : ['Business Info', 'Business Type', 'Revenue', 'Plan & Payment', 'Hardware', 'All Set'];
+    return labels[step - 1] ?? '';
+  });
+
+  // Is current step the plan+payment step?
+  readonly isPlanStep = computed(() => {
+    const step = this._currentStep();
+    return this.isFoodBusiness() ? step === 5 : step === 4;
+  });
+
+  // Is current step the hardware step?
+  readonly isHardwareStep = computed(() => {
+    const step = this._currentStep();
+    return this.isFoodBusiness() ? step === 6 : step === 5;
+  });
+
+  // Is current step the "done" step?
+  readonly isDoneStep = computed(() => {
+    return this._currentStep() === this.totalSteps();
+  });
+
+  // Is current step the cuisine step?
+  readonly isCuisineStep = computed(() => {
+    return this.isFoodBusiness() && this._currentStep() === 3;
+  });
+
+  // Is current step the revenue step?
+  readonly isRevenueStep = computed(() => {
+    const step = this._currentStep();
+    return this.isFoodBusiness() ? step === 4 : step === 3;
+  });
+
+  // --- Popstate listener for browser back ---
+  private popstateHandler = (event: PopStateEvent): void => {
+    const step = this._currentStep();
+    if (step > 1) {
+      event.preventDefault();
+      this._currentStep.set(step - 1);
+      // Push a new state so the back button works again
+      history.pushState({ step: step - 1 }, '');
+    }
+  };
+
+  ngOnInit(): void {
+    // Push initial state
+    history.pushState({ step: 1 }, '');
+    // Listen for back button
+    window.addEventListener('popstate', this.popstateHandler);
+    this.destroyRef.onDestroy(() => {
+      window.removeEventListener('popstate', this.popstateHandler);
+    });
+  }
 
   // --- Navigation ---
 
   async next(): Promise<void> {
     const current = this._currentStep();
+    const total = this.totalSteps();
 
-    // When moving from step 3 to step 4, submit onboarding first
-    if (current === 3 && !this._onboardingDone()) {
+    // When moving past revenue step, submit onboarding
+    if (this.isRevenueStep() && !this._onboardingDone()) {
       await this.submitOnboarding();
       if (!this._onboardingDone()) return; // submission failed
     }
 
-    if (current < TOTAL_STEPS) {
-      this._currentStep.set(current + 1);
+    if (current < total) {
+      const nextStep = current + 1;
+      this._currentStep.set(nextStep);
+      history.pushState({ step: nextStep }, '');
     }
   }
 
@@ -480,13 +651,26 @@ export class SetupWizard {
     const current = this._currentStep();
     if (current > 1) {
       this._currentStep.set(current - 1);
+      history.pushState({ step: current - 1 }, '');
     }
   }
 
   // --- Step 1: Address helpers ---
 
-  updateAddress(field: keyof BusinessAddress, value: string): void {
-    this._address.update(a => ({ ...a, [field]: value }));
+  toggleSameAsHome(): void {
+    const next = !this._bizSameAsHome();
+    this._bizSameAsHome.set(next);
+    if (next) {
+      this._bizNoPhysical.set(false);
+    }
+  }
+
+  toggleNoPhysical(): void {
+    const next = !this._bizNoPhysical();
+    this._bizNoPhysical.set(next);
+    if (next) {
+      this._bizSameAsHome.set(false);
+    }
   }
 
   // --- Step 2: Business Type selection ---
@@ -499,58 +683,118 @@ export class SetupWizard {
     return BUSINESS_VERTICAL_CATALOG.find(c => c.vertical === vertical)?.label ?? vertical;
   }
 
-  // --- Step 3: Revenue selection ---
+  // --- Cuisine ---
+
+  selectCuisine(cuisine: string): void {
+    this._selectedCuisine.set(cuisine);
+    // Map to template
+    const template = CUISINE_TEMPLATE_MAP[cuisine] ?? 'casual-dining';
+    this._selectedMenuTemplateId.set(template);
+  }
+
+  skipCuisine(): void {
+    this._selectedCuisine.set(null);
+    this._selectedMenuTemplateId.set(null);
+    void this.next();
+  }
+
+  // --- Revenue selection ---
 
   selectRevenue(id: string): void {
     this._selectedRevenue.set(id);
   }
 
-  // --- Step 4: Plan + Payment ---
+  // --- Plan + Processor ---
 
   selectTier(tierKey: PlanTierKey): void {
     this._selectedTier.set(tierKey);
   }
 
-  setBillingInterval(interval: 'month' | 'year'): void {
-    this._billingInterval.set(interval);
+  selectProcessor(processor: PaymentProcessor): void {
+    this._selectedProcessor.set(processor);
   }
 
   formatPrice(tier: typeof PLAN_TIERS[number]): string {
-    const interval = this._billingInterval();
-    const cents = interval === 'year' ? tier.annualPriceCents : tier.monthlyPriceCents;
-    if (cents === 0) return '$0';
-    return `$${cents / 100}`;
+    if (tier.monthlyPriceCents === 0) return '$0';
+    return `$${tier.monthlyPriceCents / 100}`;
   }
 
-  async connectStripe(): Promise<void> {
-    const url = await this.paymentConnect.startStripeConnect();
-    if (url) {
-      window.open(url, '_blank');
-      await this.paymentConnect.pollStripeUntilConnected();
+  getRatesForTier(tierIndex: number): { inPerson: string; online: string; keyedIn: string } {
+    return this.currentRates()[tierIndex];
+  }
+
+  async connectProcessor(): Promise<void> {
+    const processor = this._selectedProcessor();
+    if (processor === 'stripe') {
+      const url = await this.paymentConnect.startStripeConnect();
+      if (url) {
+        window.open(url, '_blank');
+        await this.paymentConnect.pollStripeUntilConnected();
+      }
+    } else {
+      const url = await this.paymentConnect.startPayPalConnect();
+      if (url) {
+        window.open(url, '_blank');
+        await this.paymentConnect.pollPayPalUntilConnected();
+      }
     }
   }
 
-  async connectPayPal(): Promise<void> {
-    const url = await this.paymentConnect.startPayPalConnect();
-    if (url) {
-      window.open(url, '_blank');
-      await this.paymentConnect.pollPayPalUntilConnected();
-    }
-  }
-
-  // --- Onboarding submission (happens between step 3 and 4) ---
+  // --- Onboarding submission ---
 
   private async submitOnboarding(): Promise<void> {
     this._isSubmitting.set(true);
     this._submitError.set(null);
 
     const detectedMode = this.autoDetectedMode();
-
     const user = this.authService.user();
+
+    // Build business address
+    let bizAddress: BusinessAddress;
+    if (this._bizSameAsHome()) {
+      bizAddress = {
+        street: this._homeStreet(),
+        street2: this._homeStreet2() || null,
+        city: this._homeCity(),
+        state: this._homeState(),
+        zip: this._homeZip(),
+        country: 'US',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        phone: null,
+        lat: null,
+        lng: null,
+      };
+    } else if (this._bizNoPhysical()) {
+      bizAddress = {
+        street: '',
+        street2: null,
+        city: '',
+        state: '',
+        zip: '',
+        country: 'US',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        phone: null,
+        lat: null,
+        lng: null,
+      };
+    } else {
+      bizAddress = {
+        street: this._bizStreet(),
+        street2: this._bizStreet2() || null,
+        city: this._bizCity(),
+        state: this._bizState(),
+        zip: this._bizZip(),
+        country: 'US',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        phone: null,
+        lat: null,
+        lng: null,
+      };
+    }
 
     const payload: OnboardingPayload = {
       businessName: this._businessName(),
-      address: { ...this._address(), phone: this._phone() || null },
+      address: bizAddress,
       verticals: this.selectedVerticals(),
       primaryVertical: this.effectivePrimaryVertical(),
       complexity: 'full',
@@ -558,7 +802,7 @@ export class SetupWizard {
       taxLocale: defaultTaxLocaleConfig(),
       businessHours: defaultBusinessHours(),
       paymentProcessor: 'none',
-      menuTemplateId: null,
+      menuTemplateId: this._selectedMenuTemplateId(),
       ownerPin: {
         displayName: user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || 'Owner' : 'Owner',
         pin: '',
@@ -586,13 +830,11 @@ export class SetupWizard {
     }
   }
 
-  // --- Step 6: Go to dashboard ---
+  // --- Done screen ---
 
   goToDashboard(): void {
     this.router.navigate(['/home']);
   }
-
-  // --- PWA install ---
 
   async installApp(): Promise<void> {
     await this.pwaInstall.promptInstall();

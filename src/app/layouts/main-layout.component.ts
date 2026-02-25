@@ -37,7 +37,7 @@ export class MainLayoutComponent {
 
     const items: NavItem[] = [
       // Always visible
-      { label: 'Home', icon: 'bi-house', route: '/home' },
+      { label: 'Dashboard', icon: 'bi-speedometer2', route: '/home' },
     ];
 
     // Orders — all except pure services
