@@ -787,12 +787,6 @@ export class SetupWizard implements OnInit {
     this._selectedMenuTemplateId.set(template);
   }
 
-  skipCuisine(): void {
-    this._selectedCuisine.set(null);
-    this._selectedMenuTemplateId.set(null);
-    void this.next();
-  }
-
   // --- Revenue selection ---
 
   selectRevenue(id: string): void {

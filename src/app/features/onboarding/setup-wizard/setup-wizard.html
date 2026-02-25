@@ -182,7 +182,7 @@
       <div class="step-content">
         <h2>Tell us what you serve</h2>
         <p class="step-subtitle">Choose your cuisine to get a customized menu of items. This will help you build your catalog faster.</p>
-        <p class="step-subtitle-secondary">If you don't see your cuisine, try creating new items manually.</p>
+        <p class="step-subtitle-secondary">If you don't see your cuisine, no worries — skip this step and add items later from your dashboard.</p>
 
         <div class="cuisine-search">
           <label class="cuisine-label">Cuisine</label>
@@ -600,19 +600,6 @@
             } @else {
               Connect {{ _selectedProcessor() === 'stripe' ? 'Stripe' : 'PayPal' }} <i class="bi bi-arrow-right"></i>
             }
-          </button>
-        </div>
-      } @else if (isCuisineStep()) {
-        <!-- Cuisine step: manual + next -->
-        <div class="footer-right">
-          <button class="btn btn-outline" (click)="skipCuisine()">
-            Create Items Manually
-          </button>
-          <button
-            class="btn btn-primary"
-            [disabled]="!_selectedCuisine()"
-            (click)="next()">
-            Next <i class="bi bi-arrow-right"></i>
           </button>
         </div>
       } @else if (isDeliveryStep()) {
