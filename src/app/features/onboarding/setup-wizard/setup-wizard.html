@@ -1,4 +1,4 @@
-<div class="setup-wizard">
+<div class="setup-wizard" [class.wide-step]="currentStep() === 4">
   <!-- Brand + Progress -->
   <div class="wizard-brand">
     <i class="bi bi-stack"></i> OrderStack
@@ -124,11 +124,11 @@
       </div>
     }
 
-    <!-- ============ STEP 4: Choose Your Plan ============ -->
+    <!-- ============ STEP 4: Choose Plan + Connect Payments ============ -->
     @if (currentStep() === 4) {
       <div class="step-content plan-step">
-        <h2>Choose your plan</h2>
-        <p class="step-subtitle">Start free and upgrade anytime. All plans include unlimited transactions.</p>
+        <h2>Choose your plan and connect payments</h2>
+        <p class="step-subtitle">Pick a plan, then connect a payment processor to start accepting payments.</p>
 
         <!-- Billing interval toggle -->
         <div class="plan-toggles">
@@ -205,11 +205,140 @@
             </button>
           }
         </div>
+
+        <!-- Payment Processor Connect -->
+        <div class="connect-section">
+          <h3 class="connect-heading">Connect a payment processor</h3>
+          <p class="connect-subtitle">Choose Stripe or PayPal to accept payments. Same rates regardless of processor.</p>
+
+          <div class="connect-cards">
+            <!-- Stripe -->
+            <div class="connect-card" [class.connected]="paymentConnect.stripeStatus() === 'connected'">
+              <div class="connect-card-header">
+                <i class="bi bi-stripe connect-logo stripe-logo"></i>
+                <span class="connect-name">Stripe</span>
+                @if (paymentConnect.stripeStatus() === 'connected') {
+                  <span class="connect-status connected"><i class="bi bi-check-circle-fill"></i> Connected</span>
+                }
+              </div>
+              <p class="connect-desc">Accept credit cards, debit cards, Apple Pay, and Google Pay.</p>
+              @if (paymentConnect.stripeStatus() !== 'connected') {
+                <button
+                  type="button"
+                  class="btn btn-connect"
+                  [disabled]="paymentConnect.isConnecting() || paymentConnect.paypalStatus() === 'connected'"
+                  (click)="connectStripe()">
+                  @if (paymentConnect.isConnecting() && paymentConnect.stripeStatus() === 'pending') {
+                    <i class="bi bi-arrow-repeat spin"></i> Connecting...
+                  } @else {
+                    Connect Stripe
+                  }
+                </button>
+              }
+            </div>
+
+            <!-- PayPal -->
+            <div class="connect-card" [class.connected]="paymentConnect.paypalStatus() === 'connected'">
+              <div class="connect-card-header">
+                <i class="bi bi-paypal connect-logo paypal-logo"></i>
+                <span class="connect-name">PayPal</span>
+                @if (paymentConnect.paypalStatus() === 'connected') {
+                  <span class="connect-status connected"><i class="bi bi-check-circle-fill"></i> Connected</span>
+                }
+              </div>
+              <p class="connect-desc">Accept PayPal, Venmo, Pay Later, and credit/debit cards.</p>
+              @if (paymentConnect.paypalStatus() !== 'connected') {
+                <button
+                  type="button"
+                  class="btn btn-connect"
+                  [disabled]="paymentConnect.isConnecting() || paymentConnect.stripeStatus() === 'connected'"
+                  (click)="connectPayPal()">
+                  @if (paymentConnect.isConnecting() && paymentConnect.paypalStatus() === 'pending') {
+                    <i class="bi bi-arrow-repeat spin"></i> Connecting...
+                  } @else {
+                    Connect PayPal
+                  }
+                </button>
+              }
+            </div>
+          </div>
+
+          @if (paymentConnect.error()) {
+            <div class="alert alert-danger mt-3">{{ paymentConnect.error() }}</div>
+          }
+        </div>
       </div>
     }
 
-    <!-- ============ STEP 5: You're All Set ============ -->
+    <!-- ============ STEP 5: Recommended Hardware ============ -->
     @if (currentStep() === 5) {
+      <div class="step-content hardware-step">
+        <h2>Recommended hardware for {{ _businessName() || 'your business' }}</h2>
+        <p class="step-subtitle">OrderStack works on devices you already own. Here's what we recommend to get the most out of your setup.</p>
+
+        <!-- Essential hardware -->
+        @if (essentialHardware().length > 0) {
+          <div class="hw-section">
+            <h3 class="hw-section-title">
+              <i class="bi bi-star-fill hw-star"></i> Essentials
+            </h3>
+            <div class="hw-grid">
+              @for (hw of essentialHardware(); track hw.id) {
+                <div class="hw-card essential">
+                  <div class="hw-icon-box">
+                    <i class="bi {{ hw.icon }}"></i>
+                  </div>
+                  <div class="hw-details">
+                    <span class="hw-category">{{ hw.category }}</span>
+                    <h4 class="hw-name">{{ hw.name }}</h4>
+                    <p class="hw-desc">{{ hw.description }}</p>
+                    <div class="hw-reason">
+                      <i class="bi bi-lightbulb"></i>
+                      <span>{{ hw.reason }}</span>
+                    </div>
+                    <span class="hw-price">{{ hw.priceRange }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Optional hardware -->
+        @if (optionalHardware().length > 0) {
+          <div class="hw-section">
+            <h3 class="hw-section-title">Also recommended</h3>
+            <div class="hw-grid">
+              @for (hw of optionalHardware(); track hw.id) {
+                <div class="hw-card">
+                  <div class="hw-icon-box">
+                    <i class="bi {{ hw.icon }}"></i>
+                  </div>
+                  <div class="hw-details">
+                    <span class="hw-category">{{ hw.category }}</span>
+                    <h4 class="hw-name">{{ hw.name }}</h4>
+                    <p class="hw-desc">{{ hw.description }}</p>
+                    <div class="hw-reason">
+                      <i class="bi bi-lightbulb"></i>
+                      <span>{{ hw.reason }}</span>
+                    </div>
+                    <span class="hw-price">{{ hw.priceRange }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <p class="hw-note">
+          <i class="bi bi-info-circle"></i>
+          You don't need any of this to get started — OrderStack works in any browser. You can set up hardware anytime from Settings.
+        </p>
+      </div>
+    }
+
+    <!-- ============ STEP 6: You're All Set ============ -->
+    @if (currentStep() === 6) {
       <div class="step-content welcome-screen">
         <div class="welcome-hero">
           <div class="welcome-icon">
@@ -259,8 +388,8 @@
     }
   </div>
 
-  <!-- Navigation Footer (Steps 1-4 only) -->
-  @if (currentStep() < 5) {
+  <!-- Navigation Footer (Steps 1-5 only) -->
+  @if (currentStep() < 6) {
     <div class="wizard-footer">
       @if (currentStep() > 1) {
         <button class="btn btn-outline" (click)="prev()">
@@ -270,16 +399,32 @@
         <span></span>
       }
 
-      <button
-        class="btn btn-primary"
-        [disabled]="!canProceed() || _isSubmitting()"
-        (click)="next()">
-        @if (_isSubmitting()) {
-          <i class="bi bi-arrow-repeat spin"></i> Setting up...
-        } @else {
-          Continue <i class="bi bi-arrow-right"></i>
-        }
-      </button>
+      @if (currentStep() === 4) {
+        <!-- Step 4: skip link + continue -->
+        <div class="footer-right">
+          @if (!isProcessorConnected()) {
+            <button class="btn btn-skip" (click)="next()">
+              I'll do this later
+            </button>
+          }
+          <button
+            class="btn btn-primary"
+            (click)="next()">
+            Continue <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      } @else {
+        <button
+          class="btn btn-primary"
+          [disabled]="!canProceed() || _isSubmitting()"
+          (click)="next()">
+          @if (_isSubmitting()) {
+            <i class="bi bi-arrow-repeat spin"></i> Setting up...
+          } @else {
+            Continue <i class="bi bi-arrow-right"></i>
+          }
+        </button>
+      }
     </div>
   }
 </div>

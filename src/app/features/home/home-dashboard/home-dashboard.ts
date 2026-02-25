@@ -88,15 +88,6 @@ export class HomeDashboard implements OnInit {
     return [
       // Essential tasks
       {
-        id: 'payments',
-        label: 'Set up payments',
-        description: 'Connect Stripe or PayPal to accept card payments',
-        icon: 'bi-credit-card',
-        route: '/settings',
-        done: done.has('payments'),
-        category: 'essential',
-      },
-      {
         id: 'items',
         label: itemsLabel,
         description: itemsDesc,

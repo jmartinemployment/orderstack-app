@@ -24,6 +24,59 @@ This is the **canonical OrderStack** restaurant management SaaS application — 
 
 **Default to Square.** For every UI decision, user flow, and interaction pattern — research how Square handles it first. Do not invent, do not guess, do not overcomplicate. Square Restaurant POS is the benchmark. When a design question comes up (e.g., "how should floor plan setup work?", "what does the mode selection look like?"), the first action is to look up Square's approach, then build to match or improve on it. This is not optional.
 
+## Hardware Recommendations (Onboarding Wizard Step 5)
+
+OrderStack does NOT sell hardware (unlike Square, which sells proprietary devices). Instead, we recommend compatible third-party devices during onboarding. This step appears AFTER plan selection + payment connect (Step 4), BEFORE the "You're all set" screen (Step 6).
+
+**Key difference from Square:** Square sells their own hardware (Square Terminal $299, Square Register $799, etc.). We recommend best-in-class third-party devices that work with OrderStack via browser/app. This is a marketing and guidance step — show pictures, reasons for recommendation, and approximate prices.
+
+### Hardware Categories & Recommendations
+
+**Phones (Mobile POS):**
+- iPhone 13+ or Samsung Galaxy S22+ — for mobile checkout, line-busting, tableside ordering
+- Why: Portable, camera for barcode scanning, runs OrderStack PWA or native app
+- Price range: $200–$800
+
+**Tablets (Primary POS Terminal):**
+- iPad 10th gen (10.9") or iPad Air — primary countertop POS
+- Samsung Galaxy Tab A8/S8 — Android alternative
+- Why: Large touchscreen for order entry, menu browsing, customer-facing display
+- Price range: $329–$599
+
+**Kitchen Display System (KDS):**
+- Any wall-mounted tablet or touchscreen monitor 15"–22"
+- Recommended: Samsung Galaxy Tab A8 (budget), iPad (premium), or dedicated KDS touchscreen
+- Why: Shows incoming orders, course timing, ticket management
+- Price range: $200–$700
+
+**Card Readers (Payment Terminals):**
+- Stripe Terminal (BBPOS WisePad 3) — for Stripe-connected merchants
+- PayPal Zettle Reader — for PayPal-connected merchants
+- Why: Tap-to-pay, chip, contactless, integrates with OrderStack payment processing
+- Price range: $29–$59
+
+**Self-Order Kiosk:**
+- iPad on a kiosk stand (e.g., Heckler Design, Bouncepad)
+- Why: Customer self-ordering, reduces wait times, upsell prompts
+- Price range: $400–$800 (tablet + stand)
+
+### Mode-Aware Recommendations
+
+The hardware step should show different recommendations based on the auto-detected business mode:
+- **Full Service / Bar:** Tablets (POS), Phones (tableside), KDS, Card Reader
+- **Quick Service:** Tablets (POS), Card Reader, Kiosk (optional)
+- **Retail:** Tablets (POS), Card Reader, Barcode Scanner
+- **Services / Bookings:** Tablet or Phone (mobile checkout), Card Reader
+- **All modes:** Always show Card Reader as essential
+
+### UI Design
+
+- Cards with device category icon, product image placeholder, name, price range, and 1-sentence reason
+- "Why we recommend this" tooltip or subtitle per card
+- Mode-aware: only show relevant categories for the merchant's business type
+- "Skip for now" option — hardware is not required to start using OrderStack
+- Link to a future `/hardware-guide` page for detailed comparisons
+
 ## Architecture
 
 Single Angular 21 application with:

@@ -21,6 +21,7 @@ import { PlatformService, OnboardingPayload } from '@services/platform';
 import { AuthService } from '@services/auth';
 import { DeviceService } from '@services/device';
 import { PwaInstallService } from '@services/pwa-install';
+import { PaymentConnectService, ConnectStatus } from '@services/payment-connect';
 
 const US_STATES = [
   { code: 'AL', name: 'Alabama' }, { code: 'AK', name: 'Alaska' }, { code: 'AZ', name: 'Arizona' },
@@ -42,7 +43,7 @@ const US_STATES = [
   { code: 'WI', name: 'Wisconsin' }, { code: 'WY', name: 'Wyoming' }, { code: 'DC', name: 'Washington DC' },
 ];
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 // --- Business type -> mode mapping ---
 const BUSINESS_TYPE_MODE_MAP: Record<string, DevicePosMode> = {
@@ -210,6 +211,120 @@ const BUSINESS_TYPE_SEARCH_ALIASES: Record<string, string[]> = {
   'Convenience Store': ['store', 'shop', 'market'],
 };
 
+// --- Hardware Recommendations ---
+
+export interface HardwareRecommendation {
+  id: string;
+  category: string;
+  icon: string;
+  name: string;
+  description: string;
+  reason: string;
+  priceRange: string;
+  imageUrl: string;
+  essential: boolean;
+  modes: DevicePosMode[];
+}
+
+const ALL_HARDWARE: HardwareRecommendation[] = [
+  {
+    id: 'tablet',
+    category: 'POS Terminal',
+    icon: 'bi-tablet',
+    name: 'iPad or Android Tablet',
+    description: 'iPad 10th gen (10.9"), iPad Air, or Samsung Galaxy Tab A8/S8 — your primary countertop POS.',
+    reason: 'Large touchscreen for order entry, menu browsing, and checkout. Runs OrderStack as a web app or PWA.',
+    priceRange: '$329 – $599',
+    imageUrl: '/assets/hardware/tablet.svg',
+    essential: true,
+    modes: ['full_service', 'quick_service', 'bar', 'retail', 'services', 'bookings', 'standard'],
+  },
+  {
+    id: 'phone',
+    category: 'Mobile POS',
+    icon: 'bi-phone',
+    name: 'iPhone or Android Phone',
+    description: 'iPhone 13+ or Samsung Galaxy S22+ — for tableside ordering, line-busting, and mobile checkout.',
+    reason: 'Portable, has a camera for barcode scanning, and runs OrderStack PWA anywhere in your business.',
+    priceRange: '$200 – $800',
+    imageUrl: '/assets/hardware/phone.svg',
+    essential: false,
+    modes: ['full_service', 'bar', 'retail', 'services', 'bookings', 'standard'],
+  },
+  {
+    id: 'card-reader',
+    category: 'Card Reader',
+    icon: 'bi-credit-card-2-front',
+    name: 'Tap & Chip Card Reader',
+    description: 'Stripe Terminal (BBPOS WisePad 3) or PayPal Zettle Reader — accepts tap, chip, and contactless payments.',
+    reason: 'Connects to your payment processor for secure in-person card payments. Tap-to-pay, Apple Pay, Google Pay.',
+    priceRange: '$29 – $59',
+    imageUrl: '/assets/hardware/card-reader.svg',
+    essential: true,
+    modes: ['full_service', 'quick_service', 'bar', 'retail', 'services', 'bookings', 'standard'],
+  },
+  {
+    id: 'kds',
+    category: 'Order Display',
+    icon: 'bi-display',
+    name: 'Kitchen / Order Display',
+    description: 'Wall-mounted tablet or 15"–22" touchscreen monitor for your kitchen or prep area.',
+    reason: 'Shows incoming orders in real-time, manages course timing, and eliminates paper tickets.',
+    priceRange: '$200 – $700',
+    imageUrl: '/assets/hardware/kds.svg',
+    essential: false,
+    modes: ['full_service', 'quick_service', 'bar'],
+  },
+  {
+    id: 'kiosk',
+    category: 'Self-Order Kiosk',
+    icon: 'bi-person-badge',
+    name: 'iPad + Kiosk Stand',
+    description: 'iPad on a kiosk stand (Heckler Design, Bouncepad, or similar) for customer self-ordering.',
+    reason: 'Reduces wait times, increases average order value with upsell prompts, and frees up staff.',
+    priceRange: '$400 – $800',
+    imageUrl: '/assets/hardware/kiosk.svg',
+    essential: false,
+    modes: ['quick_service', 'retail'],
+  },
+  {
+    id: 'barcode-scanner',
+    category: 'Barcode Scanner',
+    icon: 'bi-upc-scan',
+    name: 'Bluetooth Barcode Scanner',
+    description: 'Socket Mobile SocketScan S740 or similar Bluetooth 2D barcode scanner.',
+    reason: 'Instantly scan product barcodes for fast checkout. Pairs with your tablet or phone via Bluetooth.',
+    priceRange: '$200 – $400',
+    imageUrl: '/assets/hardware/barcode-scanner.svg',
+    essential: false,
+    modes: ['retail'],
+  },
+  {
+    id: 'receipt-printer',
+    category: 'Receipt Printer',
+    icon: 'bi-printer',
+    name: 'Thermal Receipt Printer',
+    description: 'Star Micronics TSP143IV or Epson TM-T88VII — connects via USB, Bluetooth, or Wi-Fi.',
+    reason: 'Print customer receipts, kitchen tickets, and order summaries automatically.',
+    priceRange: '$300 – $500',
+    imageUrl: '/assets/hardware/receipt-printer.svg',
+    essential: false,
+    modes: ['full_service', 'quick_service', 'bar', 'retail'],
+  },
+  {
+    id: 'cash-drawer',
+    category: 'Cash Drawer',
+    icon: 'bi-safe',
+    name: 'Cash Drawer',
+    description: 'APG Vasario or Star Micronics cash drawer — opens automatically when connected to receipt printer.',
+    reason: 'Secure cash storage with automatic drawer pop on cash sales. Integrates with your receipt printer.',
+    priceRange: '$50 – $150',
+    imageUrl: '/assets/hardware/cash-drawer.svg',
+    essential: false,
+    modes: ['full_service', 'quick_service', 'bar', 'retail'],
+  },
+];
+
 @Component({
   selector: 'os-setup-wizard',
   standalone: true,
@@ -223,6 +338,7 @@ export class SetupWizard {
   private readonly authService = inject(AuthService);
   private readonly deviceService = inject(DeviceService);
   readonly pwaInstall = inject(PwaInstallService);
+  readonly paymentConnect = inject(PaymentConnectService);
   private readonly router = inject(Router);
 
   readonly usStates = US_STATES;
@@ -278,7 +394,7 @@ export class SetupWizard {
   // --- Step 3: Annual Revenue ---
   readonly _selectedRevenue = signal<string | null>(null);
 
-  // --- Step 4: Choose Your Plan ---
+  // --- Step 4: Choose Your Plan + Connect Payments ---
   readonly _selectedTier = signal<PlanTierKey>('free');
   readonly _billingInterval = signal<'month' | 'year'>('month');
 
@@ -286,6 +402,26 @@ export class SetupWizard {
     // Plus: $49/mo vs $40/mo annual = ~18% savings
     return 18;
   });
+
+  readonly isProcessorConnected = computed(() => {
+    return this.paymentConnect.stripeStatus() === 'connected'
+      || this.paymentConnect.paypalStatus() === 'connected';
+  });
+
+  // --- Step 5: Hardware Recommendations ---
+
+  readonly recommendedHardware = computed<HardwareRecommendation[]>(() => {
+    const mode = this.autoDetectedMode();
+    return ALL_HARDWARE.filter(hw => hw.modes.includes(mode));
+  });
+
+  readonly essentialHardware = computed(() =>
+    this.recommendedHardware().filter(hw => hw.essential)
+  );
+
+  readonly optionalHardware = computed(() =>
+    this.recommendedHardware().filter(hw => !hw.essential)
+  );
 
   // --- Auto-detect mode from business type ---
   readonly autoDetectedMode = computed<DevicePosMode>(() => {
@@ -318,7 +454,8 @@ export class SetupWizard {
       case 2: return this._selectedBusinessType() !== null;
       case 3: return this._selectedRevenue() !== null;
       case 4: return true; // plan selection always has a default (free)
-      case 5: return !this._isSubmitting();
+      case 5: return true; // hardware is informational, always can proceed
+      case 6: return !this._isSubmitting();
       default: return false;
     }
   });
@@ -368,7 +505,7 @@ export class SetupWizard {
     this._selectedRevenue.set(id);
   }
 
-  // --- Step 4: Plan selection ---
+  // --- Step 4: Plan + Payment ---
 
   selectTier(tierKey: PlanTierKey): void {
     this._selectedTier.set(tierKey);
@@ -383,6 +520,22 @@ export class SetupWizard {
     const cents = interval === 'year' ? tier.annualPriceCents : tier.monthlyPriceCents;
     if (cents === 0) return '$0';
     return `$${cents / 100}`;
+  }
+
+  async connectStripe(): Promise<void> {
+    const url = await this.paymentConnect.startStripeConnect();
+    if (url) {
+      window.open(url, '_blank');
+      await this.paymentConnect.pollStripeUntilConnected();
+    }
+  }
+
+  async connectPayPal(): Promise<void> {
+    const url = await this.paymentConnect.startPayPalConnect();
+    if (url) {
+      window.open(url, '_blank');
+      await this.paymentConnect.pollPayPalUntilConnected();
+    }
   }
 
   // --- Onboarding submission (happens between step 3 and 4) ---
@@ -433,7 +586,7 @@ export class SetupWizard {
     }
   }
 
-  // --- Step 5: Go to dashboard ---
+  // --- Step 6: Go to dashboard ---
 
   goToDashboard(): void {
     this.router.navigate(['/home']);
