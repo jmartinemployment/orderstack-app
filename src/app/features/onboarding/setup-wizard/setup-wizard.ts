@@ -234,11 +234,29 @@ const CUISINES = [
   'Vietnamese',
 ];
 
-// Cuisine -> menu template mapping
+// Cuisine -> menu template mapping (IDs must match backend MENU_TEMPLATES in menu-templates.ts)
 const CUISINE_TEMPLATE_MAP: Record<string, string> = {
-  'Bakery / Coffee Shop': 'coffee-shop',
-  'Bar / Brewery / Lounge': 'bar-grill',
+  'American': 'tmpl-american-grill',
+  'BBQ': 'tmpl-bbq',
+  'Bakery / Coffee Shop': 'tmpl-coffee-shop',
+  'Bar / Brewery / Lounge': 'tmpl-bar-and-grill',
+  'Chinese': 'tmpl-asian',
+  'Ice Cream': 'tmpl-ice-cream',
+  'Indian': 'tmpl-indian',
+  'Italian': 'tmpl-pizza-restaurant',
+  'Japanese': 'tmpl-asian',
+  'Korean': 'tmpl-asian',
+  'Mediterranean': 'tmpl-mediterranean',
+  'Mexican': 'tmpl-taco-truck',
+  'Seafood': 'tmpl-seafood',
+  'Soul Food': 'tmpl-american-grill',
+  'Tex-Mex': 'tmpl-taco-truck',
+  'Thai': 'tmpl-asian',
+  'Vietnamese': 'tmpl-asian',
 };
+
+// Default template for cuisines without a specific match
+const DEFAULT_MENU_TEMPLATE = 'tmpl-bar-and-grill';
 
 // --- Delivery Provider Config ---
 
@@ -690,7 +708,8 @@ export class SetupWizard implements OnInit {
     if (this.isRevenueStep()) return this._selectedRevenue() !== null;
     if (this.isLocationsStep()) return true; // always valid
     if (this.isDeliveryStep()) return true; // always valid (skip allowed)
-    if (this.isPlanStep()) return true; // plan always has a default
+    // TODO: Change to `this.isProcessorConnected()` before production launch
+    if (this.isPlanStep()) return true;
     if (this.isHardwareStep()) return true; // informational
     if (this.isDoneStep()) return !this._isSubmitting();
     return false;
@@ -761,7 +780,7 @@ export class SetupWizard implements OnInit {
 
   selectCuisine(cuisine: string): void {
     this._selectedCuisine.set(cuisine);
-    const template = CUISINE_TEMPLATE_MAP[cuisine] ?? 'casual-dining';
+    const template = CUISINE_TEMPLATE_MAP[cuisine] ?? DEFAULT_MENU_TEMPLATE;
     this._selectedMenuTemplateId.set(template);
   }
 
@@ -904,7 +923,7 @@ export class SetupWizard implements OnInit {
       defaultDeviceMode: detectedMode,
       taxLocale: defaultTaxLocaleConfig(),
       businessHours: defaultBusinessHours(),
-      paymentProcessor: 'none',
+      paymentProcessor: this.isProcessorConnected() ? this._selectedProcessor() : 'none',
       menuTemplateId: this._selectedMenuTemplateId(),
       ownerPin: {
         displayName: user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || 'Owner' : 'Owner',
