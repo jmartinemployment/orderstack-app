@@ -291,6 +291,7 @@ export interface AIFeatureToggle {
   label: string;
   description: string;
   costTier: 'high' | 'medium' | 'low';
+  estimatedMonthlyCost: string;
 }
 
 export interface AIAdminConfig {
@@ -316,21 +317,21 @@ export interface AIUsageSummary {
 }
 
 export const AI_FEATURE_CATALOG: AIFeatureToggle[] = [
-  { key: 'aiCostEstimation', label: 'AI Cost Estimation', description: 'Estimates ingredient costs and suggests menu prices using AI.', costTier: 'high' },
-  { key: 'menuEngineering', label: 'Menu Engineering', description: 'Classifies menu items (Stars/Dogs/Puzzles/Cash Cows) with AI recommendations.', costTier: 'high' },
-  { key: 'salesInsights', label: 'Sales Insights', description: 'Generates AI-powered revenue trends and business insights.', costTier: 'medium' },
-  { key: 'laborOptimization', label: 'Labor Optimization', description: 'AI shift recommendations and labor cost analysis.', costTier: 'medium' },
-  { key: 'inventoryPredictions', label: 'Inventory Predictions', description: 'AI-powered reorder predictions and waste reduction tips.', costTier: 'medium' },
-  { key: 'taxEstimation', label: 'Tax Estimation', description: 'AI-assisted tax rate lookup and estimation.', costTier: 'low' },
+  { key: 'aiCostEstimation', label: 'AI Cost Estimation', description: 'Estimates ingredient costs and suggests menu prices using AI.', costTier: 'high', estimatedMonthlyCost: '~$5–15/mo' },
+  { key: 'menuEngineering', label: 'Menu Engineering', description: 'Classifies menu items (Stars/Dogs/Puzzles/Cash Cows) with AI recommendations.', costTier: 'high', estimatedMonthlyCost: '~$5–15/mo' },
+  { key: 'salesInsights', label: 'Sales Insights', description: 'Generates AI-powered revenue trends and business insights.', costTier: 'medium', estimatedMonthlyCost: '~$2–8/mo' },
+  { key: 'laborOptimization', label: 'Labor Optimization', description: 'AI shift recommendations and labor cost analysis.', costTier: 'medium', estimatedMonthlyCost: '~$2–8/mo' },
+  { key: 'inventoryPredictions', label: 'Inventory Predictions', description: 'AI-powered reorder predictions and waste reduction tips.', costTier: 'medium', estimatedMonthlyCost: '~$2–8/mo' },
+  { key: 'taxEstimation', label: 'Tax Estimation', description: 'AI-assisted tax rate lookup and estimation.', costTier: 'low', estimatedMonthlyCost: '~$0.50–2/mo' },
 ];
 
 export function defaultAiFeatures(): Record<AIFeatureKey, boolean> {
   return {
-    aiCostEstimation: true,
-    menuEngineering: true,
-    salesInsights: true,
-    laborOptimization: true,
-    inventoryPredictions: true,
-    taxEstimation: true,
+    aiCostEstimation: false,
+    menuEngineering: false,
+    salesInsights: false,
+    laborOptimization: false,
+    inventoryPredictions: false,
+    taxEstimation: false,
   };
 }

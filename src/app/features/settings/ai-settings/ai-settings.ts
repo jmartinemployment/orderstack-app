@@ -425,7 +425,7 @@ export class AiSettings implements OnInit {
   }
 
   isFeatureEnabled(key: AIFeatureKey): boolean {
-    return this.aiAdminConfig()?.features[key] ?? true;
+    return this.aiAdminConfig()?.features[key] ?? false;
   }
 
   getCostTierClass(tier: 'high' | 'medium' | 'low'): string {

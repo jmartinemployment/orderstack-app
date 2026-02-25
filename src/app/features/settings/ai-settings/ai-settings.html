@@ -454,6 +454,7 @@
             </div>
             <div class="feature-meta">
               <span class="badge-cost" [class]="getCostTierClass(feature.costTier)">{{ feature.costTier | uppercase }}</span>
+              <span class="text-muted small ms-2">{{ feature.estimatedMonthlyCost }}</span>
             </div>
             <div class="feature-description text-muted small">{{ feature.description }}</div>
           </div>
