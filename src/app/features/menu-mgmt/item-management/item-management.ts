@@ -9,7 +9,6 @@ import { ErrorDisplay } from '@shared/error-display/error-display';
 import {
   MenuItem,
   DietaryInfo,
-  AICostEstimation,
   AllergenType,
   Allergen,
   AvailabilityWindow,
@@ -51,9 +50,6 @@ export class ItemManagement {
   private readonly _selectedCategoryId = signal<string | null>(null);
   private readonly _localError = signal<string | null>(null);
   private readonly _menuLoaded = signal(false);
-  private readonly _isEstimating = signal<string | null>(null);
-  private readonly _isGenerating = signal<string | null>(null);
-  private readonly _lastEstimation = signal<AICostEstimation | null>(null);
 
   // Search & sort
   private readonly _searchQuery = signal('');
@@ -93,17 +89,12 @@ export class ItemManagement {
   // Image upload
   private readonly _isUploadingImage = signal(false);
   private readonly _imagePreview = signal<string | null>(null);
-  private readonly _isGeneratingDescription = signal(false);
-  private readonly _generatedDescription = signal<string | null>(null);
 
   readonly editingItem = this._editingItem.asReadonly();
   readonly showForm = this._showForm.asReadonly();
   readonly isSaving = this._isSaving.asReadonly();
   readonly selectedCategoryId = this._selectedCategoryId.asReadonly();
   readonly localError = this._localError.asReadonly();
-  readonly isEstimating = this._isEstimating.asReadonly();
-  readonly isGenerating = this._isGenerating.asReadonly();
-  readonly lastEstimation = this._lastEstimation.asReadonly();
   readonly searchQuery = this._searchQuery.asReadonly();
   readonly sortField = this._sortField.asReadonly();
   readonly sortDirection = this._sortDirection.asReadonly();
@@ -124,8 +115,6 @@ export class ItemManagement {
   readonly isImporting = this._isImporting.asReadonly();
   readonly isUploadingImage = this._isUploadingImage.asReadonly();
   readonly imagePreview = this._imagePreview.asReadonly();
-  readonly isGeneratingDescription = this._isGeneratingDescription.asReadonly();
-  readonly generatedDescription = this._generatedDescription.asReadonly();
 
   readonly items = this.menuService.allItems;
   readonly categories = this.menuService.categories;
@@ -330,7 +319,6 @@ export class ItemManagement {
   openCreateForm(): void {
     this._editingItem.set(null);
     this._imagePreview.set(null);
-    this._generatedDescription.set(null);
     this._selectedModifierGroupIds.set([]);
     this._formAllergens.set([]);
     this._formAvailabilityWindows.set([]);
@@ -353,7 +341,6 @@ export class ItemManagement {
   openEditForm(item: MenuItem): void {
     this._editingItem.set(item);
     this._imagePreview.set(item.imageUrl ?? null);
-    this._generatedDescription.set(null);
     this._selectedModifierGroupIds.set(item.modifierGroups?.map(g => g.id) ?? []);
     this._formAllergens.set(item.allergens ?? []);
     this._formAvailabilityWindows.set(item.availabilityWindows ?? []);
@@ -422,7 +409,6 @@ export class ItemManagement {
     this._showForm.set(false);
     this._editingItem.set(null);
     this._imagePreview.set(null);
-    this._generatedDescription.set(null);
     this._selectedModifierGroupIds.set([]);
     this.itemForm.reset();
   }
@@ -644,83 +630,6 @@ export class ItemManagement {
     this.menuService.loadMenu();
   }
 
-  // ============ AI Features ============
-
-  async estimateCost(item: MenuItem): Promise<void> {
-    this._isEstimating.set(item.id);
-    this._localError.set(null);
-    try {
-      const result = await this.menuService.estimateItemCost(item.id);
-      if (result) {
-        this._lastEstimation.set(result.estimation);
-      } else {
-        this._localError.set(this.menuService.error() ?? 'Failed to estimate cost');
-      }
-    } catch (err: unknown) {
-      this._localError.set(err instanceof Error ? err.message : 'Failed to estimate cost');
-    } finally {
-      this._isEstimating.set(null);
-    }
-  }
-
-  async generateDescription(item: MenuItem): Promise<void> {
-    this._isGenerating.set(item.id);
-    this._localError.set(null);
-    try {
-      const result = await this.menuService.generateItemDescription(item.id);
-      if (!result) {
-        this._localError.set(this.menuService.error() ?? 'Failed to generate description');
-      }
-    } catch (err: unknown) {
-      this._localError.set(err instanceof Error ? err.message : 'Failed to generate description');
-    } finally {
-      this._isGenerating.set(null);
-    }
-  }
-
-  async estimateAllCosts(): Promise<void> {
-    this._isEstimating.set('all');
-    this._localError.set(null);
-    try {
-      const result = await this.menuService.estimateAllCosts();
-      if (!result) {
-        this._localError.set(this.menuService.error() ?? 'Failed to estimate costs');
-      }
-    } catch (err: unknown) {
-      this._localError.set(err instanceof Error ? err.message : 'Failed to estimate costs');
-    } finally {
-      this._isEstimating.set(null);
-    }
-  }
-
-  async generateAllDescriptions(): Promise<void> {
-    this._isGenerating.set('all');
-    this._localError.set(null);
-    try {
-      const result = await this.menuService.generateAllDescriptions();
-      if (!result) {
-        this._localError.set(this.menuService.error() ?? 'Failed to generate descriptions');
-      }
-    } catch (err: unknown) {
-      this._localError.set(err instanceof Error ? err.message : 'Failed to generate descriptions');
-    } finally {
-      this._isGenerating.set(null);
-    }
-  }
-
-  dismissEstimation(): void {
-    this._lastEstimation.set(null);
-  }
-
-  getConfidenceBadgeClass(confidence: string): string {
-    switch (confidence) {
-      case 'high': return 'bg-success';
-      case 'medium': return 'bg-warning text-dark';
-      case 'low': return 'bg-danger';
-      default: return 'bg-secondary';
-    }
-  }
-
   // ============ Image Upload (GAP-R09) ============
 
   onImageFileSelected(event: Event): void {
@@ -833,30 +742,6 @@ export class ItemManagement {
       this._localError.set('Failed to remove image');
     } finally {
       this._isUploadingImage.set(false);
-    }
-  }
-
-  async generateAiDescription(): Promise<void> {
-    const item = this._editingItem();
-    if (!item) return;
-
-    this._isGeneratingDescription.set(true);
-    this._localError.set(null);
-    try {
-      const description = await this.menuService.generateAiDescription(item.id);
-      this._generatedDescription.set(description);
-    } catch {
-      this._localError.set('Failed to generate description');
-    } finally {
-      this._isGeneratingDescription.set(false);
-    }
-  }
-
-  applyGeneratedDescription(): void {
-    const desc = this._generatedDescription();
-    if (desc) {
-      this.itemForm.patchValue({ description: desc });
-      this._generatedDescription.set(null);
     }
   }
 }

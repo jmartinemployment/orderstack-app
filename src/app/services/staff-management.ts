@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
   StaffUser,
@@ -219,7 +219,11 @@ export class StaffManagementService {
       );
       this._teamMembers.set(data);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load team members');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._teamMembers.set([]);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load team members');
+      }
     } finally {
       this._isLoading.set(false);
     }
@@ -312,7 +316,11 @@ export class StaffManagementService {
       );
       this._permissionSets.set(data);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load permission sets');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._permissionSets.set([]);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load permission sets');
+      }
     } finally {
       this._isLoading.set(false);
     }

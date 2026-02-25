@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
   StaffMember,
@@ -726,7 +726,11 @@ export class LaborService {
       );
       this._timecardEdits.set(data);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load timecard edits');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._timecardEdits.set([]);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load timecard edits');
+      }
     }
   }
 
@@ -1057,7 +1061,11 @@ export class LaborService {
       );
       this._payrollPeriods.set(data);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load payroll periods');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._payrollPeriods.set([]);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load payroll periods');
+      }
     } finally {
       this._isLoading.set(false);
     }
@@ -1163,7 +1171,11 @@ export class LaborService {
       );
       this._commissionRules.set(data);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load commission rules');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._commissionRules.set([]);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load commission rules');
+      }
     }
   }
 
@@ -1316,7 +1328,11 @@ export class LaborService {
       );
       this._ptoRequests.set(data);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load PTO requests');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._ptoRequests.set([]);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load PTO requests');
+      }
     }
   }
 
@@ -1409,7 +1425,11 @@ export class LaborService {
       );
       this._laborForecast.set(data);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load labor forecast');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._laborForecast.set(null);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load labor forecast');
+      }
     }
   }
 
@@ -1426,7 +1446,11 @@ export class LaborService {
       );
       this._complianceAlerts.set(data);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load compliance alerts');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._complianceAlerts.set([]);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load compliance alerts');
+      }
     }
   }
 
@@ -1441,7 +1465,11 @@ export class LaborService {
       );
       this._complianceSummary.set(data);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load compliance summary');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._complianceSummary.set(null);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load compliance summary');
+      }
     }
   }
 

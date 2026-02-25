@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -182,8 +182,12 @@ export class MarketingService {
         this.http.get<MarketingAutomation[]>(`${this.baseUrl}/marketing/automations`)
       );
       this._automations.set(automations);
-    } catch {
-      this._error.set('Failed to load automations');
+    } catch (err: unknown) {
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._automations.set([]);
+      } else {
+        this._error.set('Failed to load automations');
+      }
     } finally {
       this._isLoading.set(false);
     }

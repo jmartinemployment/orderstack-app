@@ -92,7 +92,11 @@
           @for (table of placedTables(); track table.id) {
             <div
               class="table-node"
-              [class]="getStatusClass(table.status)"
+              [class.status-available]="table.status === 'available'"
+              [class.status-occupied]="table.status === 'occupied'"
+              [class.status-reserved]="table.status === 'reserved'"
+              [class.status-dirty]="table.status === 'dirty'"
+              [class.status-maintenance]="table.status === 'maintenance'"
               [class.dragging]="dragTableId() === table.id"
               [class.selected]="selectedTable()?.id === table.id"
               [style]="getTableStyle(table)"
@@ -166,7 +170,7 @@
             <span class="col-capacity">{{ table.capacity }}</span>
             <span class="col-section">{{ table.section ?? '—' }}</span>
             <span class="col-status">
-              <span class="badge" [class]="getStatusBadgeClass(table.status)">{{ table.status }}</span>
+              <span class="badge" [class.bg-success]="table.status === 'available'" [class.bg-danger]="table.status === 'occupied'" [class.bg-warning]="table.status === 'reserved'" [class.text-dark]="table.status === 'reserved'" [class.bg-secondary]="table.status === 'dirty'" [class.bg-info]="table.status === 'maintenance'">{{ table.status }}</span>
             </span>
             <span class="col-orders">
               @if (getTableOrders(table.id).length > 0) {
@@ -219,7 +223,7 @@
       </div>
       <div class="detail-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <span class="badge" [class]="getStatusBadgeClass(table.status)">{{ table.status }}</span>
+          <span class="badge" [class.bg-success]="table.status === 'available'" [class.bg-danger]="table.status === 'occupied'" [class.bg-warning]="table.status === 'reserved'" [class.text-dark]="table.status === 'reserved'" [class.bg-secondary]="table.status === 'dirty'" [class.bg-info]="table.status === 'maintenance'">{{ table.status }}</span>
           <div class="d-flex gap-1">
             @for (opt of statusOptions; track opt.value) {
               <button
@@ -256,7 +260,7 @@
             <div class="order-mini-card mb-2">
               <div class="d-flex justify-content-between align-items-center">
                 <span class="fw-bold">#{{ order.orderNumber || order.guid.slice(-4).toUpperCase() }}</span>
-                <span class="badge" [class]="getStatusBadgeClass(order.guestOrderStatus === 'RECEIVED' ? 'reserved' : order.guestOrderStatus === 'IN_PREPARATION' ? 'occupied' : 'available')">
+                <span class="badge" [class.bg-warning]="order.guestOrderStatus === 'RECEIVED'" [class.text-dark]="order.guestOrderStatus === 'RECEIVED'" [class.bg-danger]="order.guestOrderStatus === 'IN_PREPARATION'" [class.bg-success]="order.guestOrderStatus !== 'RECEIVED' && order.guestOrderStatus !== 'IN_PREPARATION'">
                   {{ order.guestOrderStatus }}
                 </span>
               </div>

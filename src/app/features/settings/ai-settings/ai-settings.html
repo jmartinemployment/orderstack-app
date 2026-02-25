@@ -9,96 +9,9 @@
     <div class="text-muted small mb-3">Only managers and owners can modify AI settings.</div>
   }
 
-  <!-- AI Order Approval -->
-  <div class="panel mb-3">
-    <div class="panel-title">AI Order Approval</div>
-    <div class="form-check form-switch mb-3">
-      <input
-        class="form-check-input"
-        type="checkbox"
-        id="approvalToggle"
-        [checked]="approvalEnabled()"
-        (change)="onApprovalToggle($event)"
-        [disabled]="!isManagerOrAbove()">
-      <label class="form-check-label" for="approvalToggle">Enable AI Order Approval</label>
-    </div>
-
-    @if (approvalEnabled()) {
-      <div class="row g-3 mb-3">
-        <div class="col-md-4">
-          <label class="form-label" for="timeThreshold">Time Threshold</label>
-          <div class="input-group">
-            <input
-              type="number"
-              class="form-control"
-              id="timeThreshold"
-              [value]="timeThresholdHours()"
-              (input)="onTimeThreshold($event)"
-              min="1"
-              max="168"
-              step="1"
-              [disabled]="!isManagerOrAbove()">
-            <span class="input-group-text">hours</span>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label" for="valueThreshold">Value Threshold</label>
-          <div class="input-group">
-            <span class="input-group-text">$</span>
-            <input
-              type="number"
-              class="form-control"
-              id="valueThreshold"
-              [value]="valueThresholdDollars()"
-              (input)="onValueThreshold($event)"
-              min="0"
-              step="10"
-              [disabled]="!isManagerOrAbove()">
-          </div>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label" for="quantityThreshold">Quantity Threshold</label>
-          <div class="input-group">
-            <input
-              type="number"
-              class="form-control"
-              id="quantityThreshold"
-              [value]="quantityThreshold()"
-              (input)="onQuantityThreshold($event)"
-              min="1"
-              step="1"
-              [disabled]="!isManagerOrAbove()">
-            <span class="input-group-text">items</span>
-          </div>
-        </div>
-      </div>
-      <p class="text-muted small mb-0">{{ thresholdDescription() }}</p>
-    } @else {
-      <p class="text-muted small mb-0">All orders will be auto-approved. Catering orders still require manual review.</p>
-    }
-  </div>
-
-  <!-- Action bar (AI Order Approval) -->
-  @if (hasUnsavedChanges() && isManagerOrAbove()) {
-    <div class="d-flex gap-2 mb-4">
-      <button class="btn btn-primary" (click)="save()" [disabled]="isSaving()">
-        @if (isSaving()) {
-          Saving...
-        } @else {
-          Save Changes
-        }
-      </button>
-      <button class="btn btn-outline-light" (click)="discard()" [disabled]="isSaving()">Discard</button>
-    </div>
-  }
-
   <!-- ═══════════════════════════════════════════ -->
   <!-- AI ADMIN — API Key, Feature Toggles, Usage -->
   <!-- ═══════════════════════════════════════════ -->
-
-  <div class="section-divider mb-4">
-    <span>AI Administration</span>
-  </div>
 
   @if (aiAdminSaveSuccess()) {
     <div class="alert alert-success mb-3">AI admin settings saved successfully.</div>
@@ -128,7 +41,7 @@
           }
         </div>
       } @else {
-        <p class="text-muted small mb-2">No API key configured. AI features will use the platform default key (if available).</p>
+        <p class="text-muted small mb-2">No API key configured. AI features require an Anthropic API key to function.</p>
         @if (isOwnerOrAdmin()) {
           <button class="btn btn-sm btn-primary" (click)="openApiKeyModal()" [disabled]="isSaving()">Set API Key</button>
         }
@@ -179,7 +92,7 @@
           <button class="btn-close btn-close-white" (click)="closeDeleteConfirm()"></button>
         </div>
         <div class="modal-body">
-          <p>Are you sure you want to remove the API key? AI features will fall back to the platform default key (if available).</p>
+          <p>Are you sure you want to remove the API key? AI features will stop working until a new key is configured.</p>
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline-light btn-sm" (click)="closeDeleteConfirm()">Cancel</button>
@@ -280,4 +193,91 @@
       <p class="text-muted small mb-0">No AI usage recorded this month.</p>
     }
   </div>
+
+  <!-- AI Order Approval -->
+  <div class="section-divider mb-4">
+    <span>Order Approval</span>
+  </div>
+
+  <div class="panel mb-3">
+    <div class="panel-title">AI Order Approval</div>
+    <div class="form-check form-switch mb-3">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        id="approvalToggle"
+        [checked]="approvalEnabled()"
+        (change)="onApprovalToggle($event)"
+        [disabled]="!isManagerOrAbove()">
+      <label class="form-check-label" for="approvalToggle">Enable AI Order Approval</label>
+    </div>
+
+    @if (approvalEnabled()) {
+      <div class="row g-3 mb-3">
+        <div class="col-md-4">
+          <label class="form-label" for="timeThreshold">Time Threshold</label>
+          <div class="input-group">
+            <input
+              type="number"
+              class="form-control"
+              id="timeThreshold"
+              [value]="timeThresholdHours()"
+              (input)="onTimeThreshold($event)"
+              min="1"
+              max="168"
+              step="1"
+              [disabled]="!isManagerOrAbove()">
+            <span class="input-group-text">hours</span>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="valueThreshold">Value Threshold</label>
+          <div class="input-group">
+            <span class="input-group-text">$</span>
+            <input
+              type="number"
+              class="form-control"
+              id="valueThreshold"
+              [value]="valueThresholdDollars()"
+              (input)="onValueThreshold($event)"
+              min="0"
+              step="10"
+              [disabled]="!isManagerOrAbove()">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="quantityThreshold">Quantity Threshold</label>
+          <div class="input-group">
+            <input
+              type="number"
+              class="form-control"
+              id="quantityThreshold"
+              [value]="quantityThreshold()"
+              (input)="onQuantityThreshold($event)"
+              min="1"
+              step="1"
+              [disabled]="!isManagerOrAbove()">
+            <span class="input-group-text">items</span>
+          </div>
+        </div>
+      </div>
+      <p class="text-muted small mb-0">{{ thresholdDescription() }}</p>
+    } @else {
+      <p class="text-muted small mb-0">All orders will be auto-approved. Catering orders still require manual review.</p>
+    }
+  </div>
+
+  <!-- Action bar (AI Order Approval) -->
+  @if (hasUnsavedChanges() && isManagerOrAbove()) {
+    <div class="d-flex gap-2 mb-4">
+      <button class="btn btn-primary" (click)="save()" [disabled]="isSaving()">
+        @if (isSaving()) {
+          Saving...
+        } @else {
+          Save Changes
+        }
+      </button>
+      <button class="btn btn-outline-light" (click)="discard()" [disabled]="isSaving()">Discard</button>
+    </div>
+  }
 </div>

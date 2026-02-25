@@ -20,7 +20,7 @@ export class AiSettings implements OnInit {
   readonly isSaving = this.settingsService.isSaving;
 
   // AI Order Approval signals
-  private readonly _approvalEnabled = signal(true);
+  private readonly _approvalEnabled = signal(false);
   private readonly _timeThresholdHours = signal(12);
   private readonly _valueThresholdDollars = signal(200);
   private readonly _quantityThreshold = signal(20);

@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
   RetailStockRecord,
@@ -95,8 +95,12 @@ export class RetailInventoryService {
       );
       this._stock.set(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load stock';
-      this._error.set(message);
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._stock.set([]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to load stock';
+        this._error.set(message);
+      }
     } finally {
       this._isLoading.set(false);
     }
@@ -167,8 +171,12 @@ export class RetailInventoryService {
       );
       this._alerts.set(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load alerts';
-      this._error.set(message);
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._alerts.set([]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to load alerts';
+        this._error.set(message);
+      }
     }
   }
 

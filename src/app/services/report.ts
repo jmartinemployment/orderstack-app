@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '@services/auth';
 import { PlatformService } from '@services/platform';
@@ -107,9 +107,13 @@ export class ReportService {
       );
       this._savedReports.set(reports ?? []);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load saved reports';
-      this._error.set(message);
-      this._savedReports.set([]);
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._savedReports.set([]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to load saved reports';
+        this._error.set(message);
+        this._savedReports.set([]);
+      }
     } finally {
       this._isLoading.set(false);
     }
@@ -220,9 +224,13 @@ export class ReportService {
       );
       this._schedules.set(schedules ?? []);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load schedules';
-      this._error.set(message);
-      this._schedules.set([]);
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._schedules.set([]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to load schedules';
+        this._error.set(message);
+        this._schedules.set([]);
+      }
     }
   }
 
@@ -451,8 +459,10 @@ export class ReportService {
         )
       );
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load retail sales report';
-      this._error.set(message);
+      if (!(err instanceof HttpErrorResponse && err.status === 404)) {
+        const message = err instanceof Error ? err.message : 'Failed to load retail sales report';
+        this._error.set(message);
+      }
       return null;
     } finally {
       this._isLoading.set(false);

@@ -28,12 +28,6 @@
         </button>
       </li>
       <li class="nav-item">
-        <button class="nav-link" [class.active]="activeTab() === 'ai-insights'"
-          (click)="setTab('ai-insights')">
-          <i class="bi bi-stars"></i> AI Insights
-        </button>
-      </li>
-      <li class="nav-item">
         <button class="nav-link" [class.active]="activeTab() === 'edits'"
           (click)="setTab('edits')">
           <i class="bi bi-pencil-square"></i> Edits
@@ -479,117 +473,6 @@
       } @else {
         @if (!isLoading()) {
           <p class="text-muted">No labor data for this period.</p>
-        }
-      }
-    }
-
-    <!-- ==================== AI INSIGHTS TAB ==================== -->
-    @if (activeTab() === 'ai-insights') {
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="text-white mb-0"><i class="bi bi-stars"></i> AI Staffing Recommendations</h6>
-        <button class="btn btn-sm btn-outline-light" (click)="refreshRecommendations()" [disabled]="isLoading()">
-          <i class="bi bi-arrow-clockwise"></i> Refresh
-        </button>
-      </div>
-
-      @if (recommendations().length === 0 && !isLoading()) {
-        <p class="text-muted">Click "Refresh" to generate AI staffing recommendations based on your schedule and sales data.</p>
-      }
-
-      @for (rec of recommendations(); track $index) {
-        <div class="recommendation-card mb-2" [style.border-left-color]="getPriorityColor(rec.priority)">
-          <div class="d-flex align-items-start">
-            <i class="bi {{ getRecommendationIcon(rec.type) }} rec-icon me-2"
-              [style.color]="getPriorityColor(rec.priority)"></i>
-            <div class="flex-grow-1">
-              <div class="d-flex justify-content-between align-items-center">
-                <strong class="text-white">{{ rec.title }}</strong>
-                @if (rec.potentialSavings) {
-                  <span class="badge bg-success">Save {{ rec.potentialSavings | currency }}/wk</span>
-                }
-              </div>
-              <p class="text-muted mb-0 small">{{ rec.message }}</p>
-            </div>
-          </div>
-        </div>
-      }
-
-      <!-- Labor Forecasting Section -->
-      <div class="section-divider my-4"></div>
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="text-white mb-0"><i class="bi bi-graph-up-arrow"></i> Labor Forecast</h6>
-        <button class="btn btn-sm btn-outline-light" (click)="toggleForecast()">
-          @if (showForecast()) {
-            <i class="bi bi-chevron-up"></i> Hide
-          } @else {
-            <i class="bi bi-chevron-down"></i> Show
-          }
-        </button>
-      </div>
-
-      @if (showForecast()) {
-        @if (laborForecast(); as forecast) {
-          <!-- Budget vs Projected -->
-          <div class="forecast-summary mb-3">
-            <div class="row g-2">
-              <div class="col-md-4">
-                <div class="forecast-stat">
-                  <div class="forecast-stat-label">Projected Cost</div>
-                  <div class="forecast-stat-value">{{ forecast.projectedLaborCost | currency }}</div>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="forecast-stat">
-                  <div class="forecast-stat-label">Budget Target</div>
-                  <div class="forecast-stat-value">{{ forecast.budgetTarget | currency }}</div>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="forecast-stat" [class.over-budget]="forecast.projectedLaborCost > forecast.budgetTarget"
-                  [class.under-budget]="forecast.projectedLaborCost <= forecast.budgetTarget">
-                  <div class="forecast-stat-label">Variance</div>
-                  <div class="forecast-stat-value">
-                    {{ (forecast.projectedLaborCost - forecast.budgetTarget) | currency }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Staffing Bar Chart -->
-          <h6 class="text-muted small mb-2">Scheduled vs Recommended Staffing</h6>
-          <div class="forecast-bars">
-            @for (item of forecastOverUnder(); track $index) {
-              <div class="forecast-bar-row">
-                <div class="forecast-bar-label">
-                  {{ getDayName(item.dayOfWeek) }} {{ item.hour }}:00
-                </div>
-                <div class="forecast-bar-track">
-                  <div class="forecast-bar-scheduled"
-                    [style.width.%]="getForecastBarWidth(item.scheduledStaff, item.recommendedStaff)">
-                    {{ item.scheduledStaff }}
-                  </div>
-                  <div class="forecast-bar-recommended"
-                    [style.width.%]="getRecommendedBarWidth(item.scheduledStaff, item.recommendedStaff)">
-                    {{ item.recommendedStaff }}
-                  </div>
-                </div>
-                <div class="forecast-bar-delta" [class.over]="item.delta > 0" [class.under]="item.delta < 0">
-                  @if (item.delta > 0) { +{{ item.delta }} }
-                  @else if (item.delta < 0) { {{ item.delta }} }
-                  @else { — }
-                </div>
-              </div>
-            }
-          </div>
-          <div class="forecast-legend mt-2">
-            <span class="legend-item"><span class="legend-dot scheduled"></span> Scheduled</span>
-            <span class="legend-item"><span class="legend-dot recommended"></span> Recommended</span>
-          </div>
-        } @else {
-          @if (!isLoading()) {
-            <p class="text-muted small">No forecast data available for this week.</p>
-          }
         }
       }
     }

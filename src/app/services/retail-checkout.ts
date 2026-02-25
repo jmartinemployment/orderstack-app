@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import type {
   RetailItem,
@@ -293,8 +293,12 @@ export class RetailCheckoutService {
       );
       this._quickKeys.set(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load quick keys';
-      this._error.set(message);
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._quickKeys.set([]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to load quick keys';
+        this._error.set(message);
+      }
     }
   }
 
@@ -417,8 +421,12 @@ export class RetailCheckoutService {
       );
       this._layaways.set(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load layaways';
-      this._error.set(message);
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._layaways.set([]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to load layaways';
+        this._error.set(message);
+      }
     }
   }
 

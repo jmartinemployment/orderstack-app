@@ -419,9 +419,6 @@ export class StaffScheduling implements OnDestroy {
     this._activeTab.set(tab);
     if (tab === 'labor-report') {
       this.loadReport();
-    } else if (tab === 'ai-insights') {
-      this.laborService.loadRecommendations();
-      this.laborService.getLaborForecast(this.weekStartStr());
     } else if (tab === 'edits') {
       this.laborService.loadTimecardEdits();
       this.laborService.loadPtoRequests();

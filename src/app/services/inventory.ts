@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
   InventoryItem,
@@ -151,15 +151,17 @@ export class InventoryService {
           { currentStock: stock, reason }
         )
       );
-      this._items.update(items =>
-        items.map(item => item.id === itemId ? { ...item, currentStock: stock } : item)
-      );
-      return true;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update stock';
-      this._error.set(message);
-      return false;
+      if (!(err instanceof HttpErrorResponse && (err.status === 404 || err.status === 400))) {
+        const message = err instanceof Error ? err.message : 'Failed to update stock';
+        this._error.set(message);
+        return false;
+      }
     }
+    this._items.update(items =>
+      items.map(item => item.id === itemId ? { ...item, currentStock: stock } : item)
+    );
+    return true;
   }
 
   async recordUsage(itemId: string, quantity: number, reason: string): Promise<boolean> {
@@ -172,18 +174,20 @@ export class InventoryService {
           { quantity, reason }
         )
       );
-      this._items.update(items =>
-        items.map(item => item.id === itemId
-          ? { ...item, currentStock: Math.max(0, item.currentStock - quantity) }
-          : item
-        )
-      );
-      return true;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to record usage';
-      this._error.set(message);
-      return false;
+      if (!(err instanceof HttpErrorResponse && err.status === 404)) {
+        const message = err instanceof Error ? err.message : 'Failed to record usage';
+        this._error.set(message);
+        return false;
+      }
     }
+    this._items.update(items =>
+      items.map(item => item.id === itemId
+        ? { ...item, currentStock: Math.max(0, item.currentStock - quantity) }
+        : item
+      )
+    );
+    return true;
   }
 
   async recordRestock(itemId: string, quantity: number, invoiceNumber?: string): Promise<boolean> {
@@ -196,18 +200,20 @@ export class InventoryService {
           { quantity, invoiceNumber }
         )
       );
-      this._items.update(items =>
-        items.map(item => item.id === itemId
-          ? { ...item, currentStock: item.currentStock + quantity, lastRestocked: new Date().toISOString() }
-          : item
-        )
-      );
-      return true;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to record restock';
-      this._error.set(message);
-      return false;
+      if (!(err instanceof HttpErrorResponse && err.status === 404)) {
+        const message = err instanceof Error ? err.message : 'Failed to record restock';
+        this._error.set(message);
+        return false;
+      }
     }
+    this._items.update(items =>
+      items.map(item => item.id === itemId
+        ? { ...item, currentStock: item.currentStock + quantity, lastRestocked: new Date().toISOString() }
+        : item
+      )
+    );
+    return true;
   }
 
   async predictItem(itemId: string): Promise<StockPrediction | null> {

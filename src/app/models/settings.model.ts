@@ -110,7 +110,7 @@ export interface CapacityBlock {
 
 export function defaultAISettings(): AISettings {
   return {
-    aiOrderApprovalEnabled: true,
+    aiOrderApprovalEnabled: false,
     timeThresholdHours: 12,
     valueThresholdDollars: 200,
     quantityThreshold: 20,

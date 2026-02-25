@@ -282,4 +282,179 @@ The setup wizard flow is defined entirely in `src/app/features/onboarding/setup-
 
 Do not duplicate wizard details in this file — read the source.
 
+## Playwright Dashboard Testing
+
+Comprehensive browser-based testing using the Playwright skill at `.claude/skills/playwright-skill/`.
+
+### How to Run
+
+```bash
+# 1. Ensure dev server is running
+ng serve
+
+# 2. Execute the dashboard audit
+cd .claude/skills/playwright-skill
+node run.js /tmp/playwright-test-dashboard-audit.js
+```
+
+**Test script:** `/tmp/playwright-test-dashboard-audit.js`
+**Screenshots:** `/tmp/os-dashboard-audit/`
+**JSON report:** `/tmp/os-dashboard-audit/report.json`
+
+### What the Audit Tests
+
+The audit logs in as `owner@taipa.com`, creates seed data if needed, then navigates every authenticated route checking for:
+
+| Check | What it catches |
+|-------|----------------|
+| Page load | Routes that redirect, error, or blank-render |
+| API 404s/5xx | Frontend calling backend endpoints that don't exist |
+| Stuck spinners | Loading states that never resolve |
+| Error displays | `os-error-display` or `.alert-danger` visible on page |
+| Accessibility | Buttons without text/aria-label, inputs without labels |
+| Content state | Whether page shows data, empty state, or nothing |
+| Settings tabs | Each control panel tab loads correctly |
+| Interactive | Floor plan placement, scheduling tabs, menu CRUD buttons |
+
+### Seed Data Strategy
+
+The test creates seed data **via UI actions** (not direct API/DB) if the page is empty:
+
+| Data | How created | Condition |
+|------|-------------|-----------|
+| Menu category | Click "+ Add Category", fill name, save | If 0 categories exist |
+| Table | Click "+ Add Table", fill number + capacity | If 0 tables exist |
+| Inventory item | Click "Add Item", fill name | If 0 inventory items |
+| Customer | Click "Add Customer", fill name + email | If < 2 rows exist |
+| Reservation | Open form, verify it works, cancel | Always (form test only) |
+
+Existing data in the dev restaurant (`f2cfe8dd-...`) is NOT deleted or modified.
+
+### Latest Audit Results (February 25, 2026)
+
+**37 pages tested — 25 passed, 12 issues**
+
+#### Passing Pages (25)
+
+Home Dashboard, Pending Orders, Order History, POS Terminal, KDS Display, Floor Plan, Reservations, Menu Management, Combo Management, Command Center, Sales Dashboard, Menu Engineering, Reports, Staff Scheduling, Invoicing, Cash Drawer, AI Chat, Dynamic Pricing, Waste Tracker, Sentiment Dashboard, Settings (Hardware, AI Settings, Delivery), Retail POS, Retail Inventory
+
+#### Issues Found (12)
+
+| Page | Issue | Root Cause |
+|------|-------|------------|
+| Inventory Dashboard | 1 input without label/placeholder | Accessibility gap |
+| Close of Day | 1 input without label/placeholder | Accessibility gap |
+| Customers | Loading spinner stuck | Backend endpoint slow or timeout |
+| Marketing | "Failed to load automations" | `/marketing/automations` returns 404 |
+| Food Cost | 1 input without label/placeholder | Accessibility gap |
+| Settings - Kitchen Orders | Tab not found | Tab key mismatch or not registered |
+| Settings - Payments | 5 buttons without text/aria-label | Icon-only buttons need aria-label |
+| Settings - Tip Management | 2 inputs without labels | Accessibility gap |
+| Settings - Staff Mgmt | "Failed to load permission sets" | `/permission-sets` returns 404 |
+| Settings - Account | Tab not found | Tab not registered in control panel |
+| Retail Catalog | 2 buttons without aria-label + 1 input | Accessibility gaps |
+| Retail Reports | "Failed to load retail sales report" | `/retail/reports/sales` returns 404 |
+
+#### Verified Fixes
+
+| Fix | Status |
+|-----|--------|
+| Floor plan drag/place (table-node class binding) | Working — 12 tables with colored status |
+| AI Insights tab removed from Staff Scheduling | Confirmed removed |
+| AI buttons removed from Menu Items | Confirmed removed |
+| AI Order Approval defaults to disabled | Confirmed |
+
+#### API 404s (Backend Endpoints Not Implemented)
+
+These endpoints are called by the frontend but return 404 from the backend. Each needs to be implemented or the frontend needs 404-tolerant handling:
+
+```
+GET /devices/{id}              (13 device IDs)
+GET /labor/commissions/rules
+GET /labor/compliance/alerts
+GET /labor/compliance/summary
+GET /labor/payroll
+GET /labor/pto/requests
+GET /marketing/automations
+GET /menu/schedules
+GET /order-templates
+GET /permission-sets
+GET /referrals/config
+GET /reports/saved             (already 404-tolerant)
+GET /reports/schedules         (already 404-tolerant)
+GET /retail/categories
+GET /retail/inventory/alerts
+GET /retail/inventory/stock
+GET /retail/items
+GET /retail/layaways
+GET /retail/option-sets
+GET /retail/quick-keys
+GET /retail/receipt-template
+GET /retail/reports/sales
+GET /team-members
+GET /timecard-edits
+```
+
+### Settings Tabs Status
+
+| Tab | Status | Notes |
+|-----|--------|-------|
+| hardware | Empty | No devices registered |
+| ai-settings | OK | API key + feature toggles render |
+| kitchen-orders | NOT FOUND | Tab not registered in allTabs |
+| online-pricing | OK | |
+| catering-calendar | OK | |
+| payments | OK | 5 icon buttons need aria-label |
+| tip-management | OK | 2 inputs need labels |
+| loyalty | OK | |
+| delivery | OK | |
+| gift-cards | OK | |
+| staff | Empty | `/permission-sets` 404 |
+| time-clock-config | NOT FOUND | Tab not registered in allTabs |
+| account-billing | NOT FOUND | Tab not registered in allTabs |
+
+### Writing New Playwright Tests
+
+All scripts go in `/tmp/playwright-test-*.js`. Pattern:
+
+```javascript
+const { chromium } = require('playwright');
+
+const TARGET_URL = 'http://localhost:4200';
+const CREDENTIALS = { email: 'owner@taipa.com', password: 'owner123' };
+
+(async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+
+  // Login
+  await page.goto(`${TARGET_URL}/login`, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(2000);
+  await page.evaluate(() => {
+    const overlay = document.querySelector('vite-error-overlay');
+    if (overlay) overlay.remove();
+  }).catch(() => {});
+  await page.locator('input[type="email"]').first().fill(CREDENTIALS.email);
+  await page.locator('input[type="password"]').first().fill(CREDENTIALS.password);
+  await page.locator('button[type="submit"]').first().click();
+  await page.waitForURL('**/home', { timeout: 15000 }).catch(() => {});
+  await page.waitForTimeout(3000);
+
+  // Handle restaurant selection if redirected
+  if (page.url().includes('select-restaurant')) {
+    await page.locator('.restaurant-card').first().click().catch(() => {});
+    await page.waitForTimeout(3000);
+  }
+
+  // Your test logic here
+  await page.goto(`${TARGET_URL}/floor-plan`);
+  await page.waitForTimeout(3000);
+  await page.screenshot({ path: '/tmp/test-screenshot.png', fullPage: true });
+
+  await browser.close();
+})();
+```
+
+Execute: `cd .claude/skills/playwright-skill && node run.js /tmp/playwright-test-example.js`
+
 *Last Updated: February 25, 2026*

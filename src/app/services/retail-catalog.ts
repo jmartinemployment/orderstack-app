@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
   RetailItem,
@@ -128,8 +128,12 @@ export class RetailCatalogService {
       );
       this._items.set(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load items';
-      this._error.set(message);
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._items.set([]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to load items';
+        this._error.set(message);
+      }
     } finally {
       this._isLoading.set(false);
     }
@@ -353,8 +357,12 @@ export class RetailCatalogService {
       );
       this._optionSets.set(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load option sets';
-      this._error.set(message);
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._optionSets.set([]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to load option sets';
+        this._error.set(message);
+      }
     }
   }
 
@@ -427,6 +435,10 @@ export class RetailCatalogService {
       );
       this._categories.set(data);
     } catch (err: unknown) {
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._categories.set([]);
+        return;
+      }
       const message = err instanceof Error ? err.message : 'Failed to load categories';
       this._error.set(message);
     }
