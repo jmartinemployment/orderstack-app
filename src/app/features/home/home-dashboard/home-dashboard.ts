@@ -83,11 +83,11 @@ export class HomeDashboard implements OnInit {
     const service = this.isServiceMode();
     const menuSeeded = this._menuHasCategories();
 
-    const itemsDone = done.has('items') || menuSeeded;
-    const itemsLabel = itemsDone
+    const itemsExplicitlyDone = done.has('items');
+    const itemsLabel = menuSeeded
       ? (retail ? 'Review your products' : service ? 'Review your services' : 'Review your menu')
       : (retail ? 'Add your first products' : service ? 'Create your first services' : 'Create your first menu items');
-    const itemsDesc = itemsDone
+    const itemsDesc = menuSeeded
       ? (retail ? 'Review and update your catalog' : service ? 'Review your service offerings' : 'Review menu categories and items')
       : (retail ? 'Add products to your catalog' : service ? 'Set up your service offerings' : 'Add menu items, categories, and modifiers');
     const itemsRoute = retail ? '/retail/catalog' : '/menu';
@@ -101,7 +101,7 @@ export class HomeDashboard implements OnInit {
         description: itemsDesc,
         icon: itemsIcon,
         route: itemsRoute,
-        done: itemsDone,
+        done: itemsExplicitlyDone,
         category: 'essential',
       },
       {
@@ -172,15 +172,15 @@ export class HomeDashboard implements OnInit {
   });
 
   readonly essentialTasks = computed(() =>
-    this.setupTasks().filter(t => t.category === 'essential')
+    this.setupTasks().filter(t => t.category === 'essential' && !t.done)
   );
 
   readonly advancedTasks = computed(() =>
-    this.setupTasks().filter(t => t.category === 'advanced')
+    this.setupTasks().filter(t => t.category === 'advanced' && !t.done)
   );
 
   readonly essentialProgress = computed(() => {
-    const tasks = this.essentialTasks();
+    const tasks = this.setupTasks().filter(t => t.category === 'essential');
     const done = tasks.filter(t => t.done).length;
     return Math.round((done / tasks.length) * 100);
   });
