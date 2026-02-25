@@ -3,18 +3,15 @@
 ## Editing Rules
 
 - Do NOT make incremental edits. When changing a file's structure, rewrite the entire file in one pass.
-- Do NOT add features or patterns not explicitly requested.
-- Ask before making architectural decisions (multi-step vs single page, which payment provider, etc).
+- DO NOT ADD OR REMOVE features or patterns not explicitly requested.
+- Ask before making architectural and/or ANY decisions you do not fully understand (multi-step vs single page, which payment provider, etc).
 
 ## Project Overview
 
 This is the **canonical OrderStack** restaurant management SaaS application — a standalone Angular 21 app. This is the active, correct project for all OrderStack development.
 
 **Related Documentation:**
-- **`specs/`** — All specs 100% complete and deleted. GOS-SPEC-01 through 11, GAP-R01 through R10, GOS-SPEC-20 through 24 all delivered.
 - **Testing:** Vitest (`npm test`) — 184 tests across 6 test files covering retail ecommerce models, services, and components.
-
-**Predecessor:** `Get-Order-Stack-Restaurant-Frontend-Workspace/` (Angular Elements + WordPress — archived, do not use)
 
 **Stack:** Angular 21, Bootstrap SCSS 5.3.8, Socket.io-client, Zoneless change detection
 **Design Language:** Square-inspired (squareup.com) — clean, modern, professional UI

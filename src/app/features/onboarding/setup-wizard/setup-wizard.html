@@ -40,7 +40,7 @@
           <input
             type="text"
             class="form-control"
-            placeholder="Street address"
+            placeholder="Street address (e.g. 123 Main St)"
             [ngModel]="_homeStreet()"
             (ngModelChange)="_homeStreet.set($event)" />
           <input
@@ -84,16 +84,6 @@
           <div class="checkbox-row">
             <input
               type="checkbox"
-              id="sameAsHome"
-              class="form-check-input"
-              [checked]="_bizSameAsHome()"
-              (change)="toggleSameAsHome()" />
-            <label for="sameAsHome" class="form-check-label">Same as home address</label>
-          </div>
-
-          <div class="checkbox-row">
-            <input
-              type="checkbox"
               id="noPhysical"
               class="form-check-input"
               [checked]="_bizNoPhysical()"
@@ -101,12 +91,12 @@
             <label for="noPhysical" class="form-check-label">I don't have a physical business location</label>
           </div>
 
-          @if (!_bizSameAsHome() && !_bizNoPhysical()) {
+          @if (!_bizNoPhysical()) {
             <div class="biz-address-fields">
               <input
                 type="text"
                 class="form-control"
-                placeholder="Street address"
+                placeholder="Street address (e.g. 456 Oak Ave)"
                 [ngModel]="_bizStreet()"
                 (ngModelChange)="_bizStreet.set($event)" />
               <input
@@ -187,7 +177,7 @@
       </div>
     }
 
-    <!-- ============ CUISINE STEP (food_and_drink only, step 3) ============ -->
+    <!-- ============ CUISINE STEP (food_and_drink only) ============ -->
     @if (isCuisineStep()) {
       <div class="step-content">
         <h2>Tell us what you serve</h2>
@@ -251,6 +241,114 @@
         @if (_submitError()) {
           <div class="alert alert-danger mt-3">{{ _submitError() }}</div>
         }
+      </div>
+    }
+
+    <!-- ============ MULTIPLE LOCATIONS STEP ============ -->
+    @if (isLocationsStep()) {
+      <div class="step-content">
+        <h2>Do you have more than one location?</h2>
+        <p class="step-subtitle">We'll set up multi-location management if you need it. You can always add locations later.</p>
+
+        <div class="location-cards">
+          <button
+            type="button"
+            class="location-card"
+            [class.selected]="!_hasMultipleLocations()"
+            (click)="selectSingleLocation()">
+            <div class="location-card-icon">
+              <i class="bi bi-building"></i>
+            </div>
+            <div class="location-card-info">
+              <span class="location-card-title">Just one location</span>
+              <span class="location-card-desc">I operate from a single address</span>
+            </div>
+            @if (!_hasMultipleLocations()) {
+              <i class="bi bi-check-circle-fill location-check"></i>
+            }
+          </button>
+
+          <button
+            type="button"
+            class="location-card"
+            [class.selected]="_hasMultipleLocations()"
+            (click)="selectMultipleLocations()">
+            <div class="location-card-icon multi">
+              <i class="bi bi-buildings"></i>
+            </div>
+            <div class="location-card-info">
+              <span class="location-card-title">Multiple locations</span>
+              <span class="location-card-desc">I have or plan to open more than one location</span>
+            </div>
+            @if (_hasMultipleLocations()) {
+              <i class="bi bi-check-circle-fill location-check"></i>
+            }
+          </button>
+        </div>
+
+        @if (_hasMultipleLocations()) {
+          <div class="location-count-section">
+            <label for="locationCount" class="location-count-label">How many locations do you have?</label>
+            <input
+              id="locationCount"
+              type="number"
+              class="form-control location-count-input"
+              min="2"
+              max="500"
+              [ngModel]="_locationCount()"
+              (ngModelChange)="_locationCount.set($event)" />
+            <p class="field-hint">You can add the details for each location after setup.</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ============ DELIVERY PROVIDERS STEP (food_and_drink only) ============ -->
+    @if (isDeliveryStep()) {
+      <div class="step-content">
+        <h2>Do you use any delivery services?</h2>
+        <p class="step-subtitle">Connect your delivery marketplace accounts to receive orders directly in OrderStack.</p>
+
+        <div class="delivery-providers">
+          @for (provider of deliveryProviders; track provider.id) {
+            <div class="delivery-provider-card" [class.enabled]="isProviderEnabled(provider.id)">
+              <div class="delivery-provider-header" (click)="toggleProvider(provider.id)">
+                <div class="delivery-provider-brand">
+                  <div class="delivery-provider-icon" [style.background-color]="provider.color">
+                    <i class="bi" [class]="provider.icon"></i>
+                  </div>
+                  <span class="delivery-provider-name">{{ provider.name }}</span>
+                </div>
+                <div class="delivery-toggle">
+                  <div class="toggle-track" [class.active]="isProviderEnabled(provider.id)">
+                    <div class="toggle-thumb"></div>
+                  </div>
+                </div>
+              </div>
+
+              @if (isProviderEnabled(provider.id)) {
+                <div class="delivery-provider-fields">
+                  @for (field of provider.fields; track field.key) {
+                    <div class="delivery-field">
+                      <label [for]="provider.id + '-' + field.key">{{ field.label }}</label>
+                      <input
+                        [id]="provider.id + '-' + field.key"
+                        [type]="field.type"
+                        class="form-control"
+                        [placeholder]="field.placeholder"
+                        [ngModel]="getProviderCredential(provider.id, field.key)"
+                        (ngModelChange)="setProviderCredential(provider.id, field.key, $event)" />
+                    </div>
+                  }
+                  <p class="field-hint">
+                    <i class="bi bi-shield-lock"></i>
+                    Credentials are encrypted and stored securely.
+                  </p>
+                </div>
+              }
+            </div>
+          }
+        </div>
       </div>
     }
 
@@ -370,9 +468,9 @@
                       <span>{{ hw.reason }}</span>
                     </div>
                     <div class="hw-footer">
-                      <span class="hw-price">{{ hw.priceRange }}</span>
+                      <span class="hw-price">{{ hw.price }}</span>
                       <a [href]="hw.buyUrl" target="_blank" rel="noopener" class="hw-buy-link">
-                        Where to buy <i class="bi bi-box-arrow-up-right"></i>
+                        {{ hw.buyLabel }} <i class="bi bi-box-arrow-up-right"></i>
                       </a>
                     </div>
                   </div>
@@ -401,9 +499,9 @@
                       <span>{{ hw.reason }}</span>
                     </div>
                     <div class="hw-footer">
-                      <span class="hw-price">{{ hw.priceRange }}</span>
+                      <span class="hw-price">{{ hw.price }}</span>
                       <a [href]="hw.buyUrl" target="_blank" rel="noopener" class="hw-buy-link">
-                        Where to buy <i class="bi bi-box-arrow-up-right"></i>
+                        {{ hw.buyLabel }} <i class="bi bi-box-arrow-up-right"></i>
                       </a>
                     </div>
                   </div>
@@ -513,6 +611,18 @@
             [disabled]="!_selectedCuisine()"
             (click)="next()">
             Next <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+      } @else if (isDeliveryStep()) {
+        <!-- Delivery step: skip + continue -->
+        <div class="footer-right">
+          <button class="btn btn-skip" (click)="next()">
+            I'll set this up later
+          </button>
+          <button
+            class="btn btn-primary"
+            (click)="next()">
+            Continue <i class="bi bi-arrow-right"></i>
           </button>
         </div>
       } @else {

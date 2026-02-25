@@ -17,6 +17,7 @@ import {
   PlanTierKey,
   PaymentProcessor,
 } from '@models/index';
+import { MarketplaceProviderType } from '@models/delivery.model';
 import { Router } from '@angular/router';
 import { PlatformService, OnboardingPayload } from '@services/platform';
 import { AuthService } from '@services/auth';
@@ -239,6 +240,51 @@ const CUISINE_TEMPLATE_MAP: Record<string, string> = {
   'Bar / Brewery / Lounge': 'bar-grill',
 };
 
+// --- Delivery Provider Config ---
+
+export interface DeliveryProviderConfig {
+  id: MarketplaceProviderType;
+  name: string;
+  icon: string;
+  color: string;
+  fields: { key: string; label: string; placeholder: string; type: string }[];
+}
+
+const DELIVERY_PROVIDERS: DeliveryProviderConfig[] = [
+  {
+    id: 'doordash_marketplace',
+    name: 'DoorDash',
+    icon: 'bi-truck',
+    color: '#ff3008',
+    fields: [
+      { key: 'storeId', label: 'Store ID', placeholder: 'Your DoorDash Store ID', type: 'text' },
+      { key: 'developerId', label: 'Developer ID', placeholder: 'Your DoorDash Developer ID', type: 'text' },
+      { key: 'signingSecret', label: 'Signing Secret', placeholder: 'Your webhook signing secret', type: 'password' },
+    ],
+  },
+  {
+    id: 'ubereats',
+    name: 'Uber Eats',
+    icon: 'bi-bag',
+    color: '#06c167',
+    fields: [
+      { key: 'storeId', label: 'Restaurant ID', placeholder: 'Your Uber Eats Restaurant ID', type: 'text' },
+      { key: 'clientId', label: 'Client ID', placeholder: 'Your Uber Eats Client ID', type: 'text' },
+      { key: 'clientSecret', label: 'Client Secret', placeholder: 'Your client secret', type: 'password' },
+    ],
+  },
+  {
+    id: 'grubhub',
+    name: 'Grubhub',
+    icon: 'bi-basket',
+    color: '#f63440',
+    fields: [
+      { key: 'restaurantId', label: 'Restaurant ID', placeholder: 'Your Grubhub Restaurant ID', type: 'text' },
+      { key: 'apiKey', label: 'API Key', placeholder: 'Your Grubhub API Key', type: 'password' },
+    ],
+  },
+];
+
 // --- Hardware Recommendations ---
 
 export interface HardwareRecommendation {
@@ -248,11 +294,13 @@ export interface HardwareRecommendation {
   name: string;
   description: string;
   reason: string;
-  priceRange: string;
+  price: string;
   imageUrl: string;
   buyUrl: string;
+  buyLabel: string;
   essential: boolean;
   modes: DevicePosMode[];
+  processorOnly?: PaymentProcessor;
 }
 
 const ALL_HARDWARE: HardwareRecommendation[] = [
@@ -260,12 +308,13 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
     id: 'tablet',
     category: 'POS Terminal',
     icon: 'bi-tablet',
-    name: 'iPad 10th Generation (10.9")',
-    description: 'Apple\'s latest entry-level iPad — your primary countertop POS. Large touchscreen, long battery life, and runs OrderStack as a web app or PWA.',
-    reason: 'The gold standard for POS terminals. Fast, reliable, and every staff member already knows how to use it.',
-    priceRange: '$349',
-    imageUrl: '/assets/hardware/tablet.svg',
-    buyUrl: 'https://www.amazon.com/s?k=iPad+10th+generation',
+    name: 'iPad 10th Gen (10.9", 64GB, Wi-Fi)',
+    description: 'Your primary countertop POS. Large touchscreen, all-day battery, runs OrderStack as a web app or PWA.',
+    reason: 'The gold standard for POS terminals. Fast, reliable, long battery life, and your staff already knows how to use it.',
+    price: '$349',
+    imageUrl: '/assets/hardware/tablet.webp',
+    buyUrl: 'https://www.apple.com/shop/buy-ipad/ipad',
+    buyLabel: 'apple.com',
     essential: true,
     modes: ['full_service', 'quick_service', 'bar', 'retail', 'services', 'bookings', 'standard'],
   },
@@ -273,38 +322,57 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
     id: 'phone',
     category: 'Mobile POS',
     icon: 'bi-phone',
-    name: 'iPhone 13 or newer',
-    description: 'For tableside ordering, line-busting, and mobile checkout anywhere in your business.',
-    reason: 'Portable and pocket-sized — perfect for servers taking orders tableside or staff on the go.',
-    priceRange: '$200 – $800',
-    imageUrl: '/assets/hardware/phone.svg',
-    buyUrl: 'https://www.amazon.com/s?k=iPhone+13',
+    name: 'iPhone SE (3rd Gen)',
+    description: 'Compact and affordable. For tableside ordering, line-busting, and mobile checkout anywhere in your business.',
+    reason: 'Pocket-sized and affordable. Perfect for tableside ordering, line-busting, or mobile checkout anywhere in your business.',
+    price: '$429',
+    imageUrl: '/assets/hardware/phone.webp',
+    buyUrl: 'https://www.apple.com/shop/buy-iphone/iphone-se',
+    buyLabel: 'apple.com',
     essential: false,
     modes: ['full_service', 'bar', 'retail', 'services', 'bookings', 'standard'],
   },
   {
-    id: 'card-reader',
+    id: 'card-reader-stripe',
     category: 'Card Reader',
     icon: 'bi-credit-card-2-front',
-    name: 'Stripe Reader S700 / PayPal Zettle',
-    description: 'Accepts tap, chip, and contactless payments including Apple Pay and Google Pay.',
-    reason: 'Accept every payment type your customers want to use. Connects to your chosen processor automatically.',
-    priceRange: '$29 – $59',
-    imageUrl: '/assets/hardware/card-reader.svg',
-    buyUrl: 'https://www.amazon.com/s?k=Stripe+Terminal+card+reader',
+    name: 'Stripe Reader S700',
+    description: 'Countertop card reader with a touchscreen. Accepts tap, chip, swipe, and contactless payments including Apple Pay and Google Pay.',
+    reason: 'Accepts tap, chip, swipe, and contactless payments including Apple Pay and Google Pay. Connects to your Stripe account automatically.',
+    price: '$349',
+    imageUrl: '/assets/hardware/card-reader-stripe.webp',
+    buyUrl: 'https://stripe.com/terminal',
+    buyLabel: 'stripe.com',
     essential: true,
     modes: ['full_service', 'quick_service', 'bar', 'retail', 'services', 'bookings', 'standard'],
+    processorOnly: 'stripe',
+  },
+  {
+    id: 'card-reader-paypal',
+    category: 'Card Reader',
+    icon: 'bi-credit-card-2-front',
+    name: 'PayPal Zettle Reader 2',
+    description: 'Compact card reader. Accepts tap, chip, and contactless payments. Pairs with your PayPal account instantly.',
+    reason: 'Affordable card reader at just $29. Accepts tap, chip, and contactless. Pairs with your PayPal account out of the box.',
+    price: '$29',
+    imageUrl: '/assets/hardware/card-reader-paypal.webp',
+    buyUrl: 'https://www.zettle.com/us/card-reader',
+    buyLabel: 'zettle.com',
+    essential: true,
+    modes: ['full_service', 'quick_service', 'bar', 'retail', 'services', 'bookings', 'standard'],
+    processorOnly: 'paypal',
   },
   {
     id: 'kds',
-    category: 'Order Display',
+    category: 'Order Display (KDS)',
     icon: 'bi-display',
-    name: 'Wall-Mount Touchscreen (15"–22")',
-    description: 'Dedicated kitchen or prep area display for incoming orders and course timing.',
-    reason: 'Eliminates paper tickets, reduces mistakes, and shows real-time order status to your kitchen team.',
-    priceRange: '$200 – $700',
-    imageUrl: '/assets/hardware/kds.svg',
-    buyUrl: 'https://www.amazon.com/s?k=touchscreen+monitor+wall+mount+kitchen',
+    name: 'Samsung Galaxy Tab A9+ (11")',
+    description: 'Budget-friendly Android tablet. Wall-mount it in the kitchen to display incoming orders and course timing.',
+    reason: 'Large 11" screen at a budget-friendly price. Wall-mount it in the kitchen to display incoming orders and course timing in real time.',
+    price: '$219',
+    imageUrl: '/assets/hardware/kds.webp',
+    buyUrl: 'https://www.samsung.com/us/tablets/galaxy-tab-a9-plus/',
+    buyLabel: 'samsung.com',
     essential: false,
     modes: ['full_service', 'quick_service', 'bar'],
   },
@@ -312,12 +380,13 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
     id: 'kiosk',
     category: 'Self-Order Kiosk',
     icon: 'bi-person-badge',
-    name: 'iPad + Heckler Kiosk Stand',
-    description: 'Customer-facing self-ordering station — iPad on a secure kiosk stand.',
-    reason: 'Reduces wait times and increases average order value with upsell prompts. Frees up staff.',
-    priceRange: '$400 – $800',
-    imageUrl: '/assets/hardware/kiosk.svg',
-    buyUrl: 'https://www.amazon.com/s?k=iPad+kiosk+stand',
+    name: 'Heckler WindFall Stand for iPad',
+    description: 'Secure kiosk enclosure designed specifically for iPad. Tamper-resistant, sleek design for customer self-ordering.',
+    reason: 'Secure kiosk enclosure designed specifically for iPad. Tamper-resistant, sleek design. Customers can self-order without staff.',
+    price: '$225',
+    imageUrl: '/assets/hardware/kiosk.webp',
+    buyUrl: 'https://www.amazon.com/s?k=Heckler+WindFall+Stand+iPad',
+    buyLabel: 'Amazon',
     essential: false,
     modes: ['quick_service', 'retail'],
   },
@@ -325,12 +394,13 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
     id: 'barcode-scanner',
     category: 'Barcode Scanner',
     icon: 'bi-upc-scan',
-    name: 'Socket Mobile SocketScan S740',
-    description: 'Bluetooth 2D barcode scanner — pairs with your tablet or phone wirelessly.',
-    reason: 'Scan product barcodes instantly for fast checkout. Essential for high-volume retail.',
-    priceRange: '$200 – $400',
-    imageUrl: '/assets/hardware/barcode-scanner.svg',
+    name: 'Socket Mobile S740',
+    description: 'Bluetooth 2D barcode scanner. Pairs wirelessly with your tablet or phone for fast product scanning.',
+    reason: 'Bluetooth 2D barcode scanner. Pairs wirelessly with your tablet or phone. Scans product barcodes instantly for fast retail checkout.',
+    price: '$396',
+    imageUrl: '/assets/hardware/barcode-scanner.webp',
     buyUrl: 'https://www.amazon.com/s?k=Socket+Mobile+SocketScan+S740',
+    buyLabel: 'Amazon',
     essential: false,
     modes: ['retail'],
   },
@@ -338,12 +408,13 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
     id: 'receipt-printer',
     category: 'Receipt Printer',
     icon: 'bi-printer',
-    name: 'Star Micronics TSP143IV',
-    description: 'Thermal receipt printer — connects via USB, Bluetooth, or Wi-Fi. Prints receipts and kitchen tickets.',
-    reason: 'Print customer receipts and order tickets automatically. Industry standard for speed and reliability.',
-    priceRange: '$300 – $500',
-    imageUrl: '/assets/hardware/receipt-printer.svg',
-    buyUrl: 'https://www.amazon.com/s?k=Star+Micronics+TSP143IV',
+    name: 'Star Micronics mC-Print3',
+    description: 'Thermal receipt printer. Connects via USB, Bluetooth, or Wi-Fi. Prints customer receipts and kitchen tickets.',
+    reason: 'Industry standard thermal receipt printer. Connects via USB, Bluetooth, or Wi-Fi. Prints customer receipts and kitchen tickets automatically.',
+    price: '$450',
+    imageUrl: '/assets/hardware/receipt-printer.webp',
+    buyUrl: 'https://www.amazon.com/s?k=Star+Micronics+mC-Print3',
+    buyLabel: 'Amazon',
     essential: false,
     modes: ['full_service', 'quick_service', 'bar', 'retail'],
   },
@@ -351,12 +422,13 @@ const ALL_HARDWARE: HardwareRecommendation[] = [
     id: 'cash-drawer',
     category: 'Cash Drawer',
     icon: 'bi-safe',
-    name: 'APG Vasario Cash Drawer',
-    description: 'Auto-opens when connected to your receipt printer. Secure cash storage with multiple bill and coin slots.',
-    reason: 'Automatically pops open on cash sales. Integrates with your receipt printer for seamless operation.',
-    priceRange: '$50 – $150',
-    imageUrl: '/assets/hardware/cash-drawer.svg',
-    buyUrl: 'https://www.amazon.com/s?k=APG+Vasario+cash+drawer',
+    name: 'APG Vasario 1616',
+    description: 'Auto-opens when connected to your receipt printer. Multiple bill and coin slots for organized cash handling.',
+    reason: 'Auto-opens when connected to your receipt printer on cash sales. Multiple bill and coin slots. Reliable and affordable at $89.',
+    price: '$89',
+    imageUrl: '/assets/hardware/cash-drawer.webp',
+    buyUrl: 'https://www.amazon.com/s?k=APG+Vasario+1616+cash+drawer',
+    buyLabel: 'Amazon',
     essential: false,
     modes: ['full_service', 'quick_service', 'bar', 'retail'],
   },
@@ -383,9 +455,12 @@ export class SetupWizard implements OnInit {
   readonly revenueRanges = REVENUE_RANGES;
   readonly planTiers = PLAN_TIERS;
   readonly cuisines = CUISINES;
+  readonly deliveryProviders = DELIVERY_PROVIDERS;
 
-  // Total steps: 7 for food & drink, 6 for others
-  readonly totalSteps = computed(() => this.isFoodBusiness() ? 7 : 6);
+  // --- Step map ---
+  // Food & Drink (9 steps): address, biztype, cuisine, revenue, locations, delivery, plan, hardware, done
+  // Other (7 steps):        address, biztype, revenue, locations, plan, hardware, done
+  readonly totalSteps = computed(() => this.isFoodBusiness() ? 9 : 7);
 
   // --- Wizard navigation ---
   readonly _currentStep = signal(1);
@@ -406,7 +481,6 @@ export class SetupWizard implements OnInit {
   readonly _homeZip = signal('');
 
   // Business address
-  readonly _bizSameAsHome = signal(false);
   readonly _bizNoPhysical = signal(false);
   readonly _bizStreet = signal('');
   readonly _bizStreet2 = signal('');
@@ -461,6 +535,14 @@ export class SetupWizard implements OnInit {
   // --- Annual Revenue ---
   readonly _selectedRevenue = signal<string | null>(null);
 
+  // --- Multiple Locations (Step 5) ---
+  readonly _hasMultipleLocations = signal(false);
+  readonly _locationCount = signal(2);
+
+  // --- Delivery Providers (Step 6, food_and_drink only) ---
+  readonly _enabledProviders = signal<Set<MarketplaceProviderType>>(new Set());
+  readonly _providerCredentials = signal<Record<string, Record<string, string>>>({});
+
   // --- Plan + Processor ---
   readonly _selectedTier = signal<PlanTierKey>('free');
   readonly _selectedProcessor = signal<PaymentProcessor>('stripe');
@@ -480,7 +562,13 @@ export class SetupWizard implements OnInit {
   // --- Hardware Recommendations ---
   readonly recommendedHardware = computed<HardwareRecommendation[]>(() => {
     const mode = this.autoDetectedMode();
-    return ALL_HARDWARE.filter(hw => hw.modes.includes(mode));
+    const processor = this._selectedProcessor();
+    return ALL_HARDWARE.filter(hw => {
+      if (!hw.modes.includes(mode)) return false;
+      // Processor-aware card reader filtering
+      if (hw.processorOnly && hw.processorOnly !== processor) return false;
+      return true;
+    });
   });
 
   readonly essentialHardware = computed(() =>
@@ -506,6 +594,51 @@ export class SetupWizard implements OnInit {
     return DEVICE_POS_MODE_CATALOG.find(c => c.mode === mode)?.label ?? mode;
   });
 
+  // --- Step identity computeds ---
+  // Food:  1=address, 2=biztype, 3=cuisine, 4=revenue, 5=locations, 6=delivery, 7=plan, 8=hardware, 9=done
+  // Other: 1=address, 2=biztype, 3=revenue, 4=locations, 5=plan, 6=hardware, 7=done
+
+  readonly isCuisineStep = computed(() =>
+    this.isFoodBusiness() && this._currentStep() === 3
+  );
+
+  readonly isRevenueStep = computed(() => {
+    const step = this._currentStep();
+    return this.isFoodBusiness() ? step === 4 : step === 3;
+  });
+
+  readonly isLocationsStep = computed(() => {
+    const step = this._currentStep();
+    return this.isFoodBusiness() ? step === 5 : step === 4;
+  });
+
+  readonly isDeliveryStep = computed(() =>
+    this.isFoodBusiness() && this._currentStep() === 6
+  );
+
+  readonly isPlanStep = computed(() => {
+    const step = this._currentStep();
+    return this.isFoodBusiness() ? step === 7 : step === 5;
+  });
+
+  readonly isHardwareStep = computed(() => {
+    const step = this._currentStep();
+    return this.isFoodBusiness() ? step === 8 : step === 6;
+  });
+
+  readonly isDoneStep = computed(() =>
+    this._currentStep() === this.totalSteps()
+  );
+
+  readonly stepLabel = computed(() => {
+    const step = this._currentStep();
+    const isFood = this.isFoodBusiness();
+    const labels = isFood
+      ? ['Business Info', 'Business Type', 'Cuisine', 'Revenue', 'Locations', 'Delivery', 'Plan & Payment', 'Hardware', 'All Set']
+      : ['Business Info', 'Business Type', 'Revenue', 'Locations', 'Plan & Payment', 'Hardware', 'All Set'];
+    return labels[step - 1] ?? '';
+  });
+
   // --- Submission ---
   readonly _isSubmitting = signal(false);
   readonly _submitError = signal<string | null>(null);
@@ -515,20 +648,27 @@ export class SetupWizard implements OnInit {
   readonly isLoading = this.platformService.isLoading;
 
   // --- Address validation helpers ---
+
+  private isValidStreet(street: string): boolean {
+    const s = street.trim();
+    // Must be at least 5 chars, contain at least one digit and one letter
+    return s.length >= 5 && /\d/.exec(s) !== null && /[a-zA-Z]/.exec(s) !== null;
+  }
+
   private isValidZip(zip: string): boolean {
     return ZIP_REGEX.exec(zip.trim()) !== null;
   }
 
   private isHomeAddressValid(): boolean {
-    return this._homeStreet().trim().length > 0
+    return this.isValidStreet(this._homeStreet())
       && this._homeCity().trim().length > 0
       && this._homeState().trim().length > 0
       && this.isValidZip(this._homeZip());
   }
 
   private isBizAddressValid(): boolean {
-    if (this._bizSameAsHome() || this._bizNoPhysical()) return true;
-    return this._bizStreet().trim().length > 0
+    if (this._bizNoPhysical()) return true;
+    return this.isValidStreet(this._bizStreet())
       && this._bizCity().trim().length > 0
       && this._bizState().trim().length > 0
       && this.isValidZip(this._bizZip());
@@ -537,74 +677,23 @@ export class SetupWizard implements OnInit {
   // --- Step validation ---
   readonly canProceed = computed(() => {
     const step = this._currentStep();
-    const isFood = this.isFoodBusiness();
 
-    // Map logical step to content step
-    // Steps: 1=address, 2=biztype, 3=cuisine(food)/revenue(other),
-    //         4=revenue(food)/plan(other), 5=plan(food)/hardware(other),
-    //         6=hardware(food)/done(other), 7=done(food)
-    switch (step) {
-      case 1:
-        return this._businessName().trim().length > 0
-          && this.isHomeAddressValid()
-          && this.isBizAddressValid();
-      case 2:
-        return this._selectedBusinessType() !== null;
-      case 3:
-        if (isFood) return true; // cuisine is optional (can skip via "Create Items Manually")
-        return this._selectedRevenue() !== null;
-      case 4:
-        if (isFood) return this._selectedRevenue() !== null;
-        return true; // plan selection always has a default (free)
-      case 5:
-        if (isFood) return true; // plan
-        return true; // hardware is informational
-      case 6:
-        if (isFood) return true; // hardware
-        return !this._isSubmitting(); // done screen
-      case 7:
-        return !this._isSubmitting(); // done screen (food only)
-      default:
-        return false;
+    if (step === 1) {
+      return this._businessName().trim().length > 0
+        && this.isHomeAddressValid()
+        && this.isBizAddressValid();
     }
-  });
-
-  // Which "logical" step is this?
-  readonly stepLabel = computed(() => {
-    const step = this._currentStep();
-    const isFood = this.isFoodBusiness();
-    const labels = isFood
-      ? ['Business Info', 'Business Type', 'Cuisine', 'Revenue', 'Plan & Payment', 'Hardware', 'All Set']
-      : ['Business Info', 'Business Type', 'Revenue', 'Plan & Payment', 'Hardware', 'All Set'];
-    return labels[step - 1] ?? '';
-  });
-
-  // Is current step the plan+payment step?
-  readonly isPlanStep = computed(() => {
-    const step = this._currentStep();
-    return this.isFoodBusiness() ? step === 5 : step === 4;
-  });
-
-  // Is current step the hardware step?
-  readonly isHardwareStep = computed(() => {
-    const step = this._currentStep();
-    return this.isFoodBusiness() ? step === 6 : step === 5;
-  });
-
-  // Is current step the "done" step?
-  readonly isDoneStep = computed(() => {
-    return this._currentStep() === this.totalSteps();
-  });
-
-  // Is current step the cuisine step?
-  readonly isCuisineStep = computed(() => {
-    return this.isFoodBusiness() && this._currentStep() === 3;
-  });
-
-  // Is current step the revenue step?
-  readonly isRevenueStep = computed(() => {
-    const step = this._currentStep();
-    return this.isFoodBusiness() ? step === 4 : step === 3;
+    if (step === 2) {
+      return this._selectedBusinessType() !== null;
+    }
+    if (this.isCuisineStep()) return true; // cuisine is optional
+    if (this.isRevenueStep()) return this._selectedRevenue() !== null;
+    if (this.isLocationsStep()) return true; // always valid
+    if (this.isDeliveryStep()) return true; // always valid (skip allowed)
+    if (this.isPlanStep()) return true; // plan always has a default
+    if (this.isHardwareStep()) return true; // informational
+    if (this.isDoneStep()) return !this._isSubmitting();
+    return false;
   });
 
   // --- Popstate listener for browser back ---
@@ -613,15 +702,12 @@ export class SetupWizard implements OnInit {
     if (step > 1) {
       event.preventDefault();
       this._currentStep.set(step - 1);
-      // Push a new state so the back button works again
       history.pushState({ step: step - 1 }, '');
     }
   };
 
   ngOnInit(): void {
-    // Push initial state
     history.pushState({ step: 1 }, '');
-    // Listen for back button
     window.addEventListener('popstate', this.popstateHandler);
     this.destroyRef.onDestroy(() => {
       window.removeEventListener('popstate', this.popstateHandler);
@@ -634,7 +720,7 @@ export class SetupWizard implements OnInit {
     const current = this._currentStep();
     const total = this.totalSteps();
 
-    // When moving past revenue step, submit onboarding
+    // Submit onboarding when leaving the revenue step
     if (this.isRevenueStep() && !this._onboardingDone()) {
       await this.submitOnboarding();
       if (!this._onboardingDone()) return; // submission failed
@@ -657,20 +743,8 @@ export class SetupWizard implements OnInit {
 
   // --- Step 1: Address helpers ---
 
-  toggleSameAsHome(): void {
-    const next = !this._bizSameAsHome();
-    this._bizSameAsHome.set(next);
-    if (next) {
-      this._bizNoPhysical.set(false);
-    }
-  }
-
   toggleNoPhysical(): void {
-    const next = !this._bizNoPhysical();
-    this._bizNoPhysical.set(next);
-    if (next) {
-      this._bizSameAsHome.set(false);
-    }
+    this._bizNoPhysical.update(v => !v);
   }
 
   // --- Step 2: Business Type selection ---
@@ -687,7 +761,6 @@ export class SetupWizard implements OnInit {
 
   selectCuisine(cuisine: string): void {
     this._selectedCuisine.set(cuisine);
-    // Map to template
     const template = CUISINE_TEMPLATE_MAP[cuisine] ?? 'casual-dining';
     this._selectedMenuTemplateId.set(template);
   }
@@ -702,6 +775,49 @@ export class SetupWizard implements OnInit {
 
   selectRevenue(id: string): void {
     this._selectedRevenue.set(id);
+  }
+
+  // --- Locations ---
+
+  selectSingleLocation(): void {
+    this._hasMultipleLocations.set(false);
+    this._locationCount.set(1);
+  }
+
+  selectMultipleLocations(): void {
+    this._hasMultipleLocations.set(true);
+    if (this._locationCount() < 2) {
+      this._locationCount.set(2);
+    }
+  }
+
+  // --- Delivery Providers ---
+
+  toggleProvider(providerId: MarketplaceProviderType): void {
+    this._enabledProviders.update(set => {
+      const next = new Set(set);
+      if (next.has(providerId)) {
+        next.delete(providerId);
+      } else {
+        next.add(providerId);
+      }
+      return next;
+    });
+  }
+
+  isProviderEnabled(providerId: MarketplaceProviderType): boolean {
+    return this._enabledProviders().has(providerId);
+  }
+
+  setProviderCredential(providerId: string, fieldKey: string, value: string): void {
+    this._providerCredentials.update(creds => {
+      const providerCreds = { ...(creds[providerId] ?? {}), [fieldKey]: value };
+      return { ...creds, [providerId]: providerCreds };
+    });
+  }
+
+  getProviderCredential(providerId: string, fieldKey: string): string {
+    return this._providerCredentials()[providerId]?.[fieldKey] ?? '';
   }
 
   // --- Plan + Processor ---
@@ -751,20 +867,7 @@ export class SetupWizard implements OnInit {
 
     // Build business address
     let bizAddress: BusinessAddress;
-    if (this._bizSameAsHome()) {
-      bizAddress = {
-        street: this._homeStreet(),
-        street2: this._homeStreet2() || null,
-        city: this._homeCity(),
-        state: this._homeState(),
-        zip: this._homeZip(),
-        country: 'US',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        phone: null,
-        lat: null,
-        lng: null,
-      };
-    } else if (this._bizNoPhysical()) {
+    if (this._bizNoPhysical()) {
       bizAddress = {
         street: '',
         street2: null,
