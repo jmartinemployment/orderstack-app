@@ -282,7 +282,7 @@ The setup wizard flow is defined entirely in `src/app/features/onboarding/setup-
 
 Do not duplicate wizard details in this file — read the source.
 
-## Playwright Dashboard Testing
+## Playwright UI/UX Audit
 
 Comprehensive browser-based testing using the Playwright skill at `.claude/skills/playwright-skill/`.
 
@@ -292,126 +292,160 @@ Comprehensive browser-based testing using the Playwright skill at `.claude/skill
 # 1. Ensure dev server is running
 ng serve
 
-# 2. Execute the dashboard audit
+# 2. Execute the full audit (49 pages, all tabs, per-page API error tracking)
 cd .claude/skills/playwright-skill
-node run.js /tmp/playwright-test-dashboard-audit.js
+node run.js /tmp/playwright-test-full-audit.js
 ```
 
-**Test script:** `/tmp/playwright-test-dashboard-audit.js`
-**Screenshots:** `/tmp/os-dashboard-audit/`
-**JSON report:** `/tmp/os-dashboard-audit/report.json`
+**Test script:** `/tmp/playwright-test-full-audit.js`
+**Screenshots:** `/tmp/os-audit/`
 
 ### What the Audit Tests
 
-The audit logs in as `owner@taipa.com`, creates seed data if needed, then navigates every authenticated route checking for:
+The audit logs in as `owner@taipa.com`, handles restaurant selection, then navigates every authenticated route checking:
 
 | Check | What it catches |
 |-------|----------------|
 | Page load | Routes that redirect, error, or blank-render |
-| API 404s/5xx | Frontend calling backend endpoints that don't exist |
-| Stuck spinners | Loading states that never resolve |
-| Error displays | `os-error-display` or `.alert-danger` visible on page |
-| Accessibility | Buttons without text/aria-label, inputs without labels |
-| Content state | Whether page shows data, empty state, or nothing |
-| Settings tabs | Each control panel tab loads correctly |
-| Interactive | Floor plan placement, scheduling tabs, menu CRUD buttons |
+| **Per-page API 404s** | Frontend calling backend endpoints that don't exist — **reported per page, not just globally** |
+| API 4xx/5xx | Non-auth client errors and server errors |
+| Stuck spinners | Loading states that never resolve after 5s |
+| Angular errors | `NG0` runtime errors visible in DOM |
+| Accessibility | Buttons without text/aria-label, inputs without labels/placeholder |
+| Broken images | `<img>` elements that failed to load |
+| Tab navigation | Clicks every tab, captures API errors triggered per tab |
+| Full-page screenshots | Every page and every tab saved to `/tmp/os-audit/` |
 
-### Seed Data Strategy
+**Key improvement over previous audit:** API 404s are now tracked **per page and per tab**, so WARN/FAIL status reflects actual backend gaps — not just UI rendering.
 
-The test creates seed data **via UI actions** (not direct API/DB) if the page is empty:
+### Latest Audit Results (February 25, 2026 — Session 3)
 
-| Data | How created | Condition |
-|------|-------------|-----------|
-| Menu category | Click "+ Add Category", fill name, save | If 0 categories exist |
-| Table | Click "+ Add Table", fill number + capacity | If 0 tables exist |
-| Inventory item | Click "Add Item", fill name | If 0 inventory items |
-| Customer | Click "Add Customer", fill name + email | If < 2 rows exist |
-| Reservation | Open form, verify it works, cancel | Always (form test only) |
+**49 pages tested: 13 PASS, 26 WARN, 4 FAIL, 0 ERROR, 6 REDIRECT**
 
-Existing data in the dev restaurant (`f2cfe8dd-...`) is NOT deleted or modified.
+#### Clean Pages (13 PASS)
 
-### Latest Audit Results (February 25, 2026)
+Home Dashboard, Pending Orders, Menu Management, Combo Management, Menu Engineering, Invoicing, Cash Drawer, Monitoring, Voice Order, Waste Tracker, Sentiment, Retail Vendors, Multi-Location
 
-**37 pages tested — 25 passed, 12 issues**
-
-#### Passing Pages (25)
-
-Home Dashboard, Pending Orders, Order History, POS Terminal, KDS Display, Floor Plan, Reservations, Menu Management, Combo Management, Command Center, Sales Dashboard, Menu Engineering, Reports, Staff Scheduling, Invoicing, Cash Drawer, AI Chat, Dynamic Pricing, Waste Tracker, Sentiment Dashboard, Settings (Hardware, AI Settings, Delivery), Retail POS, Retail Inventory
-
-#### Issues Found (12)
+#### FAIL Pages (4)
 
 | Page | Issue | Root Cause |
 |------|-------|------------|
-| Inventory Dashboard | 1 input without label/placeholder | Accessibility gap |
-| Close of Day | 1 input without label/placeholder | Accessibility gap |
-| Customers | Loading spinner stuck | Backend endpoint slow or timeout |
-| Marketing | "Failed to load automations" | `/marketing/automations` returns 404 |
-| Food Cost | 1 input without label/placeholder | Accessibility gap |
-| Settings - Kitchen Orders | Tab not found | Tab key mismatch or not registered |
-| Settings - Payments | 5 buttons without text/aria-label | Icon-only buttons need aria-label |
-| Settings - Tip Management | 2 inputs without labels | Accessibility gap |
-| Settings - Staff Mgmt | "Failed to load permission sets" | `/permission-sets` returns 404 |
-| Settings - Account | Tab not found | Tab not registered in control panel |
-| Retail Catalog | 2 buttons without aria-label + 1 input | Accessibility gaps |
-| Retail Reports | "Failed to load retail sales report" | `/retail/reports/sales` returns 404 |
+| Command Center | Tab "Live" not found | Tab label/selector mismatch |
+| Food Cost | Tab "Overview" not found | Tab label/selector mismatch |
+| Staff Scheduling | Tab "Timecards" not found | Tab label/selector mismatch |
+| Settings | Tabs "General", "Team", "Notifications" not found | Tab label/selector mismatch |
 
-#### Verified Fixes
+#### REDIRECT Pages (6)
 
-| Fix | Status |
-|-----|--------|
-| Floor plan drag/place (table-node class binding) | Working — 12 tables with colored status |
-| AI Insights tab removed from Staff Scheduling | Confirmed removed |
-| AI buttons removed from Menu Items | Confirmed removed |
-| AI Order Approval defaults to disabled | Confirmed |
+| Page | Redirects to | Likely Cause |
+|------|-------------|--------------|
+| Report Builder (`/report-builder`) | `/home` | Guard or feature flag |
+| Staff Portal (`/staff-portal`) | `/home` | Requires staff role |
+| Kiosk (`/kiosk`) | `/home` | Requires kiosk mode |
+| Online Ordering (`/online-ordering`) | `/home` | Guard or not implemented |
+| Tip Management (`/tips`) | `/home` | Guard or not implemented |
+| Pricing (`/pricing`) | `/home` | Guard or not implemented |
 
-#### API 404s (Backend Endpoints Not Implemented)
+#### WARN Pages — API 404s by Category
 
-These endpoints are called by the frontend but return 404 from the backend. Each needs to be implemented or the frontend needs 404-tolerant handling:
+**Device Registration (11 pages):** Every page that loads `PlatformService` hits `GET /devices/{uuid}` — returns 404 because the device UUID in localStorage doesn't exist in backend. Harmless but noisy. Affects: Order History, POS, Order Pad, KDS, SOS, Floor Plan, Reservations, Close of Day, Reports, AI Chat, Dynamic Pricing, Hardware Guide.
 
-```
-GET /devices/{id}              (13 device IDs)
-GET /labor/commissions/rules
-GET /labor/compliance/alerts
-GET /labor/compliance/summary
-GET /labor/payroll
-GET /labor/pto/requests
-GET /marketing/automations
-GET /menu/schedules
-GET /order-templates
-GET /permission-sets
-GET /referrals/config
-GET /reports/saved             (already 404-tolerant)
-GET /reports/schedules         (already 404-tolerant)
-GET /retail/categories
-GET /retail/inventory/alerts
-GET /retail/inventory/stock
-GET /retail/items
-GET /retail/layaways
-GET /retail/option-sets
-GET /retail/quick-keys
-GET /retail/receipt-template
-GET /retail/reports/sales
-GET /team-members
-GET /timecard-edits
-```
+**Reservations (6 unique 404s):**
+- `GET /reservations/recurring` — recurring reservations not implemented
+- `GET /waitlist/virtual-config` — virtual waitlist config not implemented
+- `GET /waitlist/sms-config` — SMS config not implemented
+- `GET /waitlist/analytics` — waitlist analytics not implemented
+- `GET /calendar/connection` — calendar integration not implemented
+- `GET /events` — events not implemented
+
+**Analytics & Reports (8 unique 404s):**
+- `GET /analytics/team/sales` — team sales analytics
+- `GET /analytics/conversion-funnel` — conversion funnel
+- `GET /analytics/forecast/revenue` — revenue forecast
+- `GET /analytics/forecast/demand` — demand forecast
+- `GET /analytics/forecast/staffing` — staffing forecast
+- `GET /reports/team-member-sales` — team member sales report
+- `GET /reports/tax-service-charges` — tax report
+- `GET /reports/schedules` + `GET /reports/saved` — saved/scheduled reports
+
+**CRM & Marketing (5 unique 404s):**
+- `GET /customers/feedback` — customer feedback
+- `GET /customers/smart-groups` — smart groups
+- `GET /customers/messages/threads` — messaging threads
+- `GET /customers/messages/templates` — message templates
+- `GET /marketing/automations` — marketing automations
+
+**Labor (4 unique 404s):**
+- `GET /labor/payroll` — payroll periods
+- `GET /labor/commissions/rules` — commission rules
+- `GET /labor/compliance/alerts` — compliance alerts
+- `GET /labor/compliance/summary` — compliance summary
+
+**Retail (12 unique 404s):**
+- `GET /retail/items` (4x across pages) — retail items
+- `GET /retail/option-sets` (2x) — option sets
+- `GET /retail/categories` — retail categories
+- `GET /retail/inventory/stock` — retail stock
+- `GET /retail/inventory/alerts` — stock alerts
+- `GET /retail/layaways` + `GET /retail/quick-keys` + `GET /retail/receipt-template` — POS config
+- `GET /retail/return-policy` — return policy
+- `GET /retail/reports/sales` — retail sales report
+- `GET /retail/ecommerce/orders` (2x) — ecommerce orders (note: wrong path, missing `/restaurant/{id}` prefix)
+
+**Other (5 unique 404s):**
+- `GET /order-templates` — POS order templates
+- `GET /inventory/unit-conversions` — unit conversions
+- `GET /inventory/cycle-counts` — cycle counts
+- `GET /referrals/config` — referral program config
+- `GET /break-types` — time clock break types
+- `GET /team-members` — team members (POS login page)
+- `GET /delivery/analytics` — delivery analytics
+
+#### Accessibility Warnings
+
+| Page | Issue |
+|------|-------|
+| Order Pad | 1 button without text/aria-label |
+| SOS Terminal | 1 button without text/aria-label |
+| Inventory Dashboard | 1 form input without label |
+| Close of Day | 1 form input without label |
+| Food Cost | 1 form input without label |
+| Retail Catalog | 2 buttons without aria-label + 1 input without label |
+| Retail Variations | 1 button without aria-label |
+| Customer Dashboard | Loading spinner stuck on Insights tab |
+
+#### 404-Tolerant Services (Already Fixed)
+
+All frontend services now handle 404 gracefully — they set empty data (`[]` or `null`) instead of showing error messages. Services fixed in this session:
+
+- `labor.ts` — 7 methods (timecardEdits, ptoRequests, laborForecast, complianceAlerts, complianceSummary, payrollPeriods, commissionRules)
+- `marketing.ts` — loadAutomations
+- `staff-management.ts` — loadPermissionSets, loadTeamMembers
+- `inventory.ts` — updateStock (404 + 400)
+- `retail-catalog.ts` — loadItems, loadOptionSets, loadCategories
+- `retail-inventory.ts` — loadStock, loadStockAlerts
+- `retail-checkout.ts` — loadQuickKeys, loadLayaways
+- `report.ts` — getRetailSalesReport
 
 ### Settings Tabs Status
 
-| Tab | Status | Notes |
-|-----|--------|-------|
-| hardware | Empty | No devices registered |
-| ai-settings | OK | API key + feature toggles render |
-| kitchen-orders | NOT FOUND | Tab not registered in allTabs |
-| online-pricing | OK | |
-| catering-calendar | OK | |
-| payments | OK | 5 icon buttons need aria-label |
-| tip-management | OK | 2 inputs need labels |
-| loyalty | OK | |
-| delivery | OK | |
-| gift-cards | OK | |
-| staff | Empty | `/permission-sets` 404 |
-| time-clock-config | NOT FOUND | Tab not registered in allTabs |
-| account-billing | NOT FOUND | Tab not registered in allTabs |
+| Tab | Found | Notes |
+|-----|-------|-------|
+| Hardware | Yes | Empty — no devices registered |
+| Payment | Yes | Working |
+| Online (Pricing) | Yes | Working |
+| Delivery | Yes | Working |
+| Loyalty | Yes | 404 on `/referrals/config` |
+| Gift Cards | Yes | Working |
+| Kitchen & Orders | Yes | Working |
+| AI | Yes | Working |
+| Time Clock | Yes | 404 on `/break-types` |
+| Account & Billing | Yes | Working |
+| General | **Not found** | Tab label mismatch in test selector |
+| Team | **Not found** | Tab label mismatch in test selector |
+| Notifications | **Not found** | Tab label mismatch in test selector |
+
+Note: "Not found" for General, Team, Notifications likely means the tab button text doesn't match `has-text("General")` etc. — these tabs exist in code but may use different labels.
 
 ### Writing New Playwright Tests
 
@@ -421,29 +455,26 @@ All scripts go in `/tmp/playwright-test-*.js`. Pattern:
 const { chromium } = require('playwright');
 
 const TARGET_URL = 'http://localhost:4200';
-const CREDENTIALS = { email: 'owner@taipa.com', password: 'owner123' };
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 
   // Login
-  await page.goto(`${TARGET_URL}/login`, { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(2000);
-  await page.evaluate(() => {
-    const overlay = document.querySelector('vite-error-overlay');
-    if (overlay) overlay.remove();
-  }).catch(() => {});
-  await page.locator('input[type="email"]').first().fill(CREDENTIALS.email);
-  await page.locator('input[type="password"]').first().fill(CREDENTIALS.password);
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForURL('**/home', { timeout: 15000 }).catch(() => {});
-  await page.waitForTimeout(3000);
+  await page.goto(`${TARGET_URL}/login`, { waitUntil: 'networkidle', timeout: 15000 });
+  await page.locator('input[formcontrolname="email"]').fill('owner@taipa.com');
+  await page.locator('input[formcontrolname="password"]').fill('owner123');
+  await page.locator('button[type="submit"]').click();
+  await page.waitForTimeout(4000);
 
   // Handle restaurant selection if redirected
-  if (page.url().includes('select-restaurant')) {
-    await page.locator('.restaurant-card').first().click().catch(() => {});
-    await page.waitForTimeout(3000);
+  if (page.url().includes('/select-restaurant')) {
+    await page.waitForTimeout(2000);
+    const items = await page.locator('.restaurant-item').count();
+    if (items > 0) {
+      await page.locator('.restaurant-item').first().click();
+      await page.waitForTimeout(3000);
+    }
   }
 
   // Your test logic here
@@ -457,4 +488,15 @@ const CREDENTIALS = { email: 'owner@taipa.com', password: 'owner123' };
 
 Execute: `cd .claude/skills/playwright-skill && node run.js /tmp/playwright-test-example.js`
 
-*Last Updated: February 25, 2026*
+### Session Notes
+
+**February 25, 2026 (Session 3):**
+- Full comprehensive audit: 49 pages, 54 unique API 404s, 13 clean pages
+- Enhanced test now tracks API errors per-page and per-tab (fixes prior issue where 404s were invisible)
+- All frontend services now 404-tolerant (18+ methods across 7 service files)
+- Settings tabs Kitchen & Orders, Time Clock, Account & Billing confirmed working
+- 6 routes redirect to /home (kiosk, online-ordering, tips, pricing, staff-portal, report-builder)
+- Retail ecommerce orders path bug: uses `/api/retail/ecommerce/orders` instead of `/api/restaurant/{id}/retail/ecommerce/orders`
+- Next: fix tab selector mismatches (Command Center Live, Food Cost Overview, Scheduling Timecards, Settings General/Team/Notifications), fix retail ecommerce orders path, implement backend endpoints
+
+*Last Updated: February 25, 2026 (Session 3)*
