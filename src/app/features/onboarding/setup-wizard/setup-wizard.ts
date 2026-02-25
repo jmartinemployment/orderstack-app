@@ -62,6 +62,7 @@ const BUSINESS_TYPE_MODE_MAP: Record<string, DevicePosMode> = {
   'Caterer': 'quick_service',
   'Bar': 'bar',
   'Brewery': 'bar',
+  'Other Food & Drink': 'full_service',
 
   // Retail
   'Specialty Shop': 'retail',

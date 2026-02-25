@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { PlatformService } from '@services/platform';
 import { AnalyticsService } from '@services/analytics';
+import { MenuService } from '@services/menu';
 import { PwaInstallService } from '@services/pwa-install';
 
 interface SetupTask {
@@ -34,6 +35,7 @@ export class HomeDashboard implements OnInit {
   private readonly router = inject(Router);
   private readonly platform = inject(PlatformService);
   private readonly analytics = inject(AnalyticsService);
+  private readonly menuService = inject(MenuService);
   readonly pwaInstall = inject(PwaInstallService);
 
   readonly businessName = computed(() => this.platform.merchantProfile()?.businessName ?? 'Your Business');
@@ -72,18 +74,24 @@ export class HomeDashboard implements OnInit {
   readonly _completedTasks = signal<Set<string>>(new Set());
   readonly _showAdvancedTasks = signal(false);
 
+  // Whether menu has been seeded (from cuisine template or manual creation)
+  readonly _menuHasCategories = signal(false);
+
   readonly setupTasks = computed<SetupTask[]>(() => {
     const done = this._completedTasks();
     const retail = this.isRetailMode();
     const service = this.isServiceMode();
+    const menuSeeded = this._menuHasCategories();
 
-    const itemsLabel = retail ? 'Add your first products' : service ? 'Create your first services' : 'Create your first menu items';
-    const itemsDesc = retail ? 'Add products to your catalog' : service ? 'Set up your service offerings' : 'Add items, categories, and modifiers';
+    const itemsDone = done.has('items') || menuSeeded;
+    const itemsLabel = itemsDone
+      ? (retail ? 'Review your products' : service ? 'Review your services' : 'Review your menu')
+      : (retail ? 'Add your first products' : service ? 'Create your first services' : 'Create your first menu items');
+    const itemsDesc = itemsDone
+      ? (retail ? 'Review and update your catalog' : service ? 'Review your service offerings' : 'Review menu categories and items')
+      : (retail ? 'Add products to your catalog' : service ? 'Set up your service offerings' : 'Add menu items, categories, and modifiers');
     const itemsRoute = retail ? '/retail/catalog' : '/menu';
     const itemsIcon = retail ? 'bi-grid-3x3-gap' : 'bi-book';
-
-    const onlineLabel = retail ? 'Set up your online store' : 'Set up online ordering';
-    const onlineRoute = retail ? '/retail/ecommerce' : '/settings';
 
     return [
       // Essential tasks
@@ -93,7 +101,7 @@ export class HomeDashboard implements OnInit {
         description: itemsDesc,
         icon: itemsIcon,
         route: itemsRoute,
-        done: done.has('items'),
+        done: itemsDone,
         category: 'essential',
       },
       {
@@ -120,19 +128,10 @@ export class HomeDashboard implements OnInit {
         description: 'Configure your regular operating hours',
         icon: 'bi-clock',
         route: '/settings',
-        done: done.has('hours'),
+        done: true, // Wizard always sets default business hours
         category: 'essential',
       },
       // Advanced tasks
-      {
-        id: 'online',
-        label: onlineLabel,
-        description: 'Let customers order from your website',
-        icon: 'bi-globe',
-        route: onlineRoute,
-        done: done.has('online'),
-        category: 'advanced',
-      },
       {
         id: 'display',
         label: 'Configure your display',
@@ -221,6 +220,7 @@ export class HomeDashboard implements OnInit {
   ngOnInit(): void {
     this.loadTodayStats();
     this.loadCompletedTasks();
+    this.checkMenuSeeded();
   }
 
   private async loadTodayStats(): Promise<void> {
@@ -234,6 +234,18 @@ export class HomeDashboard implements OnInit {
       }
     } catch {
       // Stats will show zeros — acceptable for first load
+    }
+  }
+
+  private async checkMenuSeeded(): Promise<void> {
+    try {
+      await this.menuService.loadMenu();
+      const categories = this.menuService.categories();
+      if (categories.length > 0) {
+        this._menuHasCategories.set(true);
+      }
+    } catch {
+      // If menu fetch fails, leave as false — task stays undone
     }
   }
 

@@ -583,14 +583,16 @@
       @if (isPlanStep()) {
         <!-- Plan step: skip link + continue -->
         <div class="footer-right">
+          <!-- TODO: Remove skip button before production launch — testing only -->
           @if (!isProcessorConnected()) {
             <button class="btn btn-skip" (click)="next()">
-              I'll do this later
+              Skip (testing only)
             </button>
           }
           <button
             class="btn btn-primary"
-            (click)="connectProcessor()">
+            [disabled]="paymentConnect.isConnecting()"
+            (click)="isProcessorConnected() ? next() : connectProcessor()">
             @if (paymentConnect.isConnecting()) {
               <i class="bi bi-arrow-repeat spin"></i> Connecting...
             } @else if (isProcessorConnected()) {

@@ -236,7 +236,7 @@ export class DeviceService {
 
     try {
       const device = await firstValueFrom(
-        this.http.get<Device>(`${this.apiUrl}/devices/${deviceId}`)
+        this.http.get<Device>(`${this.baseUrl}/devices/${deviceId}`)
       );
       this._currentDevice.set(device);
     } catch {

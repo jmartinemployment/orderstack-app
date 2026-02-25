@@ -33,7 +33,7 @@ export class MenuService {
   private readonly _categories = signal<MenuCategory[]>([]);
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
-  private readonly _currentLanguage = signal<'en' | 'es'>('es');
+  private readonly _currentLanguage = signal<'en' | 'es'>('en');
 
   private readonly _crudSupported = signal(false);
 
@@ -139,6 +139,9 @@ export class MenuService {
           `${this.apiUrl}/restaurant/${restaurantId}/menu/grouped?lang=${this._currentLanguage()}`
         )
       );
+      console.log('[MenuService] /menu/grouped response:', JSON.stringify(
+        (response || []).map(c => ({ name: c.name, itemCount: c.items?.length ?? 0, subCount: c.subcategories?.length ?? 0 }))
+      ));
       this._categories.set(this.normalizeMenuData(response || []));
       this._crudSupported.set(true);
     } catch (err: unknown) {
