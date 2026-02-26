@@ -12,6 +12,7 @@ type MenuTab = 'categories' | 'items' | 'modifiers' | 'schedules';
   imports: [CategoryManagement, ItemManagement, ModifierManagement, ScheduleManagement],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <div class="menu-management px-2">
     <div class="os-page-header">
       <h1>Menu Management</h1>
     </div>
@@ -35,6 +36,7 @@ type MenuTab = 'categories' | 'items' | 'modifiers' | 'schedules';
           <os-schedule-management />
         }
       </div>
+    </div>
     </div>
   `,
   styles: [`
