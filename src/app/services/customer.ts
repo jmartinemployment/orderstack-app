@@ -73,6 +73,18 @@ export class CustomerService {
     return this.authService.selectedRestaurantId();
   }
 
+  private normalizeCustomer(c: Customer): Customer {
+    return {
+      ...c,
+      totalOrders: Number(c.totalOrders) || 0,
+      totalSpent: Number(c.totalSpent) || 0,
+      avgOrderValue: c.avgOrderValue !== null ? Number(c.avgOrderValue) || 0 : null,
+      loyaltyPoints: Number(c.loyaltyPoints) || 0,
+      totalPointsEarned: Number(c.totalPointsEarned) || 0,
+      totalPointsRedeemed: Number(c.totalPointsRedeemed) || 0,
+    };
+  }
+
   // --- Customers ---
 
   async loadCustomers(): Promise<void> {
@@ -87,7 +99,7 @@ export class CustomerService {
           `${this.apiUrl}/restaurant/${this.restaurantId}/customers`
         )
       );
-      this._customers.set(data ?? []);
+      this._customers.set((data ?? []).map(c => this.normalizeCustomer(c)));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to load customers';
       this._error.set(message);
@@ -108,7 +120,7 @@ export class CustomerService {
           `${this.apiUrl}/restaurant/${this.restaurantId}/customers?search=${encodeURIComponent(query)}`
         )
       );
-      this._customers.set(data ?? []);
+      this._customers.set((data ?? []).map(c => this.normalizeCustomer(c)));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to search customers';
       this._error.set(message);
