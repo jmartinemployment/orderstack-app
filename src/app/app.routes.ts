@@ -168,6 +168,4 @@ export const routes: Routes = [
     ],
   },
 
-  // Wildcard
-  { path: '**', redirectTo: 'signup' },
 ];

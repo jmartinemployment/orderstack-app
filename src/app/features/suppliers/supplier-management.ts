@@ -32,7 +32,7 @@ const KNOWN_SUPPLIERS: KnownSupplier[] = [
     name: 'Sysco',
     category: 'Broadline Distributor',
     description: 'Full-service restaurant supply — produce, protein, dry goods, equipment',
-    website: 'https://www.sysco.com',
+    website: 'https://www.sysco.com/products/products/product-categories',
     apiPortal: 'https://apic-devportal.sysco.com',
     apiProvider: 'sysco',
     icon: 'bi-box-seam',

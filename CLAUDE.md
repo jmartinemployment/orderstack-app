@@ -20,6 +20,10 @@ This is the **canonical OrderStack** restaurant management SaaS application — 
 
 **Default to Square.** For every UI decision, user flow, and interaction pattern — research how Square handles it first. Do not invent, do not guess, do not overcomplicate. Square Restaurant POS is the benchmark. When a design question comes up (e.g., "how should floor plan setup work?", "what does the mode selection look like?"), the first action is to look up Square's approach, then build to match or improve on it. This is not optional.
 
+## Routing Rules
+
+- **No automatic redirects for unauthenticated users.** The root path (`/`) shows nothing for now — it will be populated later. The auth guard returns `false` — it does NOT redirect to `/login` or `/signup`. Users must navigate to `/login` themselves. Do not add wildcard redirects or auth guard redirects.
+
 ## Architecture
 
 Single Angular 21 application with:
