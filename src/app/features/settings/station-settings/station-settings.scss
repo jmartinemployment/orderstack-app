@@ -164,15 +164,20 @@
   .form-check-label {
     color: var(--os-text-primary);
     font-weight: 400;
+    opacity: 1;
+  }
+
+  .form-check-input:disabled ~ .form-check-label {
+    color: var(--os-text-primary);
+    opacity: 1;
   }
 
   &.assigned-elsewhere {
     border-color: rgba(255, 193, 7, 0.4);
     background-color: rgba(255, 193, 7, 0.05);
 
-    .form-check-label {
-      color: var(--os-text-primary);
-      font-weight: 400;
+    .assigned-to-label {
+      color: #b45309;
     }
   }
 }
