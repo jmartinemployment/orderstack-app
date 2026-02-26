@@ -125,8 +125,8 @@
             <div class="vendor-contact">{{ vendor.contactName }}</div>
           }
           <div class="vendor-meta">
-            @if (vendor.email) {
-              <span><i class="bi bi-envelope"></i> {{ vendor.email }}</span>
+            @if (vendor.contactEmail || vendor.email) {
+              <span><i class="bi bi-envelope"></i> {{ vendor.contactEmail ?? vendor.email }}</span>
             }
             @if (vendor.phone) {
               <span><i class="bi bi-telephone"></i> {{ vendor.phone }}</span>

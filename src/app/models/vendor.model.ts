@@ -10,6 +10,9 @@ export interface Vendor {
   notes: string | null;
   paymentTerms: string | null;
   leadTimeDays: number | null;
+  website: string | null;
+  apiPortalUrl: string | null;
+  isIntegrated: boolean;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -25,6 +28,8 @@ export interface VendorFormData {
   notes?: string | null;
   paymentTerms?: string | null;
   leadTimeDays?: number | null;
+  website?: string | null;
+  apiPortalUrl?: string | null;
 }
 
 export type PurchaseInvoiceStatus = 'pending_review' | 'approved' | 'paid';
@@ -166,4 +171,35 @@ export interface PurchaseOrderFormData {
   expectedDeliveryDate?: string | null;
   notes?: string | null;
   lineItems: Omit<PurchaseOrderLineItem, 'receivedQuantity'>[];
+}
+
+// --- Supplier Ordering API Credentials ---
+
+export type SupplierProviderType = 'sysco' | 'gfs';
+export type SupplierProviderMode = 'production' | 'test';
+
+export interface SupplierProviderStatus {
+  configured: boolean;
+  hasClientId: boolean;
+  hasClientSecret: boolean;
+  hasCustomerId: boolean;
+  mode: SupplierProviderMode;
+  updatedAt: string | null;
+}
+
+export interface SupplierCredentialSummary {
+  sysco: SupplierProviderStatus;
+  gfs: SupplierProviderStatus;
+}
+
+export interface SupplierCredentialPayload {
+  clientId?: string;
+  clientSecret?: string;
+  customerId?: string;
+  mode?: SupplierProviderMode;
+}
+
+export interface SupplierConnectionTestResult {
+  success: boolean;
+  message: string;
 }

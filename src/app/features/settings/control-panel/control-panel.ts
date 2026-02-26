@@ -15,6 +15,7 @@ import { GiftCardManagement } from '../gift-card-management';
 import { StaffManagement } from '../staff-management';
 import { BreakConfig } from '../break-config';
 import { AccountBilling } from '../account-billing';
+import { SupplierSettings } from '../supplier-settings';
 import { ControlPanelTab, PlatformModule } from '@models/index';
 import type { ModeFeatureFlags } from '@models/index';
 
@@ -27,7 +28,7 @@ interface TabConfig {
 
 @Component({
   selector: 'os-control-panel',
-  imports: [DeviceHub, AiSettings, KitchenOrders, OnlinePricing, CateringCalendar, PaymentSettingsComponent, TipManagement, LoyaltySettings, DeliverySettingsComponent, GiftCardManagement, StaffManagement, BreakConfig, AccountBilling],
+  imports: [DeviceHub, AiSettings, KitchenOrders, OnlinePricing, CateringCalendar, PaymentSettingsComponent, TipManagement, LoyaltySettings, DeliverySettingsComponent, GiftCardManagement, SupplierSettings, StaffManagement, BreakConfig, AccountBilling],
   templateUrl: './control-panel.html',
   styleUrl: './control-panel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +54,7 @@ export class ControlPanel implements OnInit {
     { key: 'loyalty', label: 'Loyalty', requiredModule: 'loyalty' },
     { key: 'delivery', label: 'Delivery', requiredModule: 'delivery' },
     { key: 'gift-cards', label: 'Gift Cards', requiredModule: 'gift_cards' },
+    { key: 'suppliers', label: 'Suppliers', requiredModule: 'inventory' },
     { key: 'staff', label: 'Staff', requiredModule: 'staff_scheduling' },
     { key: 'time-clock-config', label: 'Time Clock', requiredModule: 'staff_scheduling' },
     { key: 'account-billing', label: 'Account & Billing' },

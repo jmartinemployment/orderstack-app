@@ -120,6 +120,7 @@ export const routes: Routes = [
 
       // Inventory
       { path: 'inventory', loadComponent: () => import('./features/inventory/inventory-dashboard/inventory-dashboard').then(m => m.InventoryDashboard) },
+      { path: 'suppliers', loadComponent: () => import('./features/suppliers/supplier-management').then(m => m.SupplierManagement) },
 
       // Analytics
       { path: 'command-center', loadComponent: () => import('./features/analytics/command-center/command-center').then(m => m.CommandCenter) },

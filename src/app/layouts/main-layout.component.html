@@ -30,10 +30,13 @@
     </div>
 
     <nav class="sidebar-nav">
-      @for (item of navItems(); track item.route) {
+      @for (item of navItems(); track (item.key ?? item.route)) {
         <a class="nav-item"
            [routerLink]="item.route"
            routerLinkActive="active"
+           [class.nav-alert-critical]="item.alertSeverity === 'critical'"
+           [class.nav-alert-warning]="item.alertSeverity === 'warning'"
+           [class.nav-alert-info]="item.alertSeverity === 'info'"
            (click)="closeMobileMenu()"
            [title]="sidebarCollapsed() ? item.label : ''">
           <i class="bi {{ item.icon }}"></i>

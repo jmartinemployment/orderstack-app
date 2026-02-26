@@ -234,7 +234,7 @@ export class SupplierManagement implements OnInit {
     this.editingVendorId.set(vendor.id);
     this.formName.set(vendor.name);
     this.formContactName.set(vendor.contactName ?? '');
-    this.formEmail.set(vendor.email ?? '');
+    this.formEmail.set(vendor.contactEmail ?? vendor.email ?? '');
     this.formPhone.set(vendor.phone ?? '');
     this.formAddress.set(vendor.address ?? '');
     this.formPaymentTerms.set(vendor.paymentTerms ?? '');
@@ -274,7 +274,7 @@ export class SupplierManagement implements OnInit {
     const formData: VendorFormData = {
       name: this.formName(),
       contactName: this.formContactName() || null,
-      email: this.formEmail() || null,
+      contactEmail: this.formEmail() || null,
       phone: this.formPhone() || null,
       address: this.formAddress() || null,
       paymentTerms: this.formPaymentTerms() || null,
