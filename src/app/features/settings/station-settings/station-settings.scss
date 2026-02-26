@@ -174,7 +174,7 @@
 
   &.assigned-elsewhere {
     .assigned-to-label {
-      color: #b45309;
+      color: var(--os-text-secondary);
     }
   }
 }
