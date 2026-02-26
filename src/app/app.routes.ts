@@ -26,6 +26,13 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'pair',
+    component: AuthLayoutComponent,
+    children: [
+      { path: '', loadComponent: () => import('./features/auth/pair-device').then(m => m.PairDevice) },
+    ],
+  },
+  {
     path: 'setup',
     canActivate: [authGuard],
     loadComponent: () => import('./features/onboarding/setup-wizard/setup-wizard').then(m => m.SetupWizard),
