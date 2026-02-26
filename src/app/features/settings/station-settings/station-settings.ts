@@ -17,9 +17,20 @@ export class StationSettings implements OnInit {
   readonly isLoading = this.stationService.isLoading;
   readonly error = this.stationService.error;
 
-  readonly categories = computed(() =>
-    this.menuService.categories().filter(c => c.isActive !== false)
-  );
+  /** Flatten to actual MenuCategory records (subcategories), not PrimaryCategory groupings.
+   *  StationCategoryMapping FK references menu_categories, not primary_categories. */
+  readonly categories = computed(() => {
+    const topLevel = this.menuService.categories();
+    const flat: MenuCategory[] = [];
+    for (const cat of topLevel) {
+      if (cat.subcategories && cat.subcategories.length > 0) {
+        flat.push(...cat.subcategories.filter(s => s.isActive !== false));
+      } else if (cat.isActive !== false) {
+        flat.push(cat);
+      }
+    }
+    return flat;
+  });
 
   // Modal state
   private readonly _showModal = signal(false);
