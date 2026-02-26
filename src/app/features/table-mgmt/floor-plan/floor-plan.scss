@@ -440,6 +440,51 @@ $muted: #9ca3af;
   }
 }
 
+// Reservation info on table nodes
+.table-guest-name {
+  font-size: 0.55rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70px;
+}
+
+// Reservation card in detail panel
+.reservation-card {
+  h6 {
+    color: $text-secondary;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0.5rem;
+  }
+}
+
+.reservation-card-body {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 0.625rem;
+  font-size: 0.8rem;
+}
+
+// Reservation guest badge in list view
+.reservation-guest-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  color: #92400e;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 4px;
+  padding: 0 0.35rem;
+  margin-left: 0.35rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
 // QR Code Modal
 .qr-modal {
   max-width: 360px;

@@ -9,13 +9,14 @@ import {
   viewChild,
   output,
 } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { TableService } from '@services/table';
 import { OrderService } from '@services/order';
 import { AuthService } from '@services/auth';
+import { ReservationService } from '@services/reservation';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
-import { RestaurantTable, TableFormData, TableStatus } from '@models/index';
+import { RestaurantTable, TableFormData, TableStatus, Reservation } from '@models/index';
 import { Order, getOrderIdentifier } from '@models/index';
 
 export interface TableSelectedEvent {
@@ -26,7 +27,7 @@ export interface TableSelectedEvent {
 
 @Component({
   selector: 'os-floor-plan',
-  imports: [CurrencyPipe, LoadingSpinner, ErrorDisplay],
+  imports: [CurrencyPipe, DatePipe, LoadingSpinner, ErrorDisplay],
   templateUrl: './floor-plan.html',
   styleUrl: './floor-plan.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +36,7 @@ export class FloorPlan implements OnInit {
   private readonly tableService = inject(TableService);
   private readonly orderService = inject(OrderService);
   private readonly authService = inject(AuthService);
+  private readonly reservationService = inject(ReservationService);
   private readonly canvasRef = viewChild<ElementRef<HTMLDivElement>>('floorCanvas');
 
   readonly tableSelected = output<TableSelectedEvent>();
@@ -137,6 +139,22 @@ export class FloorPlan implements OnInit {
     this.tables().reduce((sum, t) => sum + t.capacity, 0)
   );
 
+  readonly tableReservationMap = computed(() => {
+    const map = new Map<string, Reservation>();
+    for (const r of this.reservationService.reservations()) {
+      if ((r.status === 'confirmed' || r.status === 'seated') && r.tableNumber) {
+        if (!map.has(r.tableNumber)) {
+          map.set(r.tableNumber, r);
+        }
+      }
+    }
+    return map;
+  });
+
+  getTableReservation(tableNumber: string): Reservation | null {
+    return this.tableReservationMap().get(tableNumber) ?? null;
+  }
+
   readonly statusOptions: { value: TableStatus; label: string }[] = [
     { value: 'available', label: 'Available' },
     { value: 'occupied', label: 'Occupied' },
@@ -148,6 +166,7 @@ export class FloorPlan implements OnInit {
   ngOnInit(): void {
     this.tableService.loadTables();
     this.orderService.loadOrders();
+    this.reservationService.loadReservations();
   }
 
   setView(view: 'floor' | 'list'): void {

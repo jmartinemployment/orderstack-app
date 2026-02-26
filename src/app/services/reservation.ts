@@ -22,6 +22,7 @@ import {
   VirtualWaitlistConfig,
 } from '../models';
 import { AuthService } from './auth';
+import { TableService } from './table';
 import { environment } from '@environments/environment';
 
 @Injectable({
@@ -30,6 +31,7 @@ import { environment } from '@environments/environment';
 export class ReservationService {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
+  private readonly tableService = inject(TableService);
   private readonly apiUrl = environment.apiUrl;
 
   private readonly _reservations = signal<Reservation[]>([]);
@@ -163,6 +165,7 @@ export class ReservationService {
         )
       );
       this._reservations.update(list => [reservation, ...list]);
+      this.syncTableStatus(reservation.tableNumber, reservation.status);
       return reservation;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to create reservation';
@@ -184,6 +187,7 @@ export class ReservationService {
       this._reservations.update(list =>
         list.map(r => r.id === reservationId ? updated : r)
       );
+      this.syncTableStatus(updated.tableNumber, updated.status);
       return true;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to update reservation';
@@ -205,6 +209,7 @@ export class ReservationService {
       this._reservations.update(list =>
         list.map(r => r.id === reservationId ? updated : r)
       );
+      this.syncTableStatus(updated.tableNumber, updated.status);
       return true;
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to assign table';
@@ -835,6 +840,23 @@ export class ReservationService {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to recalculate wait times';
       this._error.set(message);
+    }
+  }
+
+  private syncTableStatus(tableNumber: string | null, reservationStatus: ReservationStatus): void {
+    if (!tableNumber) return;
+    const table = this.tableService.tables().find(t => t.tableNumber === tableNumber);
+    if (!table) return;
+    const statusMap: Record<string, string> = {
+      confirmed: 'reserved',
+      seated: 'occupied',
+      completed: 'dirty',
+      cancelled: 'available',
+      'no-show': 'available',
+    };
+    const newStatus = statusMap[reservationStatus];
+    if (newStatus && table.status !== newStatus) {
+      this.tableService.updateStatus(table.id, newStatus);
     }
   }
 
