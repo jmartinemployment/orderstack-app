@@ -51,7 +51,9 @@ export class DeviceService {
 
   // --- Computed signals ---
   readonly activeDevices = computed(() => this._devices().filter(d => d.status === 'active'));
-  readonly pendingDevices = computed(() => this._devices().filter(d => d.status === 'pending'));
+  readonly pendingDevices = computed(() =>
+    this._devices().filter(d => d.status === 'pending' && (!d.expiresAt || new Date(d.expiresAt) > new Date()))
+  );
 
   readonly isCurrentDevicePaired = computed(() => {
     const device = this._currentDevice();
