@@ -28,18 +28,58 @@
   color: var(--os-text-muted);
 }
 
-.table-dark {
-  --bs-table-bg: var(--os-bg-card);
-  --bs-table-border-color: var(--os-border);
-  --bs-table-hover-bg: rgba(0, 106, 255, 0.06);
+.section-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--os-text-muted);
+  font-weight: 600;
+}
 
-  th {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--os-text-muted);
-    font-weight: 600;
+.device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border: 1px solid var(--os-border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.device-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: var(--os-bg-card);
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background-color: rgba(0, 106, 255, 0.04);
   }
+
+  &.selected {
+    background-color: rgba(0, 106, 255, 0.08);
+  }
+
+  &.revoked {
+    opacity: 0.5;
+  }
+
+  &.expired {
+    opacity: 0.7;
+  }
+}
+
+.device-name {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.device-meta {
+  font-size: 0.75rem;
+  color: var(--os-text-muted);
+  margin-top: 0.125rem;
 }
 
 .status-dot {
@@ -47,6 +87,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  flex-shrink: 0;
 
   &.status-active {
     background-color: var(--os-success);
@@ -61,25 +102,18 @@
   }
 }
 
-.badge.status-active {
-  background-color: var(--os-success);
-}
-
-.badge.status-pending {
-  background-color: var(--os-warning);
-  color: #000;
-}
-
-.badge.status-revoked {
-  background-color: var(--os-danger);
-}
-
 .device-code {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: var(--os-primary);
   background-color: rgba(0, 106, 255, 0.08);
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
+}
+
+.device-actions {
+  display: flex;
+  gap: 0.375rem;
+  align-items: center;
 }
 
 .generated-code {

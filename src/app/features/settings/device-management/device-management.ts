@@ -1,12 +1,12 @@
 import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, TitleCasePipe } from '@angular/common';
 import { StaffManagementService } from '@services/staff-management';
 import { AuthService } from '@services/auth';
 import { DeviceRegistration, DeviceRegistrationFormData } from '@models/staff-management.model';
 
 @Component({
   selector: 'os-device-management',
-  imports: [DatePipe],
+  imports: [DatePipe, TitleCasePipe],
   templateUrl: './device-management.html',
   styleUrl: './device-management.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,14 +23,16 @@ export class DeviceManagement {
   private readonly _deviceName = signal('');
   private readonly _generatedDevice = signal<DeviceRegistration | null>(null);
   private readonly _isSaving = signal(false);
-  private readonly _confirmRevoke = signal<string | null>(null);
+  private readonly _confirmDeleteId = signal<string | null>(null);
+  private readonly _selectedDeviceId = signal<string | null>(null);
   private readonly _successMessage = signal<string | null>(null);
 
   readonly showGenerateForm = this._showGenerateForm.asReadonly();
   readonly deviceName = this._deviceName.asReadonly();
   readonly generatedDevice = this._generatedDevice.asReadonly();
   readonly isSaving = this._isSaving.asReadonly();
-  readonly confirmRevoke = this._confirmRevoke.asReadonly();
+  readonly confirmDeleteId = this._confirmDeleteId.asReadonly();
+  readonly selectedDeviceId = this._selectedDeviceId.asReadonly();
   readonly successMessage = this._successMessage.asReadonly();
 
   readonly activeDevices = computed(() => this.devices().filter(d => d.status === 'active'));
@@ -46,6 +48,10 @@ export class DeviceManagement {
         this.staffService.loadDevices();
       }
     });
+  }
+
+  selectDevice(id: string): void {
+    this._selectedDeviceId.update(current => current === id ? null : id);
   }
 
   openGenerateForm(): void {
@@ -77,29 +83,21 @@ export class DeviceManagement {
     }
   }
 
-  confirmRevokeDevice(id: string): void {
-    this._confirmRevoke.set(id);
+  confirmDelete(id: string): void {
+    this._confirmDeleteId.set(id);
   }
 
-  cancelRevoke(): void {
-    this._confirmRevoke.set(null);
+  cancelDelete(): void {
+    this._confirmDeleteId.set(null);
   }
 
-  async revokeDevice(id: string): Promise<void> {
+  async deleteDevice(id: string): Promise<void> {
     this._isSaving.set(true);
     const success = await this.staffService.revokeDevice(id);
     this._isSaving.set(false);
-    this._confirmRevoke.set(null);
-    if (success) this.showSuccess('Device revoked');
-  }
-
-  getStatusClass(status: string): string {
-    switch (status) {
-      case 'active': return 'status-active';
-      case 'pending': return 'status-pending';
-      case 'revoked': return 'status-revoked';
-      default: return '';
-    }
+    this._confirmDeleteId.set(null);
+    if (this._selectedDeviceId() === id) this._selectedDeviceId.set(null);
+    if (success) this.showSuccess('Device removed');
   }
 
   isExpired(device: DeviceRegistration): boolean {
