@@ -68,6 +68,18 @@
 .severity-warning { background-color: var(--os-warning); color: #000; }
 .severity-info { background-color: #17a2b8; color: #fff; }
 
+// Alert card "Order More" button
+.btn-alert-order {
+  flex-shrink: 0;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  .alert-card:hover & { opacity: 1; }
+
+  i { margin-right: 0.25rem; }
+}
+
 // Reorder & Items shared header/row
 .reorder-table, .items-table, .cycle-count-table {
   background-color: var(--os-bg-card);

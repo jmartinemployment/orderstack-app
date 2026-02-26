@@ -121,6 +121,9 @@
                   <p class="alert-message mb-1">{{ alert.message }}</p>
                   <small class="alert-action">{{ alert.suggestedAction }}</small>
                 </div>
+                <button class="btn btn-sm btn-outline-info btn-alert-order ms-auto align-self-center" (click)="orderMoreByName(alert.itemName)">
+                  <i class="bi bi-truck"></i> Order More
+                </button>
               </div>
             }
           </div>
@@ -563,6 +566,9 @@
       }
     </div>
     <div class="modal-footer-custom d-flex justify-content-end gap-2">
+      <button type="button" class="btn btn-sm btn-outline-info" (click)="orderMore(item)">
+        <i class="bi bi-truck"></i> Order More
+      </button>
       <button type="button" class="btn btn-sm btn-outline-light" (click)="closeStockModal()">Cancel</button>
       <button
         type="button"

@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CurrencyPipe, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { InventoryService } from '@services/inventory';
 import { AuthService } from '@services/auth';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
@@ -27,6 +28,7 @@ import {
 export class InventoryDashboard implements OnInit {
   private readonly inventoryService = inject(InventoryService);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   readonly isAuthenticated = this.authService.isAuthenticated;
   readonly report = this.inventoryService.report;
@@ -276,6 +278,15 @@ export class InventoryDashboard implements OnInit {
   closeStockModal(): void {
     this._showStockModal.set(false);
     this._selectedItem.set(null);
+  }
+
+  orderMore(item: InventoryItem): void {
+    this.closeStockModal();
+    this.router.navigate(['/suppliers'], { queryParams: { item: item.name } });
+  }
+
+  orderMoreByName(itemName: string): void {
+    this.router.navigate(['/suppliers'], { queryParams: { item: itemName } });
   }
 
   setStockQuantity(qty: number): void {
