@@ -30,6 +30,25 @@ export class Login {
   private readonly _agreedToTerms = signal(false);
   readonly agreedToTerms = this._agreedToTerms.asReadonly();
 
+  // Forgot password modal state
+  private readonly _showForgotModal = signal(false);
+  readonly showForgotModal = this._showForgotModal.asReadonly();
+
+  private readonly _newPassword = signal('');
+  readonly newPassword = this._newPassword.asReadonly();
+
+  private readonly _showNewPassword = signal(false);
+  readonly showNewPassword = this._showNewPassword.asReadonly();
+
+  private readonly _forgotLoading = signal(false);
+  readonly forgotLoading = this._forgotLoading.asReadonly();
+
+  private readonly _forgotError = signal<string | null>(null);
+  readonly forgotError = this._forgotError.asReadonly();
+
+  private readonly _forgotSuccess = signal(false);
+  readonly forgotSuccess = this._forgotSuccess.asReadonly();
+
   loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
@@ -66,6 +85,52 @@ export class Login {
   switchToSignUp(): void {
     this._isSignUp.set(true);
     this.authService.clearError();
+  }
+
+  // Forgot password modal
+  openForgotPassword(): void {
+    this._newPassword.set('');
+    this._showNewPassword.set(false);
+    this._forgotError.set(null);
+    this._forgotSuccess.set(false);
+    this._showForgotModal.set(true);
+  }
+
+  closeForgotPassword(): void {
+    this._showForgotModal.set(false);
+    this._newPassword.set('');
+    this._showNewPassword.set(false);
+    this._forgotError.set(null);
+    this._forgotSuccess.set(false);
+  }
+
+  toggleNewPasswordVisibility(): void {
+    this._showNewPassword.update(v => !v);
+  }
+
+  onNewPasswordInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this._newPassword.set(input.value);
+  }
+
+  async submitForgotPassword(): Promise<void> {
+    const password = this._newPassword();
+    if (password.length < 6) return;
+
+    const email = (this.loginForm.get('email')?.value ?? '').trim();
+
+    this._forgotLoading.set(true);
+    this._forgotError.set(null);
+
+    const result = await this.authService.resetPassword(email, password);
+
+    this._forgotLoading.set(false);
+
+    if (result.success) {
+      this._forgotSuccess.set(true);
+    } else {
+      this._forgotError.set(result.error ?? 'Something went wrong. Please try again.');
+    }
   }
 
   async onSignUp(): Promise<void> {

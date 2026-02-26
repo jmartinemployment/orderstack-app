@@ -121,6 +121,7 @@
                 type="button"
                 class="btn-toggle-pw"
                 (click)="togglePasswordVisibility()"
+                aria-label="Toggle password visibility"
               >
                 <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
               </button>
@@ -209,8 +210,11 @@
       </div>
 
       <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <div class="input-group">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <label for="password" class="form-label mb-0">Password</label>
+          <button type="button" class="forgot-link" (click)="openForgotPassword()">Forgot password?</button>
+        </div>
+        <div class="password-field">
           <input
             [type]="showPassword() ? 'text' : 'password'"
             class="form-control"
@@ -221,10 +225,11 @@
           />
           <button
             type="button"
-            class="btn btn-outline-secondary"
+            class="btn-toggle-pw"
             (click)="togglePasswordVisibility()"
+            aria-label="Toggle password visibility"
           >
-            {{ showPassword() ? 'Hide' : 'Show' }}
+            <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
           </button>
         </div>
         @if (passwordControl?.touched && passwordControl?.errors?.['required']) {
@@ -253,4 +258,76 @@
       Don't have an account? <button type="button" class="link-btn" (click)="switchToSignUp()">Sign up</button>
     </p>
   </div>
+
+  <!-- ============ FORGOT PASSWORD MODAL ============ -->
+  @if (showForgotModal()) {
+    <div class="modal-backdrop" (click)="closeForgotPassword()"></div>
+    <div class="modal-dialog" role="dialog" aria-labelledby="forgotModalTitle">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="forgotModalTitle" class="modal-title">Reset your password</h3>
+          <button type="button" class="modal-close" (click)="closeForgotPassword()" aria-label="Close">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        @if (forgotSuccess()) {
+          <div class="modal-body">
+            <div class="success-message">
+              <i class="bi bi-check-circle"></i>
+              <p>Your password has been reset successfully.</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary w-100" (click)="closeForgotPassword()">Back to sign in</button>
+          </div>
+        } @else {
+          <div class="modal-body">
+            <p class="modal-description">Enter a new password for your account.</p>
+            @if (forgotError()) {
+              <div class="alert alert-danger mb-3">{{ forgotError() }}</div>
+            }
+            <div class="form-group mb-0">
+              <label for="newPassword" class="form-label">New password</label>
+              <div class="password-field">
+                <input
+                  [type]="showNewPassword() ? 'text' : 'password'"
+                  class="form-control"
+                  id="newPassword"
+                  placeholder="Min 6 characters"
+                  [value]="newPassword()"
+                  (input)="onNewPasswordInput($event)"
+                  (keydown.enter)="submitForgotPassword()"
+                />
+                <button
+                  type="button"
+                  class="btn-toggle-pw"
+                  (click)="toggleNewPasswordVisibility()"
+                  aria-label="Toggle password visibility"
+                >
+                  <i class="bi" [class.bi-eye]="!showNewPassword()" [class.bi-eye-slash]="showNewPassword()"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeForgotPassword()">Cancel</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              [disabled]="forgotLoading() || newPassword().length < 6"
+              (click)="submitForgotPassword()"
+            >
+              @if (forgotLoading()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                Submitting...
+              } @else {
+                Submit
+              }
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
 }

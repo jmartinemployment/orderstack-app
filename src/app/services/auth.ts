@@ -221,6 +221,21 @@ export class AuthService {
     }
   }
 
+  async resetPassword(email: string, newPassword: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      await firstValueFrom(
+        this.http.post(`${this.apiUrl}/auth/reset-password`, { email, newPassword })
+      );
+      return { success: true };
+    } catch (err: unknown) {
+      if (typeof err === 'object' && err !== null && 'error' in err) {
+        const httpErr = err as { error?: { message?: string } };
+        return { success: false, error: httpErr.error?.message };
+      }
+      return { success: false, error: 'Unable to reset password. Please try again.' };
+    }
+  }
+
   clearError(): void {
     this._error.set(null);
   }

@@ -37,7 +37,7 @@ export class MainLayoutComponent {
 
     const items: NavItem[] = [
       // Always visible
-      { label: 'Dashboard', icon: 'bi-speedometer2', route: '/home' },
+      { label: 'Home', icon: 'bi-speedometer2', route: '/home' },
     ];
 
     // Orders — all except pure services
@@ -58,7 +58,7 @@ export class MainLayoutComponent {
     } else if (service) {
       items.push({ label: 'Items & Services', icon: 'bi-grid-3x3-gap', route: '/menu' });
     } else if (hasModule(modules, 'menu_management')) {
-      items.push({ label: restaurant ? 'Menu Items' : 'Items', icon: 'bi-book', route: '/menu' });
+      items.push({ label: 'Items', icon: 'bi-book', route: '/menu' });
     }
 
     // Online — food and retail only
