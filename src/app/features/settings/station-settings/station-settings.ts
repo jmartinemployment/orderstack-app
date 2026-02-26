@@ -25,9 +25,9 @@ export class StationSettings implements OnInit {
     for (const cat of topLevel) {
       if (cat.subcategories && cat.subcategories.length > 0) {
         flat.push(...cat.subcategories.filter(s => s.isActive !== false));
-      } else if (cat.isActive !== false) {
-        flat.push(cat);
       }
+      // Skip top-level entries with 0 subcategories — they are PrimaryCategory
+      // containers whose IDs reference primary_categories, not menu_categories.
     }
     return flat;
   });
