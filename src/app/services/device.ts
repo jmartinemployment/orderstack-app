@@ -223,24 +223,22 @@ export class DeviceService {
 
   // --- Resolve current device (called by resolver on app init) ---
 
-  async resolveCurrentDevice(): Promise<void> {
+  resolveCurrentDevice(): void {
     // Skip if already resolved
     if (this._currentDevice() !== null) return;
 
-    // Look up paired/registered device by ID
     const deviceId = localStorage.getItem('device_id');
     if (!deviceId) {
       this._currentDevice.set(null);
       return;
     }
 
-    try {
-      const device = await firstValueFrom(
-        this.http.get<Device>(`${this.baseUrl}/devices/${deviceId}`)
-      );
-      this._currentDevice.set(device);
-    } catch {
-      // Device not found (404) or API unavailable — clear stale device ID
+    // Match against the already-loaded device list — no extra HTTP call
+    const match = this._devices().find(d => d.id === deviceId);
+    if (match) {
+      this._currentDevice.set(match);
+    } else {
+      // Stale device ID — remove it
       localStorage.removeItem('device_id');
       this._currentDevice.set(null);
     }

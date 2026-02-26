@@ -28,11 +28,14 @@ export const deviceInitResolver: ResolveFn<boolean> = async () => {
     }
   }
 
-  // Load merchant profile and device state in parallel
+  // Load merchant profile and device list in parallel
   await Promise.all([
     platformService.loadMerchantProfile(),
-    deviceService.resolveCurrentDevice(),
+    deviceService.loadDevices(),
   ]);
+
+  // Resolve current device from already-loaded list (no extra HTTP call)
+  deviceService.resolveCurrentDevice();
 
   const posMode = deviceService.currentDevicePosMode();
   if (posMode) {
