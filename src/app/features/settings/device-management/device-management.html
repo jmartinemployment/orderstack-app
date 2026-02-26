@@ -55,9 +55,6 @@
                 @if (device.pairedAt) {
                   Paired {{ device.pairedAt | date:'mediumDate' }}
                 }
-                @if (device.deviceType) {
-                  · {{ device.deviceType | titlecase }}
-                }
               </div>
             </div>
           </div>
