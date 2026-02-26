@@ -110,7 +110,7 @@ export class BreakConfig {
       this._tcAllowManagerOverride.set(s.allowManagerOverride);
       this._tcAutoClockOutMode.set(s.autoClockOutMode);
       this._tcAutoClockOutDelay.set(s.autoClockOutDelayMinutes);
-      this._tcBusinessDayCutoff.set(s.businessDayCutoffTime);
+      this._tcBusinessDayCutoff.set(s.businessDayCutoffTime ?? '02:00');
       this._tcAlertOpenTimecards.set(s.alertOpenTimecards);
       this._tcIsDirty.set(false);
     });
