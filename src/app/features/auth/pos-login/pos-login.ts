@@ -774,7 +774,9 @@ export class PosLogin {
   }
 
   getInitials(name: string): string {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const cleaned = name.replaceAll(/\s*\(.*?\)/g, '').trim();
+    const parts = cleaned.split(/\s+/).filter(Boolean);
+    return parts.map(n => n[0]).join('').toUpperCase().slice(0, 2);
   }
 
   getAvatarColor(name: string): string {
