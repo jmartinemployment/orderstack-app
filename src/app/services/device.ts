@@ -77,7 +77,7 @@ export class DeviceService {
 
   readonly devicesByType = computed(() => {
     const devices = this._devices();
-    const types: DeviceType[] = ['pos_terminal', 'kds_station', 'kiosk', 'order_pad', 'printer_station'];
+    const types: DeviceType[] = ['terminal', 'kds', 'kiosk', 'printer', 'register'];
     return types.map(type => ({
       type,
       count: devices.filter(d => d.deviceType === type && d.status === 'active').length,

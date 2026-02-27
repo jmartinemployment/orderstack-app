@@ -16,7 +16,7 @@ function guestGuardDecision(
   restaurantCount: number,
 ): boolean | string {
   if (!isAuthenticated) return true;
-  if (selectedRestaurantId || restaurantCount > 0) return '/home';
+  if (selectedRestaurantId || restaurantCount > 0) return '/administration';
   return '/setup';
 }
 
@@ -38,7 +38,7 @@ function onboardingGuardDecision(
 
 // deviceModeRedirectGuard: always redirects to /home
 function deviceModeRedirectGuardDecision(): string {
-  return '/home';
+  return '/administration';
 }
 
 // authInterceptor: should attach token, detect 401, skip for login endpoint
@@ -72,11 +72,11 @@ describe('guestGuard — decision logic', () => {
   });
 
   it('redirects to /home when authenticated with selected restaurant', () => {
-    expect(guestGuardDecision(true, 'r-1', 0)).toBe('/home');
+    expect(guestGuardDecision(true, 'r-1', 0)).toBe('/administration');
   });
 
   it('redirects to /home when authenticated with restaurants list', () => {
-    expect(guestGuardDecision(true, null, 2)).toBe('/home');
+    expect(guestGuardDecision(true, null, 2)).toBe('/administration');
   });
 
   it('redirects to /setup when authenticated with no restaurants', () => {
@@ -84,7 +84,7 @@ describe('guestGuard — decision logic', () => {
   });
 
   it('prefers selectedRestaurantId over count', () => {
-    expect(guestGuardDecision(true, 'r-1', 0)).toBe('/home');
+    expect(guestGuardDecision(true, 'r-1', 0)).toBe('/administration');
   });
 });
 
@@ -112,7 +112,7 @@ describe('onboardingGuard — decision logic', () => {
 
 describe('deviceModeRedirectGuard — decision logic', () => {
   it('always redirects to /home', () => {
-    expect(deviceModeRedirectGuardDecision()).toBe('/home');
+    expect(deviceModeRedirectGuardDecision()).toBe('/administration');
   });
 });
 

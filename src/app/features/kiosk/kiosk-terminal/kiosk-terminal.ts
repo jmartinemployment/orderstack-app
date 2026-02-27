@@ -9,9 +9,7 @@ import {
 } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import { MenuService } from '@services/menu';
-import { AuthService } from '@services/auth';
 import { OrderService } from '@services/order';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { TableService } from '@services/table';
@@ -53,12 +51,10 @@ interface CustomerInfo {
 })
 export class KioskTerminal implements OnInit {
   private readonly menuService = inject(MenuService);
-  private readonly authService = inject(AuthService);
   private readonly orderService = inject(OrderService);
   private readonly settingsService = inject(RestaurantSettingsService);
   private readonly tableService = inject(TableService);
   private readonly loyaltyService = inject(LoyaltyService);
-  private readonly route = inject(ActivatedRoute);
 
   // Top tab state — default to Favorites
   private readonly _activeTopTab = signal<TopTab>('favorites');
@@ -228,22 +224,8 @@ export class KioskTerminal implements OnInit {
   });
 
   ngOnInit(): void {
-    const slug = this.route.snapshot.paramMap.get('restaurantSlug');
-
-    if (slug) {
-      // Public route: resolve slug to a restaurant UUID from the user's restaurant list
-      const restaurants = this.authService.restaurants();
-      const match = restaurants.find(r => r.slug === slug);
-      if (match) {
-        this.menuService.loadMenuForRestaurant(match.id);
-      } else {
-        // Fallback: try using the slug directly (backend may accept it)
-        this.menuService.loadMenuForRestaurant(slug);
-      }
-    } else {
-      // Authenticated route: use the selected restaurant
-      this.menuService.loadMenu();
-    }
+    // Kiosk is always authenticated — use the selected restaurant
+    this.menuService.loadMenu();
 
     // Load tables for dine-in selection
     this.tableService.loadTables();

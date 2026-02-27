@@ -9,7 +9,7 @@ import { DevicePosMode } from './platform.model';
 
 // --- Device Types ---
 
-export type DeviceType = 'pos_terminal' | 'kds_station' | 'kiosk' | 'order_pad' | 'printer_station';
+export type DeviceType = 'terminal' | 'kds' | 'kiosk' | 'printer' | 'register';
 
 // --- Device (replaces DeviceRegistration from staff-management.model.ts) ---
 
@@ -44,6 +44,7 @@ export interface DeviceFormData {
   locationId?: string;
   modeId?: string;
   posMode?: DevicePosMode;
+  teamMemberId?: string;
 }
 
 // --- Device Modes (reusable hardware config profiles) ---

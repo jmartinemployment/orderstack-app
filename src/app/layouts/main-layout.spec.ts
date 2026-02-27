@@ -22,7 +22,7 @@ function buildNavItems(
   modules: string[],
 ): NavItem[] {
   const items: NavItem[] = [
-    { label: 'Home', icon: 'bi-house', route: '/home' },
+    { label: 'Administration', icon: 'bi-house', route: '/administration' },
   ];
 
   if (!isService) {
@@ -101,7 +101,7 @@ describe('MainLayout — Full Service mode', () => {
   const labels = getLabels(items);
 
   it('starts with Home', () => {
-    expect(labels[0]).toBe('Home');
+    expect(labels[0]).toBe('Administration');
   });
 
   it('ends with Settings', () => {
@@ -159,7 +159,7 @@ describe('MainLayout — Retail mode', () => {
   const labels = getLabels(items);
 
   it('includes Home, Orders, POS, Items', () => {
-    expect(labels).toContain('Home');
+    expect(labels).toContain('Administration');
     expect(labels).toContain('Orders');
     expect(labels).toContain('POS');
     expect(labels).toContain('Items');
@@ -303,7 +303,7 @@ describe('MainLayout — Always-present items', () => {
     it(`${mode} mode always has Home, Customers, Reports, Staff, Settings`, () => {
       const items = buildNavItems(mode, isRetail, isService, isRestaurant, {}, []);
       const labels = getLabels(items);
-      expect(labels).toContain('Home');
+      expect(labels).toContain('Administration');
       expect(labels).toContain('Customers');
       expect(labels).toContain('Reports');
       expect(labels).toContain('Staff');

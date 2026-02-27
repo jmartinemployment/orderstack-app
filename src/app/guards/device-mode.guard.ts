@@ -3,5 +3,5 @@ import { Router } from '@angular/router';
 
 export const deviceModeRedirectGuard = () => {
   const router = inject(Router);
-  return router.createUrlTree(['/home']);
+  return router.createUrlTree(['/administration']);
 };

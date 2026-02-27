@@ -1285,7 +1285,7 @@ export class SetupWizard implements OnInit {
   // --- Done screen ---
 
   goToDashboard(): void {
-    this.router.navigate(['/home']);
+    this.router.navigate(['/administration']);
   }
 
   async installApp(): Promise<void> {

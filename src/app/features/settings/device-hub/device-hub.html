@@ -94,12 +94,12 @@
               </div>
             } @else {
               <div class="row g-3">
-                <div class="col-md-5">
+                <div class="col-md-4">
                   <label class="form-label">Device Name</label>
                   <input type="text" class="form-control" placeholder="e.g. Front Counter"
                     [ngModel]="newDeviceName()" (ngModelChange)="newDeviceName.set($event)" />
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                   <label class="form-label">Device Type</label>
                   <select class="form-select" [ngModel]="newDeviceType()" (ngModelChange)="newDeviceType.set($event)">
                     @for (type of deviceTypes; track type) {
@@ -107,7 +107,16 @@
                     }
                   </select>
                 </div>
-                <div class="col-md-3 d-flex align-items-end gap-2">
+                <div class="col-md-3">
+                  <label class="form-label">Assigned To</label>
+                  <select class="form-select" [ngModel]="newDeviceTeamMember()" (ngModelChange)="newDeviceTeamMember.set($event)">
+                    <option value="">Unassigned</option>
+                    @for (member of teamMembers(); track member.id) {
+                      <option [value]="member.id">{{ member.displayName }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end gap-2">
                   <button class="btn btn-primary" [disabled]="isLoading()" (click)="generateCode()">
                     @if (isLoading()) {
                       <span class="spinner-border spinner-border-sm me-1"></span>
@@ -154,7 +163,7 @@
               </div>
 
               <!-- Station binding for KDS devices (Step 11) -->
-              @if (device.deviceType === 'kds_station') {
+              @if (device.deviceType === 'kds') {
                 <div class="station-bind">
                   <label class="form-label mb-0"><small>Station</small></label>
                   <select class="form-select form-select-sm"

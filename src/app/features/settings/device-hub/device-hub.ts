@@ -8,6 +8,7 @@ import { StationService } from '@services/station';
 import { MenuService } from '@services/menu';
 import { PrinterSettings } from '../printer-settings';
 import { StationSettings } from '../station-settings';
+import { StaffManagementService } from '@services/staff-management';
 import {
   DeviceHubTab,
   DeviceType,
@@ -33,19 +34,19 @@ import {
 import type { DevicePosMode } from '@models/index';
 
 const DEVICE_TYPE_LABELS: Record<DeviceType, string> = {
-  pos_terminal: 'POS Terminal',
-  kds_station: 'KDS Station',
+  register: 'Register',
+  terminal: 'Terminal',
+  kds: 'KDS',
   kiosk: 'Kiosk',
-  order_pad: 'Order Pad',
-  printer_station: 'Printer Station',
+  printer: 'Printer',
 };
 
 const DEVICE_TYPE_ICONS: Record<DeviceType, string> = {
-  pos_terminal: 'bi-tv',
-  kds_station: 'bi-display',
+  register: 'bi-shop',
+  terminal: 'bi-tablet',
+  kds: 'bi-display',
   kiosk: 'bi-phone',
-  order_pad: 'bi-tablet',
-  printer_station: 'bi-printer',
+  printer: 'bi-printer',
 };
 
 const PRINT_JOB_LABELS: Record<PrintJobType, string> = {
@@ -88,6 +89,7 @@ export class DeviceHub implements OnInit {
   private readonly printerService = inject(PrinterService);
   private readonly stationService = inject(StationService);
   private readonly menuService = inject(MenuService);
+  private readonly staffService = inject(StaffManagementService);
   // --- Tab state ---
   readonly activeTab = signal<DeviceHubTab>('devices');
 
@@ -100,6 +102,7 @@ export class DeviceHub implements OnInit {
   readonly printers = this.printerService.printers;
   readonly stations = this.stationService.stations;
   readonly categories = this.menuService.categories;
+  readonly teamMembers = this.staffService.teamMembers;
   readonly isLoading = this.deviceService.isLoading;
   readonly error = this.deviceService.error;
 
@@ -128,7 +131,7 @@ export class DeviceHub implements OnInit {
   });
 
   readonly kdsDevices = computed(() =>
-    this.activeDevices().filter(d => d.deviceType === 'kds_station')
+    this.activeDevices().filter(d => d.deviceType === 'kds')
   );
 
   readonly unassignedStations = computed(() =>
@@ -138,7 +141,8 @@ export class DeviceHub implements OnInit {
   // --- Device code generation ---
   readonly showCodeForm = signal(false);
   readonly newDeviceName = signal('');
-  readonly newDeviceType = signal<DeviceType>('pos_terminal');
+  readonly newDeviceType = signal<DeviceType>('register');
+  readonly newDeviceTeamMember = signal<string>('');
   readonly generatedCode = signal<string | null>(null);
   readonly codeExpiry = signal<string | null>(null);
 
@@ -146,7 +150,7 @@ export class DeviceHub implements OnInit {
   readonly showModeForm = signal(false);
   readonly editingMode = signal<DeviceMode | null>(null);
   readonly modeFormName = signal('');
-  readonly modeFormType = signal<DeviceType>('pos_terminal');
+  readonly modeFormType = signal<DeviceType>('register');
   readonly modeFormSettings = signal<DeviceModeSettings>(defaultModeSettings());
   readonly modeFormPosMode = signal<DevicePosMode>('full_service');
 
@@ -191,7 +195,7 @@ export class DeviceHub implements OnInit {
   readonly printJobLabels = PRINT_JOB_LABELS;
   readonly peripheralTypeLabels = PERIPHERAL_TYPE_LABELS;
   readonly peripheralTypeIcons = PERIPHERAL_TYPE_ICONS;
-  readonly deviceTypes: DeviceType[] = ['pos_terminal', 'kds_station', 'kiosk', 'order_pad', 'printer_station'];
+  readonly deviceTypes: DeviceType[] = ['register', 'terminal', 'kds', 'kiosk', 'printer'];
   readonly printJobTypes: PrintJobType[] = ['customer_receipt', 'kitchen_ticket', 'bar_ticket', 'expo_ticket', 'order_summary', 'close_of_day'];
   readonly peripheralTypes: PeripheralType[] = ['cash_drawer', 'barcode_scanner', 'card_reader', 'customer_display', 'scale'];
   readonly connectionTypes: PeripheralConnectionType[] = ['usb', 'bluetooth', 'network'];
@@ -205,6 +209,7 @@ export class DeviceHub implements OnInit {
     this.deviceService.loadKioskProfiles();
     this.stationService.loadStations();
     this.menuService.loadMenu();
+    this.staffService.loadTeamMembers();
   }
 
   setTab(tab: DeviceHubTab): void {
@@ -216,7 +221,8 @@ export class DeviceHub implements OnInit {
   openCodeForm(): void {
     this.showCodeForm.set(true);
     this.newDeviceName.set('');
-    this.newDeviceType.set('pos_terminal');
+    this.newDeviceType.set('register');
+    this.newDeviceTeamMember.set('');
     this.generatedCode.set(null);
     this.codeExpiry.set(null);
   }
@@ -226,9 +232,11 @@ export class DeviceHub implements OnInit {
   }
 
   async generateCode(): Promise<void> {
+    const teamMemberId = this.newDeviceTeamMember() || undefined;
     const data: DeviceFormData = {
       deviceName: this.newDeviceName() || 'New Device',
       deviceType: this.newDeviceType(),
+      teamMemberId,
     };
     const device = await this.deviceService.generateDeviceCode(data);
     if (device) {
@@ -290,7 +298,7 @@ export class DeviceHub implements OnInit {
     } else {
       this.editingMode.set(null);
       this.modeFormName.set('');
-      this.modeFormType.set('pos_terminal');
+      this.modeFormType.set('register');
       this.modeFormSettings.set(defaultModeSettings());
     }
   }

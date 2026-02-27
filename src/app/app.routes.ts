@@ -52,10 +52,6 @@ export const routes: Routes = [
     loadComponent: () => import('./features/online-ordering/online-order-portal/online-order-portal').then(m => m.OnlineOrderPortal),
   },
   {
-    path: 'kiosk/:restaurantSlug',
-    loadComponent: () => import('./features/kiosk/kiosk-terminal/kiosk-terminal').then(m => m.KioskTerminal),
-  },
-  {
     path: 'staff',
     loadComponent: () => import('./features/staff/staff-portal/staff-portal').then(m => m.StaffPortal),
   },
@@ -93,6 +89,20 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/restaurant-select/restaurant-select').then(m => m.RestaurantSelect),
   },
 
+  // Dedicated device routes — full-screen, no sidebar
+  {
+    path: 'kiosk',
+    canActivate: [authGuard, onboardingGuard],
+    resolve: { deviceInit: deviceInitResolver },
+    loadComponent: () => import('./features/kiosk/kiosk-terminal/kiosk-terminal').then(m => m.KioskTerminal),
+  },
+  {
+    path: 'kds',
+    canActivate: [authGuard, onboardingGuard],
+    resolve: { deviceInit: deviceInitResolver },
+    loadComponent: () => import('./features/kds/kds-display/kds-display').then(m => m.KdsDisplay),
+  },
+
   // Authenticated routes
   {
     path: '',
@@ -101,8 +111,8 @@ export const routes: Routes = [
     resolve: { deviceInit: deviceInitResolver },
     children: [
 
-      // Home
-      { path: 'home', loadComponent: () => import('./features/home/home-dashboard/home-dashboard').then(m => m.HomeDashboard) },
+      // Administration
+      { path: 'administration', loadComponent: () => import('./features/home/home-dashboard/home-dashboard').then(m => m.HomeDashboard) },
       { path: 'hardware-guide', loadComponent: () => import('./features/home/hardware-guide/hardware-guide').then(m => m.HardwareGuide) },
 
       // Orders
@@ -110,12 +120,6 @@ export const routes: Routes = [
       { path: 'order-history', loadComponent: () => import('./features/orders/order-history/order-history').then(m => m.OrderHistory) },
       { path: 'order-pad', loadComponent: () => import('./features/pos/order-pad/order-pad').then(m => m.OrderPad) },
       { path: 'pos', loadComponent: () => import('./features/pos/server-pos-terminal/server-pos-terminal').then(m => m.ServerPosTerminal) },
-
-      // Kiosk (authenticated — paired device route)
-      { path: 'kiosk', loadComponent: () => import('./features/kiosk/kiosk-terminal/kiosk-terminal').then(m => m.KioskTerminal) },
-
-      // Kitchen
-      { path: 'kds', loadComponent: () => import('./features/kds/kds-display/kds-display').then(m => m.KdsDisplay) },
 
       // SOS
       { path: 'sos', loadComponent: () => import('./features/sos/sos-terminal/sos-terminal').then(m => m.SosTerminal) },
@@ -174,7 +178,7 @@ export const routes: Routes = [
       { path: 'settings', loadComponent: () => import('./features/settings/control-panel/control-panel').then(m => m.ControlPanel) },
 
       // Default — redirect to home
-      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      { path: '', redirectTo: 'administration', pathMatch: 'full' },
     ],
   },
 
