@@ -40,6 +40,7 @@ export class MainLayoutComponent {
 
   readonly user = this.auth.user;
   readonly selectedRestaurantName = this.auth.selectedRestaurantName;
+  readonly selectedRestaurantAddress = this.auth.selectedRestaurantAddress;
 
   private readonly sidebarAlerts = computed<Record<string, AlertSeverity>>(() => {
     const alerts: Record<string, AlertSeverity> = {};
@@ -103,7 +104,7 @@ export class MainLayoutComponent {
     const alerts = this.sidebarAlerts();
 
     const items: NavItem[] = [
-      { label: 'Home', icon: 'bi-speedometer2', route: '/home' },
+      { label: 'Administration', icon: 'bi-speedometer2', route: '/administration' },
     ];
 
     if (!service) {

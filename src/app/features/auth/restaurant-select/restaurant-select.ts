@@ -71,7 +71,7 @@ export class RestaurantSelect {
   }
 
   selectRestaurant(restaurant: Restaurant): void {
-    this.authService.selectRestaurant(restaurant.id, restaurant.name, restaurant.logo);
+    this.authService.selectRestaurant(restaurant.id, restaurant.name, restaurant.logo, restaurant.address);
     this.router.navigate(['/']);
   }
 

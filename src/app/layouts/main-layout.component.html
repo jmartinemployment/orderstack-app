@@ -52,7 +52,12 @@
         <div class="restaurant-info" [title]="sidebarCollapsed() ? name : ''">
           <i class="bi bi-shop"></i>
           @if (!sidebarCollapsed()) {
-            <span class="restaurant-name">{{ name }}</span>
+            <div class="restaurant-details">
+              <span class="restaurant-name">{{ name }}</span>
+              @if (selectedRestaurantAddress(); as addr) {
+                <small class="restaurant-address">{{ addr }}</small>
+              }
+            </div>
           }
         </div>
       }

@@ -22,6 +22,7 @@ export class AuthService {
   private readonly _selectedRestaurantId = signal<string | null>(null);
   private readonly _selectedRestaurantName = signal<string | null>(null);
   private readonly _selectedRestaurantLogo = signal<string | null>(null);
+  private readonly _selectedRestaurantAddress = signal<string | null>(null);
   private readonly _sessionExpiredMessage = signal<string | null>(null);
 
   // Public readonly signals
@@ -32,6 +33,7 @@ export class AuthService {
   readonly selectedRestaurantId = this._selectedRestaurantId.asReadonly();
   readonly selectedRestaurantName = this._selectedRestaurantName.asReadonly();
   readonly selectedRestaurantLogo = this._selectedRestaurantLogo.asReadonly();
+  readonly selectedRestaurantAddress = this._selectedRestaurantAddress.asReadonly();
   readonly sessionExpiredMessage = this._sessionExpiredMessage.asReadonly();
 
   // Computed signals
@@ -50,6 +52,7 @@ export class AuthService {
     const restaurantId = localStorage.getItem('selected_restaurant_id');
     const restaurantName = localStorage.getItem('selected_restaurant_name');
     const restaurantLogo = localStorage.getItem('selected_restaurant_logo');
+    const restaurantAddress = localStorage.getItem('selected_restaurant_address');
 
     if (token && userJson) {
       try {
@@ -70,6 +73,7 @@ export class AuthService {
       this._selectedRestaurantId.set(restaurantId);
       this._selectedRestaurantName.set(restaurantName);
       this._selectedRestaurantLogo.set(restaurantLogo);
+      this._selectedRestaurantAddress.set(restaurantAddress);
     }
   }
 
@@ -86,6 +90,7 @@ export class AuthService {
     localStorage.removeItem('selected_restaurant_id');
     localStorage.removeItem('selected_restaurant_name');
     localStorage.removeItem('selected_restaurant_logo');
+    localStorage.removeItem('selected_restaurant_address');
   }
 
   async login(credentials: LoginRequest): Promise<boolean> {
@@ -163,6 +168,7 @@ export class AuthService {
       this._selectedRestaurantId.set(null);
       this._selectedRestaurantName.set(null);
       this._selectedRestaurantLogo.set(null);
+      this._selectedRestaurantAddress.set(null);
       this.clearStorage();
       this._isLoading.set(false);
     }
@@ -199,6 +205,7 @@ export class AuthService {
     this._selectedRestaurantId.set(null);
     this._selectedRestaurantName.set(null);
     this._selectedRestaurantLogo.set(null);
+    this._selectedRestaurantAddress.set(null);
     this.clearStorage();
     this._sessionExpiredMessage.set('Your session has expired. Please sign in again.');
     this.router.navigate(['/login']);
@@ -208,16 +215,22 @@ export class AuthService {
     this._sessionExpiredMessage.set(null);
   }
 
-  selectRestaurant(restaurantId: string, restaurantName: string, restaurantLogo?: string): void {
+  selectRestaurant(restaurantId: string, restaurantName: string, restaurantLogo?: string, restaurantAddress?: string): void {
     this._selectedRestaurantId.set(restaurantId);
     this._selectedRestaurantName.set(restaurantName);
     this._selectedRestaurantLogo.set(restaurantLogo ?? null);
+    this._selectedRestaurantAddress.set(restaurantAddress ?? null);
     localStorage.setItem('selected_restaurant_id', restaurantId);
     localStorage.setItem('selected_restaurant_name', restaurantName);
     if (restaurantLogo) {
       localStorage.setItem('selected_restaurant_logo', restaurantLogo);
     } else {
       localStorage.removeItem('selected_restaurant_logo');
+    }
+    if (restaurantAddress) {
+      localStorage.setItem('selected_restaurant_address', restaurantAddress);
+    } else {
+      localStorage.removeItem('selected_restaurant_address');
     }
   }
 
