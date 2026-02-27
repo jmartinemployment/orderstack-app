@@ -319,27 +319,6 @@ export class PosLogin {
     this._isValidating.set(true);
     this._error.set(null);
 
-    // Try local PIN validation first (for owner seeded from onboarding)
-    const member = this._selectedMember();
-    if (member?.passcode && member.passcode === passcode) {
-      const localSession: PosSession = {
-        token: 'local-session',
-        teamMemberId: member.id,
-        teamMemberName: member.displayName,
-        role: 'owner',
-        permissions: {},
-        clockedIn: true,
-        activeTimecardId: null,
-      };
-      this._session.set(localSession);
-      this._failedAttempts.set(0);
-      this._lockoutUntil.set(null);
-      this._isValidating.set(false);
-      this.completeAuthentication();
-      return;
-    }
-
-    // Fall back to API validation
     const session = await this.laborService.posLogin(passcode);
 
     if (session) {
@@ -455,20 +434,18 @@ export class PosLogin {
     const device = this.deviceService.currentDevice();
     if (device?.deviceType) {
       switch (device.deviceType) {
-        case 'kds_station':
+        case 'kds':
           this.router.navigate(['/kds']);
           return;
         case 'kiosk':
           this.router.navigate(['/kiosk']);
           return;
-        case 'order_pad':
-          this.router.navigate(['/order-pad']);
+        case 'printer':
+          this.router.navigate(['/administration']);
           return;
-        case 'pos_terminal':
+        case 'register':
+        case 'terminal':
           break; // Fall through to posMode logic
-        case 'printer_station':
-          this.router.navigate(['/home']);
-          return;
       }
     }
 
