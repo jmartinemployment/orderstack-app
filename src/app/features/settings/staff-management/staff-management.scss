@@ -434,3 +434,30 @@
   font-size: 0.9rem;
   font-weight: 500;
 }
+
+// Onboarding step form modal (sits on top of checklist modal)
+.ob-step-backdrop {
+  z-index: 1060;
+}
+
+.ob-step-modal {
+  z-index: 1070;
+}
+
+// Handbook box
+.handbook-box {
+  background-color: rgba(0, 106, 255, 0.04);
+  border: 1px solid var(--os-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: var(--os-text-secondary);
+
+  ul {
+    padding-left: 1.25rem;
+
+    li {
+      margin-bottom: 0.25rem;
+    }
+  }
+}

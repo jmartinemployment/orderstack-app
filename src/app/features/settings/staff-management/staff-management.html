@@ -548,11 +548,11 @@
             </div>
           </div>
 
-          <!-- Checklist -->
+          <!-- Checklist — click a step to open its form -->
           @if (onboardingChecklist(); as checklist) {
             <div class="onboarding-checklist">
               @for (step of checklist.steps; track step.step) {
-                <div class="onboarding-step" [class.completed]="step.isComplete" (click)="toggleOnboardingStep(step.step, !step.isComplete)">
+                <div class="onboarding-step" [class.completed]="step.isComplete" (click)="openOnboardingStepForm(step.step)">
                   <div class="onboarding-step-check">
                     @if (step.isComplete) {
                       <i class="bi bi-check-circle-fill text-success"></i>
@@ -564,10 +564,20 @@
                     <i class="bi" [class]="getStepIcon(step.step)"></i>
                   </div>
                   <div class="onboarding-step-info">
-                    <div class="onboarding-step-label" [class.text-decoration-line-through]="step.isComplete">{{ step.label }}</div>
-                    @if (step.completedAt) {
-                      <div class="text-muted small">Completed {{ step.completedAt | date:'mediumDate' }}</div>
+                    <div class="onboarding-step-label">{{ step.label }}</div>
+                    @if (step.isComplete) {
+                      @let summary = getStepSummary(step);
+                      @if (summary) {
+                        <div class="text-muted small">{{ summary }}</div>
+                      } @else {
+                        <div class="text-muted small">Completed {{ step.completedAt | date:'mediumDate' }}</div>
+                      }
+                    } @else {
+                      <div class="text-muted small">Click to fill out</div>
                     }
+                  </div>
+                  <div class="ms-auto">
+                    <i class="bi bi-chevron-right text-muted"></i>
                   </div>
                 </div>
               }
@@ -576,6 +586,217 @@
         </div>
         <div class="modal-footer">
           <button class="btn btn-primary" (click)="closeOnboarding()">Done</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ============ Onboarding Step Form Modal ============ -->
+  @if (activeOnboardingStep()) {
+    <div class="modal-backdrop ob-step-backdrop" (click)="closeOnboardingStepForm()"></div>
+    <div class="modal-dialog-centered modal-lg ob-step-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <button class="btn btn-sm btn-outline-light me-2" (click)="closeOnboardingStepForm()">
+              <i class="bi bi-arrow-left"></i>
+            </button>
+            {{ getStepLabel(activeOnboardingStep()!) }}
+          </h5>
+        </div>
+        <div class="modal-body">
+
+          <!-- Personal Information -->
+          @if (activeOnboardingStep() === 'personal_info') {
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">First Name *</label>
+                <input type="text" class="form-control" [value]="obStepData()['firstName'] ?? ''" (input)="setObField('firstName', $any($event.target).value)" placeholder="First name">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Last Name *</label>
+                <input type="text" class="form-control" [value]="obStepData()['lastName'] ?? ''" (input)="setObField('lastName', $any($event.target).value)" placeholder="Last name">
+              </div>
+              <div class="col-12">
+                <label class="form-label">Street Address</label>
+                <input type="text" class="form-control" [value]="obStepData()['address'] ?? ''" (input)="setObField('address', $any($event.target).value)" placeholder="123 Main St">
+              </div>
+              <div class="col-md-5">
+                <label class="form-label">City</label>
+                <input type="text" class="form-control" [value]="obStepData()['city'] ?? ''" (input)="setObField('city', $any($event.target).value)" placeholder="City">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">State</label>
+                <input type="text" class="form-control" [value]="obStepData()['state'] ?? ''" (input)="setObField('state', $any($event.target).value)" placeholder="FL" maxlength="2">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">ZIP Code</label>
+                <input type="text" class="form-control" [value]="obStepData()['zip'] ?? ''" (input)="setObField('zip', $any($event.target).value)" placeholder="33301" maxlength="10">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Phone *</label>
+                <input type="tel" class="form-control" [value]="obStepData()['phone'] ?? ''" (input)="setObField('phone', $any($event.target).value)" placeholder="(555) 555-5555">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" class="form-control" [value]="obStepData()['dob'] ?? ''" (input)="setObField('dob', $any($event.target).value)">
+              </div>
+            </div>
+          }
+
+          <!-- Tax Forms -->
+          @if (activeOnboardingStep() === 'tax_forms') {
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label">Legal Full Name (as on tax documents) *</label>
+                <input type="text" class="form-control" [value]="obStepData()['legalName'] ?? ''" (input)="setObField('legalName', $any($event.target).value)" placeholder="Full legal name">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">SSN (last 4 digits)</label>
+                <input type="text" class="form-control" [value]="obStepData()['ssnLast4'] ?? ''" (input)="setObField('ssnLast4', $any($event.target).value)" placeholder="XXXX" maxlength="4" inputmode="numeric">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Filing Status</label>
+                <select class="form-select" [value]="obStepData()['filingStatus'] ?? ''" (change)="setObField('filingStatus', $any($event.target).value)">
+                  <option value="">Select...</option>
+                  <option value="single">Single</option>
+                  <option value="married_joint">Married Filing Jointly</option>
+                  <option value="married_separate">Married Filing Separately</option>
+                  <option value="head_of_household">Head of Household</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Federal Allowances</label>
+                <input type="number" class="form-control" [value]="obStepData()['federalAllowances'] ?? ''" (input)="setObField('federalAllowances', $any($event.target).value)" placeholder="0" min="0">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Additional Withholding</label>
+                <div class="input-group">
+                  <span class="input-group-text">$</span>
+                  <input type="number" class="form-control" [value]="obStepData()['additionalWithholding'] ?? ''" (input)="setObField('additionalWithholding', $any($event.target).value)" placeholder="0.00" min="0" step="0.01">
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Notes</label>
+                <textarea class="form-control" rows="2" [value]="obStepData()['taxNotes'] ?? ''" (input)="setObField('taxNotes', $any($event.target).value)" placeholder="Additional tax form notes..."></textarea>
+              </div>
+            </div>
+          }
+
+          <!-- Direct Deposit -->
+          @if (activeOnboardingStep() === 'direct_deposit') {
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label">Bank Name *</label>
+                <input type="text" class="form-control" [value]="obStepData()['bankName'] ?? ''" (input)="setObField('bankName', $any($event.target).value)" placeholder="e.g., Chase, Bank of America">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Routing Number *</label>
+                <input type="text" class="form-control" [value]="obStepData()['routingNumber'] ?? ''" (input)="setObField('routingNumber', $any($event.target).value)" placeholder="9 digits" maxlength="9" inputmode="numeric">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Account Number *</label>
+                <input type="text" class="form-control" [value]="obStepData()['accountNumber'] ?? ''" (input)="setObField('accountNumber', $any($event.target).value)" placeholder="Account number" inputmode="numeric">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Account Type</label>
+                <select class="form-select" [value]="obStepData()['accountType'] ?? ''" (change)="setObField('accountType', $any($event.target).value)">
+                  <option value="">Select...</option>
+                  <option value="checking">Checking</option>
+                  <option value="savings">Savings</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Name on Account</label>
+                <input type="text" class="form-control" [value]="obStepData()['nameOnAccount'] ?? ''" (input)="setObField('nameOnAccount', $any($event.target).value)" placeholder="Account holder name">
+              </div>
+            </div>
+          }
+
+          <!-- Documents & ID Verification -->
+          @if (activeOnboardingStep() === 'documents') {
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">ID Type *</label>
+                <select class="form-select" [value]="obStepData()['idType'] ?? ''" (change)="setObField('idType', $any($event.target).value)">
+                  <option value="">Select...</option>
+                  <option value="drivers_license">Driver's License</option>
+                  <option value="state_id">State ID</option>
+                  <option value="passport">Passport</option>
+                  <option value="passport_card">Passport Card</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">ID Number *</label>
+                <input type="text" class="form-control" [value]="obStepData()['idNumber'] ?? ''" (input)="setObField('idNumber', $any($event.target).value)" placeholder="ID number">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Issuing State/Country</label>
+                <input type="text" class="form-control" [value]="obStepData()['idIssuer'] ?? ''" (input)="setObField('idIssuer', $any($event.target).value)" placeholder="e.g., Florida">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Expiration Date</label>
+                <input type="date" class="form-control" [value]="obStepData()['idExpiration'] ?? ''" (input)="setObField('idExpiration', $any($event.target).value)">
+              </div>
+              <div class="col-12">
+                <label class="form-label">I-9 Work Authorization</label>
+                <select class="form-select" [value]="obStepData()['workAuth'] ?? ''" (change)="setObField('workAuth', $any($event.target).value)">
+                  <option value="">Select...</option>
+                  <option value="citizen">U.S. Citizen</option>
+                  <option value="noncitizen_national">Noncitizen National</option>
+                  <option value="permanent_resident">Lawful Permanent Resident</option>
+                  <option value="work_visa">Work Visa / EAD</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Notes</label>
+                <textarea class="form-control" rows="2" [value]="obStepData()['docNotes'] ?? ''" (input)="setObField('docNotes', $any($event.target).value)" placeholder="Additional document notes..."></textarea>
+              </div>
+            </div>
+          }
+
+          <!-- Training & Acknowledgements -->
+          @if (activeOnboardingStep() === 'training') {
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="handbook-box">
+                  <p class="fw-semibold mb-2">By completing this section, the employee acknowledges that:</p>
+                  <ul class="mb-0">
+                    <li>They have received and reviewed the employee handbook</li>
+                    <li>They understand the company policies and procedures</li>
+                    <li>They agree to comply with all workplace rules and expectations</li>
+                    <li>They understand that violation of policies may result in disciplinary action</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="obHandbook" [checked]="obStepData()['acknowledged'] === 'true'" (change)="toggleObCheckbox('acknowledged')">
+                  <label class="form-check-label" for="obHandbook">Employee acknowledges they have read and understood the employee handbook</label>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="obSafety" [checked]="obStepData()['safetyTraining'] === 'true'" (change)="toggleObCheckbox('safetyTraining')">
+                  <label class="form-check-label" for="obSafety">Food safety / workplace safety training completed</label>
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Training Notes</label>
+                <textarea class="form-control" rows="2" [value]="obStepData()['trainingNotes'] ?? ''" (input)="setObField('trainingNotes', $any($event.target).value)" placeholder="Certifications, training dates, etc."></textarea>
+              </div>
+            </div>
+          }
+
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-light" (click)="closeOnboardingStepForm()">Cancel</button>
+          <button class="btn btn-primary" (click)="saveOnboardingStep()" [disabled]="isSaving()">
+            @if (isSaving()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            Save
+          </button>
         </div>
       </div>
     </div>
