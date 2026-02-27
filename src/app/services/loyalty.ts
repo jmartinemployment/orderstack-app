@@ -23,6 +23,8 @@ export class LoyaltyService {
   private readonly _config = signal<LoyaltyConfig>(defaultLoyaltyConfig());
   private readonly _rewards = signal<LoyaltyReward[]>([]);
   private readonly _isLoading = signal(false);
+  private readonly _isLoadingConfig = signal(false);
+  private readonly _isLoadingRewards = signal(false);
   private readonly _error = signal<string | null>(null);
 
   readonly config = this._config.asReadonly();
@@ -38,7 +40,8 @@ export class LoyaltyService {
 
   async loadConfig(): Promise<void> {
     if (!this.restaurantId) return;
-    this._isLoading.set(true);
+    if (this._isLoadingConfig()) return;
+    this._isLoadingConfig.set(true);
     this._error.set(null);
 
     try {
@@ -51,7 +54,7 @@ export class LoyaltyService {
     } catch {
       this._error.set('Failed to load loyalty config');
     } finally {
-      this._isLoading.set(false);
+      this._isLoadingConfig.set(false);
     }
   }
 
@@ -78,7 +81,8 @@ export class LoyaltyService {
 
   async loadRewards(): Promise<void> {
     if (!this.restaurantId) return;
-    this._isLoading.set(true);
+    if (this._isLoadingRewards()) return;
+    this._isLoadingRewards.set(true);
     this._error.set(null);
 
     try {
@@ -91,7 +95,7 @@ export class LoyaltyService {
     } catch {
       this._error.set('Failed to load loyalty rewards');
     } finally {
-      this._isLoading.set(false);
+      this._isLoadingRewards.set(false);
     }
   }
 

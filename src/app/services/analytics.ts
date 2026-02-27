@@ -172,6 +172,7 @@ export class AnalyticsService {
 
   async loadMenuEngineering(days = 30): Promise<void> {
     if (!this.restaurantId) return;
+    if (this._isLoadingEngineering()) return;
 
     this._isLoadingEngineering.set(true);
     this._engineeringError.set(null);
@@ -208,6 +209,7 @@ export class AnalyticsService {
 
   async loadSalesReport(period: 'daily' | 'weekly' = 'daily'): Promise<void> {
     if (!this.restaurantId) return;
+    if (this._isLoadingSales()) return;
 
     this._isLoadingSales.set(true);
     this._salesError.set(null);
@@ -231,6 +233,7 @@ export class AnalyticsService {
 
   async loadGoals(): Promise<void> {
     if (!this.restaurantId) return;
+    if (this._isLoadingGoals()) return;
 
     this._isLoadingGoals.set(true);
 
@@ -326,6 +329,7 @@ export class AnalyticsService {
 
   async loadTeamSalesReport(startDate: string, endDate: string): Promise<void> {
     if (!this.restaurantId) return;
+    if (this._isLoadingTeam()) return;
 
     this._isLoadingTeam.set(true);
 
@@ -348,6 +352,7 @@ export class AnalyticsService {
 
   async loadConversionFunnel(startDate: string, endDate: string): Promise<void> {
     if (!this.restaurantId) return;
+    if (this._isLoadingFunnel()) return;
 
     this._isLoadingFunnel.set(true);
 
@@ -370,6 +375,7 @@ export class AnalyticsService {
 
   async loadSalesAlerts(): Promise<void> {
     if (!this.restaurantId) return;
+    if (this._isLoadingAlerts()) return;
 
     this._isLoadingAlerts.set(true);
 
@@ -413,12 +419,15 @@ export class AnalyticsService {
   readonly prepTimeAccuracy = this._prepTimeAccuracy.asReadonly();
   readonly isLoadingPrepAccuracy = this._isLoadingPrepAccuracy.asReadonly();
 
-  readonly flaggedPrepItems = computed(() =>
-    this._prepTimeAccuracy().filter(row => row.suggestedAdjustment !== null)
-  );
+  readonly flaggedPrepItems = computed(() => {
+    const data = this._prepTimeAccuracy();
+    if (!Array.isArray(data)) return [];
+    return data.filter(row => row.suggestedAdjustment !== null);
+  });
 
   async loadPrepTimeAccuracy(days = 30): Promise<void> {
     if (!this.restaurantId) return;
+    if (this._isLoadingPrepAccuracy()) return;
 
     this._isLoadingPrepAccuracy.set(true);
 
@@ -656,6 +665,7 @@ export class AnalyticsService {
   async loadProactiveInsights(): Promise<void> {
     const restaurantId = this.authService.selectedRestaurantId();
     if (!restaurantId) return;
+    if (this._isLoadingProactiveInsights()) return;
     this._isLoadingProactiveInsights.set(true);
     try {
       const cards = await firstValueFrom(

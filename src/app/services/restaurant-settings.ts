@@ -55,6 +55,10 @@ export class RestaurantSettingsService {
   private readonly _cateringOrders = signal<Order[]>([]);
   private readonly _aiAdminConfig = signal<AIAdminConfig | null>(null);
   private readonly _isLoading = signal(false);
+  private readonly _isLoadingCatering = signal(false);
+  private readonly _isLoadingAiAdmin = signal(false);
+  private readonly _isCheckingBusinessHours = signal(false);
+  private readonly _isLoadingSpecialHours = signal(false);
   private readonly _isSaving = signal(false);
   private readonly _error = signal<string | null>(null);
 
@@ -367,7 +371,8 @@ export class RestaurantSettingsService {
 
   async loadCateringOrders(): Promise<void> {
     if (!this.restaurantId) return;
-    this._isLoading.set(true);
+    if (this._isLoadingCatering()) return;
+    this._isLoadingCatering.set(true);
 
     try {
       const orders = await firstValueFrom(
@@ -379,7 +384,7 @@ export class RestaurantSettingsService {
     } catch {
       this._error.set('Failed to load catering orders');
     } finally {
-      this._isLoading.set(false);
+      this._isLoadingCatering.set(false);
     }
   }
 
@@ -399,7 +404,8 @@ export class RestaurantSettingsService {
 
   async loadAiAdminConfig(): Promise<void> {
     if (!this.restaurantId) return;
-    this._isLoading.set(true);
+    if (this._isLoadingAiAdmin()) return;
+    this._isLoadingAiAdmin.set(true);
     this._error.set(null);
 
     try {
@@ -412,7 +418,7 @@ export class RestaurantSettingsService {
     } catch {
       this._error.set('Failed to load AI admin config');
     } finally {
-      this._isLoading.set(false);
+      this._isLoadingAiAdmin.set(false);
     }
   }
 
@@ -650,6 +656,19 @@ export class RestaurantSettingsService {
   readonly businessHoursCheck = this._businessHoursCheck.asReadonly();
 
   async checkBusinessHours(restaurantId: string): Promise<BusinessHoursCheck> {
+    if (this._isCheckingBusinessHours()) {
+      return this._businessHoursCheck() ?? {
+        isOpen: true,
+        currentDay: '',
+        openTime: null,
+        closeTime: null,
+        nextOpenDay: null,
+        nextOpenTime: null,
+        specialHoursReason: null,
+      };
+    }
+    this._isCheckingBusinessHours.set(true);
+
     try {
       const result = await firstValueFrom(
         this.http.get<BusinessHoursCheck>(`${this.apiUrl}/restaurant/${restaurantId}/business-hours/check`)
@@ -668,10 +687,15 @@ export class RestaurantSettingsService {
       };
       this._businessHoursCheck.set(fallback);
       return fallback;
+    } finally {
+      this._isCheckingBusinessHours.set(false);
     }
   }
 
   async loadSpecialHours(restaurantId: string): Promise<void> {
+    if (this._isLoadingSpecialHours()) return;
+    this._isLoadingSpecialHours.set(true);
+
     try {
       const result = await firstValueFrom(
         this.http.get<SpecialHours[]>(`${this.apiUrl}/restaurant/${restaurantId}/special-hours`)
@@ -679,6 +703,8 @@ export class RestaurantSettingsService {
       this._specialHours.set(result);
     } catch {
       this._specialHours.set([]);
+    } finally {
+      this._isLoadingSpecialHours.set(false);
     }
   }
 }

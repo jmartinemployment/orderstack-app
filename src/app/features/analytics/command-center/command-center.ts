@@ -46,6 +46,7 @@ export class CommandCenter {
 
   private readonly _activeTab = signal<CommandTab>('overview');
   private readonly _isLoading = signal(false);
+  private readonly _isLoadingAllData = signal(false);
   private readonly _error = signal<string | null>(null);
   private readonly _profitSummary = signal<RecentProfitSummary | null>(null);
   private readonly _lastRefresh = signal<Date | null>(null);
@@ -222,18 +223,20 @@ export class CommandCenter {
   });
 
   readonly topDemandItems = computed(() => {
-    return [...this._demandForecast()].sort((a, b) => b.predictedQuantity - a.predictedQuantity).slice(0, 10);
+    const data = this._demandForecast();
+    if (!Array.isArray(data)) return [];
+    return [...data].sort((a, b) => b.predictedQuantity - a.predictedQuantity).slice(0, 10);
   });
 
   readonly peakStaffingHour = computed(() => {
     const rec = this._staffingRec();
-    if (!rec || rec.hourlyBreakdown.length === 0) return null;
+    if (!rec || !Array.isArray(rec.hourlyBreakdown) || rec.hourlyBreakdown.length === 0) return null;
     return [...rec.hourlyBreakdown].sort((a, b) => b.recommendedStaff - a.recommendedStaff)[0];
   });
 
   readonly maxStaffCount = computed(() => {
     const rec = this._staffingRec();
-    if (!rec || rec.hourlyBreakdown.length === 0) return 1;
+    if (!rec || !Array.isArray(rec.hourlyBreakdown) || rec.hourlyBreakdown.length === 0) return 1;
     return Math.max(...rec.hourlyBreakdown.map(h => h.recommendedStaff));
   });
 
@@ -254,6 +257,8 @@ export class CommandCenter {
   }
 
   async loadAllData(): Promise<void> {
+    if (this._isLoadingAllData()) return;
+    this._isLoadingAllData.set(true);
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -273,6 +278,7 @@ export class CommandCenter {
       this._error.set(err instanceof Error ? err.message : 'Failed to load dashboard data');
     } finally {
       this._isLoading.set(false);
+      this._isLoadingAllData.set(false);
     }
   }
 

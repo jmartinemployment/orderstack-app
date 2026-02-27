@@ -31,6 +31,8 @@ export class InventoryService {
   private readonly _expiringItems = signal<ExpiringItem[]>([]);
   private readonly _unitConversions = signal<UnitConversion[]>([]);
   private readonly _isLoading = signal(false);
+  private readonly _isLoadingAlerts = signal(false);
+  private readonly _isLoadingPredictions = signal(false);
   private readonly _error = signal<string | null>(null);
 
   readonly report = this._report.asReadonly();
@@ -92,6 +94,8 @@ export class InventoryService {
 
   async loadAlerts(): Promise<void> {
     if (!this.restaurantId) return;
+    if (this._isLoadingAlerts()) return;
+    this._isLoadingAlerts.set(true);
 
     try {
       const data = await firstValueFrom(
@@ -103,11 +107,15 @@ export class InventoryService {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to load alerts';
       this._error.set(message);
+    } finally {
+      this._isLoadingAlerts.set(false);
     }
   }
 
   async loadPredictions(): Promise<void> {
     if (!this.restaurantId) return;
+    if (this._isLoadingPredictions()) return;
+    this._isLoadingPredictions.set(true);
 
     try {
       const data = await firstValueFrom(
@@ -119,6 +127,8 @@ export class InventoryService {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to load predictions';
       this._error.set(message);
+    } finally {
+      this._isLoadingPredictions.set(false);
     }
   }
 

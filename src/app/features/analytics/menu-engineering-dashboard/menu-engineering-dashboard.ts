@@ -48,9 +48,11 @@ export class MenuEngineeringDashboard implements OnInit {
   private readonly _profitTrend = signal<ItemProfitabilityTrend | null>(null);
   private readonly _isLoadingTrend = signal(false);
   private readonly _elasticityData = signal<PriceElasticityIndicator[]>([]);
+  private readonly _elasticityLoaded = signal(false);
   private readonly _isLoadingElasticity = signal(false);
   private readonly _cannibalizationDays = signal(60);
   private readonly _cannibalizationData = signal<CannibalizationResult[]>([]);
+  private readonly _cannibalizationLoaded = signal(false);
   private readonly _isLoadingCannibalization = signal(false);
   private readonly _seasonalPattern = signal<SeasonalPattern | null>(null);
   private readonly _isLoadingSeasonal = signal(false);
@@ -113,7 +115,9 @@ export class MenuEngineeringDashboard implements OnInit {
   });
 
   readonly sortedElasticity = computed(() => {
-    return [...this._elasticityData()].sort(
+    const data = this._elasticityData();
+    if (!Array.isArray(data)) return [];
+    return [...data].sort(
       (a, b) => Math.abs(b.estimatedRevenueChange) - Math.abs(a.estimatedRevenueChange)
     );
   });
@@ -144,9 +148,11 @@ export class MenuEngineeringDashboard implements OnInit {
 
   // Prep time: sorted and filtered
   readonly sortedPrepAccuracy = computed(() => {
+    const flagged = this.flaggedPrepItems();
+    const allRows = this.prepTimeAccuracy();
     let rows = this._showFlaggedOnly()
-      ? this.flaggedPrepItems()
-      : [...this.prepTimeAccuracy()];
+      ? (Array.isArray(flagged) ? flagged : [])
+      : [...(Array.isArray(allRows) ? allRows : [])];
 
     const field = this._prepSortField();
     const asc = this._prepSortAsc();
@@ -163,7 +169,7 @@ export class MenuEngineeringDashboard implements OnInit {
 
   readonly avgPrepAccuracy = computed(() => {
     const rows = this.prepTimeAccuracy();
-    if (rows.length === 0) return 0;
+    if (!Array.isArray(rows) || rows.length === 0) return 0;
     return Math.round(rows.reduce((sum, r) => sum + r.accuracy, 0) / rows.length);
   });
 
@@ -226,10 +232,10 @@ export class MenuEngineeringDashboard implements OnInit {
   setDeepDiveTab(tab: DeepDiveTab): void {
     this._deepDiveTab.set(tab);
 
-    if (tab === 'elasticity' && this._elasticityData().length === 0) {
+    if (tab === 'elasticity' && !this._elasticityLoaded()) {
       this.loadElasticity();
     }
-    if (tab === 'cannibalization' && this._cannibalizationData().length === 0) {
+    if (tab === 'cannibalization' && !this._cannibalizationLoaded()) {
       this.loadCannibalization();
     }
     if (tab === 'prep-time' && this.prepTimeAccuracy().length === 0) {
@@ -245,11 +251,15 @@ export class MenuEngineeringDashboard implements OnInit {
   async loadProfitTrend(): Promise<void> {
     const itemId = this._selectedItemId();
     if (!itemId) return;
+    if (this._isLoadingTrend()) return;
 
     this._isLoadingTrend.set(true);
-    const result = await this.analyticsService.getItemProfitabilityTrend(itemId, this._profitTrendDays());
-    this._profitTrend.set(result);
-    this._isLoadingTrend.set(false);
+    try {
+      const result = await this.analyticsService.getItemProfitabilityTrend(itemId, this._profitTrendDays());
+      this._profitTrend.set(result);
+    } finally {
+      this._isLoadingTrend.set(false);
+    }
   }
 
   setProfitTrendDays(days: number): void {
@@ -285,10 +295,15 @@ export class MenuEngineeringDashboard implements OnInit {
 
   // Price Elasticity
   async loadElasticity(): Promise<void> {
+    if (this._isLoadingElasticity()) return;
     this._isLoadingElasticity.set(true);
-    const result = await this.analyticsService.getPriceElasticity();
-    this._elasticityData.set(result);
-    this._isLoadingElasticity.set(false);
+    try {
+      const result = await this.analyticsService.getPriceElasticity();
+      this._elasticityData.set(Array.isArray(result) ? result : []);
+      this._elasticityLoaded.set(true);
+    } finally {
+      this._isLoadingElasticity.set(false);
+    }
   }
 
   getElasticityClass(recommendation: 'increase' | 'decrease' | 'hold'): string {
@@ -318,14 +333,20 @@ export class MenuEngineeringDashboard implements OnInit {
 
   // Cannibalization
   async loadCannibalization(): Promise<void> {
+    if (this._isLoadingCannibalization()) return;
     this._isLoadingCannibalization.set(true);
-    const result = await this.analyticsService.getCannibalization(this._cannibalizationDays());
-    this._cannibalizationData.set(result);
-    this._isLoadingCannibalization.set(false);
+    try {
+      const result = await this.analyticsService.getCannibalization(this._cannibalizationDays());
+      this._cannibalizationData.set(Array.isArray(result) ? result : []);
+      this._cannibalizationLoaded.set(true);
+    } finally {
+      this._isLoadingCannibalization.set(false);
+    }
   }
 
   setCannibalizationDays(days: number): void {
     this._cannibalizationDays.set(days);
+    this._cannibalizationLoaded.set(false);
     this.loadCannibalization();
   }
 
@@ -339,11 +360,15 @@ export class MenuEngineeringDashboard implements OnInit {
   async loadSeasonal(): Promise<void> {
     const itemId = this._selectedItemId();
     if (!itemId) return;
+    if (this._isLoadingSeasonal()) return;
 
     this._isLoadingSeasonal.set(true);
-    const result = await this.analyticsService.getSeasonalPattern(itemId);
-    this._seasonalPattern.set(result);
-    this._isLoadingSeasonal.set(false);
+    try {
+      const result = await this.analyticsService.getSeasonalPattern(itemId);
+      this._seasonalPattern.set(result);
+    } finally {
+      this._isLoadingSeasonal.set(false);
+    }
   }
 
   getSeasonalBarHeight(avgSales: number, allValues: { avgSales: number }[]): number {
