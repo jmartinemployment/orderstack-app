@@ -123,7 +123,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">{{ editingGroup() ? 'Edit Group' : 'Create Modifier Group' }}</h5>
-          <button class="btn-close btn-close-white" (click)="closeGroupForm()"></button>
+          <button class="btn-close" (click)="closeGroupForm()"></button>
         </div>
         <div class="modal-body">
           <form [formGroup]="groupForm">
@@ -182,7 +182,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">{{ editingOption()?.option ? 'Edit Option' : 'Add Option' }}</h5>
-          <button class="btn-close btn-close-white" (click)="closeOptionForm()"></button>
+          <button class="btn-close" (click)="closeOptionForm()"></button>
         </div>
         <div class="modal-body">
           <form [formGroup]="optionForm">
@@ -221,7 +221,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Confirm Delete</h5>
-          <button class="btn-close btn-close-white" (click)="cancelDelete()"></button>
+          <button class="btn-close" (click)="cancelDelete()"></button>
         </div>
         <div class="modal-body">
           @if (showDeleteConfirm()?.type === 'group') {

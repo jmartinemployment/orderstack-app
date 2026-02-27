@@ -59,7 +59,7 @@
       <div class="modal-dialog" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <span class="modal-title">{{ aiAdminConfig()?.apiKeyConfigured ? 'Update' : 'Set' }} API Key</span>
-          <button class="btn-close btn-close-white" (click)="closeApiKeyModal()"></button>
+          <button class="btn-close" (click)="closeApiKeyModal()"></button>
         </div>
         <div class="modal-body">
           <label class="form-label" for="apiKeyInput">Anthropic API Key</label>
@@ -89,7 +89,7 @@
       <div class="modal-dialog" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <span class="modal-title">Remove API Key</span>
-          <button class="btn-close btn-close-white" (click)="closeDeleteConfirm()"></button>
+          <button class="btn-close" (click)="closeDeleteConfirm()"></button>
         </div>
         <div class="modal-body">
           <p>Are you sure you want to remove the API key? AI features will stop working until a new key is configured.</p>

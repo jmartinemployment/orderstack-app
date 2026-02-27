@@ -135,7 +135,7 @@
           <h4 class="mb-0">
             {{ editingCategory() ? 'Edit Category' : 'New Category' }}
           </h4>
-          <button type="button" class="btn-close btn-close-white" (click)="closeForm()"></button>
+          <button type="button" class="btn-close" (click)="closeForm()"></button>
         </div>
         <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
           <div class="card-body">
@@ -208,7 +208,7 @@
           <h4 class="mb-0">
             {{ editingReportingCategory() ? 'Edit' : 'New' }} Reporting Category
           </h4>
-          <button type="button" class="btn-close btn-close-white" (click)="closeReportingForm()"></button>
+          <button type="button" class="btn-close" (click)="closeReportingForm()"></button>
         </div>
         <form [formGroup]="reportingCategoryForm" (ngSubmit)="saveReportingCategory()">
           <div class="card-body">

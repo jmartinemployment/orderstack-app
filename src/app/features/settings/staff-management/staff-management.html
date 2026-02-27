@@ -214,7 +214,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">{{ editingTeamMember() ? 'Edit' : 'Add' }} Team Member</h5>
-          <button class="btn-close btn-close-white" (click)="closeTeamMemberForm()"></button>
+          <button class="btn-close" (click)="closeTeamMemberForm()"></button>
         </div>
         <div class="modal-body">
           <div class="row g-3">
@@ -313,7 +313,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">{{ editingPermissionSet() ? 'Edit' : 'Create' }} Permission Set</h5>
-          <button class="btn-close btn-close-white" (click)="closePermissionForm()"></button>
+          <button class="btn-close" (click)="closePermissionForm()"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
@@ -403,7 +403,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">{{ editingPin() ? 'Edit PIN' : 'Create PIN' }}</h5>
-          <button class="btn-close btn-close-white" (click)="closePinForm()"></button>
+          <button class="btn-close" (click)="closePinForm()"></button>
         </div>
         <div class="modal-body">
           @if (!editingPin()) {
@@ -452,7 +452,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Change Password</h5>
-          <button class="btn-close btn-close-white" (click)="closePasswordForm()"></button>
+          <button class="btn-close" (click)="closePasswordForm()"></button>
         </div>
         <div class="modal-body">
           <form [formGroup]="passwordForm">
@@ -498,7 +498,7 @@
             <i class="bi bi-clipboard-check me-2"></i>
             Onboarding — {{ getOnboardingMemberName() }}
           </h5>
-          <button class="btn-close btn-close-white" (click)="closeOnboarding()"></button>
+          <button class="btn-close" (click)="closeOnboarding()"></button>
         </div>
         <div class="modal-body">
           <!-- Progress bar -->
@@ -558,7 +558,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Confirm Deactivation</h5>
-          <button class="btn-close btn-close-white" (click)="cancelDeactivate()"></button>
+          <button class="btn-close" (click)="cancelDeactivate()"></button>
         </div>
         <div class="modal-body">
           @if (activeTab() === 'team-members') {
