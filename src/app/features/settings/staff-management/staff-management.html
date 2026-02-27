@@ -687,15 +687,18 @@
           @if (activeOnboardingStep() === 'direct_deposit') {
             <div class="row g-3">
               <div class="col-12">
-                <label class="form-label">Bank Name *</label>
+                <p class="text-muted small mb-0">Direct deposit is optional but preferred. Leave blank if the employee will receive a paper check.</p>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Bank Name</label>
                 <input type="text" class="form-control" [value]="obStepData()['bankName'] ?? ''" (input)="setObField('bankName', $any($event.target).value)" placeholder="e.g., Chase, Bank of America">
               </div>
               <div class="col-md-6">
-                <label class="form-label">Routing Number *</label>
+                <label class="form-label">Routing Number</label>
                 <input type="text" class="form-control" [value]="obStepData()['routingNumber'] ?? ''" (input)="setObField('routingNumber', $any($event.target).value)" placeholder="9 digits" maxlength="9" inputmode="numeric">
               </div>
               <div class="col-md-6">
-                <label class="form-label">Account Number *</label>
+                <label class="form-label">Account Number</label>
                 <input type="text" class="form-control" [value]="obStepData()['accountNumber'] ?? ''" (input)="setObField('accountNumber', $any($event.target).value)" placeholder="Account number" inputmode="numeric">
               </div>
               <div class="col-md-6">
