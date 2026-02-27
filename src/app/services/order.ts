@@ -446,6 +446,9 @@ export class OrderService implements OnDestroy {
       return;
     }
 
+    // Prevent concurrent loads — skip if already in progress
+    if (this._isLoading()) return;
+
     const limit = options?.limit ?? 50;
     const sourceDeviceId = options?.sourceDeviceId;
 

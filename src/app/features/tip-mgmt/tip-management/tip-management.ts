@@ -1,5 +1,4 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { TipService } from '@services/tip';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { AuthService } from '@services/auth';
@@ -17,7 +16,7 @@ type TipTab = 'reports' | 'pool-rules' | 'tipout-rules' | 'compliance';
 
 @Component({
   selector: 'os-tip-management',
-  imports: [FormsModule],
+  imports: [],
   templateUrl: './tip-management.html',
   styleUrl: './tip-management.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -74,6 +73,8 @@ export class TipManagement implements OnInit {
   readonly isSaving = this._isSaving.asReadonly();
   readonly showSaveSuccess = this._showSaveSuccess.asReadonly();
 
+  private _initDone = false;
+
   readonly tabs: { key: TipTab; label: string }[] = [
     { key: 'reports', label: 'Reports' },
     { key: 'pool-rules', label: 'Pool Rules' },
@@ -82,6 +83,9 @@ export class TipManagement implements OnInit {
   ];
 
   ngOnInit(): void {
+    if (this._initDone) return;
+    this._initDone = true;
+    this.settingsService.loadSettings();
     this.orderService.loadOrders({ limit: 500 });
   }
 
@@ -128,8 +132,8 @@ export class TipManagement implements OnInit {
     this._poolRuleName.set((event.target as HTMLInputElement).value);
   }
 
-  onPoolRuleMethodChange(value: TipPoolMethod): void {
-    this._poolRuleMethod.set(value);
+  onPoolRuleMethodChange(event: Event): void {
+    this._poolRuleMethod.set((event.target as HTMLSelectElement).value as TipPoolMethod);
   }
 
   addPoolRule(): void {
@@ -175,8 +179,8 @@ export class TipManagement implements OnInit {
     this._tipOutRuleName.set((event.target as HTMLInputElement).value);
   }
 
-  onTipOutRuleMethodChange(value: TipOutMethod): void {
-    this._tipOutRuleMethod.set(value);
+  onTipOutRuleMethodChange(event: Event): void {
+    this._tipOutRuleMethod.set((event.target as HTMLSelectElement).value as TipOutMethod);
   }
 
   onTipOutRulePercentageChange(event: Event): void {

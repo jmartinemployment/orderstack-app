@@ -139,7 +139,7 @@
             <div class="col-md-4">
               <label class="form-label">Method</label>
               <select class="form-select form-select-sm"
-                [ngModel]="poolRuleMethod()" (ngModelChange)="onPoolRuleMethodChange($event)">
+                [value]="poolRuleMethod()" (change)="onPoolRuleMethodChange($event)">
                 <option value="even">Even Split</option>
                 <option value="by_hours">By Hours Worked</option>
                 <option value="by_sales">By Sales Volume</option>
@@ -195,7 +195,7 @@
             <div class="col-md-2">
               <label class="form-label">Method</label>
               <select class="form-select form-select-sm"
-                [ngModel]="tipOutRuleMethod()" (ngModelChange)="onTipOutRuleMethodChange($event)">
+                [value]="tipOutRuleMethod()" (change)="onTipOutRuleMethodChange($event)">
                 <option value="percentage_of_tips">% of Tips</option>
                 <option value="percentage_of_sales">% of Sales</option>
               </select>

@@ -90,6 +90,8 @@ export class RestaurantSettingsService {
 
   async loadSettings(): Promise<void> {
     if (!this.restaurantId) return;
+    // Prevent concurrent loads — skip if already in progress
+    if (this._isLoading()) return;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -650,7 +652,7 @@ export class RestaurantSettingsService {
   async checkBusinessHours(restaurantId: string): Promise<BusinessHoursCheck> {
     try {
       const result = await firstValueFrom(
-        this.http.get<BusinessHoursCheck>(`${this.apiUrl}/restaurants/${restaurantId}/business-hours/check`)
+        this.http.get<BusinessHoursCheck>(`${this.apiUrl}/restaurant/${restaurantId}/business-hours/check`)
       );
       this._businessHoursCheck.set(result);
       return result;
@@ -672,7 +674,7 @@ export class RestaurantSettingsService {
   async loadSpecialHours(restaurantId: string): Promise<void> {
     try {
       const result = await firstValueFrom(
-        this.http.get<SpecialHours[]>(`${this.apiUrl}/restaurants/${restaurantId}/special-hours`)
+        this.http.get<SpecialHours[]>(`${this.apiUrl}/restaurant/${restaurantId}/special-hours`)
       );
       this._specialHours.set(result);
     } catch {
