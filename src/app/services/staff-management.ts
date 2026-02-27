@@ -356,6 +356,21 @@ export class StaffManagementService {
     }
   }
 
+  async seedDefaultPermissionSets(): Promise<boolean> {
+    if (!this.restaurantId) return false;
+    this._error.set(null);
+    try {
+      await firstValueFrom(
+        this.http.post(`${this.apiUrl}/restaurant/${this.restaurantId}/permission-sets/seed-defaults`, {})
+      );
+      await this.loadPermissionSets();
+      return true;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to seed permission sets');
+      return false;
+    }
+  }
+
   async deletePermissionSet(id: string): Promise<boolean> {
     if (!this.restaurantId) return false;
     this._error.set(null);

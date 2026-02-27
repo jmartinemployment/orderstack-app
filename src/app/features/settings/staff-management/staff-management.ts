@@ -181,9 +181,16 @@ export class StaffManagement {
           this.staffService.loadPins();
         }
         this.staffService.loadTeamMembers();
-        this.staffService.loadPermissionSets();
+        this.loadPermissionSetsWithAutoSeed();
       }
     });
+  }
+
+  private async loadPermissionSetsWithAutoSeed(): Promise<void> {
+    await this.staffService.loadPermissionSets();
+    if (this.staffService.permissionSets().length === 0) {
+      await this.staffService.seedDefaultPermissionSets();
+    }
   }
 
   setTab(tab: StaffManagementTab): void {
