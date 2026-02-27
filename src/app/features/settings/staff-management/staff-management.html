@@ -652,8 +652,8 @@
                 <input type="text" class="form-control" [value]="obStepData()['legalName'] ?? ''" (input)="setObField('legalName', $any($event.target).value)" placeholder="Full legal name">
               </div>
               <div class="col-md-6">
-                <label class="form-label">SSN (last 4 digits)</label>
-                <input type="text" class="form-control" [value]="obStepData()['ssnLast4'] ?? ''" (input)="setObField('ssnLast4', $any($event.target).value)" placeholder="XXXX" maxlength="4" inputmode="numeric">
+                <label class="form-label">Social Security Number *</label>
+                <input type="password" class="form-control" [value]="obStepData()['ssn'] ?? ''" (input)="setObField('ssn', $any($event.target).value)" placeholder="XXX-XX-XXXX" maxlength="11" autocomplete="off">
               </div>
               <div class="col-md-6">
                 <label class="form-label">Filing Status</label>

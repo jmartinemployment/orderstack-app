@@ -580,7 +580,10 @@ export class StaffManagement {
       try { data = JSON.parse(stepData.notes); } catch { /* empty */ }
     }
 
-    // Pre-fill member name for personal_info if no data yet
+    // Gather data from completed steps for carry-forward
+    const completedData = this.getCompletedStepData(checklist);
+
+    // Pre-fill from member record + carry forward from completed steps
     if (step === 'personal_info' && !data['firstName']) {
       const memberId = this._showOnboarding();
       const member = this.teamMembers().find(m => m.id === memberId);
@@ -592,8 +595,33 @@ export class StaffManagement {
       }
     }
 
+    if (step === 'tax_forms' && !data['legalName']) {
+      const firstName = completedData['personal_info']?.['firstName'] ?? '';
+      const lastName = completedData['personal_info']?.['lastName'] ?? '';
+      const fullName = [firstName, lastName].filter(Boolean).join(' ');
+      if (fullName) data['legalName'] = fullName;
+    }
+
+    if (step === 'direct_deposit' && !data['nameOnAccount']) {
+      const firstName = completedData['personal_info']?.['firstName'] ?? '';
+      const lastName = completedData['personal_info']?.['lastName'] ?? '';
+      const fullName = [firstName, lastName].filter(Boolean).join(' ');
+      if (fullName) data['nameOnAccount'] = fullName;
+    }
+
     this._obStepData.set(data);
     this._activeOnboardingStep.set(step);
+  }
+
+  private getCompletedStepData(checklist: OnboardingChecklist | null): Record<string, Record<string, string>> {
+    const result: Record<string, Record<string, string>> = {};
+    if (!checklist) return result;
+    for (const step of checklist.steps) {
+      if (step.notes) {
+        try { result[step.step] = JSON.parse(step.notes); } catch { /* empty */ }
+      }
+    }
+    return result;
   }
 
   closeOnboardingStepForm(): void {
@@ -674,7 +702,7 @@ export class StaffManagement {
       const data = JSON.parse(step.notes) as Record<string, string>;
       switch (step.step) {
         case 'personal_info': return [data['firstName'], data['lastName']].filter(Boolean).join(' ');
-        case 'tax_forms': return data['filingStatus'] ? `Filing: ${data['filingStatus']}` : '';
+        case 'tax_forms': return data['legalName'] ?? (data['filingStatus'] ? `Filing: ${data['filingStatus']}` : '');
         case 'direct_deposit': return data['bankName'] ?? '';
         case 'documents': return data['idType'] ?? '';
         case 'training': return data['acknowledged'] === 'true' ? 'Acknowledged' : '';
