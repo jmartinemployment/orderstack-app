@@ -7,6 +7,7 @@ export interface StaffMember {
   name: string;
   role: string;
   teamMemberId: string | null;
+  permissions?: Record<string, boolean>;
 }
 
 export interface Shift {

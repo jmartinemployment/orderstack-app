@@ -371,13 +371,13 @@ export class LaborService {
 
     try {
       const result = await firstValueFrom(
-        this.http.post<{ valid: boolean; staffPinId: string; name: string; role: string }>(
+        this.http.post<{ valid: boolean; staffPinId: string; name: string; role: string; permissions?: Record<string, boolean> }>(
           `${this.apiUrl}/restaurant/${this.restaurantId}/auth/validate-pin`,
           { pin }
         )
       );
       if (result.valid) {
-        return { id: result.staffPinId, name: result.name, role: result.role, teamMemberId: null };
+        return { id: result.staffPinId, name: result.name, role: result.role, teamMemberId: null, permissions: result.permissions };
       }
       return null;
     } catch {

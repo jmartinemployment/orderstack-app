@@ -518,7 +518,7 @@ export class PosLogin {
     this._isClockingIn.set(true);
     const staff = await this.laborService.validateStaffPin(pin);
 
-    if (staff && (staff.role === 'manager' || staff.role === 'owner')) {
+    if (staff && staff.permissions?.['team.manage'] === true) {
       this._showManagerOverride.set(false);
       this._scheduleWarning.set(null);
       this._managerOverridePin.set('');
