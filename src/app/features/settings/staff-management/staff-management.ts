@@ -68,7 +68,6 @@ export class StaffManagement {
   readonly activePins = computed(() => this.pins().filter(p => p.isActive));
 
   readonly roles: UserRole[] = ['staff', 'manager', 'owner', 'super_admin'];
-  readonly pinRoles: string[] = ['staff', 'manager', 'owner'];
 
   // --- Team Members ---
   readonly teamMembers = this.staffService.teamMembers;

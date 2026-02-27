@@ -486,9 +486,6 @@
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
                 <h6 class="mb-0">{{ pin.name }}</h6>
-                <span class="badge mt-1" [class]="getRoleBadgeClass(pin.role)">
-                  {{ pin.role | titlecase }}
-                </span>
               </div>
               <div class="btn-group btn-group-sm">
                 <button class="btn btn-outline-light" (click)="openEditPin(pin)" title="Edit">
@@ -631,28 +628,12 @@
                 <input type="password" class="form-control" formControlName="pin"
                   placeholder="Enter PIN" maxlength="6" inputmode="numeric">
               </div>
-              <div class="mb-3">
-                <label class="form-label">Role</label>
-                <select class="form-select" formControlName="role">
-                  @for (role of pinRoles; track role) {
-                    <option [value]="role">{{ role | titlecase }}</option>
-                  }
-                </select>
-              </div>
             </form>
           } @else {
             <form [formGroup]="editPinForm">
               <div class="mb-3">
                 <label class="form-label">Name</label>
                 <input type="text" class="form-control" formControlName="name">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Role</label>
-                <select class="form-select" formControlName="role">
-                  @for (role of pinRoles; track role) {
-                    <option [value]="role">{{ role | titlecase }}</option>
-                  }
-                </select>
               </div>
               <div class="mb-3">
                 <label class="form-label">New PIN (optional, 4-6 digits)</label>
