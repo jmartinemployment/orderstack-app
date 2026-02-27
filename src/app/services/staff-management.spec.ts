@@ -2,13 +2,6 @@ import { describe, it, expect } from 'vitest';
 
 // --- Interfaces ---
 
-interface StaffUser {
-  id: string;
-  email: string;
-  role: string;
-  isActive: boolean;
-}
-
 interface StaffPinRecord {
   id: string;
   name: string;
@@ -35,19 +28,11 @@ interface DeviceRegistration {
 
 // --- Pure function replicas ---
 
-function canManageUsers(role: string | undefined): boolean {
-  return role === 'super_admin' || role === 'owner';
-}
-
 function canManagePins(role: string | undefined): boolean {
   return role === 'super_admin' || role === 'owner' || role === 'manager';
 }
 
 // List mutations
-function addUser(users: StaffUser[], user: StaffUser): StaffUser[] {
-  return [...users, user];
-}
-
 function addPin(pins: StaffPinRecord[], pin: StaffPinRecord): StaffPinRecord[] {
   return [...pins, pin];
 }
@@ -73,14 +58,6 @@ function removeDeviceFromList(devices: DeviceRegistration[], id: string): Device
 }
 
 // --- Tests ---
-
-describe('StaffManagementService — canManageUsers', () => {
-  it('true for super_admin', () => expect(canManageUsers('super_admin')).toBe(true));
-  it('true for owner', () => expect(canManageUsers('owner')).toBe(true));
-  it('false for manager', () => expect(canManageUsers('manager')).toBe(false));
-  it('false for staff', () => expect(canManageUsers('staff')).toBe(false));
-  it('false for undefined', () => expect(canManageUsers(undefined)).toBe(false));
-});
 
 describe('StaffManagementService — canManagePins', () => {
   it('true for super_admin', () => expect(canManagePins('super_admin')).toBe(true));

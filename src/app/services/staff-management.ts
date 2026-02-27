@@ -2,9 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
-  StaffUser,
   StaffPinRecord,
-  StaffUserFormData,
   StaffPinFormData,
   ChangePasswordData,
   TeamMember,
@@ -28,7 +26,6 @@ export class StaffManagementService {
   private readonly authService = inject(AuthService);
   private readonly apiUrl = environment.apiUrl;
 
-  private readonly _users = signal<StaffUser[]>([]);
   private readonly _pins = signal<StaffPinRecord[]>([]);
   private readonly _teamMembers = signal<TeamMember[]>([]);
   private readonly _permissionSets = signal<PermissionSet[]>([]);
@@ -37,7 +34,6 @@ export class StaffManagementService {
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
 
-  readonly users = this._users.asReadonly();
   readonly pins = this._pins.asReadonly();
   readonly teamMembers = this._teamMembers.asReadonly();
   readonly permissionSets = this._permissionSets.asReadonly();
@@ -46,11 +42,6 @@ export class StaffManagementService {
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
 
-  readonly canManageUsers = computed(() => {
-    const user = this.authService.user();
-    return user?.role === 'super_admin' || user?.role === 'owner';
-  });
-
   readonly canManagePins = computed(() => {
     const user = this.authService.user();
     return user?.role === 'super_admin' || user?.role === 'owner' || user?.role === 'manager';
@@ -58,73 +49,6 @@ export class StaffManagementService {
 
   private get restaurantId(): string | null {
     return this.authService.selectedRestaurantId();
-  }
-
-  async loadUsers(): Promise<void> {
-    this._isLoading.set(true);
-    this._error.set(null);
-    try {
-      const users = await firstValueFrom(
-        this.http.get<StaffUser[]>(`${this.apiUrl}/auth/users`)
-      );
-      this._users.set(users);
-    } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load users');
-    } finally {
-      this._isLoading.set(false);
-    }
-  }
-
-  async createUser(data: StaffUserFormData): Promise<boolean> {
-    this._error.set(null);
-    try {
-      const user = await firstValueFrom(
-        this.http.post<StaffUser>(`${this.apiUrl}/auth/users`, {
-          email: data.email,
-          password: data.password,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          role: data.role,
-        })
-      );
-
-      // Grant restaurant access for each selected restaurant
-      for (const restaurantId of data.restaurantIds) {
-        await firstValueFrom(
-          this.http.post(`${this.apiUrl}/auth/users/${user.id}/restaurants/${restaurantId}`, {
-            role: data.role,
-          })
-        );
-      }
-
-      await this.loadUsers();
-      return true;
-    } catch (err: any) {
-      this._error.set(err?.error?.error ?? 'Failed to create user');
-      return false;
-    }
-  }
-
-  async updateUser(userId: string, data: Partial<{ firstName: string; lastName: string; role: string; isActive: boolean }>): Promise<boolean> {
-    this._error.set(null);
-    try {
-      await firstValueFrom(
-        this.http.patch(`${this.apiUrl}/auth/users/${userId}`, data)
-      );
-      await this.loadUsers();
-      return true;
-    } catch (err: any) {
-      this._error.set(err?.error?.error ?? 'Failed to update user');
-      return false;
-    }
-  }
-
-  async deactivateUser(userId: string): Promise<boolean> {
-    return this.updateUser(userId, { isActive: false });
-  }
-
-  async reactivateUser(userId: string): Promise<boolean> {
-    return this.updateUser(userId, { isActive: true });
   }
 
   async changePassword(data: ChangePasswordData): Promise<boolean> {

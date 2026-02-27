@@ -243,6 +243,11 @@ export class PosLogin {
             email: payload.ownerEmail ?? null,
             phone: null,
             passcode: payload.ownerPin.pin,
+            firstName: null,
+            lastName: null,
+            role: 'owner',
+            isActive: true,
+            lastLoginAt: null,
             jobs: [{
               id: 'owner-job',
               teamMemberId: 'owner-local',

@@ -5,7 +5,6 @@ import { StaffManagementService } from '@services/staff-management';
 import { AuthService } from '@services/auth';
 import {
   StaffManagementTab,
-  StaffUser,
   StaffPinRecord,
   TeamMember,
   TeamMemberFormData,
@@ -18,7 +17,6 @@ import {
   OnboardingStepStatus,
   OnboardingStep,
 } from '@models/staff-management.model';
-import { UserRole } from '@models/index';
 
 @Component({
   selector: 'os-staff-management',
@@ -33,20 +31,15 @@ export class StaffManagement {
   private readonly authService = inject(AuthService);
 
   readonly isAuthenticated = this.authService.isAuthenticated;
-  readonly canManageUsers = this.staffService.canManageUsers;
   readonly canManagePins = this.staffService.canManagePins;
-  readonly users = this.staffService.users;
   readonly pins = this.staffService.pins;
   readonly isLoading = this.staffService.isLoading;
   readonly error = this.staffService.error;
-  readonly restaurants = this.authService.restaurants;
   readonly currentUser = this.authService.user;
 
   private readonly _activeTab = signal<StaffManagementTab>('team-members');
   readonly activeTab = this._activeTab.asReadonly();
 
-  private readonly _showUserForm = signal(false);
-  private readonly _editingUser = signal<StaffUser | null>(null);
   private readonly _showPinForm = signal(false);
   private readonly _editingPin = signal<StaffPinRecord | null>(null);
   private readonly _showPasswordForm = signal(false);
@@ -54,8 +47,6 @@ export class StaffManagement {
   private readonly _isSaving = signal(false);
   private readonly _successMessage = signal<string | null>(null);
 
-  readonly showUserForm = this._showUserForm.asReadonly();
-  readonly editingUser = this._editingUser.asReadonly();
   readonly showPinForm = this._showPinForm.asReadonly();
   readonly editingPin = this._editingPin.asReadonly();
   readonly showPasswordForm = this._showPasswordForm.asReadonly();
@@ -63,11 +54,7 @@ export class StaffManagement {
   readonly isSaving = this._isSaving.asReadonly();
   readonly successMessage = this._successMessage.asReadonly();
 
-  readonly activeUsers = computed(() => this.users().filter(u => u.isActive));
-  readonly inactiveUsers = computed(() => this.users().filter(u => !u.isActive));
   readonly activePins = computed(() => this.pins().filter(p => p.isActive));
-
-  readonly roles: UserRole[] = ['staff', 'manager', 'owner', 'super_admin'];
 
   // --- Team Members ---
   readonly teamMembers = this.staffService.teamMembers;
@@ -133,21 +120,6 @@ export class StaffManagement {
     })
   );
 
-  readonly userForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
-    firstName: ['', Validators.required],
-    lastName: ['', Validators.required],
-    role: ['staff' as UserRole, Validators.required],
-    restaurantIds: [[] as string[]],
-  });
-
-  readonly editUserForm = this.fb.group({
-    firstName: ['', Validators.required],
-    lastName: ['', Validators.required],
-    role: ['staff' as UserRole, Validators.required],
-  });
-
   readonly pinForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     pin: ['', [Validators.required, Validators.pattern(/^\d{4,6}$/)]],
@@ -173,9 +145,6 @@ export class StaffManagement {
       const restaurantId = this.authService.selectedRestaurantId();
       if (this.isAuthenticated() && restaurantId && !this._menuLoaded()) {
         this._menuLoaded.set(true);
-        if (this.canManageUsers()) {
-          this.staffService.loadUsers();
-        }
         if (this.canManagePins()) {
           this.staffService.loadPins();
         }
@@ -194,108 +163,6 @@ export class StaffManagement {
 
   setTab(tab: StaffManagementTab): void {
     this._activeTab.set(tab);
-  }
-
-  // ============ User CRUD ============
-
-  openCreateUser(): void {
-    this._editingUser.set(null);
-    this.userForm.reset({ role: 'staff', restaurantIds: [] });
-    this._showUserForm.set(true);
-  }
-
-  openEditUser(user: StaffUser): void {
-    this._editingUser.set(user);
-    this.editUserForm.patchValue({
-      firstName: user.firstName ?? '',
-      lastName: user.lastName ?? '',
-      role: user.role,
-    });
-    this._showUserForm.set(true);
-  }
-
-  closeUserForm(): void {
-    this._showUserForm.set(false);
-    this._editingUser.set(null);
-  }
-
-  async saveUser(): Promise<void> {
-    if (this._editingUser()) {
-      await this.updateUser();
-    } else {
-      await this.createUser();
-    }
-  }
-
-  private async createUser(): Promise<void> {
-    if (this.userForm.invalid || this._isSaving()) return;
-    this._isSaving.set(true);
-    const v = this.userForm.value;
-    const success = await this.staffService.createUser({
-      email: v.email!,
-      password: v.password!,
-      firstName: v.firstName!,
-      lastName: v.lastName!,
-      role: v.role as UserRole,
-      restaurantIds: v.restaurantIds ?? [],
-    });
-    this._isSaving.set(false);
-    if (success) {
-      this.closeUserForm();
-      this.showSuccess('User created successfully');
-    }
-  }
-
-  private async updateUser(): Promise<void> {
-    if (this.editUserForm.invalid || this._isSaving() || !this._editingUser()) return;
-    this._isSaving.set(true);
-    const v = this.editUserForm.value;
-    const success = await this.staffService.updateUser(this._editingUser()!.id, {
-      firstName: v.firstName!,
-      lastName: v.lastName!,
-      role: v.role!,
-    });
-    this._isSaving.set(false);
-    if (success) {
-      this.closeUserForm();
-      this.showSuccess('User updated successfully');
-    }
-  }
-
-  confirmDeactivateUser(userId: string): void {
-    this._showConfirmDeactivate.set(userId);
-  }
-
-  cancelDeactivate(): void {
-    this._showConfirmDeactivate.set(null);
-  }
-
-  async deactivateUser(userId: string): Promise<void> {
-    this._isSaving.set(true);
-    const success = await this.staffService.deactivateUser(userId);
-    this._isSaving.set(false);
-    this._showConfirmDeactivate.set(null);
-    if (success) this.showSuccess('User deactivated');
-  }
-
-  async reactivateUser(userId: string): Promise<void> {
-    this._isSaving.set(true);
-    const success = await this.staffService.reactivateUser(userId);
-    this._isSaving.set(false);
-    if (success) this.showSuccess('User reactivated');
-  }
-
-  toggleRestaurantAccess(restaurantId: string): void {
-    const current = this.userForm.value.restaurantIds ?? [];
-    if (current.includes(restaurantId)) {
-      this.userForm.patchValue({ restaurantIds: current.filter(id => id !== restaurantId) });
-    } else {
-      this.userForm.patchValue({ restaurantIds: [...current, restaurantId] });
-    }
-  }
-
-  isRestaurantSelected(restaurantId: string): boolean {
-    return (this.userForm.value.restaurantIds ?? []).includes(restaurantId);
   }
 
   // ============ PIN CRUD ============
@@ -409,15 +276,6 @@ export class StaffManagement {
   }
 
   // ============ Helpers ============
-
-  getRoleBadgeClass(role: string): string {
-    switch (role) {
-      case 'super_admin': return 'badge-super-admin';
-      case 'owner': return 'badge-owner';
-      case 'manager': return 'badge-manager';
-      default: return 'badge-staff';
-    }
-  }
 
   private showSuccess(message: string): void {
     this._successMessage.set(message);
@@ -647,6 +505,10 @@ export class StaffManagement {
 
   confirmDeletePermissionSet(id: string): void {
     this._showConfirmDeactivate.set(id);
+  }
+
+  cancelDeactivate(): void {
+    this._showConfirmDeactivate.set(null);
   }
 
   // ============ Onboarding ============

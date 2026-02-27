@@ -1,34 +1,6 @@
 import { UserRole } from './auth.model';
 
-export type StaffManagementTab = 'users' | 'pins' | 'team-members' | 'permissions';
-
-export interface StaffUser {
-  id: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  role: UserRole;
-  isActive: boolean;
-  lastLoginAt: string | null;
-  createdAt: string;
-  restaurants: StaffUserRestaurant[];
-}
-
-export interface StaffUserRestaurant {
-  id: string;
-  name: string;
-  slug: string;
-  role: string;
-}
-
-export interface StaffUserFormData {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  role: UserRole;
-  restaurantIds: string[];
-}
+export type StaffManagementTab = 'team-members' | 'permissions' | 'pins';
 
 export interface StaffPinRecord {
   id: string;
@@ -78,6 +50,11 @@ export interface TeamMember {
   email: string | null;
   phone: string | null;
   passcode: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  role: UserRole;
+  isActive: boolean;
+  lastLoginAt: string | null;
   jobs: TeamMemberJob[];
   permissionSetId: string | null;
   permissionSetName: string | null;
