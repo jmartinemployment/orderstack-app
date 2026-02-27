@@ -47,8 +47,6 @@ export function createPermissionGuard(): PermissionGuard {
     return computed(() => {
       const s = session();
       if (!s) return false;
-      // Owners and managers have all permissions
-      if (s.role === 'owner' || s.role === 'super_admin') return true;
       return s.permissions[key] === true;
     });
   }
@@ -56,7 +54,6 @@ export function createPermissionGuard(): PermissionGuard {
   function check(key: string): boolean {
     const s = session();
     if (!s) return false;
-    if (s.role === 'owner' || s.role === 'super_admin') return true;
     return s.permissions[key] === true;
   }
 
@@ -64,7 +61,6 @@ export function createPermissionGuard(): PermissionGuard {
     return computed(() => {
       const s = session();
       if (!s) return false;
-      if (s.role === 'owner' || s.role === 'super_admin') return true;
       return keys.some(k => s.permissions[k] === true);
     });
   }
