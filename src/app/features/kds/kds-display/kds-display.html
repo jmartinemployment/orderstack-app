@@ -70,6 +70,36 @@
           <label class="form-check-label small text-muted">Stagger</label>
         </div>
       </div>
+      <!-- Auto-fire delay (only when auto_fire_timed) -->
+      @if (coursePacingMode() === 'auto_fire_timed') {
+        <div class="d-flex align-items-center gap-2">
+          <label class="small text-muted mb-0">Fire delay (s):</label>
+          <input
+            type="number"
+            class="form-control form-control-sm auto-fire-control"
+            aria-label="Auto-fire delay in seconds"
+            [value]="autoFireDelay()"
+            (change)="setAutoFireDelay($event)"
+            min="0"
+            step="30"
+          />
+        </div>
+      }
+      <!-- Default prep minutes (only when stagger enabled) -->
+      @if (prepTimeFiringEnabled()) {
+        <div class="d-flex align-items-center gap-2">
+          <label class="small text-muted mb-0">Prep (min):</label>
+          <input
+            type="number"
+            class="form-control form-control-sm auto-fire-control"
+            aria-label="Default prep time in minutes"
+            [value]="defaultPrepMinutes()"
+            (change)="setDefaultPrepMinutes($event)"
+            min="1"
+            max="120"
+          />
+        </div>
+      }
       <!-- Station Selector -->
       @if (stations().length > 0) {
         <div class="d-flex align-items-center gap-2">
@@ -285,6 +315,7 @@
                 [estimatedPrepMinutes]="getEstimatedPrep(order)"
                 [isRushed]="isRushed(order.guid)"
                 [isExpoQueue]="true"
+                [showCollectPayment]="showCollectPayment()"
                 [coursePacingMode]="coursePacingMode()"
                 [prepTimeMap]="prepTimeMap()"
                 [autoFireDelaySeconds]="autoFireDelay()"
@@ -303,6 +334,7 @@
                 [dispatchError]="getDispatchError(order.guid)"
                 [canDispatchDelivery]="canDispatchDelivery(order.guid)"
                 (expoCheck)="onExpoCheck($event)"
+                (collectPayment)="onCollectPayment($event)"
                 (rushToggle)="toggleRush($event)"
                 (retryPrint)="onRetryPrint($event)"
                 (recallOrder)="onRecall($event)"
@@ -330,6 +362,7 @@
               [order]="order"
               [estimatedPrepMinutes]="getEstimatedPrep(order)"
               [isRushed]="isRushed(order.guid)"
+              [showCollectPayment]="showCollectPayment()"
               [coursePacingMode]="coursePacingMode()"
               [prepTimeMap]="prepTimeMap()"
               [autoFireDelaySeconds]="autoFireDelay()"
@@ -346,6 +379,7 @@
               [dispatchError]="getDispatchError(order.guid)"
               [canDispatchDelivery]="canDispatchDelivery(order.guid)"
               (statusChange)="onStatusChange($event)"
+              (collectPayment)="onCollectPayment($event)"
               (rushToggle)="toggleRush($event)"
               (fireCourse)="onFireCourse($event)"
               (fireItemNow)="onFireItemNow($event)"
@@ -359,6 +393,36 @@
               <p class="text-muted mb-0">No orders ready</p>
             </div>
           }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showPaymentModal() && paymentOrder()) {
+    <div class="kds-payment-overlay" (click)="closePaymentModal()">
+      <div class="kds-payment-modal" (click)="$event.stopPropagation()">
+        <div class="kds-payment-modal-header">
+          <div>
+            <h5 class="mb-0">Collect Payment</h5>
+            <span class="text-muted small">Order #{{ paymentOrder()!.orderNumber }}</span>
+          </div>
+          <span class="kds-payment-modal-amount">{{ paymentAmount() | currency }}</span>
+          <button type="button" class="btn-modal-close" (click)="closePaymentModal()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        @if (paymentError()) {
+          <div class="kds-payment-modal-error">{{ paymentError() }}</div>
+        }
+        <div class="kds-payment-modal-body">
+          <os-payment-terminal
+            [amount]="paymentAmount()"
+            [orderId]="paymentOrder()!.guid"
+            [showOnScreen]="true"
+            [showCardReader]="true"
+            (paymentComplete)="onPaymentComplete()"
+            (paymentFailed)="onPaymentFailed($event)"
+          />
         </div>
       </div>
     </div>

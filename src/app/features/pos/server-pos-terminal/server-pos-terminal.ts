@@ -5,6 +5,7 @@ import {
   inject,
   signal,
   computed,
+  effect,
   OnInit,
   OnDestroy,
 } from '@angular/core';
@@ -21,6 +22,7 @@ import { SocketService } from '@services/socket';
 import { ModifierPrompt, ModifierPromptResult } from '../modifier-prompt';
 import { DiscountModal, DiscountResult } from '../discount-modal';
 import { VoidModal, VoidResult, CompResult } from '../void-modal';
+import { PaymentTerminal } from '@shared/payment-terminal';
 import {
   RestaurantTable,
   Order,
@@ -38,7 +40,7 @@ import {
   BUILT_IN_COURSE_TEMPLATES,
 } from '@models/index';
 
-type PosModal = 'none' | 'modifier' | 'discount' | 'void' | 'comp' | 'split' | 'transfer' | 'tab' | 'templates' | 'save-template' | 'qr-pay' | 'course-fire';
+type PosModal = 'none' | 'modifier' | 'discount' | 'void' | 'comp' | 'split' | 'transfer' | 'tab' | 'templates' | 'save-template' | 'qr-pay' | 'course-fire' | 'payment';
 
 interface CourseGroup {
   course: Course;
@@ -52,6 +54,7 @@ interface CourseGroup {
     ModifierPrompt,
     DiscountModal,
     VoidModal,
+    PaymentTerminal,
   ],
   templateUrl: './server-pos-terminal.html',
   styleUrl: './server-pos-terminal.scss',
@@ -263,6 +266,10 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   readonly templateName = this._templateName.asReadonly();
   readonly isApplyingTemplate = this._isApplyingTemplate.asReadonly();
 
+  // Payment terminal state
+  private readonly _paymentError = signal<string | null>(null);
+  readonly paymentError = this._paymentError.asReadonly();
+
   // QR Pay (Scan to Pay)
   private readonly _qrCodeUrl = signal<string | null>(null);
   private readonly _isGeneratingQr = signal(false);
@@ -431,17 +438,16 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
     this.orderService.loadTemplates();
 
-    // Subscribe to menu loaded
-    const checkMenu = setInterval(() => {
+    // React to menu categories loading
+    effect(() => {
       const cats = this.menuService.categories();
       if (cats.length > 0) {
         this._categories.set(cats);
-        if (!this._selectedCategoryId() && cats.length > 0) {
+        if (!this._selectedCategoryId()) {
           this._selectedCategoryId.set(cats[0].id);
         }
-        clearInterval(checkMenu);
       }
-    }, 200);
+    });
 
     // Listen for order updates to keep state fresh
     this.orderEventCleanup = this.orderService.onMappedOrderEvent((event: MappedOrderEvent) => {
@@ -1068,16 +1074,37 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
       return;
     }
 
-    // Initiate payment via PaymentService
+    // Check if a payment processor is configured
     const settings = this.settingsService.paymentSettings();
     this.paymentService.setProcessorType(settings.processor);
 
     if (this.paymentService.isConfigured()) {
-      await this.paymentService.initiatePayment(order.guid, check.totalAmount);
+      // Show payment terminal modal
+      this._paymentError.set(null);
+      this._activeModal.set('payment');
     } else {
-      // Mark as cash / no processor
+      // No processor — mark as cash / complete directly
       await this.orderService.completeOrder(order.guid);
     }
+  }
+
+  onPaymentComplete(): void {
+    this._activeModal.set('none');
+    this._paymentError.set(null);
+    this.paymentService.reset();
+
+    const order = this.activeOrder();
+    if (order) {
+      this.orderService.completeOrder(order.guid);
+    }
+
+    this._activeOrderId.set(null);
+    this._selectedTableId.set(null);
+    this.sendDisplayPaymentComplete();
+  }
+
+  onPaymentFailed(errorMessage: string): void {
+    this._paymentError.set(errorMessage);
   }
 
   // --- Seat management ---
@@ -1202,7 +1229,7 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     const items = order.checks.flatMap(c => c.selections);
     const total = items.length;
     const ready = items.filter(s =>
-      s.fulfillmentStatus === 'SENT' || (s as any).status === 'completed'
+      s.fulfillmentStatus === 'SENT'
     ).length;
     return { ready, total };
   }

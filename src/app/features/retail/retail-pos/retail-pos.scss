@@ -50,7 +50,7 @@
 
     &:focus {
       outline: none;
-      box-shadow: 0 0 0 4px rgba(0, 106, 255, 0.15);
+      box-shadow: 0 0 0 4px rgba(var(--os-primary-rgb), 0.15);
     }
   }
 }
@@ -60,7 +60,7 @@
   right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  background: #16a34a;
+  background: var(--os-success);
   color: #fff;
   padding: 0.2rem 0.625rem;
   border-radius: 6px;
@@ -311,7 +311,7 @@
   }
 
   .override-price {
-    color: #dc2626;
+    color: var(--os-danger);
     font-weight: 600;
     font-size: 0.85rem;
   }
@@ -398,14 +398,14 @@
   }
 
   &.btn-remove:hover {
-    color: #dc2626;
+    color: var(--os-danger);
     background: #fef2f2;
   }
 }
 
 .cart-item-discount {
   font-size: 0.75rem;
-  color: #16a34a;
+  color: var(--os-success);
   margin-top: 0.25rem;
 }
 
@@ -444,7 +444,7 @@
   padding: 0.25rem 0;
 
   &.discount {
-    color: #16a34a;
+    color: var(--os-success);
   }
 
   &.total {
@@ -492,8 +492,8 @@
   font-weight: 500;
 
   &:hover {
-    border-color: #dc2626;
-    color: #dc2626;
+    border-color: var(--os-danger);
+    color: var(--os-danger);
   }
 }
 
@@ -517,7 +517,7 @@
 .btn-pay {
   flex: 1;
   padding: 0.75rem 1rem;
-  background: #16a34a;
+  background: var(--os-success);
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -527,7 +527,7 @@
   transition: background 0.15s;
 
   &:hover {
-    background: #15803d;
+    background: #008a69;
   }
 
   &:disabled {
@@ -651,7 +651,7 @@
 .btn-danger-sm {
   padding: 0.375rem 0.75rem;
   background: #fef2f2;
-  color: #dc2626;
+  color: var(--os-danger);
   border: 1px solid #fecaca;
   border-radius: 8px;
   font-size: 0.8rem;
@@ -685,7 +685,7 @@
   &:focus {
     outline: none;
     border-color: var(--os-primary);
-    box-shadow: 0 0 0 3px rgba(0, 106, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(var(--os-primary-rgb), 0.1);
   }
 }
 
@@ -761,7 +761,7 @@
 
   &:hover {
     border-color: var(--os-primary);
-    background: rgba(0, 106, 255, 0.04);
+    background: rgba(var(--os-primary-rgb), 0.04);
   }
 }
 
@@ -809,8 +809,8 @@
     border-color: var(--os-primary);
   }
 
-  &.cash { i { color: #16a34a; } }
-  &.card { i { color: #3b82f6; } }
+  &.cash { i { color: var(--os-success); } }
+  &.card { i { color: var(--os-primary); } }
   &.gift { i { color: #f59e0b; } }
   &.credit { i { color: #8b5cf6; } }
 }
@@ -862,7 +862,7 @@
   &:focus {
     outline: none;
     border-color: var(--os-primary);
-    box-shadow: 0 0 0 3px rgba(0, 106, 255, 0.1);
+    box-shadow: 0 0 0 3px rgba(var(--os-primary-rgb), 0.1);
   }
 }
 
@@ -907,7 +907,7 @@
 
 .btn-pay-confirm {
   padding: 0.625rem 1.5rem;
-  background: #16a34a;
+  background: var(--os-success);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -915,7 +915,7 @@
   font-weight: 600;
   cursor: pointer;
 
-  &:hover { background: #15803d; }
+  &:hover { background: #008a69; }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
@@ -1012,10 +1012,10 @@
 
 .split-remaining {
   font-weight: 700;
-  color: #dc2626;
+  color: var(--os-danger);
 
   &.paid {
-    color: #16a34a;
+    color: var(--os-success);
   }
 }
 
@@ -1180,8 +1180,28 @@
 
 .success-icon {
   font-size: 3rem;
-  color: #16a34a;
+  color: var(--os-success);
   margin-bottom: 0.75rem;
+}
+
+// Card Payment Terminal Step
+.card-payment-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  min-height: 320px;
+}
+
+.payment-error {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: rgba(220, 38, 38, 0.08);
+  color: var(--os-danger);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
 }
 
 // Form
@@ -1212,7 +1232,7 @@
     &:focus {
       outline: none;
       border-color: var(--os-primary);
-      box-shadow: 0 0 0 3px rgba(0, 106, 255, 0.1);
+      box-shadow: 0 0 0 3px rgba(var(--os-primary-rgb), 0.1);
     }
   }
 }

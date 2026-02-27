@@ -6,6 +6,7 @@ export interface StaffMember {
   id: string;
   name: string;
   role: string;
+  teamMemberId: string | null;
 }
 
 export interface Shift {

@@ -80,10 +80,13 @@ export class OrderCard implements OnInit, OnDestroy {
   stationFilterId = input<string | null>(null);
   menuItemToStationMap = input<Map<string, string>>(new Map());
 
+  showCollectPayment = input(false);
+
   statusChange = output<{ orderId: string; status: GuestOrderStatus }>();
   rushToggle = output<string>();
   expoCheck = output<string>();
   dispatchDriver = output<string>();
+  collectPayment = output<string>();
   fireCourse = output<{ orderId: string; courseGuid: string }>();
   fireItemNow = output<{ orderId: string; selectionGuid: string }>();
   throttleHold = output<string>();

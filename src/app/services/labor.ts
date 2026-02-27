@@ -377,7 +377,7 @@ export class LaborService {
         )
       );
       if (result.valid) {
-        return { id: result.staffPinId, name: result.name, role: result.role };
+        return { id: result.staffPinId, name: result.name, role: result.role, teamMemberId: null };
       }
       return null;
     } catch {

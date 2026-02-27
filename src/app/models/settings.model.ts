@@ -3,7 +3,7 @@ import { DeliveryProviderType } from './delivery.model';
 import { PaymentProcessorType } from './payment.model';
 import { TipPoolRule, TipOutRule } from './tip.model';
 
-export type ControlPanelTab = 'hardware' | 'ai-settings' | 'kitchen-orders' | 'online-pricing' | 'catering-calendar' | 'payments' | 'tip-management' | 'loyalty' | 'delivery' | 'gift-cards' | 'suppliers' | 'staff' | 'time-clock-config' | 'account-billing';
+export type ControlPanelTab = 'hardware' | 'ai-settings' | 'kitchen-orders' | 'online-pricing' | 'catering-calendar' | 'payments' | 'tip-management' | 'loyalty' | 'delivery' | 'gift-cards' | 'suppliers' | 'staff' | 'time-clock-config' | 'notifications' | 'account-billing';
 
 /**
  * AI Settings — Control Panel > AI Settings tab
@@ -333,5 +333,45 @@ export function defaultAiFeatures(): Record<AIFeatureKey, boolean> {
     laborOptimization: false,
     inventoryPredictions: false,
     taxEstimation: false,
+  };
+}
+
+// --- Notification Settings ---
+
+export type SmsProvider = 'twilio' | 'none';
+export type EmailProvider = 'sendgrid' | 'none';
+export type NotificationChannel = 'sms' | 'email' | 'in_app';
+
+export interface NotificationSettings {
+  smsEnabled: boolean;
+  smsProvider: SmsProvider;
+  smsAccountSid: string;
+  smsAuthToken: string;
+  smsFromNumber: string;
+  emailEnabled: boolean;
+  emailProvider: EmailProvider;
+  emailApiKey: string;
+  emailFromAddress: string;
+  orderReadyNotifyCustomer: boolean;
+  orderReadyNotifyServer: boolean;
+  orderReadyChannels: NotificationChannel[];
+  orderReadyTemplate: string;
+}
+
+export function defaultNotificationSettings(): NotificationSettings {
+  return {
+    smsEnabled: false,
+    smsProvider: 'none',
+    smsAccountSid: '',
+    smsAuthToken: '',
+    smsFromNumber: '',
+    emailEnabled: false,
+    emailProvider: 'none',
+    emailApiKey: '',
+    emailFromAddress: '',
+    orderReadyNotifyCustomer: true,
+    orderReadyNotifyServer: false,
+    orderReadyChannels: ['sms'],
+    orderReadyTemplate: 'Hi {name}, your order #{number} is ready for pickup!',
   };
 }

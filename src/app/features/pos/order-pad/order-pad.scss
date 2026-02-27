@@ -51,8 +51,8 @@
   background: transparent;
   border: 1px solid var(--os-border);
   color: var(--os-text-secondary);
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 8px;
   cursor: pointer;
   display: flex;
@@ -64,6 +64,11 @@
   &:hover {
     background: var(--os-bg);
     color: var(--os-text-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--os-primary);
+    outline-offset: 2px;
   }
 
   &:disabled {
@@ -95,8 +100,8 @@
 
 .table-pill {
   position: relative;
-  min-width: 40px;
-  height: 36px;
+  min-width: 44px;
+  height: 44px;
   padding: 0 0.5rem;
   border-radius: 8px;
   border: 1px solid var(--os-border);
@@ -236,7 +241,7 @@
 .category-pill {
   flex-shrink: 0;
   padding: 0.375rem 0.875rem;
-  border-radius: 20px;
+  border-radius: 999px;
   border: 1px solid var(--os-border);
   background: transparent;
   color: var(--os-text-secondary);
@@ -244,6 +249,8 @@
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
+  min-height: 44px;
+  min-width: 44px;
   transition: all 0.15s ease;
 
   &:active {
@@ -634,6 +641,73 @@
 
   &:active {
     transform: scale(0.98);
+  }
+}
+
+// ===== Charge button =====
+.btn-charge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border: none;
+  background: var(--os-primary, #006aff);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    filter: brightness(1.1);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// ===== Payment terminal overlay =====
+.payment-terminal-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  position: relative;
+}
+
+.payment-error-banner {
+  background: rgba(220, 53, 69, 0.12);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #dc3545;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  text-align: center;
+  width: 100%;
+  max-width: 500px;
+}
+
+.btn-back-to-order {
+  margin-top: 1rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--os-border);
+  background: transparent;
+  color: var(--os-text-secondary, #6b7280);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: var(--os-text-primary);
+    color: var(--os-text-primary);
   }
 }
 

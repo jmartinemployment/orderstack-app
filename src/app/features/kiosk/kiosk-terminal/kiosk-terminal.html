@@ -1,283 +1,481 @@
-<div class="kiosk">
-  <!-- WELCOME SCREEN -->
-  @if (step() === 'welcome') {
-    <div class="welcome-screen" (click)="startOrder()">
-      <div class="welcome-content">
-        @if (restaurantName()) {
-          <h1 class="welcome-title">{{ restaurantName() }}</h1>
-        }
-        <div class="welcome-icon">
-          <i class="bi bi-hand-index-thumb"></i>
-        </div>
-        <h2 class="welcome-cta">Tap to Start Ordering</h2>
-        <p class="welcome-subtitle">Browse our menu and place your order</p>
-      </div>
-    </div>
-  }
+<div class="kiosk-terminal">
+  <!-- ==================== LEFT: Item Grid Area ==================== -->
+  <main class="kiosk-main">
 
-  <!-- MENU SCREEN (3-column: categories | items | cart) -->
-  @if (step() === 'menu') {
-    @if (isLoading()) {
-      <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-        <os-loading-spinner message="Loading menu..." />
-      </div>
-    } @else {
-      <div class="kiosk-layout">
-        <!-- Left: Categories -->
-        <div class="kiosk-categories">
-          <div class="category-header">
-            <h3 class="category-title">Menu</h3>
-          </div>
+    <!-- Top Tabs -->
+    <nav class="top-tabs">
+      <button
+        type="button"
+        class="top-tab"
+        [class.active]="activeTopTab() === 'keypad'"
+        (click)="selectTopTab('keypad')">
+        Keypad
+      </button>
+      <button
+        type="button"
+        class="top-tab"
+        [class.active]="activeTopTab() === 'library'"
+        (click)="selectTopTab('library')">
+        Library
+      </button>
+      <button
+        type="button"
+        class="top-tab"
+        [class.active]="activeTopTab() === 'favorites'"
+        (click)="selectTopTab('favorites')">
+        Favorites
+      </button>
+      <button
+        type="button"
+        class="top-tab"
+        [class.active]="activeTopTab() === 'menu'"
+        (click)="selectTopTab('menu')">
+        Menu
+      </button>
+      <button type="button" class="top-tab-more" aria-label="More options">
+        <i class="bi bi-three-dots"></i>
+      </button>
+    </nav>
+
+    <!-- Category pills (only visible on Menu tab) -->
+    @if (activeTopTab() === 'menu') {
+      <div class="category-pills">
+        @for (cat of categories(); track cat.id) {
           <button
             type="button"
-            class="category-tile"
-            [class.active]="!selectedCategory()"
-            (click)="selectCategory(null)"
-          >
-            <i class="bi bi-grid-3x3-gap-fill category-icon"></i>
-            <span class="category-name">All Items</span>
+            class="category-pill"
+            [class.active]="selectedCategoryId() === cat.id"
+            (click)="selectCategory(cat.id)">
+            {{ cat.name }}
           </button>
-          @for (cat of categories(); track cat.id) {
+        }
+      </div>
+    }
+
+    <!-- Keypad View -->
+    @if (activeTopTab() === 'keypad') {
+      <div class="keypad-view">
+        <div class="keypad-display">
+          <span class="keypad-dollar">$</span>
+          <span class="keypad-amount">{{ keypadValue() || '0' }}</span>
+        </div>
+        <div class="keypad-grid">
+          @for (key of ['1','2','3','4','5','6','7','8','9','00','0','.']; track key) {
             <button
               type="button"
-              class="category-tile"
-              [class.active]="selectedCategory() === cat.id"
-              (click)="selectCategory(cat.id)"
-            >
-              <i class="bi bi-tag-fill category-icon"></i>
-              <span class="category-name">{{ cat.name }}</span>
+              class="keypad-key"
+              (click)="onKeypadPress(key)">
+              {{ key }}
             </button>
           }
         </div>
-
-        <!-- Center: Items Grid -->
-        <div class="kiosk-items">
-          <div class="items-header">
-            <h3 class="items-title">
-              @if (selectedCategory()) {
-                {{ getCategoryName(selectedCategory()!) }}
-              } @else {
-                All Items
-              }
-            </h3>
-          </div>
-          <div class="items-grid">
-            @for (item of filteredItems(); track item.id) {
-              <div class="item-card" [class.unavailable]="!isItemAvailable(item)" (click)="isItemAvailable(item) ? addToCart(item) : null">
-                @if (item.imageUrl || item.image) {
-                  <div class="item-image" [style.background-image]="'url(' + (item.thumbnailUrl || item.imageUrl || item.image) + ')'"></div>
-                } @else {
-                  <div class="item-image item-image-placeholder">
-                    <i class="bi bi-cup-hot"></i>
-                  </div>
-                }
-                <div class="item-details">
-                  <span class="item-name">{{ item.name }}</span>
-                  <span class="item-price">{{ item.price | currency }}</span>
-                  @if (!isItemAvailable(item)) {
-                    <span class="item-unavailable-msg">Available during {{ getAvailabilityLabel(item) }}</span>
-                  }
-                  @if (getItemAllergens(item).length > 0) {
-                    <div class="item-allergen-icons">
-                      @for (a of getItemAllergens(item); track a.type) {
-                        <span class="kiosk-allergen" [class]="'severity-' + a.severity" [title]="getAllergenLabel(a.type)">
-                          {{ getAllergenLabel(a.type) }}
-                        </span>
-                      }
-                    </div>
-                  }
-                </div>
-                @if (getItemQuantity(item.id) > 0) {
-                  <div class="item-qty-badge">{{ getItemQuantity(item.id) }}</div>
-                  <div class="item-qty-controls" (click)="$event.stopPropagation()">
-                    <button type="button" class="qty-btn" (click)="decrementItem(item.id)">-</button>
-                    <span>{{ getItemQuantity(item.id) }}</span>
-                    <button type="button" class="qty-btn" (click)="incrementItem(item.id)">+</button>
-                  </div>
-                }
-              </div>
-            } @empty {
-              <div class="items-empty">
-                <i class="bi bi-emoji-frown"></i>
-                <p>No items available</p>
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- Right: Cart -->
-        <div class="kiosk-cart">
-          <div class="cart-header">
-            <h3 class="cart-title">
-              <i class="bi bi-cart3 me-2"></i>Your Order
-            </h3>
-            <span class="cart-count-badge">{{ cartItemCount() }}</span>
-          </div>
-
-          @if (cartItemCount() === 0) {
-            <div class="cart-empty">
-              <i class="bi bi-cart-x"></i>
-              <p>Tap items to add them</p>
-            </div>
-          } @else {
-            <div class="cart-items-list">
-              @for (item of cartItems(); track item.id) {
-                <div class="cart-row">
-                  <div class="cart-row-info">
-                    <span class="cart-row-name">{{ item.menuItem.name }}</span>
-                    <span class="cart-row-price">{{ item.totalPrice | currency }}</span>
-                  </div>
-                  <div class="cart-row-actions">
-                    <button type="button" class="qty-btn-sm" (click)="decrementItem(item.menuItem.id)">-</button>
-                    <span class="cart-row-qty">{{ item.quantity }}</span>
-                    <button type="button" class="qty-btn-sm" (click)="incrementItem(item.menuItem.id)">+</button>
-                    <button type="button" class="remove-btn" (click)="removeFromCart(item.id)">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </div>
-              }
-            </div>
-
-            <div class="cart-footer">
-              <div class="cart-totals">
-                <div class="total-row">
-                  <span>Subtotal</span>
-                  <span>{{ cartSubtotal() | currency }}</span>
-                </div>
-                <div class="total-row">
-                  <span>Tax</span>
-                  <span>{{ cartTax() | currency }}</span>
-                </div>
-                <div class="total-row total-final">
-                  <span>Total</span>
-                  <span>{{ cartTotal() | currency }}</span>
-                </div>
-              </div>
-              <button type="button" class="checkout-btn" (click)="goToUpsell()">
-                Review Order — {{ cartTotal() | currency }}
-              </button>
-            </div>
-          }
+        <div class="keypad-actions">
+          <button type="button" class="keypad-clear" (click)="onKeypadPress('clear')">Clear</button>
+          <button type="button" class="keypad-backspace" (click)="onKeypadPress('backspace')">
+            <i class="bi bi-backspace"></i>
+          </button>
         </div>
       </div>
     }
-  }
 
-  <!-- UPSELL SCREEN -->
-  @if (step() === 'upsell') {
-    <div class="upsell-screen">
-      <h2 class="upsell-title">Want to add anything else?</h2>
-      <p class="upsell-subtitle">Popular additions to complete your meal</p>
-
-      <div class="upsell-grid">
-        @for (item of upsellItems(); track item.id) {
-          <div class="upsell-card" (click)="addUpsellItem(item)">
-            @if (item.imageUrl || item.image) {
-              <div class="upsell-image" [style.background-image]="'url(' + (item.thumbnailUrl || item.imageUrl || item.image) + ')'"></div>
-            } @else {
-              <div class="upsell-image upsell-image-placeholder">
-                <i class="bi bi-plus-circle"></i>
-              </div>
-            }
-            <div class="upsell-details">
-              <span class="upsell-name">{{ item.name }}</span>
-              <span class="upsell-price">+ {{ item.price | currency }}</span>
+    <!-- Item Grid -->
+    @if (activeTopTab() !== 'keypad') {
+      <div class="item-grid-container">
+        @if (isLoading()) {
+          <div class="grid-loading">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading menu...</span>
             </div>
-            @if (getItemQuantity(item.id) > 0) {
-              <div class="upsell-added">
-                <i class="bi bi-check-circle-fill"></i> Added
-              </div>
+          </div>
+        } @else {
+          <div class="item-grid">
+            @for (item of gridItems(); track item.id) {
+              <button type="button" class="item-tile" (click)="addItem(item)">
+                @if (getItemImage(item); as imgUrl) {
+                  <div class="item-image">
+                    <img [src]="imgUrl" [alt]="item.name" loading="lazy" />
+                  </div>
+                } @else {
+                  <div class="item-image item-image-placeholder">
+                    <i class="bi bi-bag"></i>
+                  </div>
+                }
+                <span class="item-name">{{ item.name }}</span>
+              </button>
+            }
+
+            <!-- Empty placeholder tiles to fill the row -->
+            @for (i of [1,2,3,4,5]; track i) {
+              @if (gridItems().length % 5 !== 0 && i <= 5 - (gridItems().length % 5)) {
+                <div class="item-tile item-tile-empty"></div>
+              }
             }
           </div>
-        } @empty {
-          <p class="text-muted">No suggestions available</p>
+
+          <!-- Action tiles row -->
+          <div class="action-tiles">
+            <button type="button" class="action-tile">
+              <div class="action-icon">
+                <i class="bi bi-percent"></i>
+              </div>
+              <span class="action-label">Discounts</span>
+            </button>
+            <button type="button" class="action-tile">
+              <div class="action-icon">
+                <i class="bi bi-star-fill"></i>
+              </div>
+              <span class="action-label">Rewards</span>
+            </button>
+            <button type="button" class="action-tile">
+              <div class="action-icon">
+                <i class="bi bi-gift-fill"></i>
+              </div>
+              <span class="action-label">Gift cards</span>
+            </button>
+            <div class="action-tile action-tile-empty"></div>
+            <div class="action-tile action-tile-empty"></div>
+          </div>
         }
       </div>
+    }
 
-      <div class="upsell-actions">
-        <button type="button" class="btn-secondary-kiosk" (click)="skipUpsell()">
-          No Thanks
-        </button>
-        <button type="button" class="btn-primary-kiosk" (click)="goToCheckout()">
-          Continue — {{ cartTotal() | currency }}
-        </button>
-      </div>
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button
+        type="button"
+        class="bottom-nav-item"
+        [class.active]="activeBottomTab() === 'checkout'"
+        (click)="selectBottomTab('checkout')">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+        <span>Checkout</span>
+      </button>
+      <button
+        type="button"
+        class="bottom-nav-item"
+        [class.active]="activeBottomTab() === 'transactions'"
+        (click)="selectBottomTab('transactions')">
+        <i class="bi bi-arrow-left-right"></i>
+        <span>Transactions</span>
+      </button>
+      <button
+        type="button"
+        class="bottom-nav-item"
+        [class.active]="activeBottomTab() === 'notifications'"
+        (click)="selectBottomTab('notifications')">
+        <i class="bi bi-bell"></i>
+        <span>Notifications</span>
+      </button>
+      <button
+        type="button"
+        class="bottom-nav-item"
+        [class.active]="activeBottomTab() === 'more'"
+        (click)="selectBottomTab('more')">
+        <i class="bi bi-list"></i>
+        <span>More</span>
+      </button>
+    </nav>
+  </main>
+
+  <!-- ==================== RIGHT: Current Sale Panel ==================== -->
+  <aside class="sale-panel">
+    <div class="sale-header">
+      <h2>Current sale{{ cartCount() > 0 ? ' (' + cartCount() + ')' : '' }}</h2>
+      <button type="button" class="sale-more-btn" aria-label="Sale options">
+        <i class="bi bi-three-dots"></i>
+      </button>
     </div>
-  }
 
-  <!-- CHECKOUT SCREEN -->
-  @if (step() === 'checkout') {
-    <div class="checkout-screen">
-      <h2 class="checkout-title">Confirm Your Order</h2>
+    <!-- Customer row (placeholder) -->
+    <button type="button" class="customer-row">
+      <div class="customer-avatar">
+        <i class="bi bi-person-fill"></i>
+      </div>
+      <span class="customer-name">Add customer</span>
+      <i class="bi bi-chevron-right customer-chevron"></i>
+    </button>
 
-      @if (error()) {
-        <div class="kiosk-error">{{ error() }}</div>
+    <!-- Line items -->
+    <div class="sale-items">
+      @if (cartItems().length === 0) {
+        <div class="sale-empty">
+          <p>No items yet</p>
+        </div>
+      } @else {
+        @for (item of cartItems(); track item.id) {
+          <div class="sale-line-item">
+            <div class="line-item-info">
+              <button type="button" class="line-item-name" (click)="removeItem(item.id)">
+                @if (item.quantity > 1) {
+                  <span class="line-item-qty">{{ item.quantity }}x</span>
+                }
+                {{ item.menuItem.name }}
+              </button>
+              @if (item.modifierSummary) {
+                <span class="line-item-modifier">{{ item.modifierSummary }}</span>
+              }
+            </div>
+            <span class="line-item-price">{{ item.totalPrice | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Totals + actions -->
+    <div class="sale-footer">
+      @if (cartItems().length > 0) {
+        <div class="sale-totals">
+          <div class="total-row">
+            <span>Tax</span>
+            <span>{{ tax() | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="total-divider"></div>
+          <button type="button" class="add-discount-btn">Add discount</button>
+        </div>
       }
 
-      <div class="checkout-items">
-        @for (item of cartItems(); track item.id) {
-          <div class="checkout-row">
-            <span class="checkout-item-qty">{{ item.quantity }}x</span>
-            <span class="checkout-item-name">{{ item.menuItem.name }}</span>
-            <span class="checkout-item-price">{{ item.totalPrice | currency }}</span>
-          </div>
+      <button
+        type="button"
+        class="charge-btn"
+        [disabled]="cartItems().length === 0"
+        (click)="charge()">
+        @if (cartItems().length > 0) {
+          Charge {{ total() | currency:'USD':'symbol':'1.2-2' }}
+        } @else {
+          Charge
         }
-      </div>
-
-      <div class="checkout-totals">
-        <div class="total-row">
-          <span>Subtotal</span>
-          <span>{{ cartSubtotal() | currency }}</span>
-        </div>
-        <div class="total-row">
-          <span>Tax</span>
-          <span>{{ cartTax() | currency }}</span>
-        </div>
-        <div class="total-row total-final">
-          <span>Total</span>
-          <span>{{ cartTotal() | currency }}</span>
-        </div>
-      </div>
-
-      <div class="checkout-actions">
-        <button type="button" class="btn-secondary-kiosk" (click)="backToMenu()">
-          <i class="bi bi-arrow-left me-2"></i>Back to Menu
-        </button>
-        <button
-          type="button"
-          class="btn-primary-kiosk"
-          [disabled]="isSubmitting() || cartItemCount() === 0"
-          (click)="submitOrder()"
-        >
-          @if (isSubmitting()) {
-            <span class="spinner-border spinner-border-sm me-2"></span>
-            Processing...
-          } @else {
-            Place Order — {{ cartTotal() | currency }}
-          }
-        </button>
-      </div>
+      </button>
     </div>
-  }
-
-  <!-- CONFIRM SCREEN -->
-  @if (step() === 'confirm') {
-    <div class="confirm-screen" (click)="resetKiosk()">
-      <div class="confirm-content">
-        <div class="confirm-checkmark">
-          <i class="bi bi-check-lg"></i>
-        </div>
-        <h1 class="confirm-title">Order Placed!</h1>
-        <div class="confirm-number">
-          <span class="confirm-number-label">Your Order Number</span>
-          <span class="confirm-number-value">#{{ orderNumber() }}</span>
-        </div>
-        <p class="confirm-message">Your order is being prepared. Please wait for your number to be called.</p>
-        <div class="confirm-reset">
-          New order starting in {{ resetCountdown() }}s
-        </div>
-      </div>
-    </div>
-  }
+  </aside>
 </div>
+
+<!-- ==================== CHECKOUT OVERLAY ==================== -->
+@if (checkoutStep() !== 'idle') {
+  <div class="checkout-overlay">
+    <div class="checkout-modal">
+
+      <!-- Step 1: Dining Option -->
+      @if (checkoutStep() === 'dining-option') {
+        <div class="checkout-step">
+          <h2 class="checkout-title">How are you dining?</h2>
+          <p class="checkout-subtitle">Select your dining preference</p>
+          <div class="dining-options">
+            <button
+              type="button"
+              class="dining-option-card"
+              (click)="selectDiningOption('dine_in')">
+              <div class="dining-option-icon">
+                <i class="bi bi-cup-hot-fill"></i>
+              </div>
+              <span class="dining-option-label">Dine In</span>
+              <span class="dining-option-desc">Eat here at the restaurant</span>
+            </button>
+            <button
+              type="button"
+              class="dining-option-card"
+              (click)="selectDiningOption('takeout')">
+              <div class="dining-option-icon">
+                <i class="bi bi-bag-fill"></i>
+              </div>
+              <span class="dining-option-label">Takeout</span>
+              <span class="dining-option-desc">Take your order to go</span>
+            </button>
+          </div>
+          <button type="button" class="checkout-cancel-btn" (click)="cancelCheckout()">Cancel</button>
+        </div>
+      }
+
+      <!-- Step 2: Table Selection (Dine In only) -->
+      @if (checkoutStep() === 'table-select') {
+        <div class="checkout-step">
+          <h2 class="checkout-title">Select your table</h2>
+          <p class="checkout-subtitle">Choose where you're seated</p>
+
+          @if (tablesLoading()) {
+            <div class="table-loading">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading tables...</span>
+              </div>
+            </div>
+          } @else {
+            <div class="table-grid">
+              @for (table of availableTables(); track table.id) {
+                <button
+                  type="button"
+                  class="table-card"
+                  (click)="selectTable(table)">
+                  <span class="table-number">{{ table.tableNumber }}</span>
+                  <span class="table-name">{{ table.tableName ?? 'Table ' + table.tableNumber }}</span>
+                  <span class="table-capacity">
+                    <i class="bi bi-people-fill"></i> {{ table.capacity }}
+                  </span>
+                </button>
+              }
+            </div>
+
+            @if (availableTables().length === 0) {
+              <p class="no-tables-msg">No tables available right now</p>
+            }
+          }
+
+          <div class="checkout-step-actions">
+            <button type="button" class="checkout-skip-btn" (click)="skipTableSelection()">
+              Skip — server will seat me
+            </button>
+            <button type="button" class="checkout-cancel-btn" (click)="cancelCheckout()">Cancel</button>
+          </div>
+        </div>
+      }
+
+      <!-- Step 3: Customer Info (optional) -->
+      @if (checkoutStep() === 'customer-info') {
+        <div class="checkout-step">
+          <h2 class="checkout-title">Get notified when it's ready</h2>
+          <p class="checkout-subtitle">We'll text or email you when your order is ready for pickup. All fields are optional.</p>
+
+          <div class="customer-info-form">
+            <div class="form-field">
+              <label class="form-label" for="kioskCustomerName">Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="kioskCustomerName"
+                placeholder="Your name"
+                [ngModel]="customerName()"
+                (ngModelChange)="onCustomerNameChange($event)"
+                autocomplete="name">
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="kioskCustomerPhone">Phone</label>
+              <input
+                type="tel"
+                class="form-control"
+                id="kioskCustomerPhone"
+                placeholder="(555) 123-4567"
+                [ngModel]="customerPhone()"
+                (ngModelChange)="onCustomerPhoneChange($event)"
+                autocomplete="tel">
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="kioskCustomerEmail">Email</label>
+              <input
+                type="email"
+                class="form-control"
+                id="kioskCustomerEmail"
+                placeholder="you@example.com"
+                [ngModel]="customerEmail()"
+                (ngModelChange)="onCustomerEmailChange($event)"
+                autocomplete="email">
+            </div>
+          </div>
+
+          <div class="checkout-step-actions">
+            <button type="button" class="checkout-continue-btn" (click)="submitCustomerInfo()">
+              @if (hasCustomerContact()) {
+                Continue
+              } @else {
+                Continue without info
+              }
+            </button>
+            <button type="button" class="checkout-skip-btn" (click)="skipCustomerInfo()">
+              Skip — just give me an order number
+            </button>
+            <button type="button" class="checkout-cancel-btn" (click)="cancelCheckout()">Cancel</button>
+          </div>
+        </div>
+      }
+
+      <!-- Creating Order spinner -->
+      @if (isCreatingOrder()) {
+        <div class="checkout-step checkout-step-centered">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Creating order...</span>
+          </div>
+          <p class="checkout-subtitle">Placing your order...</p>
+        </div>
+      }
+
+      <!-- Step 4: Payment -->
+      @if (checkoutStep() === 'payment' && createdOrderId()) {
+        <div class="checkout-step">
+          <h2 class="checkout-title">Payment</h2>
+          <p class="checkout-amount">{{ total() | currency:'USD':'symbol':'1.2-2' }}</p>
+          <os-payment-terminal
+            [amount]="total()"
+            [orderId]="createdOrderId()!"
+            [showOnScreen]="showOnScreenPayment()"
+            [showCardReader]="showCardReader()"
+            (paymentComplete)="onPaymentComplete()"
+            (paymentFailed)="onPaymentFailed($event)" />
+          <button type="button" class="checkout-cancel-btn" (click)="cancelCheckout()">Cancel</button>
+        </div>
+      }
+
+      <!-- Step 5: Loyalty Prompt (shown after payment if eligible) -->
+      @if (checkoutStep() === 'loyalty-prompt') {
+        <div class="checkout-step checkout-step-centered">
+          <div class="loyalty-icon">
+            <i class="bi bi-star-fill"></i>
+          </div>
+          <h2 class="checkout-title">Join our rewards program?</h2>
+          <p class="checkout-subtitle">
+            Earn points on every order and unlock exclusive rewards. It's free to join!
+          </p>
+          <div class="checkout-step-actions">
+            <button type="button" class="checkout-continue-btn" (click)="joinLoyalty()">
+              Join rewards
+            </button>
+            <button type="button" class="checkout-skip-btn" (click)="skipLoyalty()">
+              No thanks
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Success -->
+      @if (checkoutStep() === 'success') {
+        <div class="checkout-step checkout-step-centered">
+          <div class="success-icon">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <h2 class="checkout-title">Order placed!</h2>
+          <p class="checkout-subtitle">
+            @if (hasCustomerContact()) {
+              Your order is being prepared. We'll notify you when it's ready!
+            } @else if (diningOption() === 'dine_in' && selectedTable()) {
+              Your order is being prepared. You're at Table {{ selectedTable()!.tableNumber }}.
+            } @else if (diningOption() === 'dine_in') {
+              Your order is being prepared. Please take a seat.
+            } @else {
+              Your order is being prepared. We'll call your name when it's ready.
+            }
+          </p>
+          <button type="button" class="checkout-done-btn" (click)="finishAndNewOrder()">
+            Start new order
+          </button>
+        </div>
+      }
+
+      <!-- Failed -->
+      @if (checkoutStep() === 'failed') {
+        <div class="checkout-step checkout-step-centered">
+          <div class="failed-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+          <h2 class="checkout-title">Something went wrong</h2>
+          <p class="checkout-subtitle">{{ checkoutError() }}</p>
+          <div class="checkout-step-actions">
+            @if (createdOrderId()) {
+              <button type="button" class="checkout-retry-btn" (click)="retryPayment()">
+                Retry payment
+              </button>
+            }
+            <button type="button" class="checkout-cancel-btn" (click)="cancelCheckout()">
+              Go back
+            </button>
+          </div>
+        </div>
+      }
+
+    </div>
+  </div>
+}

@@ -263,7 +263,7 @@
             <select class="form-select form-select-sm bg-dark text-white border-secondary"
               [ngModel]="clockInPin()" (ngModelChange)="setClockInPin($event)">
               <option value="">Select staff...</option>
-              @for (member of staffMembers(); track member.id) {
+              @for (member of staffRows(); track member.id) {
                 <option [value]="member.id">{{ member.name }} ({{ member.role }})</option>
               }
             </select>
@@ -1100,7 +1100,7 @@
               <select class="form-select bg-dark text-white border-secondary"
                 [ngModel]="shiftForm().staffPinId" (ngModelChange)="updateShiftForm('staffPinId', $event)">
                 <option value="">Select staff...</option>
-                @for (member of staffMembers(); track member.id) {
+                @for (member of staffRows(); track member.id) {
                   <option [value]="member.id">{{ member.name }} ({{ member.role }})</option>
                 }
               </select>

@@ -1,273 +1,512 @@
 import {
   Component,
   ChangeDetectionStrategy,
+  OnInit,
   inject,
   signal,
   computed,
   effect,
-  input,
-  OnDestroy,
 } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { MenuService } from '@services/menu';
-import { CartService } from '@services/cart';
-import { OrderService } from '@services/order';
 import { AuthService } from '@services/auth';
-import { AnalyticsService } from '@services/analytics';
+import { OrderService } from '@services/order';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
-import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
-import { MenuItem, getOrderIdentifier, Allergen, isItemAvailable, getItemAvailabilityLabel, getAllergenLabel, AllergenType } from '@models/index';
+import { TableService } from '@services/table';
+import { LoyaltyService } from '@services/loyalty';
+import { PaymentTerminal } from '@shared/payment-terminal/payment-terminal';
+import {
+  MenuCategory,
+  MenuItem,
+  RestaurantTable,
+  isItemAvailable,
+} from '@models/index';
 
-type KioskStep = 'welcome' | 'menu' | 'upsell' | 'checkout' | 'confirm';
+type TopTab = 'keypad' | 'library' | 'favorites' | 'menu';
+type BottomTab = 'checkout' | 'transactions' | 'notifications' | 'more';
+type DiningOption = 'dine_in' | 'takeout';
+type CheckoutStep = 'idle' | 'dining-option' | 'table-select' | 'customer-info' | 'payment' | 'loyalty-prompt' | 'success' | 'failed';
+
+interface KioskCartItem {
+  id: string;
+  menuItem: MenuItem;
+  quantity: number;
+  modifierSummary: string;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+interface CustomerInfo {
+  name: string;
+  phone: string;
+  email: string;
+}
 
 @Component({
-  selector: 'os-kiosk',
-  imports: [CurrencyPipe, LoadingSpinner],
+  selector: 'os-kiosk-terminal',
+  imports: [CurrencyPipe, FormsModule, PaymentTerminal],
   templateUrl: './kiosk-terminal.html',
   styleUrl: './kiosk-terminal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class KioskTerminal implements OnDestroy {
+export class KioskTerminal implements OnInit {
   private readonly menuService = inject(MenuService);
-  private readonly cartService = inject(CartService);
-  private readonly orderService = inject(OrderService);
   private readonly authService = inject(AuthService);
-  private readonly analyticsService = inject(AnalyticsService);
+  private readonly orderService = inject(OrderService);
   private readonly settingsService = inject(RestaurantSettingsService);
+  private readonly tableService = inject(TableService);
+  private readonly loyaltyService = inject(LoyaltyService);
+  private readonly route = inject(ActivatedRoute);
 
-  readonly restaurantSlug = input<string>('');
+  // Top tab state — default to Favorites
+  private readonly _activeTopTab = signal<TopTab>('favorites');
+  readonly activeTopTab = this._activeTopTab.asReadonly();
 
-  private readonly _step = signal<KioskStep>('welcome');
-  private readonly _selectedCategory = signal<string | null>(null);
-  private readonly _isSubmitting = signal(false);
-  private readonly _orderNumber = signal('');
-  private readonly _error = signal<string | null>(null);
-  private _resetTimer: ReturnType<typeof setTimeout> | null = null;
-  private readonly _resetCountdown = signal(60);
-  private _countdownInterval: ReturnType<typeof setInterval> | null = null;
+  // Bottom nav state
+  private readonly _activeBottomTab = signal<BottomTab>('checkout');
+  readonly activeBottomTab = this._activeBottomTab.asReadonly();
 
-  readonly step = this._step.asReadonly();
-  readonly selectedCategory = this._selectedCategory.asReadonly();
-  readonly isSubmitting = this._isSubmitting.asReadonly();
-  readonly orderNumber = this._orderNumber.asReadonly();
-  readonly error = this._error.asReadonly();
-  readonly resetCountdown = this._resetCountdown.asReadonly();
+  // Menu state
+  private readonly _categories = signal<MenuCategory[]>([]);
+  private readonly _selectedCategoryId = signal<string | null>(null);
+  readonly categories = this._categories.asReadonly();
+  readonly selectedCategoryId = this._selectedCategoryId.asReadonly();
 
-  readonly categories = this.menuService.categories;
+  // Cart state
+  private readonly _cartItems = signal<KioskCartItem[]>([]);
+  readonly cartItems = this._cartItems.asReadonly();
+
+  // Checkout flow state
+  private readonly _checkoutStep = signal<CheckoutStep>('idle');
+  private readonly _diningOption = signal<DiningOption | null>(null);
+  private readonly _selectedTable = signal<RestaurantTable | null>(null);
+  private readonly _createdOrderId = signal<string | null>(null);
+  private readonly _checkoutError = signal<string | null>(null);
+  private readonly _isCreatingOrder = signal(false);
+
+  readonly checkoutStep = this._checkoutStep.asReadonly();
+  readonly diningOption = this._diningOption.asReadonly();
+  readonly selectedTable = this._selectedTable.asReadonly();
+  readonly createdOrderId = this._createdOrderId.asReadonly();
+  readonly checkoutError = this._checkoutError.asReadonly();
+  readonly isCreatingOrder = this._isCreatingOrder.asReadonly();
+
+  // Customer info state
+  private readonly _customerName = signal('');
+  private readonly _customerPhone = signal('');
+  private readonly _customerEmail = signal('');
+
+  readonly customerName = this._customerName.asReadonly();
+  readonly customerPhone = this._customerPhone.asReadonly();
+  readonly customerEmail = this._customerEmail.asReadonly();
+
+  readonly hasCustomerContact = computed(() =>
+    this._customerName().trim().length > 0 ||
+    this._customerPhone().trim().length > 0 ||
+    this._customerEmail().trim().length > 0
+  );
+
+  // Loyalty
+  readonly loyaltyConfig = this.loyaltyService.config;
+  readonly loyaltyEnabled = computed(() => this.loyaltyConfig().enabled);
+
+  readonly showLoyaltyPrompt = computed(() =>
+    this.loyaltyEnabled() && this.hasCustomerContact()
+  );
+
+  // Tables for table selection
+  readonly tables = this.tableService.tables;
+  readonly tablesLoading = this.tableService.isLoading;
+
+  readonly availableTables = computed(() =>
+    this.tableService.tables().filter(t => t.status === 'available')
+  );
+
+  // Payment settings — determines which payment methods to show
+  readonly paymentSettings = this.settingsService.paymentSettings;
+  readonly showOnScreenPayment = computed(() => {
+    const p = this.paymentSettings().processor;
+    return p === 'paypal' || p === 'stripe';
+  });
+  readonly showCardReader = computed(() => {
+    const p = this.paymentSettings().processor;
+    return p === 'zettle_reader' || p === 'stripe';
+  });
+
+  // Loading
   readonly isLoading = this.menuService.isLoading;
-  readonly cartItems = this.cartService.items;
-  readonly cartTotal = this.cartService.total;
-  readonly cartSubtotal = this.cartService.subtotal;
-  readonly cartTax = this.cartService.tax;
-  readonly cartItemCount = this.cartService.itemCount;
+  readonly menuError = this.menuService.error;
 
-  readonly filteredItems = computed(() => {
-    let items = this.menuService.allItems().filter(i => i.isActive !== false && !i.eightySixed);
-    const catId = this._selectedCategory();
-    if (catId) {
-      items = items.filter(i => i.categoryId === catId);
+  // Collect all items from a category tree (handles nested subcategories)
+  private collectItems(cats: MenuCategory[]): MenuItem[] {
+    const items: MenuItem[] = [];
+    for (const cat of cats) {
+      if (cat.items) items.push(...cat.items);
+      if (cat.subcategories) items.push(...this.collectItems(cat.subcategories));
     }
     return items;
+  }
+
+  private kioskFilter(items: MenuItem[]): MenuItem[] {
+    return items.filter(i =>
+      i.isActive !== false &&
+      !i.eightySixed &&
+      i.channelVisibility?.kiosk !== false &&
+      isItemAvailable(i) &&
+      this.menuService.isItemInActiveDaypart(i)
+    );
+  }
+
+  // All available kiosk items (used for Favorites fallback)
+  private readonly allKioskItems = computed(() => {
+    return this.kioskFilter(this.collectItems(this._categories()));
   });
 
-  readonly upsellItems = computed(() => {
-    const suggestions = this.analyticsService.upsellSuggestions();
-    if (suggestions.length > 0) {
-      return suggestions.slice(0, 4).map(s => s.item).filter((i): i is MenuItem => !!i);
+  // Filtered items for the grid based on active top tab
+  readonly gridItems = computed(() => {
+    const tab = this._activeTopTab();
+    const cats = this._categories();
+    const allItems = this.allKioskItems();
+
+    if (tab === 'favorites') {
+      const popular = allItems.filter(i => i.popular || i.isPopular);
+      // Fallback: if no items are marked popular, show all items
+      return popular.length > 0 ? popular : allItems;
     }
-    // Fallback: show popular items not already in cart
-    const cartIds = new Set(this.cartItems().map(c => c.menuItem.id));
-    return this.menuService.allItems()
-      .filter(i => i.isActive !== false && !i.eightySixed && !cartIds.has(i.id))
-      .slice(0, 4);
+
+    if (tab === 'menu') {
+      const catId = this._selectedCategoryId();
+      if (catId) {
+        const cat = cats.find(c => c.id === catId);
+        return cat ? this.kioskFilter(this.collectItems([cat])) : [];
+      }
+      return allItems;
+    }
+
+    if (tab === 'library') {
+      return allItems;
+    }
+
+    // Keypad tab shows nothing (keypad input mode)
+    return [];
   });
 
-  readonly restaurantName = this.authService.selectedRestaurantName;
+  // Cart computeds
+  readonly cartCount = computed(() =>
+    this._cartItems().reduce((sum, item) => sum + item.quantity, 0)
+  );
 
-  constructor() {
-    effect(() => {
-      const slug = this.restaurantSlug();
-      const authId = this.authService.selectedRestaurantId();
+  readonly subtotal = computed(() =>
+    this._cartItems().reduce((sum, item) => sum + item.totalPrice, 0)
+  );
 
-      if (slug) {
-        void this.resolveSlug(slug);
-      } else if (authId) {
-        this.menuService.loadMenuForRestaurant(authId);
-        void this.settingsService.loadSettings();
+  readonly taxRate = 0.087; // 8.7% — configurable later
+
+  readonly tax = computed(() =>
+    Math.round(this.subtotal() * this.taxRate * 100) / 100
+  );
+
+  readonly total = computed(() =>
+    Math.round((this.subtotal() + this.tax()) * 100) / 100
+  );
+
+  // Keypad state
+  private readonly _keypadValue = signal('');
+  readonly keypadValue = this._keypadValue.asReadonly();
+
+  // React to categories loading — field initializer keeps injection context
+  private readonly _categoryEffect = effect(() => {
+    const cats = this.menuService.categories();
+    if (cats.length > 0) {
+      this._categories.set(cats);
+      if (!this._selectedCategoryId() && cats[0]) {
+        this._selectedCategoryId.set(cats[0].id);
       }
-    });
-  }
-
-  private async resolveSlug(slug: string): Promise<void> {
-    const restaurant = await this.authService.resolveRestaurantBySlug(slug);
-    if (restaurant) {
-      this.authService.selectRestaurant(restaurant.id, restaurant.name, restaurant.logo);
-      if (restaurant.taxRate > 0) {
-        this.cartService.setTaxRate(restaurant.taxRate);
-      }
-      this.menuService.loadMenuForRestaurant(restaurant.id);
-      await this.settingsService.loadSettings();
     }
-  }
+  });
 
-  startOrder(): void {
-    this._step.set('menu');
-    this._selectedCategory.set(null);
-    this.cartService.clear();
-    this.cartService.setOrderType('dine-in');
-  }
+  ngOnInit(): void {
+    const slug = this.route.snapshot.paramMap.get('restaurantSlug');
 
-  selectCategory(categoryId: string | null): void {
-    this._selectedCategory.set(categoryId);
-  }
-
-  addToCart(item: MenuItem): void {
-    this.cartService.addItem(item);
-  }
-
-  getItemQuantity(menuItemId: string): number {
-    return this.cartItems().find(i => i.menuItem.id === menuItemId)?.quantity ?? 0;
-  }
-
-  incrementItem(menuItemId: string): void {
-    const cartItem = this.cartItems().find(i => i.menuItem.id === menuItemId);
-    if (cartItem) {
-      this.cartService.incrementQuantity(cartItem.id);
-    }
-  }
-
-  decrementItem(menuItemId: string): void {
-    const item = this.cartItems().find(i => i.menuItem.id === menuItemId);
-    if (item) {
-      if (item.quantity <= 1) {
-        this.cartService.removeItem(item.id);
+    if (slug) {
+      // Public route: resolve slug to a restaurant UUID from the user's restaurant list
+      const restaurants = this.authService.restaurants();
+      const match = restaurants.find(r => r.slug === slug);
+      if (match) {
+        this.menuService.loadMenuForRestaurant(match.id);
       } else {
-        this.cartService.decrementQuantity(item.id);
+        // Fallback: try using the slug directly (backend may accept it)
+        this.menuService.loadMenuForRestaurant(slug);
       }
+    } else {
+      // Authenticated route: use the selected restaurant
+      this.menuService.loadMenu();
     }
+
+    // Load tables for dine-in selection
+    this.tableService.loadTables();
+
+    // Load restaurant settings for payment config
+    this.settingsService.loadSettings();
+
+    // Load loyalty config for rewards opt-in prompt
+    this.loyaltyService.loadConfig();
   }
 
-  removeFromCart(cartItemId: string): void {
-    this.cartService.removeItem(cartItemId);
+  // --- Tab navigation ---
+
+  selectTopTab(tab: TopTab): void {
+    this._activeTopTab.set(tab);
   }
 
-  goToUpsell(): void {
-    this._step.set('upsell');
+  selectBottomTab(tab: BottomTab): void {
+    this._activeBottomTab.set(tab);
   }
 
-  skipUpsell(): void {
-    this._step.set('checkout');
+  selectCategory(categoryId: string): void {
+    this._selectedCategoryId.set(categoryId);
   }
 
-  addUpsellItem(item: MenuItem): void {
-    this.cartService.addItem(item);
-  }
+  // --- Cart operations ---
 
-  goToCheckout(): void {
-    this._step.set('checkout');
-  }
+  addItem(item: MenuItem): void {
+    const price = typeof item.price === 'string' ? Number.parseFloat(item.price) : item.price;
+    const existing = this._cartItems().find(ci => ci.menuItem.id === item.id && !ci.modifierSummary);
 
-  backToMenu(): void {
-    this._step.set('menu');
-  }
-
-  async submitOrder(): Promise<void> {
-    if (this.cartItemCount() === 0 || this._isSubmitting()) return;
-
-    this._isSubmitting.set(true);
-    this._error.set(null);
-
-    try {
-      const orderData: Record<string, unknown> = {
-        orderType: 'dine-in',
-        orderSource: 'kiosk',
-        items: this.cartItems().map(item => ({
-          menuItemId: item.menuItem.id,
-          name: item.menuItem.name,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          totalPrice: item.totalPrice,
-          modifiers: item.selectedModifiers.map(m => ({
-            id: m.id,
-            name: m.name,
-            priceAdjustment: m.priceAdjustment,
-          })),
-        })),
-        subtotal: this.cartSubtotal(),
-        tax: this.cartTax(),
-        tip: 0,
-        total: this.cartTotal(),
+    if (existing) {
+      this._cartItems.update(items =>
+        items.map(ci =>
+          ci.id === existing.id
+            ? { ...ci, quantity: ci.quantity + 1, totalPrice: (ci.quantity + 1) * ci.unitPrice }
+            : ci
+        )
+      );
+    } else {
+      const cartItem: KioskCartItem = {
+        id: crypto.randomUUID(),
+        menuItem: item,
+        quantity: 1,
+        modifierSummary: '',
+        unitPrice: price,
+        totalPrice: price,
       };
+      this._cartItems.update(items => [...items, cartItem]);
+    }
+  }
 
-      const order = await this.orderService.createOrder(orderData as Partial<any>);
-      if (order) {
-        this._orderNumber.set(getOrderIdentifier(order));
-        this._step.set('confirm');
-        this.cartService.clear();
-        this.startResetTimer();
-      } else {
-        this._error.set(this.orderService.error() ?? 'Failed to place order');
+  removeItem(cartItemId: string): void {
+    this._cartItems.update(items => items.filter(ci => ci.id !== cartItemId));
+  }
+
+  incrementItem(cartItemId: string): void {
+    this._cartItems.update(items =>
+      items.map(ci =>
+        ci.id === cartItemId
+          ? { ...ci, quantity: ci.quantity + 1, totalPrice: (ci.quantity + 1) * ci.unitPrice }
+          : ci
+      )
+    );
+  }
+
+  decrementItem(cartItemId: string): void {
+    this._cartItems.update(items =>
+      items
+        .map(ci =>
+          ci.id === cartItemId
+            ? { ...ci, quantity: ci.quantity - 1, totalPrice: (ci.quantity - 1) * ci.unitPrice }
+            : ci
+        )
+        .filter(ci => ci.quantity > 0)
+    );
+  }
+
+  clearCart(): void {
+    this._cartItems.set([]);
+  }
+
+  // --- Keypad ---
+
+  onKeypadPress(key: string): void {
+    if (key === 'clear') {
+      this._keypadValue.set('');
+    } else if (key === 'backspace') {
+      this._keypadValue.update(v => v.slice(0, -1));
+    } else {
+      this._keypadValue.update(v => v + key);
+    }
+  }
+
+  // --- Checkout flow ---
+
+  charge(): void {
+    if (this._cartItems().length === 0) return;
+    this._checkoutStep.set('dining-option');
+    this._checkoutError.set(null);
+  }
+
+  selectDiningOption(option: DiningOption): void {
+    this._diningOption.set(option);
+
+    if (option === 'dine_in' && this.availableTables().length > 0) {
+      this._checkoutStep.set('table-select');
+    } else {
+      this._checkoutStep.set('customer-info');
+    }
+  }
+
+  selectTable(table: RestaurantTable): void {
+    this._selectedTable.set(table);
+    this._checkoutStep.set('customer-info');
+  }
+
+  skipTableSelection(): void {
+    this._selectedTable.set(null);
+    this._checkoutStep.set('customer-info');
+  }
+
+  // --- Customer info ---
+
+  onCustomerNameChange(value: string): void {
+    this._customerName.set(value);
+  }
+
+  onCustomerPhoneChange(value: string): void {
+    this._customerPhone.set(value);
+  }
+
+  onCustomerEmailChange(value: string): void {
+    this._customerEmail.set(value);
+  }
+
+  submitCustomerInfo(): void {
+    void this.createOrderAndPay();
+  }
+
+  skipCustomerInfo(): void {
+    this._customerName.set('');
+    this._customerPhone.set('');
+    this._customerEmail.set('');
+    void this.createOrderAndPay();
+  }
+
+  private buildCustomerInfo(): CustomerInfo | undefined {
+    const name = this._customerName().trim();
+    const phone = this._customerPhone().trim();
+    const email = this._customerEmail().trim();
+
+    if (!name && !phone && !email) return undefined;
+    return { name, phone, email };
+  }
+
+  private async createOrderAndPay(): Promise<void> {
+    this._isCreatingOrder.set(true);
+    this._checkoutError.set(null);
+
+    const items = this._cartItems().map(ci => ({
+      menuItemId: ci.menuItem.id,
+      name: ci.menuItem.name,
+      quantity: ci.quantity,
+      unitPrice: ci.unitPrice,
+      totalPrice: ci.totalPrice,
+      modifiers: ci.modifierSummary || undefined,
+    }));
+
+    const table = this._selectedTable();
+    const isDineIn = this._diningOption() === 'dine_in';
+    const customerInfo = this.buildCustomerInfo();
+
+    const orderData: Record<string, unknown> = {
+      items,
+      orderType: isDineIn ? 'dine-in' : 'takeout',
+      orderSource: 'kiosk',
+      ...(table ? { tableId: table.id, tableNumber: table.tableNumber } : {}),
+      ...(customerInfo ? { customerInfo } : {}),
+    };
+
+    const order = await this.orderService.createOrder(orderData);
+
+    this._isCreatingOrder.set(false);
+
+    if (!order) {
+      this._checkoutError.set(this.orderService.error() ?? 'Failed to create order');
+      this._checkoutStep.set('failed');
+      return;
+    }
+
+    this._createdOrderId.set(order.guid);
+    this._checkoutStep.set('payment');
+  }
+
+  onPaymentComplete(): void {
+    if (this.showLoyaltyPrompt()) {
+      this._checkoutStep.set('loyalty-prompt');
+    } else {
+      this._checkoutStep.set('success');
+    }
+  }
+
+  onPaymentFailed(errorMsg: string): void {
+    this._checkoutError.set(errorMsg);
+    this._checkoutStep.set('failed');
+  }
+
+  retryPayment(): void {
+    this._checkoutError.set(null);
+    this._checkoutStep.set('payment');
+  }
+
+  // --- Loyalty prompt ---
+
+  joinLoyalty(): void {
+    // Enroll customer in loyalty by awarding 0 points (creates profile on backend)
+    const customerInfo = this.buildCustomerInfo();
+    if (customerInfo) {
+      // Backend auto-creates customer + loyalty profile on order creation when customerInfo is present.
+      // The adjustPoints call with 0 points ensures the loyalty profile exists.
+      const orderId = this._createdOrderId();
+      if (orderId) {
+        this.loyaltyService.adjustPoints(orderId, 0, 'Enrolled via kiosk').catch(() => {
+          // Enrollment is best-effort — don't block the success screen
+        });
       }
-    } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'An unexpected error occurred');
-    } finally {
-      this._isSubmitting.set(false);
     }
+    this._checkoutStep.set('success');
   }
 
-  resetKiosk(): void {
-    this.stopResetTimer();
-    this._step.set('welcome');
-    this._orderNumber.set('');
-    this._error.set(null);
-    this._selectedCategory.set(null);
-    this.cartService.clear();
+  skipLoyalty(): void {
+    this._checkoutStep.set('success');
   }
 
-  ngOnDestroy(): void {
-    this.stopResetTimer();
+  resetCheckout(): void {
+    this._checkoutStep.set('idle');
+    this._diningOption.set(null);
+    this._selectedTable.set(null);
+    this._createdOrderId.set(null);
+    this._checkoutError.set(null);
+    this._isCreatingOrder.set(false);
+    this._customerName.set('');
+    this._customerPhone.set('');
+    this._customerEmail.set('');
   }
 
-  getCategoryName(categoryId: string): string {
-    return this.categories().find(c => c.id === categoryId)?.name ?? '';
+  finishAndNewOrder(): void {
+    this.clearCart();
+    this.resetCheckout();
   }
 
-  getItemAllergens(item: MenuItem): Allergen[] {
-    return item.allergens ?? [];
+  cancelCheckout(): void {
+    this.resetCheckout();
   }
 
-  getAllergenLabel(type: AllergenType): string {
-    return getAllergenLabel(type);
+  // --- Helpers ---
+
+  getItemImage(item: MenuItem): string | null {
+    return item.imageUrl ?? item.thumbnailUrl ?? item.image ?? null;
   }
 
-  isItemAvailable(item: MenuItem): boolean {
-    return isItemAvailable(item);
-  }
-
-  getAvailabilityLabel(item: MenuItem): string {
-    return getItemAvailabilityLabel(item);
-  }
-
-  private startResetTimer(): void {
-    this.stopResetTimer();
-    this._resetCountdown.set(60);
-
-    this._countdownInterval = setInterval(() => {
-      this._resetCountdown.update(c => c - 1);
-      if (this._resetCountdown() <= 0) {
-        this.resetKiosk();
-      }
-    }, 1000);
-  }
-
-  private stopResetTimer(): void {
-    if (this._countdownInterval) {
-      clearInterval(this._countdownInterval);
-      this._countdownInterval = null;
-    }
-    if (this._resetTimer) {
-      clearTimeout(this._resetTimer);
-      this._resetTimer = null;
-    }
+  formatPrice(price: number | string): number {
+    return typeof price === 'string' ? Number.parseFloat(price) : price;
   }
 }

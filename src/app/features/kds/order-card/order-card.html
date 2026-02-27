@@ -1,4 +1,4 @@
-<div class="order-card card" [class.urgent]="isUrgent()" [class.rushed]="isRushed()" [class.throttled]="isThrottledOrder()">
+<div class="order-card" [class.urgent]="isUrgent()" [class.rushed]="isRushed()" [class.throttled]="isThrottledOrder()">
   <div class="card-header d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center gap-2">
       <span class="order-number fw-bold">#{{ order().orderNumber }}</span>
@@ -355,6 +355,15 @@
         >
           {{ bumpLabel() }}
         </button>
+        @if (showCollectPayment() && order().guestOrderStatus === 'READY_FOR_PICKUP') {
+          <button
+            type="button"
+            class="btn btn-sm btn-collect-payment"
+            (click)="collectPayment.emit(order().guid)"
+          >
+            <i class="bi bi-credit-card"></i> Pay
+          </button>
+        }
       }
       @if (showThrottleHoldButton()) {
         <button
@@ -374,6 +383,7 @@
           [class.btn-danger]="isRushed()"
           (click)="onRush()"
           title="Toggle rush priority"
+          aria-label="Toggle rush priority"
         >
           !
         </button>

@@ -38,3 +38,4 @@ export * from './report.model';
 export * from './retail.model';
 export * from './retail-inventory.model';
 export * from './retail-ecommerce.model';
+export * from './zettle.model';

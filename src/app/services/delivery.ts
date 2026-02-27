@@ -125,7 +125,8 @@ export class DeliveryService {
 
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/config-status`
+        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/config-status`,
+        { headers: this.buildAuthHeaders() },
       );
       if (response.ok) {
         const status: DeliveryConfigStatus = await response.json();

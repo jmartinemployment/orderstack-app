@@ -3,6 +3,7 @@ import { CurrencyPipe, DecimalPipe, DatePipe, PercentPipe } from '@angular/commo
 import { FormsModule } from '@angular/forms';
 import { LaborService } from '@services/labor';
 import { AuthService } from '@services/auth';
+import { StaffManagementService } from '@services/staff-management';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
 import {
@@ -39,6 +40,7 @@ import {
 export class StaffScheduling implements OnDestroy {
   private readonly laborService = inject(LaborService);
   private readonly authService = inject(AuthService);
+  private readonly staffMgmt = inject(StaffManagementService);
 
   readonly isAuthenticated = this.authService.isAuthenticated;
   readonly staffMembers = this.laborService.staffMembers;
@@ -272,23 +274,43 @@ export class StaffScheduling implements OnDestroy {
     return s.length > 0 && s.every(sh => sh.isPublished);
   });
 
-  // Computed: staff rows for grid
+  // Computed: staff rows for grid — built from TeamMembers (using staffPinId),
+  // with fallback to shift-based staff for orphaned StaffPins
   readonly staffRows = computed(() => {
     const staffMap = new Map<string, StaffMember>();
+
+    // First: TeamMembers that have a linked StaffPin (primary source)
+    for (const tm of this.staffMgmt.teamMembers()) {
+      if (tm.staffPinId && tm.status === 'active') {
+        const primaryJob = tm.jobs.find(j => j.isPrimary);
+        staffMap.set(tm.staffPinId, {
+          id: tm.staffPinId,
+          name: tm.displayName,
+          role: primaryJob?.jobTitle ?? 'staff',
+          teamMemberId: tm.id,
+        });
+      }
+    }
+
+    // Second: staff from shifts (orphaned StaffPins not linked to TeamMember)
     for (const shift of this.shifts()) {
       if (!staffMap.has(shift.staffPinId)) {
         staffMap.set(shift.staffPinId, {
           id: shift.staffPinId,
           name: shift.staffName,
           role: shift.staffRole,
+          teamMemberId: null,
         });
       }
     }
+
+    // Third: remaining StaffPins from labor service (no shifts, no TeamMember link)
     for (const member of this.staffMembers()) {
       if (!staffMap.has(member.id)) {
         staffMap.set(member.id, member);
       }
     }
+
     return [...staffMap.values()].sort((a, b) => a.name.localeCompare(b.name));
   });
 
@@ -385,6 +407,7 @@ export class StaffScheduling implements OnDestroy {
     effect(() => {
       if (this.authService.isAuthenticated() && this.authService.selectedRestaurantId()) {
         this.laborService.loadStaffMembers();
+        this.staffMgmt.loadTeamMembers();
         this.loadCurrentWeek();
         this.laborService.loadActiveClocks();
         this.laborService.loadWorkweekConfig();

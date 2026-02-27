@@ -4,19 +4,23 @@ import {
   inject,
   signal,
   computed,
+  effect,
   OnInit,
   OnDestroy,
 } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { MenuService } from '@services/menu';
-import { OrderService, MappedOrderEvent } from '@services/order';
+import { OrderService } from '@services/order';
 import { TableService } from '@services/table';
 import { AuthService } from '@services/auth';
 import { CheckService } from '@services/check';
 import { PlatformService } from '@services/platform';
 import { DeviceService } from '@services/device';
 import { SocketService } from '@services/socket';
+import { PaymentService } from '@services/payment';
+import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { ModifierPrompt, ModifierPromptResult } from '../modifier-prompt';
+import { PaymentTerminal } from '@shared/payment-terminal';
 import {
   RestaurantTable,
   Order,
@@ -29,7 +33,7 @@ import {
 
 @Component({
   selector: 'os-order-pad',
-  imports: [CurrencyPipe, ModifierPrompt],
+  imports: [CurrencyPipe, ModifierPrompt, PaymentTerminal],
   templateUrl: './order-pad.html',
   styleUrl: './order-pad.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,6 +47,8 @@ export class OrderPad implements OnInit, OnDestroy {
   private readonly platformService = inject(PlatformService);
   private readonly deviceService = inject(DeviceService);
   private readonly socketService = inject(SocketService);
+  private readonly paymentService = inject(PaymentService);
+  private readonly settingsService = inject(RestaurantSettingsService);
 
   // Mode-aware feature flags
   readonly canUseFloorPlan = this.platformService.canUseFloorPlan;
@@ -154,6 +160,12 @@ export class OrderPad implements OnInit, OnDestroy {
   private readonly _showPaymentView = signal(false);
   readonly showPaymentView = this._showPaymentView.asReadonly();
 
+  // Payment terminal state
+  private readonly _showPaymentTerminal = signal(false);
+  private readonly _paymentError = signal<string | null>(null);
+  readonly showPaymentTerminal = this._showPaymentTerminal.asReadonly();
+  readonly paymentError = this._paymentError.asReadonly();
+
   // Loading / error
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
@@ -170,7 +182,6 @@ export class OrderPad implements OnInit, OnDestroy {
   // Seat options (1-8)
   readonly seatOptions = [1, 2, 3, 4, 5, 6, 7, 8];
 
-  private orderEventCleanup: (() => void) | null = null;
 
   ngOnInit(): void {
     // Connect socket for real-time device-scoped communication
@@ -185,24 +196,19 @@ export class OrderPad implements OnInit, OnDestroy {
     }
     this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
 
-    const checkMenu = setInterval(() => {
+    // React to menu categories loading
+    effect(() => {
       const cats = this.menuService.categories();
       if (cats.length > 0) {
         this._categories.set(cats);
-        if (!this._selectedCategoryId() && cats.length > 0) {
+        if (!this._selectedCategoryId()) {
           this._selectedCategoryId.set(cats[0].id);
         }
-        clearInterval(checkMenu);
       }
-    }, 200);
-
-    this.orderEventCleanup = this.orderService.onMappedOrderEvent(
-      (_event: MappedOrderEvent) => {}
-    );
+    });
   }
 
   ngOnDestroy(): void {
-    this.orderEventCleanup?.();
     this.socketService.disconnect();
   }
 
@@ -236,6 +242,7 @@ export class OrderPad implements OnInit, OnDestroy {
     this._isLoading.set(true);
     this._error.set(null);
     this._showPaymentView.set(false);
+    this._showPaymentTerminal.set(false);
 
     try {
       const order = await this.orderService.createOrder({
@@ -377,6 +384,34 @@ export class OrderPad implements OnInit, OnDestroy {
 
   addMoreItems(): void {
     this._showPaymentView.set(false);
+    this._showPaymentTerminal.set(false);
+  }
+
+  // --- Payment ---
+
+  openPaymentTerminal(): void {
+    this._showPaymentTerminal.set(true);
+    this._paymentError.set(null);
+  }
+
+  onPaymentComplete(): void {
+    this._showPaymentTerminal.set(false);
+    this._showPaymentView.set(false);
+    this.paymentService.reset();
+
+    // Complete the order and clear for next customer
+    const order = this.activeOrder();
+    if (order) {
+      this.orderService.completeOrder(order.guid);
+    }
+
+    this._activeOrderId.set(null);
+    this._activeCheckGuid.set(null);
+    this._selectedTableId.set(null);
+  }
+
+  onPaymentFailed(errorMessage: string): void {
+    this._paymentError.set(errorMessage);
   }
 
   // --- Item removal ---

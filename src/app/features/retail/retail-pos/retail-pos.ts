@@ -3,6 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RetailCheckoutService } from '@services/retail-checkout';
 import { RetailCatalogService } from '@services/retail-catalog';
+import { PaymentTerminal } from '@shared/payment-terminal';
 import type {
   RetailItem,
   RetailItemVariation,
@@ -28,7 +29,7 @@ const QUICK_KEY_COLORS = [
 @Component({
   selector: 'os-retail-pos',
   standalone: true,
-  imports: [FormsModule, DecimalPipe],
+  imports: [FormsModule, DecimalPipe, PaymentTerminal],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './retail-pos.html',
   styleUrl: './retail-pos.scss',
@@ -302,9 +303,16 @@ export class RetailPos implements OnInit {
     this.activeModal.set('payment');
   }
 
+  readonly cardPaymentOrderId = signal<string | null>(null);
+  readonly cardPaymentError = signal<string | null>(null);
+
   selectPaymentMethod(method: RetailPaymentMethod): void {
     if (method === 'cash') {
       this.paymentStep.set('cash');
+    } else if (method === 'card') {
+      this.cardPaymentError.set(null);
+      this.cardPaymentOrderId.set(crypto.randomUUID());
+      this.paymentStep.set('card');
     } else if (method === 'gift_card') {
       this.giftCardNumber.set('');
       this.giftCardBalance.set(null);
@@ -318,6 +326,23 @@ export class RetailPos implements OnInit {
     } else {
       this.processSimplePayment(method);
     }
+  }
+
+  async onCardPaymentComplete(): Promise<void> {
+    // Card payment collected — record the retail transaction
+    const payment: RetailPayment = {
+      method: 'card',
+      amount: this.cartTotal(),
+      reference: null,
+    };
+    const result = await this.checkoutService.processPayment([payment], this.isGiftReceipt());
+    if (result) {
+      this.paymentStep.set('complete');
+    }
+  }
+
+  onCardPaymentFailed(errorMessage: string): void {
+    this.cardPaymentError.set(errorMessage);
   }
 
   updateCashTendered(value: string): void {
@@ -602,6 +627,7 @@ export class RetailPos implements OnInit {
   closePayment(): void {
     this.activeModal.set('none');
     this.isGiftReceipt.set(false);
+    this.cardPaymentOrderId.set(null);
     this.focusBarcodeInput();
   }
 

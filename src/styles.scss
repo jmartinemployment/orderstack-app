@@ -5,11 +5,17 @@ $font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sa
 
 :root {
   --os-primary: #006aff;
+  --os-primary-rgb: 0, 106, 255;
   --os-primary-hover: #0055cc;
   --os-primary-light: #eef2ff;
   --os-success: #00a67e;
   --os-warning: #f5a623;
   --os-danger: #e53e3e;
+  --os-info: #0891b2;
+  --os-order-dinein: #e07b00;
+  --os-catering: #7c3aed;
+  --os-marketplace: #0891b2;
+  --os-doordash: #ff3008;
   --os-text-primary: #1a1a2e;
   --os-text-secondary: #6b7280;
   --os-text-muted: #9ca3af;

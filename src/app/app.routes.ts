@@ -111,6 +111,9 @@ export const routes: Routes = [
       { path: 'order-pad', loadComponent: () => import('./features/pos/order-pad/order-pad').then(m => m.OrderPad) },
       { path: 'pos', loadComponent: () => import('./features/pos/server-pos-terminal/server-pos-terminal').then(m => m.ServerPosTerminal) },
 
+      // Kiosk (authenticated — paired device route)
+      { path: 'kiosk', loadComponent: () => import('./features/kiosk/kiosk-terminal/kiosk-terminal').then(m => m.KioskTerminal) },
+
       // Kitchen
       { path: 'kds', loadComponent: () => import('./features/kds/kds-display/kds-display').then(m => m.KdsDisplay) },
 

@@ -16,6 +16,7 @@ import { StaffManagement } from '../staff-management';
 import { BreakConfig } from '../break-config';
 import { AccountBilling } from '../account-billing';
 import { SupplierSettings } from '../supplier-settings';
+import { NotificationSettingsComponent } from '../notification-settings';
 import { ControlPanelTab, PlatformModule } from '@models/index';
 import type { ModeFeatureFlags } from '@models/index';
 
@@ -28,7 +29,7 @@ interface TabConfig {
 
 @Component({
   selector: 'os-control-panel',
-  imports: [DeviceHub, AiSettings, KitchenOrders, OnlinePricing, CateringCalendar, PaymentSettingsComponent, TipManagement, LoyaltySettings, DeliverySettingsComponent, GiftCardManagement, SupplierSettings, StaffManagement, BreakConfig, AccountBilling],
+  imports: [DeviceHub, AiSettings, KitchenOrders, OnlinePricing, CateringCalendar, PaymentSettingsComponent, TipManagement, LoyaltySettings, DeliverySettingsComponent, GiftCardManagement, SupplierSettings, StaffManagement, BreakConfig, AccountBilling, NotificationSettingsComponent],
   templateUrl: './control-panel.html',
   styleUrl: './control-panel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,6 +58,7 @@ export class ControlPanel implements OnInit {
     { key: 'suppliers', label: 'Suppliers', requiredModule: 'inventory' },
     { key: 'staff', label: 'Staff', requiredModule: 'staff_scheduling' },
     { key: 'time-clock-config', label: 'Time Clock', requiredModule: 'staff_scheduling' },
+    { key: 'notifications', label: 'Notifications' },
     { key: 'account-billing', label: 'Account & Billing' },
   ];
 

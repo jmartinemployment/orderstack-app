@@ -79,23 +79,23 @@
   color: #fff;
 
   &.new {
-    background-color: #0d6efd;
+    background-color: var(--os-primary);
   }
 
   &.cooking {
-    background-color: #fd7e14;
+    background-color: var(--os-order-dinein);
   }
 
   &.expo {
-    background-color: #e35d00;
+    background-color: #c45200;
   }
 
   &.ready {
-    background-color: #198754;
+    background-color: var(--os-success);
   }
 
   &.throttled {
-    background-color: #6f42c1;
+    background-color: var(--os-catering);
   }
 }
 
@@ -187,4 +187,83 @@
     font-size: 0.72rem;
     letter-spacing: 0.02em;
   }
+}
+
+// Auto-fire inline controls
+.auto-fire-control {
+  max-width: 80px;
+  background-color: var(--os-bg-card);
+  border-color: var(--os-border);
+  color: var(--os-text-primary);
+  font-size: 0.8rem;
+}
+
+// Payment modal overlay
+.kds-payment-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.kds-payment-modal {
+  width: 100%;
+  max-width: 480px;
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  border-radius: var(--os-radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.kds-payment-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--os-border);
+
+  h5 {
+    color: var(--os-text-primary);
+    font-weight: 600;
+  }
+}
+
+.kds-payment-modal-amount {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--os-success);
+  margin-left: auto;
+}
+
+.btn-modal-close {
+  background: transparent;
+  border: none;
+  color: var(--os-text-secondary);
+  font-size: 1.25rem;
+  padding: 0.25rem;
+  cursor: pointer;
+  line-height: 1;
+
+  &:hover {
+    color: var(--os-text-primary);
+  }
+}
+
+.kds-payment-modal-error {
+  padding: 0.75rem 1.25rem;
+  background-color: rgba(229, 62, 62, 0.1);
+  border-bottom: 1px solid rgba(229, 62, 62, 0.3);
+  color: var(--os-danger);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.kds-payment-modal-body {
+  padding: 1.25rem;
 }

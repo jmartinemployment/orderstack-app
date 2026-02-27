@@ -6,10 +6,13 @@ import { MenuService } from '@services/menu';
 import { DeliveryService } from '@services/delivery';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { StationService } from '@services/station';
+import { CurrencyPipe } from '@angular/common';
 import { OrderCard } from '../order-card/order-card';
 import { ConnectionStatus } from '@shared/connection-status/connection-status';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
+import { PaymentTerminal } from '@shared/payment-terminal';
+import { PaymentService } from '@services/payment';
 import {
   Order,
   GuestOrderStatus,
@@ -38,7 +41,7 @@ const ACTIVE_DISPATCH_STATUSES = new Set([
 
 @Component({
   selector: 'os-kds-display',
-  imports: [OrderCard, ConnectionStatus, LoadingSpinner, ErrorDisplay],
+  imports: [OrderCard, ConnectionStatus, LoadingSpinner, ErrorDisplay, PaymentTerminal, CurrencyPipe],
   templateUrl: './kds-display.html',
   styleUrl: './kds-display.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,6 +54,7 @@ export class KdsDisplay implements OnInit, OnDestroy {
   private readonly settingsService = inject(RestaurantSettingsService);
   private readonly deliveryService = inject(DeliveryService);
   private readonly stationService = inject(StationService);
+  private readonly paymentService = inject(PaymentService);
 
   private readonly _selectedStationId = signal<string | null>(
     typeof localStorage !== 'undefined' ? localStorage.getItem('kds-station-id') : null
@@ -74,6 +78,9 @@ export class KdsDisplay implements OnInit, OnDestroy {
   private readonly _prepTimeFiringEnabled = signal(false);
   private readonly _defaultPrepMinutes = signal(10);
   private readonly _marketplaceFilter = signal<'all' | 'marketplace' | 'native'>('all');
+  private readonly _paymentOrderId = signal<string | null>(null);
+  private readonly _paymentError = signal<string | null>(null);
+  private readonly _showPaymentModal = signal(false);
   private throttlingPollTimer: ReturnType<typeof setInterval> | null = null;
   readonly coursePacingMode = this._coursePacingMode.asReadonly();
   readonly expoStationEnabled = this._expoStationEnabled.asReadonly();
@@ -101,6 +108,19 @@ export class KdsDisplay implements OnInit, OnDestroy {
     { value: 'marketplace', label: 'Marketplace' },
     { value: 'native', label: 'Direct' },
   ];
+
+  readonly showPaymentModal = this._showPaymentModal.asReadonly();
+  readonly paymentError = this._paymentError.asReadonly();
+  readonly showCollectPayment = computed(() =>
+    this.settingsService.paymentSettings().processor !== 'none'
+  );
+  readonly paymentOrder = computed(() => {
+    const id = this._paymentOrderId();
+    if (!id) return null;
+    return this.orderService.getOrderById(id) ?? null;
+  });
+  readonly paymentCheck = computed(() => this.paymentOrder()?.checks[0] ?? null);
+  readonly paymentAmount = computed(() => this.paymentCheck()?.totalAmount ?? 0);
 
   readonly selectedStationId = this._selectedStationId.asReadonly();
   readonly stations = this.stationService.activeStations;
@@ -399,20 +419,34 @@ export class KdsDisplay implements OnInit, OnDestroy {
 
   onStatusChange(event: { orderId: string; status: GuestOrderStatus }): void {
     const skipPrint = this._expoStationEnabled() && event.status === 'READY_FOR_PICKUP';
-    void this.orderService
-      .updateOrderStatus(event.orderId, event.status, skipPrint ? { skipPrint: true } : undefined)
-      .then(success => {
-        if (!success) return;
 
-        if (event.status === 'READY_FOR_PICKUP' && this.settingsService.deliverySettings().autoDispatch) {
-          this.maybeAutoDispatch(event.orderId);
-          void this.loadOrderThrottlingStatus();
-          return;
-        }
+    // Backend requires pending → confirmed → preparing (can't skip confirmed).
+    // When KDS START is clicked on a RECEIVED order, confirm first then prepare.
+    const order = this.orderService.getOrderById(event.orderId);
+    const needsConfirmFirst = event.status === 'IN_PREPARATION' && order?.guestOrderStatus === 'RECEIVED';
 
-        this.clearOrderDispatchRuntime(event.orderId);
+    const doUpdate = async (): Promise<void> => {
+      if (needsConfirmFirst) {
+        const confirmed = await this.orderService.updateOrderStatus(event.orderId, 'RECEIVED');
+        if (!confirmed) return;
+      }
+
+      const success = await this.orderService.updateOrderStatus(
+        event.orderId, event.status, skipPrint ? { skipPrint: true } : undefined
+      );
+      if (!success) return;
+
+      if (event.status === 'READY_FOR_PICKUP' && this.settingsService.deliverySettings().autoDispatch) {
+        this.maybeAutoDispatch(event.orderId);
         void this.loadOrderThrottlingStatus();
-      });
+        return;
+      }
+
+      this.clearOrderDispatchRuntime(event.orderId);
+      void this.loadOrderThrottlingStatus();
+    };
+
+    void doUpdate();
   }
 
   onExpoCheck(orderId: string): void {
@@ -495,6 +529,35 @@ export class KdsDisplay implements OnInit, OnDestroy {
     void this.orderService.holdOrderForThrottling(orderId).then(success => {
       if (success) void this.loadOrderThrottlingStatus();
     });
+  }
+
+  onCollectPayment(orderId: string): void {
+    const settings = this.settingsService.paymentSettings();
+    this.paymentService.setProcessorType(settings.processor);
+
+    this._paymentOrderId.set(orderId);
+    this._paymentError.set(null);
+    this._showPaymentModal.set(true);
+  }
+
+  onPaymentComplete(): void {
+    const orderId = this._paymentOrderId();
+    this.closePaymentModal();
+    this.paymentService.reset();
+
+    if (orderId) {
+      this.onStatusChange({ orderId, status: 'CLOSED' });
+    }
+  }
+
+  onPaymentFailed(message: string): void {
+    this._paymentError.set(message);
+  }
+
+  closePaymentModal(): void {
+    this._showPaymentModal.set(false);
+    this._paymentOrderId.set(null);
+    this._paymentError.set(null);
   }
 
   getDeliveryQuote(orderId: string): DeliveryQuote | null {

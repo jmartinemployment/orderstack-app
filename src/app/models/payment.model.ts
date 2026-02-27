@@ -1,4 +1,4 @@
-export type PaymentProcessorType = 'stripe' | 'paypal' | 'none';
+export type PaymentProcessorType = 'stripe' | 'paypal' | 'zettle_reader' | 'none';
 
 /** Processor types that represent an active payment provider (excludes settings sentinel). */
 export type ActivePaymentProcessorType = Exclude<PaymentProcessorType, 'none'>;

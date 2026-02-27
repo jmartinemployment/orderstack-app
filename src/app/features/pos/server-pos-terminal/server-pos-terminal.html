@@ -776,6 +776,34 @@
     </div>
   }
 
+  <!-- Payment Terminal Modal -->
+  @if (activeModal() === 'payment' && activeOrder() && activeCheck()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="payment-modal" (click)="$event.stopPropagation()">
+        <div class="payment-modal-header">
+          <h5>Payment</h5>
+          <span class="payment-modal-amount">{{ activeCheck()!.totalAmount | currency }}</span>
+          <button type="button" class="btn-modal-close" (click)="closeModal()">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        @if (paymentError()) {
+          <div class="payment-modal-error">{{ paymentError() }}</div>
+        }
+        <div class="payment-modal-body">
+          <os-payment-terminal
+            [amount]="activeCheck()!.totalAmount"
+            [orderId]="activeOrder()!.guid"
+            [showOnScreen]="true"
+            [showCardReader]="true"
+            (paymentComplete)="onPaymentComplete()"
+            (paymentFailed)="onPaymentFailed($event)"
+          />
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- Course Fire Modal -->
   @if (activeModal() === 'course-fire') {
     <div class="modal-overlay" (click)="closeModal()">

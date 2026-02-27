@@ -1,8 +1,16 @@
+// btn-xs utility (used in fire-now, remake, and flat-list remake buttons)
+.btn-xs {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+}
+
 .order-card {
   background-color: var(--os-bg-card);
   border: 1px solid var(--os-border);
   color: var(--os-text-primary);
   margin-bottom: 1rem;
+  border-radius: var(--os-radius);
+  overflow: hidden;
 
   &.urgent {
     border-color: var(--os-danger);
@@ -15,8 +23,8 @@
   }
 
   &.throttled {
-    border-color: #6f42c1;
-    box-shadow: 0 0 10px rgba(111, 66, 193, 0.15);
+    border-color: var(--os-catering);
+    box-shadow: 0 0 10px rgba(124, 58, 237, 0.15);
   }
 }
 
@@ -41,15 +49,15 @@
 }
 
 .order-type-pickup {
-  background-color: #198754;
+  background-color: var(--os-success);
 }
 
 .order-type-delivery {
-  background-color: #0d6efd;
+  background-color: var(--os-primary);
 }
 
 .order-type-dinein {
-  background-color: #fd7e14;
+  background-color: var(--os-order-dinein);
 }
 
 .order-type-curbside {
@@ -58,11 +66,11 @@
 }
 
 .order-type-catering {
-  background-color: #6f42c1;
+  background-color: var(--os-catering);
 }
 
 .marketplace-source-badge {
-  background-color: #0b7285;
+  background-color: var(--os-marketplace);
   color: #fff;
 }
 
@@ -71,7 +79,7 @@
 }
 
 .sync-success {
-  background-color: #198754;
+  background-color: var(--os-success);
 }
 
 .sync-pending {
@@ -79,7 +87,7 @@
 }
 
 .sync-retrying {
-  background-color: #fd7e14;
+  background-color: var(--os-order-dinein);
 }
 
 .sync-failed {
@@ -107,7 +115,7 @@
 
 // Prep time progress bar
 .prep-bar-container {
-  height: 3px;
+  height: 5px;
   background-color: var(--os-border);
 
   .prep-bar {
@@ -164,6 +172,8 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-size: 1rem;
+  padding: 0.75rem;
 
   &:hover {
     background-color: var(--os-primary-hover);
@@ -172,17 +182,17 @@
 }
 
 .btn-expo-check {
-  background-color: #e35d00;
-  border-color: #e35d00;
+  background-color: #c45200;
+  border-color: #c45200;
   color: #fff;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  &:hover { background-color: #c44f00; border-color: #c44f00; color: #fff; }
+  &:hover { background-color: #a84500; border-color: #a84500; color: #fff; }
 }
 
 .expo-badge { animation: rush-flash 1s infinite; }
-.bg-expo { background-color: #e35d00; }
+.bg-expo { background-color: #c45200; }
 
 // Course system
 .course-group {
@@ -291,7 +301,7 @@
 }
 
 .bg-purple {
-  background-color: #6f42c1;
+  background-color: var(--os-catering);
   color: #fff;
 }
 
@@ -309,7 +319,7 @@
   font-size: 0.65rem;
   font-weight: 600;
 
-  &.print-printing { background-color: #0dcaf0; color: #000; }
+  &.print-printing { background-color: var(--os-info); color: #000; }
   &.print-printed { background-color: var(--os-success); color: #fff; }
   &.print-failed { background-color: var(--os-danger); color: #fff; }
 }
@@ -321,7 +331,7 @@
 
 // Delivery provider badges
 .provider-doordash {
-  background-color: #ff3008;
+  background-color: var(--os-doordash);
   color: #fff;
 }
 
@@ -332,15 +342,15 @@
 
 // Dispatch button
 .btn-dispatch {
-  background-color: #198754;
-  border-color: #198754;
+  background-color: var(--os-success);
+  border-color: var(--os-success);
   color: #fff;
   font-size: 0.75rem;
   font-weight: 600;
 
   &:hover:not(:disabled) {
-    background-color: #157347;
-    border-color: #157347;
+    background-color: #008a69;
+    border-color: #008a69;
     color: #fff;
   }
 
@@ -387,7 +397,7 @@
 }
 
 .bg-throttle {
-  background-color: #6f42c1;
+  background-color: var(--os-catering);
   color: #fff;
 }
 
@@ -437,9 +447,26 @@
   vertical-align: middle;
 }
 
+// Collect payment button
+.btn-collect-payment {
+  background-color: var(--os-primary);
+  border-color: var(--os-primary);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  align-self: center;
+
+  &:hover {
+    background-color: var(--os-primary-hover);
+    border-color: var(--os-primary-hover);
+    color: #fff;
+  }
+}
+
 // Partial order badge (station filtering)
 .bg-partial-order {
-  background-color: #0dcaf0;
+  background-color: var(--os-info);
   color: #000;
   font-size: 0.65rem;
   font-weight: 600;

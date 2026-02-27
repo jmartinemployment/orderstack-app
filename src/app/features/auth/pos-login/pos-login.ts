@@ -259,6 +259,7 @@ export class PosLogin {
             hireDate: null,
             status: 'active',
             createdAt: new Date().toISOString(),
+            staffPinId: null,
           };
           this._teamMembers.set([ownerMember]);
         }
@@ -450,6 +451,28 @@ export class PosLogin {
   }
 
   private navigateToLanding(): void {
+    // Device type takes priority — paired devices route to their dedicated screen
+    const device = this.deviceService.currentDevice();
+    if (device?.deviceType) {
+      switch (device.deviceType) {
+        case 'kds_station':
+          this.router.navigate(['/kds']);
+          return;
+        case 'kiosk':
+          this.router.navigate(['/kiosk']);
+          return;
+        case 'order_pad':
+          this.router.navigate(['/order-pad']);
+          return;
+        case 'pos_terminal':
+          break; // Fall through to posMode logic
+        case 'printer_station':
+          this.router.navigate(['/home']);
+          return;
+      }
+    }
+
+    // Fall back to posMode-based routing
     const posMode = this.platformService.currentDeviceMode();
 
     switch (posMode) {

@@ -86,6 +86,7 @@ export interface TeamMember {
   hireDate: string | null;
   status: TeamMemberStatus;
   createdAt: string;
+  staffPinId: string | null;
 }
 
 export interface TeamMemberFormData {
@@ -174,6 +175,7 @@ export interface DeviceRegistration {
   deviceName: string;
   locationId: string | null;
   locationName: string | null;
+  teamMemberId: string | null;
   status: DeviceStatus;
   pairedAt: string | null;
   expiresAt: string;

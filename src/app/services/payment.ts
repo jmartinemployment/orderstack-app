@@ -15,6 +15,7 @@ import { AuthService } from './auth';
 import { environment } from '@environments/environment';
 import { StripePaymentProvider } from './providers/stripe-provider';
 import { PayPalPaymentProvider } from './providers/paypal-provider';
+import { ZettleReaderProvider } from './providers/zettle-reader-provider';
 
 @Injectable({
   providedIn: 'root',
@@ -60,6 +61,9 @@ export class PaymentService {
         break;
       case 'paypal':
         this.provider = new PayPalPaymentProvider();
+        break;
+      case 'zettle_reader':
+        this.provider = new ZettleReaderProvider();
         break;
       case 'none':
         break;
