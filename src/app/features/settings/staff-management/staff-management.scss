@@ -216,12 +216,6 @@
   }
 }
 
-.btn-outline-light {
-  &:hover {
-    background-color: var(--os-bg);
-    color: var(--os-text-primary);
-  }
-}
 
 .empty-state {
   color: var(--bs-secondary-color, #6c757d);

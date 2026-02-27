@@ -35,6 +35,19 @@ $font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sa
   box-sizing: border-box;
 }
 
+// Bootstrap btn-outline-light is invisible on a light theme (white-on-white).
+// Remap it to use the design system's secondary text and border colors.
+.btn-outline-light {
+  --bs-btn-color: var(--os-text-secondary);
+  --bs-btn-border-color: var(--os-border);
+  --bs-btn-hover-color: var(--os-text-primary);
+  --bs-btn-hover-bg: var(--os-bg);
+  --bs-btn-hover-border-color: var(--os-text-muted);
+  --bs-btn-active-color: var(--os-text-primary);
+  --bs-btn-active-bg: var(--os-bg);
+  --bs-btn-active-border-color: var(--os-text-secondary);
+}
+
 html, body {
   height: 100%;
   font-family: $font-family;
