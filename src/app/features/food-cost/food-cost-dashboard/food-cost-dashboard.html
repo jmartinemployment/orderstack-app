@@ -88,7 +88,7 @@
           <label class="btn-upload" [class.uploading]="isUploading()">
             <i class="bi bi-cloud-upload"></i>
             @if (isUploading()) { Scanning... } @else { OCR Upload }
-            <input type="file" accept="image/*,.pdf" (change)="onFileSelected($event)" hidden>
+            <input type="file" accept="image/*,.pdf" (change)="onFileSelected($event)" hidden aria-label="Upload invoice image or PDF">
           </label>
           <button class="btn-add" (click)="openInvoiceForm()">
             <i class="bi bi-plus-lg"></i> Manual Entry

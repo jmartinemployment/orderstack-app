@@ -97,6 +97,11 @@ export const routes: Routes = [
       { path: '', loadComponent: () => import('./features/onboarding/team-onboarding/team-onboarding').then(m => m.TeamOnboarding) },
     ],
   },
+  {
+    path: 'onboarding',
+    redirectTo: 'onboarding-checklist',
+    pathMatch: 'full',
+  },
 
   // Dedicated device routes — full-screen, no sidebar
   {
@@ -120,7 +125,8 @@ export const routes: Routes = [
     resolve: { deviceInit: deviceInitResolver },
     children: [
 
-      // Administration
+      // Home / Administration
+      { path: 'home', loadComponent: () => import('./features/home/home-dashboard/home-dashboard').then(m => m.HomeDashboard) },
       { path: 'administration', canActivate: [administrationGuard], loadComponent: () => import('./features/home/home-dashboard/home-dashboard').then(m => m.HomeDashboard) },
       { path: 'hardware-guide', loadComponent: () => import('./features/home/hardware-guide/hardware-guide').then(m => m.HardwareGuide) },
 
@@ -135,6 +141,7 @@ export const routes: Routes = [
 
       // Front of House
       { path: 'floor-plan', loadComponent: () => import('./features/table-mgmt/floor-plan/floor-plan').then(m => m.FloorPlan) },
+      { path: 'tables', redirectTo: 'floor-plan', pathMatch: 'full' },
       { path: 'reservations', loadComponent: () => import('./features/reservations/reservation-manager/reservation-manager').then(m => m.ReservationManager) },
 
       // Menu
@@ -148,17 +155,20 @@ export const routes: Routes = [
       // Analytics
       { path: 'command-center', loadComponent: () => import('./features/analytics/command-center/command-center').then(m => m.CommandCenter) },
       { path: 'sales', loadComponent: () => import('./features/analytics/sales-dashboard/sales-dashboard').then(m => m.SalesDashboard) },
+      { path: 'analytics/sales', redirectTo: 'sales', pathMatch: 'full' },
       { path: 'menu-engineering', loadComponent: () => import('./features/analytics/menu-engineering-dashboard/menu-engineering-dashboard').then(m => m.MenuEngineeringDashboard) },
       { path: 'close-of-day', loadComponent: () => import('./features/reports/close-of-day/close-of-day').then(m => m.CloseOfDay) },
       { path: 'reports', loadComponent: () => import('./features/reports/report-dashboard/report-dashboard').then(m => m.ReportDashboard) },
 
       // Customers
       { path: 'customers', loadComponent: () => import('./features/crm/customer-dashboard/customer-dashboard').then(m => m.CustomerDashboard) },
+      { path: 'crm', redirectTo: 'customers', pathMatch: 'full' },
       { path: 'marketing', loadComponent: () => import('./features/marketing/campaign-builder/campaign-builder').then(m => m.CampaignBuilder) },
 
       // Operations
       { path: 'food-cost', loadComponent: () => import('./features/food-cost/food-cost-dashboard/food-cost-dashboard').then(m => m.FoodCostDashboard) },
       { path: 'scheduling', loadComponent: () => import('./features/labor/staff-scheduling/staff-scheduling').then(m => m.StaffScheduling) },
+      { path: 'labor', redirectTo: 'scheduling', pathMatch: 'full' },
       { path: 'invoicing', loadComponent: () => import('./features/invoicing/invoice-manager/invoice-manager').then(m => m.InvoiceManager) },
       { path: 'cash-drawer', loadComponent: () => import('./features/pos/cash-drawer/cash-drawer').then(m => m.CashDrawer) },
       { path: 'monitoring', loadComponent: () => import('./features/monitoring/monitoring-agent/monitoring-agent').then(m => m.MonitoringAgent) },
@@ -166,8 +176,11 @@ export const routes: Routes = [
       // AI Tools
       { path: 'ai-chat', loadComponent: () => import('./features/ai-chat/chat-assistant/chat-assistant').then(m => m.ChatAssistant) },
       { path: 'voice-order', loadComponent: () => import('./features/voice-ordering/voice-order/voice-order').then(m => m.VoiceOrder) },
+      { path: 'voice-ordering', redirectTo: 'voice-order', pathMatch: 'full' },
       { path: 'dynamic-pricing', loadComponent: () => import('./features/pricing/dynamic-pricing/dynamic-pricing').then(m => m.DynamicPricing) },
+      { path: 'pricing', redirectTo: 'dynamic-pricing', pathMatch: 'full' },
       { path: 'waste-tracker', loadComponent: () => import('./features/waste/waste-tracker/waste-tracker').then(m => m.WasteTracker) },
+      { path: 'waste', redirectTo: 'waste-tracker', pathMatch: 'full' },
       { path: 'sentiment', loadComponent: () => import('./features/sentiment/sentiment-dashboard/sentiment-dashboard').then(m => m.SentimentDashboard) },
 
       // Retail
@@ -182,12 +195,22 @@ export const routes: Routes = [
       { path: 'retail/fulfillment', loadComponent: () => import('./features/retail/fulfillment/fulfillment-dashboard').then(m => m.FulfillmentDashboard) },
       { path: 'retail/ecommerce', loadComponent: () => import('./features/retail/fulfillment/fulfillment-dashboard').then(m => m.FulfillmentDashboard) },
 
+      // Tip Management
+      { path: 'tip-management', loadComponent: () => import('./features/tip-mgmt/tip-management/tip-management').then(m => m.TipManagement) },
+      { path: 'tips', redirectTo: 'tip-management', pathMatch: 'full' },
+
+      // Reports
+      { path: 'report-builder', loadComponent: () => import('./features/reports/report-builder/report-builder').then(m => m.ReportBuilder) },
+
+      // Online Ordering (admin management — public portal is at /order/:slug)
+      { path: 'online-ordering', loadComponent: () => import('./features/online-ordering/online-order-portal/online-order-portal').then(m => m.OnlineOrderPortal) },
+
       // Admin
       { path: 'multi-location', loadComponent: () => import('./features/multi-location/multi-location-dashboard/multi-location-dashboard').then(m => m.MultiLocationDashboard) },
       { path: 'settings', loadComponent: () => import('./features/settings/control-panel/control-panel').then(m => m.ControlPanel) },
 
       // Default — redirect to home
-      { path: '', redirectTo: 'administration', pathMatch: 'full' },
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
     ],
   },
 

@@ -424,6 +424,19 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
   private scanToPayCleanup: (() => void) | null = null;
   private itemReadyCleanup: (() => void) | null = null;
 
+  constructor() {
+    // React to menu categories loading (must be in injection context)
+    effect(() => {
+      const cats = this.menuService.categories();
+      if (cats.length > 0) {
+        this._categories.set(cats);
+        if (!this._selectedCategoryId()) {
+          this._selectedCategoryId.set(cats[0].id);
+        }
+      }
+    });
+  }
+
   ngOnInit(): void {
     // Connect socket for real-time device-scoped communication
     const restaurantId = this.authService.selectedRestaurantId();
@@ -437,17 +450,6 @@ export class ServerPosTerminal implements OnInit, OnDestroy {
     }
     this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
     this.orderService.loadTemplates();
-
-    // React to menu categories loading
-    effect(() => {
-      const cats = this.menuService.categories();
-      if (cats.length > 0) {
-        this._categories.set(cats);
-        if (!this._selectedCategoryId()) {
-          this._selectedCategoryId.set(cats[0].id);
-        }
-      }
-    });
 
     // Listen for order updates to keep state fresh
     this.orderEventCleanup = this.orderService.onMappedOrderEvent((event: MappedOrderEvent) => {

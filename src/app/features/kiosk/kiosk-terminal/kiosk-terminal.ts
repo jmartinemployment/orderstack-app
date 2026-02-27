@@ -488,6 +488,15 @@ export class KioskTerminal implements OnInit {
     return item.imageUrl ?? item.thumbnailUrl ?? item.image ?? null;
   }
 
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    const container = img.parentElement;
+    if (container) {
+      container.classList.add('item-image-placeholder');
+    }
+  }
+
   formatPrice(price: number | string): number {
     return typeof price === 'string' ? Number.parseFloat(price) : price;
   }

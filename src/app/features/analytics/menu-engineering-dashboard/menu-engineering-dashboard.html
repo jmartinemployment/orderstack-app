@@ -180,7 +180,7 @@
                 [class.active]="selectedItemId() === item.id"
                 (click)="viewItemProfitability(item.id)"
               >
-                <span class="badge me-1" [class]="getQuadrantClass(item.classification)">{{ getQuadrantLabel(item.classification).charAt(0) }}</span>
+                <span class="badge me-1" [class]="getQuadrantClass(item.classification)">{{ (getQuadrantLabel(item.classification) ?? '').charAt(0) }}</span>
                 {{ item.name }}
               </button>
             }

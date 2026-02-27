@@ -93,7 +93,8 @@
               <button type="button" class="item-tile" (click)="addItem(item)">
                 @if (getItemImage(item); as imgUrl) {
                   <div class="item-image">
-                    <img [src]="imgUrl" [alt]="item.name" loading="lazy" />
+                    <img [src]="imgUrl" [alt]="item.name" loading="lazy" (error)="onImageError($event)" />
+                    <i class="bi bi-bag item-image-fallback"></i>
                   </div>
                 } @else {
                   <div class="item-image item-image-placeholder">

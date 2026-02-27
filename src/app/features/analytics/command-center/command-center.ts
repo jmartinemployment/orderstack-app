@@ -150,9 +150,9 @@ export class CommandCenter {
     const salesInsights = this.salesReport()?.insights ?? [];
     for (const si of salesInsights) {
       insights.push({
-        id: `sales-${si.text.slice(0, 20)}`,
+        id: `sales-${(si.text ?? '').slice(0, 20)}`,
         source: 'sales',
-        text: si.text,
+        text: si.text ?? '',
         priority: si.change !== undefined && Math.abs(si.change) > 20 ? 'high' : 'medium',
         type: si.type,
       });
@@ -161,9 +161,9 @@ export class CommandCenter {
     const menuInsights = this.menuEngineering()?.insights ?? [];
     for (const mi of menuInsights) {
       insights.push({
-        id: `menu-${mi.text.slice(0, 20)}`,
+        id: `menu-${(mi.text ?? '').slice(0, 20)}`,
         source: 'menu',
-        text: mi.text,
+        text: mi.text ?? '',
         priority: mi.priority,
         type: mi.type === 'warning' ? 'warning' : mi.type === 'action' ? 'action' : 'neutral',
       });

@@ -277,10 +277,18 @@
     object-fit: cover;
   }
 
+  .item-image-fallback {
+    display: none;
+  }
+
   &.item-image-placeholder {
     i {
       font-size: 28px;
       color: #c8c8c8;
+    }
+
+    .item-image-fallback {
+      display: block;
     }
   }
 }

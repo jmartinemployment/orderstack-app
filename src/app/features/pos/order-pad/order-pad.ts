@@ -182,6 +182,18 @@ export class OrderPad implements OnInit, OnDestroy {
   // Seat options (1-8)
   readonly seatOptions = [1, 2, 3, 4, 5, 6, 7, 8];
 
+  constructor() {
+    // React to menu categories loading (must be in injection context)
+    effect(() => {
+      const cats = this.menuService.categories();
+      if (cats.length > 0) {
+        this._categories.set(cats);
+        if (!this._selectedCategoryId()) {
+          this._selectedCategoryId.set(cats[0].id);
+        }
+      }
+    });
+  }
 
   ngOnInit(): void {
     // Connect socket for real-time device-scoped communication
@@ -195,17 +207,6 @@ export class OrderPad implements OnInit, OnDestroy {
       this.tableService.loadTables();
     }
     this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-
-    // React to menu categories loading
-    effect(() => {
-      const cats = this.menuService.categories();
-      if (cats.length > 0) {
-        this._categories.set(cats);
-        if (!this._selectedCategoryId()) {
-          this._selectedCategoryId.set(cats[0].id);
-        }
-      }
-    });
   }
 
   ngOnDestroy(): void {
