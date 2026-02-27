@@ -6,6 +6,7 @@ export interface User {
   role: UserRole;
   restaurantGroupId?: string | null;
   restaurantIds?: string[];
+  onboardingStatus?: string;
 }
 
 export interface UserRestaurant {

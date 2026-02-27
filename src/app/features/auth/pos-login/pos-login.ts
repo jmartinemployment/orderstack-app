@@ -263,6 +263,7 @@ export class PosLogin {
             avatarUrl: null,
             hireDate: null,
             status: 'active',
+            onboardingStatus: 'complete',
             createdAt: new Date().toISOString(),
             staffPinId: null,
           };

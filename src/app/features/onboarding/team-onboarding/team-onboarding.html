@@ -1,0 +1,158 @@
+<div class="team-onboarding">
+  <div class="onboarding-card">
+    <div class="onboarding-header">
+      <h4 class="mb-1">Welcome, {{ userName() }}</h4>
+      <p class="text-muted mb-0">Complete these steps to finish your onboarding</p>
+    </div>
+
+    <!-- Progress -->
+    <div class="onboarding-progress">
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" [style.width.%]="progress()"></div>
+      </div>
+      <div class="progress-steps">
+        @for (step of steps; track step.key; let i = $index) {
+          <div class="progress-step" [class.active]="i === currentStep()" [class.completed]="i < currentStep()">
+            <div class="step-dot">
+              @if (i < currentStep()) {
+                <i class="bi bi-check"></i>
+              } @else {
+                {{ i + 1 }}
+              }
+            </div>
+            <span class="step-label">{{ step.label }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="alert alert-danger mb-3">{{ error() }}</div>
+    }
+
+    <!-- Step 1: Personal Info -->
+    @if (currentStep() === 0) {
+      <form [formGroup]="personalForm" class="onboarding-form">
+        <h5 class="step-title">
+          <i class="bi bi-person-vcard me-2"></i>
+          Personal Information
+        </h5>
+        <p class="text-muted small mb-3">Verify and complete your personal details</p>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">First Name *</label>
+            <input type="text" class="form-control" formControlName="firstName" placeholder="First name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Last Name *</label>
+            <input type="text" class="form-control" formControlName="lastName" placeholder="Last name">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Street Address</label>
+            <input type="text" class="form-control" formControlName="address" placeholder="123 Main St">
+          </div>
+          <div class="col-md-5">
+            <label class="form-label">City</label>
+            <input type="text" class="form-control" formControlName="city" placeholder="City">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">State</label>
+            <input type="text" class="form-control" formControlName="state" placeholder="FL" maxlength="2">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">ZIP Code</label>
+            <input type="text" class="form-control" formControlName="zip" placeholder="33301" maxlength="10">
+          </div>
+          <div class="col-12">
+            <label class="form-label">Phone Number *</label>
+            <input type="tel" class="form-control" formControlName="phone" placeholder="(555) 555-5555">
+          </div>
+        </div>
+      </form>
+    }
+
+    <!-- Step 2: Emergency Contact -->
+    @if (currentStep() === 1) {
+      <form [formGroup]="emergencyForm" class="onboarding-form">
+        <h5 class="step-title">
+          <i class="bi bi-telephone me-2"></i>
+          Emergency Contact
+        </h5>
+        <p class="text-muted small mb-3">Provide an emergency contact in case we need to reach someone</p>
+
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Contact Name *</label>
+            <input type="text" class="form-control" formControlName="emergencyName" placeholder="Full name">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Contact Phone *</label>
+            <input type="tel" class="form-control" formControlName="emergencyPhone" placeholder="(555) 555-5555">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Relationship</label>
+            <input type="text" class="form-control" formControlName="emergencyRelation" placeholder="e.g., Spouse, Parent">
+          </div>
+        </div>
+      </form>
+    }
+
+    <!-- Step 3: Handbook Acknowledgment -->
+    @if (currentStep() === 2) {
+      <div class="onboarding-form">
+        <h5 class="step-title">
+          <i class="bi bi-file-earmark-check me-2"></i>
+          Handbook Acknowledgment
+        </h5>
+        <p class="text-muted small mb-3">Please review and acknowledge the employee handbook</p>
+
+        <div class="handbook-box">
+          <p>By checking the box below, I acknowledge that:</p>
+          <ul>
+            <li>I have received and reviewed the employee handbook</li>
+            <li>I understand the company policies and procedures</li>
+            <li>I agree to comply with all workplace rules and expectations</li>
+            <li>I understand that violation of policies may result in disciplinary action</li>
+          </ul>
+        </div>
+
+        <div class="form-check mt-3">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="handbookCheck"
+            [checked]="handbookAcknowledged()"
+            (change)="toggleHandbookAcknowledged()">
+          <label class="form-check-label" for="handbookCheck">
+            I acknowledge that I have read and understood the employee handbook
+          </label>
+        </div>
+      </div>
+    }
+
+    <!-- Navigation -->
+    <div class="onboarding-actions">
+      @if (currentStep() > 0) {
+        <button class="btn btn-outline-secondary" (click)="prevStep()">
+          <i class="bi bi-arrow-left me-1"></i> Back
+        </button>
+      } @else {
+        <div></div>
+      }
+
+      @if (currentStep() < totalSteps - 1) {
+        <button class="btn btn-primary" (click)="nextStep()" [disabled]="!canProceed()">
+          Continue <i class="bi bi-arrow-right ms-1"></i>
+        </button>
+      } @else {
+        <button class="btn btn-success" (click)="submit()" [disabled]="!canProceed() || isSaving()">
+          @if (isSaving()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          Complete Onboarding
+        </button>
+      }
+    </div>
+  </div>
+</div>

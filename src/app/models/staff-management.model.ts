@@ -43,6 +43,8 @@ export interface TeamMemberJobFormData {
   overtimeEligible: boolean;
 }
 
+export type OnboardingStatus = 'not_started' | 'in_progress' | 'complete';
+
 export interface TeamMember {
   id: string;
   restaurantId: string;
@@ -62,6 +64,7 @@ export interface TeamMember {
   avatarUrl: string | null;
   hireDate: string | null;
   status: TeamMemberStatus;
+  onboardingStatus: OnboardingStatus;
   createdAt: string;
   staffPinId: string | null;
 }
@@ -71,6 +74,8 @@ export interface TeamMemberFormData {
   email?: string;
   phone?: string;
   passcode?: string;
+  password?: string;
+  tempPasswordExpiresInHours?: number;
   permissionSetId?: string;
   assignedLocationIds?: string[];
   hireDate?: string;
@@ -80,6 +85,7 @@ export interface TeamMemberFormData {
 // --- Permission Sets ---
 
 export type PermissionCategory =
+  | 'administration'
   | 'pos'
   | 'menu'
   | 'timeclock'
@@ -110,6 +116,8 @@ export interface PermissionSetFormData {
 }
 
 export const PERMISSION_DEFINITIONS: PermissionDefinition[] = [
+  // Administration
+  { key: 'administration.access', label: 'Administration Access', category: 'administration', description: 'Access the administration dashboard' },
   // POS
   { key: 'pos.take_orders', label: 'Take Orders', category: 'pos', description: 'Create and modify orders' },
   { key: 'pos.apply_discounts', label: 'Apply Discounts', category: 'pos', description: 'Apply discounts to orders' },

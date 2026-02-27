@@ -1,0 +1,218 @@
+:host {
+  display: block;
+}
+
+.team-onboarding {
+  width: 100%;
+  max-width: 580px;
+  margin: 0 auto;
+}
+
+.onboarding-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.04);
+  padding: 32px;
+}
+
+.onboarding-header {
+  text-align: center;
+  margin-bottom: 24px;
+
+  h4 {
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+}
+
+// Progress
+.onboarding-progress {
+  margin-bottom: 28px;
+}
+
+.progress-bar-container {
+  height: 4px;
+  background: #e9ecef;
+  border-radius: 2px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: #006aff;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e9ecef;
+  color: #6c757d;
+  transition: all 0.2s ease;
+
+  .active & {
+    background: #006aff;
+    color: #fff;
+  }
+
+  .completed & {
+    background: #198754;
+    color: #fff;
+  }
+}
+
+.step-label {
+  font-size: 0.7rem;
+  color: #6c757d;
+  text-align: center;
+
+  .active & {
+    color: #006aff;
+    font-weight: 600;
+  }
+
+  .completed & {
+    color: #198754;
+  }
+}
+
+// Form
+.onboarding-form {
+  margin-bottom: 24px;
+}
+
+.step-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #495057;
+}
+
+.form-control {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus {
+    border-color: #006aff;
+    box-shadow: 0 0 0 3px rgba(0, 106, 255, 0.1);
+  }
+}
+
+// Handbook
+.handbook-box {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 20px;
+  font-size: 0.9rem;
+  color: #495057;
+
+  p {
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  ul {
+    margin-bottom: 0;
+    padding-left: 20px;
+
+    li {
+      margin-bottom: 6px;
+    }
+  }
+}
+
+.form-check-input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+
+  &:checked {
+    background-color: #006aff;
+    border-color: #006aff;
+  }
+}
+
+.form-check-label {
+  font-size: 0.9rem;
+  padding-left: 4px;
+}
+
+// Actions
+.onboarding-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #e9ecef;
+}
+
+.btn {
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.btn-primary {
+  background: #006aff;
+  border-color: #006aff;
+
+  &:hover:not(:disabled) {
+    background: #0058d4;
+  }
+}
+
+.btn-success {
+  background: #198754;
+  border-color: #198754;
+
+  &:hover:not(:disabled) {
+    background: #157347;
+  }
+}
+
+.btn-outline-secondary {
+  color: #6c757d;
+  border-color: #dee2e6;
+
+  &:hover {
+    background: #f8f9fa;
+    color: #495057;
+  }
+}
+
+.alert {
+  border-radius: 8px;
+  font-size: 0.9rem;
+}

@@ -16,6 +16,7 @@ import {
   OnboardingChecklist,
   OnboardingStepStatus,
   OnboardingStep,
+  OnboardingStatus,
 } from '@models/staff-management.model';
 
 @Component({
@@ -69,6 +70,8 @@ export class StaffManagement {
   private readonly _tmFormEmail = signal('');
   private readonly _tmFormPhone = signal('');
   private readonly _tmFormPasscode = signal('');
+  private readonly _tmFormPassword = signal('');
+  private readonly _tmFormTempPasswordHours = signal(4);
   private readonly _tmFormPermissionSetId = signal<string | null>(null);
   private readonly _tmFormHireDate = signal('');
   private readonly _tmFormJobs = signal<TeamMemberJobFormData[]>([{ jobTitle: '', hourlyRate: 0, isTipEligible: false, isPrimary: true, overtimeEligible: true }]);
@@ -79,6 +82,8 @@ export class StaffManagement {
   readonly tmFormEmail = this._tmFormEmail.asReadonly();
   readonly tmFormPhone = this._tmFormPhone.asReadonly();
   readonly tmFormPasscode = this._tmFormPasscode.asReadonly();
+  readonly tmFormPassword = this._tmFormPassword.asReadonly();
+  readonly tmFormTempPasswordHours = this._tmFormTempPasswordHours.asReadonly();
   readonly tmFormPermissionSetId = this._tmFormPermissionSetId.asReadonly();
   readonly tmFormHireDate = this._tmFormHireDate.asReadonly();
   readonly tmFormJobs = this._tmFormJobs.asReadonly();
@@ -94,17 +99,15 @@ export class StaffManagement {
   readonly psFormName = this._psFormName.asReadonly();
   readonly psFormPermissions = this._psFormPermissions.asReadonly();
 
-  readonly permissionCategories: PermissionCategory[] = ['pos', 'menu', 'timeclock', 'team', 'reporting', 'settings'];
+  readonly permissionCategories: PermissionCategory[] = ['administration', 'pos', 'menu', 'timeclock', 'team', 'reporting', 'settings'];
   readonly permissionDefinitions = PERMISSION_DEFINITIONS;
 
   // --- Onboarding ---
   private readonly _showOnboarding = signal<string | null>(null);
   private readonly _onboardingChecklist = signal<OnboardingChecklist | null>(null);
-  private readonly _isSendingLink = signal(false);
 
   readonly showOnboarding = this._showOnboarding.asReadonly();
   readonly onboardingChecklist = this._onboardingChecklist.asReadonly();
-  readonly isSendingLink = this._isSendingLink.asReadonly();
 
   readonly onboardingProgress = computed(() => {
     const checklist = this._onboardingChecklist();
@@ -114,10 +117,7 @@ export class StaffManagement {
   });
 
   readonly membersNeedingOnboarding = computed(() =>
-    this.activeTeamMembers().filter(m => {
-      const checklist = this.staffService.getOnboardingChecklist(m.id);
-      return !checklist || !checklist.completedAt;
-    })
+    this.activeTeamMembers().filter(m => m.onboardingStatus !== 'complete')
   );
 
   readonly pinForm = this.fb.group({
@@ -299,6 +299,24 @@ export class StaffManagement {
     return Object.values(ps.permissions).filter(Boolean).length;
   }
 
+  getOnboardingStatusLabel(status: OnboardingStatus): string {
+    const labels: Record<OnboardingStatus, string> = {
+      not_started: 'Not Started',
+      in_progress: 'In Progress',
+      complete: 'Complete',
+    };
+    return labels[status];
+  }
+
+  getOnboardingStatusClass(status: OnboardingStatus): string {
+    const classes: Record<OnboardingStatus, string> = {
+      not_started: 'badge-warning',
+      in_progress: 'badge-info',
+      complete: 'badge-active',
+    };
+    return classes[status];
+  }
+
   // ============ Team Member CRUD ============
 
   openCreateTeamMember(): void {
@@ -307,6 +325,8 @@ export class StaffManagement {
     this._tmFormEmail.set('');
     this._tmFormPhone.set('');
     this._tmFormPasscode.set('');
+    this._tmFormPassword.set('');
+    this._tmFormTempPasswordHours.set(4);
     this._tmFormPermissionSetId.set(null);
     this._tmFormHireDate.set('');
     this._tmFormJobs.set([{ jobTitle: '', hourlyRate: 0, isTipEligible: false, isPrimary: true, overtimeEligible: true }]);
@@ -319,6 +339,8 @@ export class StaffManagement {
     this._tmFormEmail.set(member.email ?? '');
     this._tmFormPhone.set(member.phone ?? '');
     this._tmFormPasscode.set('');
+    this._tmFormPassword.set('');
+    this._tmFormTempPasswordHours.set(4);
     this._tmFormPermissionSetId.set(member.permissionSetId);
     this._tmFormHireDate.set(member.hireDate ?? '');
     this._tmFormJobs.set(member.jobs.map(j => ({
@@ -336,14 +358,19 @@ export class StaffManagement {
     this._editingTeamMember.set(null);
   }
 
-  setTmField(field: 'name' | 'email' | 'phone' | 'passcode' | 'hireDate', value: string): void {
+  setTmField(field: 'name' | 'email' | 'phone' | 'passcode' | 'password' | 'hireDate', value: string): void {
     switch (field) {
       case 'name': this._tmFormName.set(value); break;
       case 'email': this._tmFormEmail.set(value); break;
       case 'phone': this._tmFormPhone.set(value); break;
       case 'passcode': this._tmFormPasscode.set(value); break;
+      case 'password': this._tmFormPassword.set(value); break;
       case 'hireDate': this._tmFormHireDate.set(value); break;
     }
+  }
+
+  setTmTempPasswordHours(value: number): void {
+    this._tmFormTempPasswordHours.set(value);
   }
 
   setTmPermissionSet(id: string): void {
@@ -366,11 +393,15 @@ export class StaffManagement {
     const name = this._tmFormName().trim();
     if (!name || this._isSaving()) return;
 
+    const password = this._tmFormPassword().trim();
+
     const data: TeamMemberFormData = {
       displayName: name,
       email: this._tmFormEmail().trim() || undefined,
       phone: this._tmFormPhone().trim() || undefined,
       passcode: this._tmFormPasscode().trim() || undefined,
+      password: password || undefined,
+      tempPasswordExpiresInHours: password ? this._tmFormTempPasswordHours() : undefined,
       permissionSetId: this._tmFormPermissionSetId() ?? undefined,
       hireDate: this._tmFormHireDate() || undefined,
       jobs: this._tmFormJobs().filter(j => j.jobTitle.trim()),
@@ -458,6 +489,7 @@ export class StaffManagement {
 
   getCategoryLabel(category: PermissionCategory): string {
     const labels: Record<PermissionCategory, string> = {
+      administration: 'Administration',
       pos: 'POS',
       menu: 'Menu',
       timeclock: 'Time Clock',
@@ -545,17 +577,6 @@ export class StaffManagement {
     });
 
     await this.staffService.updateOnboardingStep(memberId, step, isComplete);
-  }
-
-  async sendOnboardingLink(): Promise<void> {
-    const memberId = this._showOnboarding();
-    if (!memberId) return;
-    this._isSendingLink.set(true);
-    const success = await this.staffService.sendOnboardingLink(memberId);
-    this._isSendingLink.set(false);
-    if (success) {
-      this.showSuccess('Onboarding link sent');
-    }
   }
 
   getOnboardingMemberName(): string {

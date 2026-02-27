@@ -429,4 +429,18 @@ export class StaffManagementService {
   getOnboardingChecklist(teamMemberId: string): OnboardingChecklist | undefined {
     return this._onboardingChecklists().get(teamMemberId);
   }
+
+  async completeOnboarding(teamMemberId: string): Promise<boolean> {
+    if (!this.restaurantId) return false;
+    this._error.set(null);
+    try {
+      await firstValueFrom(
+        this.http.post(`${this.apiUrl}/restaurant/${this.restaurantId}/team-members/${teamMemberId}/onboarding/complete`, {})
+      );
+      return true;
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to complete onboarding');
+      return false;
+    }
+  }
 }

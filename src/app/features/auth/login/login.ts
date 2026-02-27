@@ -160,6 +160,18 @@ export class Login {
     const success = await this.authService.login({ email, password });
 
     if (success) {
+      // Check if user needs onboarding
+      const user = this.authService.user();
+      if (user?.onboardingStatus && user.onboardingStatus !== 'complete') {
+        // Auto-select first restaurant for onboarding users
+        const restaurants = this.authService.restaurants();
+        if (restaurants.length > 0) {
+          this.authService.selectRestaurant(restaurants[0].id, restaurants[0].name);
+        }
+        this.router.navigate(['/onboarding-checklist']);
+        return;
+      }
+
       const restaurants = this.authService.restaurants();
 
       if (restaurants.length === 0) {

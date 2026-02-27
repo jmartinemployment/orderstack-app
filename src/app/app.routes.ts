@@ -3,6 +3,7 @@ import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
 import { onboardingGuard } from './guards/onboarding.guard';
 import { deviceModeRedirectGuard } from './guards/device-mode.guard';
+import { administrationGuard } from './guards/administration.guard';
 import { deviceInitResolver } from './resolvers/device-init.resolver';
 import { MainLayoutComponent } from './layouts/main-layout.component';
 import { AuthLayoutComponent } from './layouts/auth-layout.component';
@@ -88,6 +89,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/auth/restaurant-select/restaurant-select').then(m => m.RestaurantSelect),
   },
+  {
+    path: 'onboarding-checklist',
+    canActivate: [authGuard],
+    component: AuthLayoutComponent,
+    children: [
+      { path: '', loadComponent: () => import('./features/onboarding/team-onboarding/team-onboarding').then(m => m.TeamOnboarding) },
+    ],
+  },
 
   // Dedicated device routes — full-screen, no sidebar
   {
@@ -112,7 +121,7 @@ export const routes: Routes = [
     children: [
 
       // Administration
-      { path: 'administration', loadComponent: () => import('./features/home/home-dashboard/home-dashboard').then(m => m.HomeDashboard) },
+      { path: 'administration', canActivate: [administrationGuard], loadComponent: () => import('./features/home/home-dashboard/home-dashboard').then(m => m.HomeDashboard) },
       { path: 'hardware-guide', loadComponent: () => import('./features/home/hardware-guide/hardware-guide').then(m => m.HardwareGuide) },
 
       // Orders
