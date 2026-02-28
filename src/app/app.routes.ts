@@ -117,6 +117,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/kds/kds-display/kds-display').then(m => m.KdsDisplay),
   },
 
+  // POS — full-screen, no sidebar
+  {
+    path: 'pos',
+    canActivate: [authGuard, onboardingGuard],
+    resolve: { deviceInit: deviceInitResolver },
+    loadComponent: () => import('./features/pos/server-pos-terminal/server-pos-terminal').then(m => m.ServerPosTerminal),
+  },
+
   // Authenticated routes
   {
     path: '',
@@ -134,7 +142,6 @@ export const routes: Routes = [
       { path: 'orders', loadComponent: () => import('./features/orders/pending-orders/pending-orders').then(m => m.PendingOrders) },
       { path: 'order-history', loadComponent: () => import('./features/orders/order-history/order-history').then(m => m.OrderHistory) },
       { path: 'order-pad', redirectTo: 'pos', pathMatch: 'full' },
-      { path: 'pos', loadComponent: () => import('./features/pos/server-pos-terminal/server-pos-terminal').then(m => m.ServerPosTerminal) },
 
       // SOS redirects to kiosk (consolidated)
       { path: 'sos', redirectTo: '/kiosk', pathMatch: 'full' },

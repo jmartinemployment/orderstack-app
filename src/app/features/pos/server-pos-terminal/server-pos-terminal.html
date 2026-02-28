@@ -1,1122 +1,373 @@
-<div class="pos-terminal px-2">
-  <!-- ==================== LEFT PANEL: Table List ==================== -->
-  @if (canUseFloorPlan()) {
-    <aside class="pos-left">
-      <div class="panel-header">
-        <h6>Tables</h6>
-      </div>
+<div class="pos-terminal">
+  <!-- ==================== LEFT: Item Grid Area ==================== -->
+  <main class="pos-main">
 
-      <div class="table-list-scroll">
-        @for (table of tableList(); track table.id) {
-          <button
-            type="button"
-            class="table-row"
-            [class.active]="selectedTableId() === table.id"
-            [class]="getStatusClass(table.status)"
-            (click)="selectTable(table.id)">
-            <div class="table-row-top">
-              <span class="table-num">#{{ table.tableNumber }}</span>
-              @if (table.orderCount > 0) {
-                <span class="table-total">{{ table.total | currency:'USD':'symbol':'1.0-0' }}</span>
-              }
-            </div>
-            @if (table.orderCount > 0) {
-              <div class="table-row-bottom">
-                <span class="table-elapsed">{{ table.elapsed }}m</span>
-                <span class="table-orders">{{ table.orderCount }} order{{ table.orderCount > 1 ? 's' : '' }}</span>
-              </div>
-            } @else {
-              <div class="table-row-bottom">
-                <span class="table-seats">{{ table.capacity }} seats</span>
-                <span class="table-status-label">{{ table.status }}</span>
-              </div>
-            }
-          </button>
-        }
-      </div>
-
-      <!-- Open Tabs -->
-      @if (canUseOpenChecks() && openTabs().length > 0) {
-        <div class="tabs-section">
-          <h6 class="section-title">Open Tabs</h6>
-          @for (tab of openTabs(); track tab.guid) {
-            <button
-              type="button"
-              class="tab-row"
-              [class.active]="activeOrderId() === tab.guid"
-              (click)="selectOrder(tab.guid)">
-              <span class="tab-name">
-                {{ tab.checks[0]?.tabName ?? 'Tab' }}
-                @if (tab.checks[0]?.preauthId) {
-                  <i class="bi bi-credit-card-2-front tab-preauth-icon" title="Pre-authorized"></i>
-                }
-              </span>
-              <span class="tab-total">{{ tab.totalAmount | currency }}</span>
-            </button>
-          }
-        </div>
-      }
-
-      <!-- New Order Button -->
-      @if (selectedTable() && selectedTable()!.status === 'available') {
-        <button type="button" class="btn-new-order" (click)="createNewOrder()">
-          <i class="bi bi-plus-circle"></i> New Order
-        </button>
-      }
-    </aside>
-  } @else {
-    <!-- Tableless left panel (Bar / Quick Service) -->
-    <aside class="pos-left">
-      <div class="panel-header">
-        <h6>Orders</h6>
-      </div>
-
-      <!-- Open Tabs (Bar mode) -->
-      @if (canUseOpenChecks() && openTabs().length > 0) {
-        <div class="tabs-section">
-          <h6 class="section-title">Open Tabs</h6>
-          @for (tab of openTabs(); track tab.guid) {
-            <button
-              type="button"
-              class="tab-row"
-              [class.active]="activeOrderId() === tab.guid"
-              (click)="selectOrder(tab.guid)">
-              <span class="tab-name">
-                {{ tab.checks[0]?.tabName ?? 'Tab' }}
-                @if (tab.checks[0]?.preauthId) {
-                  <i class="bi bi-credit-card-2-front tab-preauth-icon" title="Pre-authorized"></i>
-                }
-              </span>
-              <span class="tab-total">{{ tab.totalAmount | currency }}</span>
-            </button>
-          }
-        </div>
-      }
-
-      <button type="button" class="btn-new-order" (click)="createNewOrder()">
-        <i class="bi bi-plus-circle"></i> New Order
-      </button>
-    </aside>
-  }
-
-  <!-- ==================== CENTER PANEL: Category + Item Grid ==================== -->
-  <main class="pos-center">
-    <!-- Category tabs -->
-    <div class="category-bar">
+    <!-- Top Tabs -->
+    <nav class="top-tabs">
       <button
         type="button"
-        class="cat-tab"
-        [class.active]="!selectedCategoryId()"
-        (click)="selectCategory(null)">
-        All
+        class="top-tab"
+        [class.active]="activeTopTab() === 'keypad'"
+        (click)="selectTopTab('keypad')">
+        Keypad
       </button>
-      @for (cat of categories(); track cat.id) {
-        <button
-          type="button"
-          class="cat-tab"
-          [class.active]="selectedCategoryId() === cat.id"
-          (click)="selectCategory(cat.id)">
-          {{ cat.name }}
-        </button>
-      }
-    </div>
+      <button
+        type="button"
+        class="top-tab"
+        [class.active]="activeTopTab() === 'library'"
+        (click)="selectTopTab('library')">
+        Library
+      </button>
+      <button
+        type="button"
+        class="top-tab"
+        [class.active]="activeTopTab() === 'favorites'"
+        (click)="selectTopTab('favorites')">
+        Favorites
+      </button>
+      <button
+        type="button"
+        class="top-tab"
+        [class.active]="activeTopTab() === 'menu'"
+        (click)="selectTopTab('menu')">
+        Menu
+      </button>
+      <button type="button" class="top-tab-more" aria-label="More options">
+        <i class="bi bi-three-dots"></i>
+      </button>
+    </nav>
 
-    <!-- Search -->
-    <div class="search-bar">
-      <i class="bi bi-search"></i>
-      <input
-        type="text"
-        placeholder="Search menu..."
-        [value]="searchQuery()"
-        (input)="setSearchQuery($any($event.target).value)">
-    </div>
-
-    <!-- Item grid -->
-    <div class="item-grid">
-      @for (item of currentCategoryItems(); track item.id) {
-        <button
-          type="button"
-          class="item-btn"
-          [class.has-modifiers]="item.modifierGroups && item.modifierGroups.length > 0"
-          [class.has-thumbnail]="showItemImages() && (item.thumbnailUrl || item.imageUrl)"
-          (click)="onItemTap(item)">
-          @if (showItemImages() && (item.thumbnailUrl || item.imageUrl)) {
-            <img [src]="item.thumbnailUrl || item.imageUrl" [alt]="item.name" class="item-thumbnail" loading="lazy" />
-          }
-          <span class="item-name">{{ item.name }}</span>
-          <span class="item-price">{{ +item.price | currency }}</span>
-          @if (item.modifierGroups && item.modifierGroups.length > 0) {
-            <span class="mod-dot"></span>
-          }
-        </button>
-      } @empty {
-        <div class="grid-empty">
-          <p>No items found</p>
-        </div>
-      }
-    </div>
-
-    <!-- Seat selector strip -->
-    @if (canUseSeatAssignment()) {
-      <div class="seat-bar">
-        <span class="seat-label">Seat:</span>
-        <button
-          type="button"
-          class="seat-btn"
-          [class.active]="!currentSeat()"
-          (click)="setCurrentSeat(undefined)">
-          —
-        </button>
-        @for (s of [1,2,3,4,5,6,7,8]; track s) {
+    <!-- Category pills (only visible on Menu tab) -->
+    @if (activeTopTab() === 'menu') {
+      <div class="category-pills">
+        @for (cat of categories(); track cat.id) {
           <button
             type="button"
-            class="seat-btn"
-            [class.active]="currentSeat() === s"
-            (click)="setCurrentSeat(s)">
-            {{ s }}
+            class="category-pill"
+            [class.active]="selectedCategoryId() === cat.id"
+            (click)="selectCategory(cat.id)">
+            {{ cat.name }}
           </button>
         }
       </div>
     }
+
+    <!-- Keypad View -->
+    @if (activeTopTab() === 'keypad') {
+      <div class="keypad-view">
+        <div class="keypad-display">
+          <span class="keypad-dollar">$</span>
+          <span class="keypad-amount">{{ keypadValue() || '0' }}</span>
+        </div>
+        <div class="keypad-grid">
+          @for (key of ['1','2','3','4','5','6','7','8','9','00','0','.']; track key) {
+            <button
+              type="button"
+              class="keypad-key"
+              (click)="onKeypadPress(key)">
+              {{ key }}
+            </button>
+          }
+        </div>
+        <div class="keypad-actions">
+          <button type="button" class="keypad-clear" (click)="onKeypadPress('clear')">Clear</button>
+          <button type="button" class="keypad-backspace" (click)="onKeypadPress('backspace')">
+            <i class="bi bi-backspace"></i>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Item Grid -->
+    @if (activeTopTab() !== 'keypad') {
+      <div class="item-grid-container">
+        @if (isLoading()) {
+          <div class="grid-loading">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading menu...</span>
+            </div>
+          </div>
+        } @else {
+          <div class="item-grid">
+            @for (item of gridItems(); track item.id) {
+              <button type="button" class="item-tile" (click)="addItem(item)">
+                @if (getItemImage(item); as imgUrl) {
+                  <div class="item-image">
+                    <img [src]="imgUrl" [alt]="item.name" loading="lazy" (error)="onImageError($event)" />
+                    <i class="bi bi-bag item-image-fallback"></i>
+                  </div>
+                } @else {
+                  <div class="item-image item-image-placeholder">
+                    <i class="bi bi-bag"></i>
+                  </div>
+                }
+                <span class="item-name">{{ item.name }}</span>
+              </button>
+            }
+
+            <!-- Empty placeholder tiles to fill the row -->
+            @for (i of [1,2,3,4,5]; track i) {
+              @if (gridItems().length % 5 !== 0 && i <= 5 - (gridItems().length % 5)) {
+                <div class="item-tile item-tile-empty"></div>
+              }
+            }
+          </div>
+
+          <!-- Action tiles row -->
+          <div class="action-tiles">
+            <button type="button" class="action-tile">
+              <div class="action-icon">
+                <i class="bi bi-percent"></i>
+              </div>
+              <span class="action-label">Discounts</span>
+            </button>
+            <button type="button" class="action-tile">
+              <div class="action-icon">
+                <i class="bi bi-star-fill"></i>
+              </div>
+              <span class="action-label">Rewards</span>
+            </button>
+            <button type="button" class="action-tile">
+              <div class="action-icon">
+                <i class="bi bi-gift-fill"></i>
+              </div>
+              <span class="action-label">Gift cards</span>
+            </button>
+            <div class="action-tile action-tile-empty"></div>
+            <div class="action-tile action-tile-empty"></div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button
+        type="button"
+        class="bottom-nav-item"
+        [class.active]="activeBottomTab() === 'checkout'"
+        (click)="selectBottomTab('checkout')">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+        <span>Checkout</span>
+      </button>
+      <button
+        type="button"
+        class="bottom-nav-item"
+        [class.active]="activeBottomTab() === 'open-orders'"
+        (click)="selectBottomTab('open-orders')">
+        <i class="bi bi-receipt"></i>
+        <span>Open Orders</span>
+      </button>
+      <button
+        type="button"
+        class="bottom-nav-item"
+        [class.active]="activeBottomTab() === 'notifications'"
+        (click)="selectBottomTab('notifications')">
+        <i class="bi bi-bell"></i>
+        <span>Notifications</span>
+      </button>
+      <button
+        type="button"
+        class="bottom-nav-item"
+        [class.active]="activeBottomTab() === 'more'"
+        (click)="selectBottomTab('more')">
+        <i class="bi bi-list"></i>
+        <span>More</span>
+      </button>
+    </nav>
   </main>
 
-  <!-- ==================== RIGHT PANEL: Active Check ==================== -->
-  <aside class="pos-right">
-    @if (activeOrder(); as order) {
-      <!-- Check tabs -->
-      <div class="check-tabs">
-        @for (check of order.checks; track check.guid; let i = $index) {
-          <button
-            type="button"
-            class="check-tab"
-            [class.active]="activeCheckIndex() === i"
-            (click)="selectCheck(i)">
-            @if (check.tabName) {
-              {{ check.tabName }}
-              @if (check.preauthId) {
-                <span class="preauth-dot" title="Pre-authorized"></span>
-              }
-            } @else {
-              Check {{ i + 1 }}
-            }
-          </button>
-        }
-        @if (canUseOpenChecks()) {
-          <button type="button" class="check-tab check-tab-add" (click)="addNewCheck()">+</button>
-        }
+  <!-- ==================== RIGHT: Current Sale Panel ==================== -->
+  <aside class="sale-panel">
+    <div class="sale-header">
+      <h2>Current sale{{ cartCount() > 0 ? ' (' + cartCount() + ')' : '' }}</h2>
+      <button type="button" class="sale-more-btn" aria-label="Sale options">
+        <i class="bi bi-three-dots"></i>
+      </button>
+    </div>
+
+    <!-- Customer row (placeholder) -->
+    <button type="button" class="customer-row">
+      <div class="customer-avatar">
+        <i class="bi bi-person-fill"></i>
       </div>
+      <span class="customer-name">Add customer</span>
+      <i class="bi bi-chevron-right customer-chevron"></i>
+    </button>
 
-      <!-- Check items -->
-      @if (activeCheck(); as check) {
-        <!-- Tab info banner -->
-        @if (check.tabName && !check.tabClosedAt) {
-          <div class="tab-banner">
-            <span class="tab-banner-name">
-              <i class="bi bi-wallet2"></i> {{ check.tabName }}
-            </span>
-            @if (getTabDuration() > 0) {
-              <span class="tab-banner-time">{{ getTabDuration() }}m open</span>
-            }
-            @if (check.preauthId) {
-              <span class="tab-banner-preauth">Pre-auth hold</span>
-            }
-          </div>
-        }
-
-        <!-- Partial payment progress (QR split pay) -->
-        @if (hasPartialPayment()) {
-          <div class="partial-payment-bar">
-            <div class="partial-payment-info">
-              <span class="partial-label">
-                <i class="bi bi-qr-code-scan"></i> QR Payment
-              </span>
-              <span class="partial-amounts">
-                {{ checkPaidAmount() | currency }} of {{ activeCheck()!.totalAmount | currency }}
-              </span>
-            </div>
-            <div class="partial-progress-track">
-              <div class="partial-progress-fill" [style.width.%]="checkPaymentProgress()"></div>
-            </div>
-            <span class="partial-percent">{{ checkPaymentProgress() }}%</span>
-          </div>
-        }
-
-        <!-- Check items: Course-grouped or flat -->
-        <div class="check-items">
-          @if (courseTimingEnabled() && orderCourses().length > 0) {
-            <!-- Course-grouped display -->
-            @for (group of courseGroupedSelections(); track group.course.guid) {
-              <div class="course-section">
-                <div class="course-header">
-                  <span class="course-name">{{ group.course.name }}</span>
-                  <span class="course-status-badge" [class]="getFireStatusClass(group.course.fireStatus)">
-                    {{ group.course.fireStatus }}
-                  </span>
-                </div>
-                <!-- Course timing suggestion: show on the NEXT pending course after a READY course -->
-                @for (suggestion of courseTimingSuggestions(); track suggestion.courseGuid) {
-                  @if (suggestion.courseGuid === group.course.guid) {
-                    <div class="course-timing-badge"
-                      [class.timing-green]="suggestion.remainingSeconds > 60"
-                      [class.timing-amber]="suggestion.remainingSeconds <= 60 && suggestion.remainingSeconds > 0"
-                      [class.timing-fire-now]="suggestion.remainingSeconds <= 0">
-                      <i class="bi bi-clock"></i>
-                      @if (suggestion.remainingSeconds <= 0) {
-                        Fire now
-                      } @else {
-                        Fire in {{ formatCountdown(suggestion.remainingSeconds) }}
-                      }
-                    </div>
-                  }
-                }
-                @for (sel of group.selections; track sel.guid) {
-                  <div class="check-item" [class.comped]="sel.isComped">
-                    <div class="item-row">
-                      @if (sel.seatNumber) {
-                        <span class="seat-tag">S{{ sel.seatNumber }}</span>
-                      }
-                      <span class="item-qty">{{ sel.quantity }}x</span>
-                      <span class="item-name">{{ sel.menuItemName }}</span>
-                      <span class="item-price">
-                        @if (sel.isComped) {
-                          <s>{{ sel.totalPrice | currency }}</s> $0.00
-                        } @else {
-                          {{ sel.totalPrice | currency }}
-                        }
-                      </span>
-                    </div>
-                    @if (sel.modifiers.length > 0) {
-                      <div class="item-mods">
-                        @for (mod of sel.modifiers; track mod.guid) {
-                          <span class="mod-tag">{{ mod.name }}
-                            @if (mod.priceAdjustment > 0) {
-                              (+{{ mod.priceAdjustment | currency }})
-                            }
-                          </span>
-                        }
-                      </div>
-                    }
-                    @if (sel.specialInstructions) {
-                      <div class="item-note">{{ sel.specialInstructions }}</div>
-                    }
-                    <div class="item-actions">
-                      <button type="button" class="action-void" (click)="openVoidModal(sel)">Void</button>
-                      <button type="button" class="action-comp" (click)="openCompModal(sel)">Comp</button>
-                      <!-- Course reassign -->
-                      @if (orderCourses().length > 1) {
-                        <select
-                          class="course-reassign"
-                          [value]="group.course.guid"
-                          (change)="assignItemToCourse(sel.guid, $any($event.target).value)">
-                          @for (c of orderCourses(); track c.guid) {
-                            <option [value]="c.guid">{{ c.name }}</option>
-                          }
-                        </select>
-                      }
-                    </div>
-                  </div>
-                } @empty {
-                  <div class="course-empty">No items in this course</div>
-                }
-              </div>
-            }
-
-            <!-- Unassigned items -->
-            @if (unassignedSelections().length > 0) {
-              <div class="course-section course-unassigned">
-                <div class="course-header">
-                  <span class="course-name">Unassigned</span>
-                </div>
-                @for (sel of unassignedSelections(); track sel.guid) {
-                  <div class="check-item" [class.comped]="sel.isComped">
-                    <div class="item-row">
-                      @if (sel.seatNumber) {
-                        <span class="seat-tag">S{{ sel.seatNumber }}</span>
-                      }
-                      <span class="item-qty">{{ sel.quantity }}x</span>
-                      <span class="item-name">{{ sel.menuItemName }}</span>
-                      <span class="item-price">
-                        @if (sel.isComped) {
-                          <s>{{ sel.totalPrice | currency }}</s> $0.00
-                        } @else {
-                          {{ sel.totalPrice | currency }}
-                        }
-                      </span>
-                    </div>
-                    @if (sel.modifiers.length > 0) {
-                      <div class="item-mods">
-                        @for (mod of sel.modifiers; track mod.guid) {
-                          <span class="mod-tag">{{ mod.name }}
-                            @if (mod.priceAdjustment > 0) {
-                              (+{{ mod.priceAdjustment | currency }})
-                            }
-                          </span>
-                        }
-                      </div>
-                    }
-                    @if (sel.specialInstructions) {
-                      <div class="item-note">{{ sel.specialInstructions }}</div>
-                    }
-                    <div class="item-actions">
-                      <button type="button" class="action-void" (click)="openVoidModal(sel)">Void</button>
-                      <button type="button" class="action-comp" (click)="openCompModal(sel)">Comp</button>
-                      @if (orderCourses().length > 0) {
-                        <select
-                          class="course-reassign"
-                          value=""
-                          (change)="assignItemToCourse(sel.guid, $any($event.target).value)">
-                          <option value="" disabled>Assign...</option>
-                          @for (c of orderCourses(); track c.guid) {
-                            <option [value]="c.guid">{{ c.name }}</option>
-                          }
-                        </select>
-                      }
-                    </div>
-                  </div>
-                }
-              </div>
-            }
-          } @else {
-            <!-- Flat display (no course timing) -->
-            @for (sel of check.selections; track sel.guid) {
-              <div class="check-item" [class.comped]="sel.isComped">
-                <div class="item-row">
-                  @if (sel.seatNumber) {
-                    <span class="seat-tag">S{{ sel.seatNumber }}</span>
-                  }
-                  <span class="item-qty">{{ sel.quantity }}x</span>
-                  <span class="item-name">{{ sel.menuItemName }}</span>
-                  <span class="item-price">
-                    @if (sel.isComped) {
-                      <s>{{ sel.totalPrice | currency }}</s> $0.00
-                    } @else {
-                      {{ sel.totalPrice | currency }}
-                    }
-                  </span>
-                </div>
-                @if (sel.modifiers.length > 0) {
-                  <div class="item-mods">
-                    @for (mod of sel.modifiers; track mod.guid) {
-                      <span class="mod-tag">{{ mod.name }}
-                        @if (mod.priceAdjustment > 0) {
-                          (+{{ mod.priceAdjustment | currency }})
-                        }
-                      </span>
-                    }
-                  </div>
-                }
-                @if (sel.specialInstructions) {
-                  <div class="item-note">{{ sel.specialInstructions }}</div>
-                }
-                <!-- Item actions -->
-                <div class="item-actions">
-                  <button type="button" class="action-void" (click)="openVoidModal(sel)">Void</button>
-                  <button type="button" class="action-comp" (click)="openCompModal(sel)">Comp</button>
-                </div>
-              </div>
-            } @empty {
-              <div class="check-empty">
-                <p>Tap items to add to check</p>
-              </div>
-            }
-          }
-
-          <!-- Voided items (collapsed) -->
-          @if (check.voidedSelections.length > 0) {
-            <div class="voided-section">
-              <h6 class="voided-header">Voided Items ({{ check.voidedSelections.length }})</h6>
-              @for (v of check.voidedSelections; track v.guid) {
-                <div class="voided-item">
-                  <span>{{ v.menuItemName }}</span>
-                  <span class="voided-reason">{{ v.voidReason }}</span>
-                </div>
-              }
-            </div>
-          }
-
-          <!-- Discounts -->
-          @if (check.discounts.length > 0) {
-            <div class="discount-section">
-              @for (d of check.discounts; track d.id) {
-                <div class="discount-line">
-                  <span>
-                    @if (d.type === 'percentage') {
-                      {{ d.value }}% off
-                    } @else if (d.type === 'comp') {
-                      Full comp
-                    } @else {
-                      -{{ d.value | currency }}
-                    }
-                    <span class="discount-reason">({{ d.reason }})</span>
-                  </span>
-                </div>
-              }
-            </div>
-          }
+    <!-- Line items -->
+    <div class="sale-items">
+      @if (cartItems().length === 0) {
+        <div class="sale-empty">
+          <p>No items yet</p>
         </div>
-
-        <!-- Totals -->
-        <div class="check-totals">
-          <div class="total-line">
-            <span>Subtotal</span>
-            <span>{{ check.subtotal | currency }}</span>
+      } @else {
+        @for (item of cartItems(); track item.id) {
+          <div class="sale-line-item">
+            <div class="line-item-info">
+              <button type="button" class="line-item-name" (click)="removeItem(item.id)">
+                @if (item.quantity > 1) {
+                  <span class="line-item-qty">{{ item.quantity }}x</span>
+                }
+                {{ item.menuItem.name }}
+              </button>
+              @if (item.modifierSummary) {
+                <span class="line-item-modifier">{{ item.modifierSummary }}</span>
+              }
+            </div>
+            <span class="line-item-price">{{ item.totalPrice | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
-          <div class="total-line">
+        }
+      }
+    </div>
+
+    <!-- Totals + actions -->
+    <div class="sale-footer">
+      @if (cartItems().length > 0) {
+        <div class="sale-totals">
+          <div class="total-row">
             <span>Tax</span>
-            <span>{{ check.taxAmount | currency }}</span>
+            <span>{{ tax() | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
-          @if (check.tipAmount > 0) {
-            <div class="total-line">
-              <span>Tip</span>
-              <span>{{ check.tipAmount | currency }}</span>
-            </div>
-          }
-          <div class="total-line total-grand">
-            <span>Total</span>
-            <span>{{ check.totalAmount | currency }}</span>
-          </div>
-        </div>
-
-        <!-- Action bar -->
-        <div class="action-bar">
-          <div class="action-row">
-            @if (canUseKds()) {
-              <button type="button" class="action-btn action-send" (click)="sendToKitchen()" title="Send to Kitchen">
-                <i class="bi bi-fire"></i> Send
-              </button>
-            }
-            @if (canUseSplitting()) {
-              <button type="button" class="action-btn action-split" (click)="openSplitModal()" title="Split Check">
-                <i class="bi bi-scissors"></i> Split
-              </button>
-            }
-            @if (canUseTransfer()) {
-              <button type="button" class="action-btn action-transfer" (click)="openTransferModal()" title="Transfer">
-                <i class="bi bi-arrow-left-right"></i> Move
-              </button>
-            }
-            @if (courseTimingEnabled()) {
-              <button type="button" class="action-btn action-courses" (click)="openCourseFireModal()" title="Course Firing">
-                <i class="bi bi-list-columns-reverse"></i> Courses
-              </button>
-            }
-            <button type="button" class="action-btn action-discount" (click)="openDiscountModal()" title="Discount">
-              <i class="bi bi-tag"></i> Disc
-            </button>
-            <button type="button" class="action-btn action-templates" (click)="openTemplatesModal()" title="Templates">
-              <i class="bi bi-clipboard2"></i> Tmpl
-            </button>
-          </div>
-          <div class="action-row">
-            @if (canUsePreAuthTabs()) {
-              @if (isTabOpen()) {
-                <button type="button" class="action-btn action-tab tab-open" (click)="closeActiveTab()" [disabled]="isTabProcessing()" title="Close Tab">
-                  <i class="bi bi-wallet2"></i> Close Tab
-                </button>
-              } @else {
-                <button type="button" class="action-btn action-tab" (click)="openTabModal()" title="Open Tab">
-                  <i class="bi bi-wallet2"></i> Tab
-                </button>
-              }
-            }
-            <button type="button" class="action-btn action-qr" (click)="openQrPayModal()" title="QR Pay">
-              <i class="bi bi-qr-code"></i> QR Pay
-            </button>
-            <button type="button" class="action-btn action-display" (click)="openCustomerDisplay()" title="Customer Display">
-              <i class="bi bi-display"></i> Display
-            </button>
-            <button type="button" class="action-btn action-print" (click)="printCheck()" title="Print">
-              <i class="bi bi-printer"></i> Print
-            </button>
-            <button type="button" class="action-btn action-pay" (click)="closeAndPay()" title="Close & Pay">
-              <i class="bi bi-credit-card"></i> Pay
-            </button>
-            <button type="button" class="action-btn action-tracker" (click)="toggleTracker()" title="Order Tracker">
-              <i class="bi bi-card-checklist"></i> Track
-            </button>
-          </div>
+          <div class="total-divider"></div>
+          <button type="button" class="add-discount-btn">Add discount</button>
         </div>
       }
-    } @else {
-      <!-- No order selected -->
-      <div class="no-order">
-        @if (canUseFloorPlan()) {
-          @if (selectedTable()) {
-            <p>No active order</p>
-            <button type="button" class="btn btn-primary btn-sm" (click)="createNewOrder()">
-              <i class="bi bi-plus-circle me-1"></i> New Order
-            </button>
-          } @else {
-            <p>Select a table to begin</p>
-          }
+
+      <button
+        type="button"
+        class="send-btn"
+        [disabled]="cartItems().length === 0"
+        (click)="sendToKitchen()">
+        @if (cartItems().length > 0) {
+          <i class="bi bi-send-fill"></i> Send to Kitchen
         } @else {
-          <p>Tap New Order to begin</p>
+          Send to Kitchen
         }
-      </div>
-    }
+      </button>
+    </div>
   </aside>
-
-  <!-- ==================== MODALS ==================== -->
-
-  <!-- Modifier Prompt -->
-  @if (activeModal() === 'modifier' && modifierItem()) {
-    <os-modifier-prompt
-      [menuItem]="modifierItem()!"
-      [defaultSeatNumber]="currentSeat()"
-      (confirmed)="onModifierConfirmed($event)"
-      (cancel)="onModifierCancelled()" />
-  }
-
-  <!-- Discount Modal -->
-  @if (activeModal() === 'discount') {
-    <os-discount-modal
-      [checkSubtotal]="getCheckSubtotal()"
-      (discountApply)="onDiscountApply($event)"
-      (cancel)="closeModal()" />
-  }
-
-  <!-- Void Modal -->
-  @if (activeModal() === 'void' && voidSelection()) {
-    <os-void-modal
-      mode="void"
-      [itemName]="voidSelection()!.menuItemName"
-      [itemPrice]="voidSelection()!.totalPrice"
-      (voidConfirm)="onVoidConfirm($event)"
-      (cancel)="closeModal()" />
-  }
-
-  <!-- Comp Modal -->
-  @if (activeModal() === 'comp' && voidSelection()) {
-    <os-void-modal
-      mode="comp"
-      [itemName]="voidSelection()!.menuItemName"
-      [itemPrice]="voidSelection()!.totalPrice"
-      (compConfirm)="onCompConfirm($event)"
-      (cancel)="closeModal()" />
-  }
-
-  <!-- Split Modal -->
-  @if (activeModal() === 'split') {
-    <div class="modal-overlay" (click)="closeModal()">
-      <div class="split-modal" (click)="$event.stopPropagation()">
-        <h5>Split Check</h5>
-        <div class="split-options">
-          <button
-            type="button"
-            class="split-opt"
-            [class.active]="splitMode() === 'equal'"
-            (click)="setSplitMode('equal')">
-            <i class="bi bi-distribute-horizontal"></i> Split Equally
-          </button>
-          <button
-            type="button"
-            class="split-opt"
-            [class.active]="splitMode() === 'seat'"
-            (click)="setSplitMode('seat')">
-            <i class="bi bi-people"></i> By Seat
-          </button>
-        </div>
-        @if (splitMode() === 'equal') {
-          <div class="split-count">
-            <label>Number of ways:</label>
-            <div class="d-flex gap-2 align-items-center">
-              <button type="button" class="btn btn-sm btn-outline-light" (click)="setSplitCount(splitCount() - 1)">-</button>
-              <span class="split-num">{{ splitCount() }}</span>
-              <button type="button" class="btn btn-sm btn-outline-light" (click)="setSplitCount(splitCount() + 1)">+</button>
-            </div>
-          </div>
-        }
-        <div class="split-actions">
-          <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Cancel</button>
-          <button type="button" class="btn btn-primary" (click)="executeSplit()">Split</button>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Transfer Modal -->
-  @if (activeModal() === 'transfer') {
-    <div class="modal-overlay" (click)="closeModal()">
-      <div class="transfer-modal" (click)="$event.stopPropagation()">
-        <h5>Transfer Check</h5>
-        <p class="text-muted">Select destination table:</p>
-        <div class="transfer-grid">
-          @for (table of tables(); track table.id) {
-            @if (table.id !== selectedTableId()) {
-              <button
-                type="button"
-                class="transfer-table-btn"
-                [class.selected]="transferTargetId() === table.id"
-                (click)="setTransferTarget(table.id)">
-                #{{ table.tableNumber }}
-                <span class="small">{{ table.status }}</span>
-              </button>
-            }
-          }
-        </div>
-        <div class="transfer-actions">
-          <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Cancel</button>
-          <button type="button" class="btn btn-primary" [disabled]="!transferTargetId()" (click)="executeTransfer()">Transfer</button>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Templates Modal -->
-  @if (activeModal() === 'templates') {
-    <div class="modal-overlay" (click)="closeModal()">
-      <div class="templates-modal" (click)="$event.stopPropagation()">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="mb-0">Order Templates</h5>
-          @if (hasCheckItems()) {
-            <button type="button" class="btn btn-sm btn-outline-primary" (click)="openSaveTemplateModal()">
-              <i class="bi bi-plus-circle me-1"></i> Save Current
-            </button>
-          }
-        </div>
-        @if (templates().length > 0) {
-          <div class="template-list">
-            @for (tmpl of templates(); track tmpl.id) {
-              <div class="template-card">
-                <div class="template-info">
-                  <span class="template-name">{{ tmpl.name }}</span>
-                  <span class="template-count">{{ tmpl.items.length }} item{{ tmpl.items.length !== 1 ? 's' : '' }}</span>
-                </div>
-                <div class="template-actions">
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-primary"
-                    [disabled]="isApplyingTemplate()"
-                    (click)="applyTemplate(tmpl.id)">
-                    @if (isApplyingTemplate()) {
-                      <span class="spinner-border spinner-border-sm"></span>
-                    } @else {
-                      Apply
-                    }
-                  </button>
-                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteTemplate(tmpl.id)">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </div>
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="template-empty">
-            <p class="text-muted mb-0">No saved templates</p>
-            @if (hasCheckItems()) {
-              <p class="small text-muted">Save the current check as a template to get started.</p>
-            }
-          </div>
-        }
-        <div class="template-modal-footer">
-          <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Close</button>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Save Template Modal -->
-  @if (activeModal() === 'save-template') {
-    <div class="modal-overlay" (click)="closeModal()">
-      <div class="save-template-modal" (click)="$event.stopPropagation()">
-        <h5>Save as Template</h5>
-        <div class="mb-3">
-          <label class="form-label">Template Name</label>
-          <input
-            type="text"
-            class="form-control"
-            placeholder="e.g., Lunch Special, Staff Meal"
-            [value]="templateName()"
-            (input)="setTemplateName($any($event.target).value)">
-        </div>
-        <div class="save-template-actions">
-          <button type="button" class="btn btn-outline-secondary" (click)="openTemplatesModal()">Back</button>
-          <button
-            type="button"
-            class="btn btn-primary"
-            [disabled]="!templateName().trim()"
-            (click)="saveCurrentAsTemplate()">
-            Save
-          </button>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- QR Pay Modal -->
-  @if (activeModal() === 'qr-pay') {
-    <div class="modal-overlay" (click)="closeModal()">
-      <div class="qr-modal" (click)="$event.stopPropagation()">
-        <h5>Scan to Pay</h5>
-        <p class="qr-subtitle">Guest scans to view check and pay from their phone</p>
-        @if (isGeneratingQr()) {
-          <div class="qr-loading">
-            <span class="spinner-border"></span>
-            <p>Generating QR code...</p>
-          </div>
-        } @else if (qrCodeUrl()) {
-          <div class="qr-display">
-            <img [src]="qrCodeUrl()" alt="Scan to Pay QR Code" class="qr-image">
-          </div>
-          <div class="qr-actions">
-            <button type="button" class="btn btn-outline-secondary" (click)="printCheck()">
-              <i class="bi bi-printer me-1"></i> Print with QR
-            </button>
-            <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Done</button>
-          </div>
-        } @else {
-          <div class="qr-error">
-            <i class="bi bi-exclamation-triangle"></i>
-            <p>Could not generate QR code. Try again.</p>
-            <button type="button" class="btn btn-primary btn-sm" (click)="openQrPayModal()">Retry</button>
-          </div>
-        }
-      </div>
-    </div>
-  }
-
-  <!-- Payment Terminal Modal -->
-  @if (activeModal() === 'payment' && activeOrder() && activeCheck()) {
-    <div class="modal-overlay" (click)="closeModal()">
-      <div class="payment-modal" (click)="$event.stopPropagation()">
-        <div class="payment-modal-header">
-          <h5>Payment</h5>
-          <span class="payment-modal-amount">{{ activeCheck()!.totalAmount | currency }}</span>
-          <button type="button" class="btn-modal-close" (click)="closeModal()">
-            <i class="bi bi-x-lg"></i>
-          </button>
-        </div>
-        @if (paymentError()) {
-          <div class="payment-modal-error">{{ paymentError() }}</div>
-        }
-        <div class="payment-modal-body">
-          <os-payment-terminal
-            [amount]="activeCheck()!.totalAmount"
-            [orderId]="activeOrder()!.guid"
-            [showOnScreen]="true"
-            [showCardReader]="true"
-            (paymentComplete)="onPaymentComplete()"
-            (paymentFailed)="onPaymentFailed($event)"
-          />
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Course Fire Modal -->
-  @if (activeModal() === 'course-fire') {
-    <div class="modal-overlay" (click)="closeModal()">
-      <div class="course-fire-modal" (click)="$event.stopPropagation()">
-        <div class="course-fire-header">
-          <h5>Course Firing</h5>
-          <button type="button" class="btn-modal-close" (click)="closeModal()">
-            <i class="bi bi-x-lg"></i>
-          </button>
-        </div>
-
-        <!-- Course list -->
-        <div class="course-fire-body">
-          @for (group of courseGroupedSelections(); track group.course.guid) {
-            <div class="course-fire-card">
-              <div class="course-fire-card-header">
-                <div class="course-fire-card-info">
-                  <span class="course-fire-name">{{ group.course.name }}</span>
-                  <span class="course-fire-count">{{ group.selections.length }} item{{ group.selections.length !== 1 ? 's' : '' }}</span>
-                </div>
-                <span class="course-status-badge" [class]="getFireStatusClass(group.course.fireStatus)">
-                  {{ group.course.fireStatus }}
-                </span>
-              </div>
-
-              <!-- Items in this course -->
-              <div class="course-fire-items">
-                @for (sel of group.selections; track sel.guid) {
-                  <div class="course-fire-item">
-                    <span class="course-fire-item-qty">{{ sel.quantity }}x</span>
-                    <span class="course-fire-item-name">{{ sel.menuItemName }}</span>
-                  </div>
-                } @empty {
-                  <div class="course-fire-item-empty">No items</div>
-                }
-              </div>
-
-              <!-- Fire / Hold buttons -->
-              <div class="course-fire-card-actions">
-                @if (group.course.fireStatus === 'PENDING') {
-                  <button type="button" class="btn btn-sm btn-fire" (click)="doFireCourse(group.course.guid)">
-                    <i class="bi bi-fire me-1"></i> Fire
-                  </button>
-                } @else if (group.course.fireStatus === 'FIRED') {
-                  <button type="button" class="btn btn-sm btn-hold" (click)="doHoldCourse(group.course.guid)">
-                    <i class="bi bi-pause-circle me-1"></i> Hold
-                  </button>
-                }
-                <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeCourseFromCurrentOrder(group.course.guid)">
-                  <i class="bi bi-trash3"></i>
-                </button>
-              </div>
-            </div>
-          } @empty {
-            <div class="course-fire-empty">
-              <p>No courses on this order yet.</p>
-            </div>
-          }
-
-          <!-- Unassigned items notice -->
-          @if (unassignedSelections().length > 0) {
-            <div class="course-fire-unassigned-notice">
-              <i class="bi bi-exclamation-circle"></i>
-              {{ unassignedSelections().length }} item{{ unassignedSelections().length !== 1 ? 's' : '' }} not assigned to a course
-            </div>
-          }
-        </div>
-
-        <!-- Add course controls -->
-        <div class="course-fire-footer">
-          <!-- Course templates -->
-          @if (courseTemplates.length > 0) {
-            <div class="course-template-cards">
-              @for (tmpl of courseTemplates; track tmpl.id) {
-                <button
-                  type="button"
-                  class="course-template-card"
-                  (click)="applyCourseTemplate(tmpl)">
-                  <span class="course-template-name">{{ tmpl.name }}</span>
-                  <span class="course-template-count">{{ tmpl.courses.length }} courses</span>
-                </button>
-              }
-            </div>
-          }
-
-          <!-- Quick-add default courses -->
-          @if (getDefaultCourseNames().length > 0) {
-            <div class="course-default-chips">
-              @for (name of getDefaultCourseNames(); track name) {
-                <button
-                  type="button"
-                  class="course-chip"
-                  [disabled]="isDefaultCourseAlreadyAdded(name)"
-                  (click)="addDefaultCourse(name)">
-                  <i class="bi bi-plus"></i> {{ name }}
-                </button>
-              }
-            </div>
-          }
-
-          <!-- Custom course name -->
-          <div class="course-add-row">
-            <input
-              type="text"
-              class="form-control form-control-sm"
-              placeholder="Custom course name..."
-              [value]="newCourseNameInput()"
-              (input)="setNewCourseNameInput($any($event.target).value)"
-              (keydown.enter)="addCourseToCurrentOrder()">
-            <button
-              type="button"
-              class="btn btn-sm btn-primary"
-              [disabled]="!newCourseNameInput().trim()"
-              (click)="addCourseToCurrentOrder()">
-              Add
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Scan-to-Pay Notification Toast -->
-  @if (scanToPayNotification(); as notif) {
-    <div class="stp-toast" (click)="dismissScanToPayNotification()">
-      <i class="bi bi-qr-code-scan stp-toast-icon"></i>
-      <div class="stp-toast-content">
-        <strong>QR Payment Received</strong>
-        <span>Tip: {{ notif.tipAmount | currency }} &middot; Total: {{ notif.total | currency }}</span>
-      </div>
-      <button type="button" class="stp-toast-close">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
-  }
-
-  <!-- Course Complete Notification Toast -->
-  @if (courseNotification(); as notif) {
-    <div class="course-notification" (click)="dismissCourseNotification()">
-      <i class="bi bi-fire course-notification-icon"></i>
-      <div class="course-notification-content">
-        <strong>
-          @if (notif.tableName) {
-            {{ notif.tableName }} —
-          }
-          {{ notif.completedCourseName }} complete
-        </strong>
-        <span>Ready to fire {{ notif.nextCourseName }}</span>
-      </div>
-      <button type="button" class="course-notification-action" (click)="$event.stopPropagation(); fireFromNotification(notif.nextCourseGuid)">
-        <i class="bi bi-fire me-1"></i> Fire {{ notif.nextCourseName }}
-      </button>
-      <button type="button" class="course-notification-close" (click)="$event.stopPropagation(); dismissCourseNotification()">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
-  }
-
-  <!-- Tab Modal -->
-  @if (activeModal() === 'tab') {
-    <div class="modal-overlay" (click)="closeModal()">
-      <div class="tab-modal" (click)="$event.stopPropagation()">
-        <h5>Open Tab</h5>
-        <div class="mb-3">
-          <label class="form-label">Tab Name</label>
-          <input
-            type="text"
-            class="form-control"
-            placeholder="e.g., John B., Bar Tab 3"
-            [value]="tabName()"
-            (input)="setTabName($any($event.target).value)">
-        </div>
-
-        <!-- Pre-auth toggle -->
-        <div class="preauth-section">
-          <div class="preauth-toggle">
-            <label class="form-label mb-0">Card Pre-Authorization</label>
-            <button
-              type="button"
-              class="toggle-btn"
-              [class.active]="tabPreauthEnabled()"
-              (click)="toggleTabPreauth()">
-              <span class="toggle-track"><span class="toggle-thumb"></span></span>
-            </button>
-          </div>
-          <small class="preauth-help">Hold a card for security. Captured when tab is closed.</small>
-
-          @if (tabPreauthEnabled()) {
-            <div class="preauth-amount">
-              <label class="form-label">Hold Amount</label>
-              <div class="amount-input-group">
-                <span class="amount-prefix">$</span>
-                <input
-                  type="number"
-                  class="form-control"
-                  min="1"
-                  [value]="tabPreauthAmount()"
-                  (input)="setTabPreauthAmount(+$any($event.target).value)">
-              </div>
-              <div class="preauth-presets">
-                @for (amt of [25, 50, 100, 200]; track amt) {
-                  <button
-                    type="button"
-                    class="preset-btn"
-                    [class.active]="tabPreauthAmount() === amt"
-                    (click)="setTabPreauthAmount(amt)">
-                    ${{ amt }}
-                  </button>
-                }
-              </div>
-            </div>
-          }
-        </div>
-
-        <div class="tab-actions">
-          <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Cancel</button>
-          <button
-            type="button"
-            class="btn btn-primary"
-            [disabled]="!tabName().trim() || isTabProcessing()"
-            (click)="openTab()">
-            @if (isTabProcessing()) {
-              <span class="spinner-border spinner-border-sm me-1"></span>
-            }
-            @if (tabPreauthEnabled()) {
-              Hold Card & Open Tab
-            } @else {
-              Open Tab
-            }
-          </button>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- ==================== Offline Banner ==================== -->
-  @if (isOffline()) {
-    <div class="offline-banner">
-      <i class="bi bi-wifi-off"></i>
-      Offline — orders queued locally
-      @if (offlineQueueCount() > 0) {
-        <span class="offline-badge">{{ offlineQueueCount() }}</span>
-      }
-    </div>
-  }
-
-  <!-- ==================== Items:Ready Toast Stack ==================== -->
-  @if (itemReadyToasts().length > 0) {
-    <div class="item-ready-toasts">
-      @for (toast of itemReadyToasts(); track toast.id) {
-        <div class="item-ready-toast" (click)="dismissItemReadyToast(toast.id)">
-          <i class="bi bi-check-circle-fill"></i>
-          <div class="toast-content">
-            <strong>{{ toast.stationName }}:</strong>
-            {{ getItemReadyNames(toast) }} ready
-          </div>
-        </div>
-      }
-    </div>
-  }
-
-  <!-- ==================== Order Tracker Drawer ==================== -->
-  @if (trackerOpen()) {
-    <div class="tracker-backdrop" (click)="closeTracker()"></div>
-    <aside class="tracker-drawer">
-      <div class="tracker-header">
-        <h6>Order Tracker</h6>
-        <button type="button" class="btn-close" (click)="closeTracker()"></button>
-      </div>
-
-      <div class="tracker-scroll">
-        @if (deviceOrders().length === 0) {
-          <div class="tracker-empty">
-            <i class="bi bi-inbox"></i>
-            <p>No active orders on this device</p>
-          </div>
-        }
-
-        @for (order of deviceOrders(); track order.guid) {
-          <div class="tracker-card" [class.tracker-card-ready]="order.guestOrderStatus === 'READY_FOR_PICKUP'">
-            <div class="tracker-card-header">
-              <span class="tracker-order-num">
-                @if (order.table) {
-                  Table {{ order.table.name }}
-                } @else {
-                  {{ order.orderNumber }}
-                }
-              </span>
-              <span class="tracker-progress">
-                {{ getOrderProgress(order).ready }} of {{ getOrderProgress(order).total }} items ready
-              </span>
-            </div>
-
-            <div class="tracker-items">
-              @for (check of order.checks; track check.guid) {
-                @for (sel of check.selections; track sel.guid) {
-                  <div class="tracker-item" [class]="getItemStatusClass(sel.fulfillmentStatus)">
-                    <span class="tracker-item-name">{{ sel.menuItemName ?? 'Item' }}</span>
-                    <span class="tracker-item-qty">x{{ sel.quantity }}</span>
-                    @if (sel.fulfillmentStatus === 'SENT') {
-                      <i class="bi bi-check-circle-fill tracker-item-icon item-ready"></i>
-                    } @else if (sel.fulfillmentStatus === 'NEW' || sel.fulfillmentStatus === 'HOLD') {
-                      <i class="bi bi-clock tracker-item-icon item-pending"></i>
-                    } @else {
-                      <i class="bi bi-arrow-repeat tracker-item-icon item-preparing"></i>
-                    }
-                  </div>
-                }
-              }
-            </div>
-          </div>
-        }
-      </div>
-    </aside>
-  }
 </div>
+
+<!-- ==================== SEND TO KITCHEN OVERLAY ==================== -->
+@if (sendStep() !== 'idle') {
+  <div class="send-overlay">
+    <div class="send-modal">
+
+      <!-- Step 1: Dining Option -->
+      @if (sendStep() === 'dining-option') {
+        <div class="send-step">
+          <h2 class="send-title">Order type</h2>
+          <p class="send-subtitle">Where is this order going?</p>
+          <div class="dining-options">
+            <button
+              type="button"
+              class="dining-option-card"
+              (click)="selectDiningOption('dine_in')">
+              <div class="dining-option-icon">
+                <i class="bi bi-cup-hot-fill"></i>
+              </div>
+              <span class="dining-option-label">Dine In</span>
+            </button>
+            <button
+              type="button"
+              class="dining-option-card"
+              (click)="selectDiningOption('takeout')">
+              <div class="dining-option-icon">
+                <i class="bi bi-bag-fill"></i>
+              </div>
+              <span class="dining-option-label">Takeout</span>
+            </button>
+          </div>
+          <button type="button" class="send-cancel-btn" (click)="cancelSend()">Cancel</button>
+        </div>
+      }
+
+      <!-- Step 2: Table Selection (Dine In only) -->
+      @if (sendStep() === 'table-select') {
+        <div class="send-step">
+          <h2 class="send-title">Select table</h2>
+          <p class="send-subtitle">Choose the table for this order</p>
+
+          @if (tablesLoading()) {
+            <div class="table-loading">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading tables...</span>
+              </div>
+            </div>
+          } @else {
+            <div class="table-grid">
+              @for (table of availableTables(); track table.id) {
+                <button
+                  type="button"
+                  class="table-card"
+                  (click)="selectTable(table)">
+                  <span class="table-number">{{ table.tableNumber }}</span>
+                  <span class="table-name">{{ table.tableName ?? 'Table ' + table.tableNumber }}</span>
+                  <span class="table-capacity">
+                    <i class="bi bi-people-fill"></i> {{ table.capacity }}
+                  </span>
+                </button>
+              }
+            </div>
+
+            @if (availableTables().length === 0) {
+              <p class="no-tables-msg">No tables available right now</p>
+            }
+          }
+
+          <div class="send-step-actions">
+            <button type="button" class="send-skip-btn" (click)="skipTableSelection()">
+              Skip — no table
+            </button>
+            <button type="button" class="send-cancel-btn" (click)="cancelSend()">Cancel</button>
+          </div>
+        </div>
+      }
+
+      <!-- Sending spinner -->
+      @if (sendStep() === 'sending') {
+        <div class="send-step send-step-centered">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Sending order...</span>
+          </div>
+          <p class="send-subtitle">Sending to kitchen...</p>
+        </div>
+      }
+
+      <!-- Success -->
+      @if (sendStep() === 'success') {
+        <div class="send-step send-step-centered">
+          <div class="success-icon">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <h2 class="send-title">Order sent!</h2>
+          <p class="send-subtitle">The kitchen is preparing this order.</p>
+          <button type="button" class="send-done-btn" (click)="finishAndNewOrder()">
+            New order
+          </button>
+        </div>
+      }
+
+      <!-- Failed -->
+      @if (sendStep() === 'failed') {
+        <div class="send-step send-step-centered">
+          <div class="failed-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+          <h2 class="send-title">Something went wrong</h2>
+          <p class="send-subtitle">{{ sendError() }}</p>
+          <div class="send-step-actions">
+            <button type="button" class="send-retry-btn" (click)="retrySend()">
+              Try again
+            </button>
+            <button type="button" class="send-cancel-btn" (click)="cancelSend()">
+              Go back
+            </button>
+          </div>
+        </div>
+      }
+
+    </div>
+  </div>
+}
