@@ -214,7 +214,7 @@ export class OnlineOrderPortal implements OnDestroy {
 
   readonly filteredItems = computed(() => {
     let items = this.menuService.allItems().filter(i =>
-      i.isActive !== false && !i.eightySixed && isItemAvailable(i) && this.menuService.isItemInActiveDaypart(i)
+      i.isActive !== false && !i.eightySixed && i.channelVisibility?.onlineOrdering !== false && isItemAvailable(i) && this.menuService.isItemInActiveDaypart(i)
     );
     const catId = this._selectedCategory();
     const search = this._searchTerm().toLowerCase();
