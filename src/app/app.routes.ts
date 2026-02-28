@@ -111,6 +111,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/kiosk/kiosk-terminal/kiosk-terminal').then(m => m.KioskTerminal),
   },
   {
+    path: 'register',
+    canActivate: [authGuard, onboardingGuard],
+    resolve: { deviceInit: deviceInitResolver },
+    loadComponent: () => import('./features/register/register-terminal/register-terminal').then(m => m.RegisterTerminal),
+  },
+  {
     path: 'kds',
     canActivate: [authGuard, onboardingGuard],
     resolve: { deviceInit: deviceInitResolver },
