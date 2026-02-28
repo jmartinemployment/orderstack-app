@@ -13,15 +13,19 @@ function createMockAuthService() {
   const _sessionExpiredMessage = signal<string | null>(null);
   const _restaurants = signal<{ id: string; name: string }[]>([]);
 
+  const _user = signal<{ onboardingStatus?: string } | null>(null);
+
   return {
     _isLoading,
     _error,
     _sessionExpiredMessage,
     _restaurants,
+    _user,
     isLoading: _isLoading.asReadonly(),
     error: _error.asReadonly(),
     sessionExpiredMessage: _sessionExpiredMessage.asReadonly(),
     restaurants: _restaurants.asReadonly(),
+    user: _user.asReadonly(),
     login: vi.fn().mockResolvedValue(true),
     signup: vi.fn().mockResolvedValue(true),
     clearError: vi.fn(),

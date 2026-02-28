@@ -109,7 +109,7 @@ describe('RestaurantSelect', () => {
     fixture.detectChanges();
     const items = fixture.nativeElement.querySelectorAll('.restaurant-item');
     items[0].click();
-    expect(authService.selectRestaurant).toHaveBeenCalledWith('r-1', 'Taipa', null);
+    expect(authService.selectRestaurant).toHaveBeenCalledWith('r-1', 'Taipa', null, '123 Main');
     expect(router.navigate).toHaveBeenCalledWith(['/']);
   });
 
