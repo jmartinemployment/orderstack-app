@@ -133,11 +133,11 @@ export const routes: Routes = [
       // Orders
       { path: 'orders', loadComponent: () => import('./features/orders/pending-orders/pending-orders').then(m => m.PendingOrders) },
       { path: 'order-history', loadComponent: () => import('./features/orders/order-history/order-history').then(m => m.OrderHistory) },
-      { path: 'order-pad', loadComponent: () => import('./features/pos/order-pad/order-pad').then(m => m.OrderPad) },
+      { path: 'order-pad', redirectTo: 'pos', pathMatch: 'full' },
       { path: 'pos', loadComponent: () => import('./features/pos/server-pos-terminal/server-pos-terminal').then(m => m.ServerPosTerminal) },
 
-      // SOS
-      { path: 'sos', loadComponent: () => import('./features/sos/sos-terminal/sos-terminal').then(m => m.SosTerminal) },
+      // SOS redirects to kiosk (consolidated)
+      { path: 'sos', redirectTo: '/kiosk', pathMatch: 'full' },
 
       // Front of House
       { path: 'floor-plan', loadComponent: () => import('./features/table-mgmt/floor-plan/floor-plan').then(m => m.FloorPlan) },

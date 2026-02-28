@@ -463,7 +463,7 @@ export class PosLogin {
         this.router.navigate(['/floor-plan']);
         break;
       case 'quick_service':
-        this.router.navigate(['/order-pad']);
+        this.router.navigate(['/pos']);
         break;
       case 'bar':
         this.router.navigate(['/pos']);
