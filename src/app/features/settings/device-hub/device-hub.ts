@@ -39,6 +39,7 @@ const DEVICE_TYPE_LABELS: Record<DeviceType, string> = {
   kds: 'KDS',
   kiosk: 'Kiosk',
   printer: 'Printer',
+  bar: 'Bar',
 };
 
 const DEVICE_TYPE_ICONS: Record<DeviceType, string> = {
@@ -47,6 +48,7 @@ const DEVICE_TYPE_ICONS: Record<DeviceType, string> = {
   kds: 'bi-display',
   kiosk: 'bi-phone',
   printer: 'bi-printer',
+  bar: 'bi-cup-straw',
 };
 
 const PRINT_JOB_LABELS: Record<PrintJobType, string> = {
@@ -195,7 +197,7 @@ export class DeviceHub implements OnInit {
   readonly printJobLabels = PRINT_JOB_LABELS;
   readonly peripheralTypeLabels = PERIPHERAL_TYPE_LABELS;
   readonly peripheralTypeIcons = PERIPHERAL_TYPE_ICONS;
-  readonly deviceTypes: DeviceType[] = ['register', 'terminal', 'kds', 'kiosk', 'printer'];
+  readonly deviceTypes: DeviceType[] = ['register', 'terminal', 'kds', 'kiosk', 'printer', 'bar'];
   readonly printJobTypes: PrintJobType[] = ['customer_receipt', 'kitchen_ticket', 'bar_ticket', 'expo_ticket', 'order_summary', 'close_of_day'];
   readonly peripheralTypes: PeripheralType[] = ['cash_drawer', 'barcode_scanner', 'card_reader', 'customer_display', 'scale'];
   readonly connectionTypes: PeripheralConnectionType[] = ['usb', 'bluetooth', 'network'];

@@ -117,6 +117,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/register/register-terminal/register-terminal').then(m => m.RegisterTerminal),
   },
   {
+    path: 'bar',
+    canActivate: [authGuard, onboardingGuard],
+    resolve: { deviceInit: deviceInitResolver },
+    loadComponent: () => import('./features/bar/bar-terminal/bar-terminal').then(m => m.BarTerminal),
+  },
+  {
     path: 'kds',
     canActivate: [authGuard, onboardingGuard],
     resolve: { deviceInit: deviceInitResolver },
