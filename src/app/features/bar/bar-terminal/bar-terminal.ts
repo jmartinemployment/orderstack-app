@@ -60,8 +60,8 @@ export class BarTerminal implements OnInit {
   private readonly tableService = inject(TableService);
   private readonly loyaltyService = inject(LoyaltyService);
 
-  // Top tab state — default to Favorites
-  private readonly _activeTopTab = signal<TopTab>('favorites');
+  // Top tab state — default to Menu so beverage category is visible
+  private readonly _activeTopTab = signal<TopTab>('menu');
   readonly activeTopTab = this._activeTopTab.asReadonly();
 
   // Bottom nav state
@@ -168,7 +168,7 @@ export class BarTerminal implements OnInit {
     return items.filter(i =>
       i.isActive !== false &&
       !i.eightySixed &&
-      i.channelVisibility?.kiosk !== false &&
+      i.channelVisibility?.pos !== false &&
       isItemAvailable(i) &&
       this.menuService.isItemInActiveDaypart(i)
     );
@@ -234,13 +234,17 @@ export class BarTerminal implements OnInit {
   // Helper for weight unit labels in template
   readonly weightUnitLabels = WEIGHT_UNIT_LABELS;
 
+  // Beverage category keywords — bar defaults to drinks if a matching category exists
+  private static readonly BEVERAGE_KEYWORDS = /beer|cocktail|drink|beverage|wine|spirit|bar/i;
+
   // React to categories loading — field initializer keeps injection context
   private readonly _categoryEffect = effect(() => {
     const cats = this.menuService.categories();
     if (cats.length > 0) {
       this._categories.set(cats);
-      if (!this._selectedCategoryId() && cats[0]) {
-        this._selectedCategoryId.set(cats[0].id);
+      if (!this._selectedCategoryId()) {
+        const beverageCat = cats.find(c => BarTerminal.BEVERAGE_KEYWORDS.exec(c.name) !== null);
+        this._selectedCategoryId.set((beverageCat ?? cats[0]).id);
       }
     }
   });

@@ -168,7 +168,7 @@ export class RegisterTerminal implements OnInit {
     return items.filter(i =>
       i.isActive !== false &&
       !i.eightySixed &&
-      i.channelVisibility?.kiosk !== false &&
+      i.channelVisibility?.pos !== false &&
       isItemAvailable(i) &&
       this.menuService.isItemInActiveDaypart(i)
     );
