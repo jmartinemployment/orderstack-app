@@ -71,6 +71,10 @@ export interface MenuItem {
   // --- Age verification (GOS-SPEC-07) ---
   requiresAgeVerification?: boolean;
   minimumAge?: number;
+
+  // --- Sell by weight (Square parity) ---
+  soldByWeight?: boolean;
+  weightUnit?: WeightUnit;
 }
 
 export interface ModifierGroup {
@@ -116,6 +120,17 @@ export interface ModifierFormData {
 }
 
 export type DietaryInfo = 'vegetarian' | 'vegan' | 'gluten-free' | 'dairy-free' | 'nut-free' | 'spicy' | 'halal' | 'kosher';
+
+// --- Sell by Weight (Square parity) ---
+
+export type WeightUnit = 'lb' | 'oz' | 'g' | 'kg';
+
+export const WEIGHT_UNIT_LABELS: Record<WeightUnit, string> = {
+  lb: 'lb',
+  oz: 'oz',
+  g: 'g',
+  kg: 'kg',
+};
 
 export interface AICostEstimation {
   estimatedCost: number;

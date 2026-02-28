@@ -102,6 +102,11 @@
                   </div>
                 }
                 <span class="item-name">{{ item.name }}</span>
+                @if (item.soldByWeight) {
+                  <span class="item-weight-badge">
+                    <i class="bi bi-speedometer2"></i> by weight
+                  </span>
+                }
               </button>
             }
 
@@ -206,11 +211,16 @@
           <div class="sale-line-item">
             <div class="line-item-info">
               <button type="button" class="line-item-name" (click)="removeItem(item.id)">
-                @if (item.quantity > 1) {
+                @if (item.weightUnit) {
+                  <span class="line-item-qty">{{ item.quantity }} {{ weightUnitLabels[item.weightUnit] }}</span>
+                } @else if (item.quantity > 1) {
                   <span class="line-item-qty">{{ item.quantity }}x</span>
                 }
                 {{ item.menuItem.name }}
               </button>
+              @if (item.weightUnit) {
+                <span class="line-item-modifier">@ {{ item.unitPrice | currency:'USD':'symbol':'1.2-2' }}/{{ weightUnitLabels[item.weightUnit] }}</span>
+              }
               @if (item.modifierSummary) {
                 <span class="line-item-modifier">{{ item.modifierSummary }}</span>
               }
@@ -248,6 +258,20 @@
     </div>
   </aside>
 </div>
+
+<!-- ==================== WEIGHT SCALE OVERLAY ==================== -->
+@if (showWeightScale()) {
+  <div class="checkout-overlay">
+    <div class="checkout-modal">
+      <os-weight-scale
+        [itemName]="weightScaleItem()!.name"
+        [unitPrice]="weightScaleUnitPrice()"
+        [weightUnit]="weightScaleUnit()"
+        (weightConfirmed)="onWeightConfirmed($event)"
+        (cancelled)="closeWeightScale()" />
+    </div>
+  </div>
+}
 
 <!-- ==================== CHECKOUT OVERLAY ==================== -->
 @if (checkoutStep() !== 'idle') {

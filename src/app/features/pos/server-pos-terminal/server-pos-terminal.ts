@@ -13,10 +13,13 @@ import { MenuService } from '@services/menu';
 import { OrderService } from '@services/order';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { TableService } from '@services/table';
+import { WeightScale, WeightScaleResult } from '@shared/weight-scale';
 import {
   MenuCategory,
   MenuItem,
   RestaurantTable,
+  WeightUnit,
+  WEIGHT_UNIT_LABELS,
   isItemAvailable,
 } from '@models/index';
 
@@ -32,11 +35,12 @@ interface PosCartItem {
   modifierSummary: string;
   unitPrice: number;
   totalPrice: number;
+  weightUnit?: WeightUnit;
 }
 
 @Component({
   selector: 'os-pos-terminal',
-  imports: [CurrencyPipe, FormsModule],
+  imports: [CurrencyPipe, FormsModule, WeightScale],
   templateUrl: './server-pos-terminal.html',
   styleUrl: './server-pos-terminal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -77,6 +81,21 @@ export class ServerPosTerminal implements OnInit {
   readonly selectedTable = this._selectedTable.asReadonly();
   readonly sendError = this._sendError.asReadonly();
   readonly isSending = this._isSending.asReadonly();
+
+  // Weight scale state
+  private readonly _weightScaleItem = signal<MenuItem | null>(null);
+  readonly weightScaleItem = this._weightScaleItem.asReadonly();
+  readonly showWeightScale = computed(() => this._weightScaleItem() !== null);
+
+  readonly weightScaleUnitPrice = computed(() => {
+    const item = this._weightScaleItem();
+    if (!item) return 0;
+    return typeof item.price === 'string' ? Number.parseFloat(item.price) : item.price;
+  });
+
+  readonly weightScaleUnit = computed<WeightUnit>(() =>
+    this._weightScaleItem()?.weightUnit ?? 'lb'
+  );
 
   // Tables for table selection
   readonly tables = this.tableService.tables;
@@ -144,7 +163,7 @@ export class ServerPosTerminal implements OnInit {
 
   // Cart computeds
   readonly cartCount = computed(() =>
-    this._cartItems().reduce((sum, item) => sum + item.quantity, 0)
+    this._cartItems().reduce((sum, item) => sum + (item.weightUnit ? 1 : item.quantity), 0)
   );
 
   readonly subtotal = computed(() =>
@@ -164,6 +183,9 @@ export class ServerPosTerminal implements OnInit {
   // Keypad state
   private readonly _keypadValue = signal('');
   readonly keypadValue = this._keypadValue.asReadonly();
+
+  // Helper for weight unit labels in template
+  readonly weightUnitLabels = WEIGHT_UNIT_LABELS;
 
   // React to categories loading — field initializer keeps injection context
   private readonly _categoryEffect = effect(() => {
@@ -199,8 +221,13 @@ export class ServerPosTerminal implements OnInit {
   // --- Cart operations ---
 
   addItem(item: MenuItem): void {
+    if (item.soldByWeight) {
+      this._weightScaleItem.set(item);
+      return;
+    }
+
     const price = typeof item.price === 'string' ? Number.parseFloat(item.price) : item.price;
-    const existing = this._cartItems().find(ci => ci.menuItem.id === item.id && !ci.modifierSummary);
+    const existing = this._cartItems().find(ci => ci.menuItem.id === item.id && !ci.modifierSummary && !ci.weightUnit);
 
     if (existing) {
       this._cartItems.update(items =>
@@ -221,6 +248,27 @@ export class ServerPosTerminal implements OnInit {
       };
       this._cartItems.update(items => [...items, cartItem]);
     }
+  }
+
+  onWeightConfirmed(result: WeightScaleResult): void {
+    const item = this._weightScaleItem();
+    if (!item) return;
+
+    const cartItem: PosCartItem = {
+      id: crypto.randomUUID(),
+      menuItem: item,
+      quantity: result.weight,
+      modifierSummary: '',
+      unitPrice: typeof item.price === 'string' ? Number.parseFloat(item.price) : item.price,
+      totalPrice: result.totalPrice,
+      weightUnit: result.unit,
+    };
+    this._cartItems.update(items => [...items, cartItem]);
+    this._weightScaleItem.set(null);
+  }
+
+  closeWeightScale(): void {
+    this._weightScaleItem.set(null);
   }
 
   removeItem(cartItemId: string): void {
@@ -305,6 +353,7 @@ export class ServerPosTerminal implements OnInit {
       unitPrice: ci.unitPrice,
       totalPrice: ci.totalPrice,
       modifiers: ci.modifierSummary || undefined,
+      ...(ci.weightUnit ? { weightUnit: ci.weightUnit } : {}),
     }));
 
     const table = this._selectedTable();
