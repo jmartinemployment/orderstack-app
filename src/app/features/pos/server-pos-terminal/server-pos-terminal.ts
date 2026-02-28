@@ -1,1238 +1,376 @@
 import {
   Component,
   ChangeDetectionStrategy,
-  DestroyRef,
+  OnInit,
   inject,
   signal,
   computed,
   effect,
-  OnInit,
-  OnDestroy,
 } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MenuService } from '@services/menu';
-import { OrderService, MappedOrderEvent } from '@services/order';
-import { TableService } from '@services/table';
-import { AuthService } from '@services/auth';
-import { PaymentService } from '@services/payment';
+import { OrderService } from '@services/order';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
-import { CheckService, AddItemRequest } from '@services/check';
-import { PlatformService } from '@services/platform';
-import { SocketService } from '@services/socket';
-import { ModifierPrompt, ModifierPromptResult } from '../modifier-prompt';
-import { DiscountModal, DiscountResult } from '../discount-modal';
-import { VoidModal, VoidResult, CompResult } from '../void-modal';
-import { PaymentTerminal } from '@shared/payment-terminal';
+import { TableService } from '@services/table';
 import {
-  RestaurantTable,
-  Order,
-  Check,
-  Selection,
-  MenuItem,
   MenuCategory,
-  GuestOrderStatus,
-  OrderTemplate,
+  MenuItem,
+  RestaurantTable,
   isItemAvailable,
-  OrderTemplateItem,
-  Course,
-  CourseFireStatus,
-  CourseTemplate,
-  BUILT_IN_COURSE_TEMPLATES,
 } from '@models/index';
 
-type PosModal = 'none' | 'modifier' | 'discount' | 'void' | 'comp' | 'split' | 'transfer' | 'tab' | 'templates' | 'save-template' | 'qr-pay' | 'course-fire' | 'payment';
+type TopTab = 'keypad' | 'library' | 'favorites' | 'menu';
+type BottomTab = 'checkout' | 'open-orders' | 'notifications' | 'more';
+type DiningOption = 'dine_in' | 'takeout';
+type SendStep = 'idle' | 'dining-option' | 'table-select' | 'sending' | 'success' | 'failed';
 
-interface CourseGroup {
-  course: Course;
-  selections: Selection[];
+interface PosCartItem {
+  id: string;
+  menuItem: MenuItem;
+  quantity: number;
+  modifierSummary: string;
+  unitPrice: number;
+  totalPrice: number;
 }
 
 @Component({
   selector: 'os-pos-terminal',
-  imports: [
-    CurrencyPipe,
-    ModifierPrompt,
-    DiscountModal,
-    VoidModal,
-    PaymentTerminal,
-  ],
+  imports: [CurrencyPipe, FormsModule],
   templateUrl: './server-pos-terminal.html',
   styleUrl: './server-pos-terminal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ServerPosTerminal implements OnInit, OnDestroy {
+export class ServerPosTerminal implements OnInit {
   private readonly menuService = inject(MenuService);
   private readonly orderService = inject(OrderService);
-  private readonly tableService = inject(TableService);
-  private readonly authService = inject(AuthService);
-  private readonly paymentService = inject(PaymentService);
   private readonly settingsService = inject(RestaurantSettingsService);
-  private readonly checkService = inject(CheckService);
-  private readonly platformService = inject(PlatformService);
-  private readonly socketService = inject(SocketService);
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly tableService = inject(TableService);
 
-  readonly tables = this.tableService.tables;
-  readonly orders = this.orderService.orders;
-  readonly isLoading = computed(() => this.menuService.isLoading() || this.orderService.isLoading());
+  // Top tab state — default to Favorites
+  private readonly _activeTopTab = signal<TopTab>('favorites');
+  readonly activeTopTab = this._activeTopTab.asReadonly();
 
-  // Mode-aware feature flags
-  readonly canUseFloorPlan = this.platformService.canUseFloorPlan;
-  readonly canUseOpenChecks = this.platformService.canUseOpenChecks;
-  readonly canUseSeatAssignment = this.platformService.canUseSeatAssignment;
-  readonly canUseKds = this.platformService.canUseKds;
-  readonly canUseSplitting = this.platformService.canUseSplitting;
-  readonly canUseTransfer = this.platformService.canUseTransfer;
-  readonly canUsePreAuthTabs = this.platformService.canUsePreAuthTabs;
-  readonly showItemImages = this.platformService.showItemImages;
-
-  // Course timing
-  readonly courseTimingEnabled = computed(() => {
-    const aiSettings = this.settingsService.aiSettings();
-    return aiSettings.coursePacingMode !== 'disabled';
-  });
+  // Bottom nav state
+  private readonly _activeBottomTab = signal<BottomTab>('checkout');
+  readonly activeBottomTab = this._activeBottomTab.asReadonly();
 
   // Menu state
   private readonly _categories = signal<MenuCategory[]>([]);
   private readonly _selectedCategoryId = signal<string | null>(null);
-  private readonly _searchQuery = signal('');
-
   readonly categories = this._categories.asReadonly();
   readonly selectedCategoryId = this._selectedCategoryId.asReadonly();
-  readonly searchQuery = this._searchQuery.asReadonly();
 
-  readonly currentCategoryItems = computed(() => {
-    const catId = this._selectedCategoryId();
-    const query = this._searchQuery().toLowerCase().trim();
-    const cats = this._categories();
+  // Cart state
+  private readonly _cartItems = signal<PosCartItem[]>([]);
+  readonly cartItems = this._cartItems.asReadonly();
 
-    let items: MenuItem[] = [];
-    if (catId) {
-      const cat = cats.find(c => c.id === catId);
-      items = cat?.items ?? [];
-    } else {
-      items = cats.flatMap(c => c.items ?? []);
+  // Send-to-kitchen flow state
+  private readonly _sendStep = signal<SendStep>('idle');
+  private readonly _diningOption = signal<DiningOption | null>(null);
+  private readonly _selectedTable = signal<RestaurantTable | null>(null);
+  private readonly _sendError = signal<string | null>(null);
+  private readonly _isSending = signal(false);
+
+  readonly sendStep = this._sendStep.asReadonly();
+  readonly diningOption = this._diningOption.asReadonly();
+  readonly selectedTable = this._selectedTable.asReadonly();
+  readonly sendError = this._sendError.asReadonly();
+  readonly isSending = this._isSending.asReadonly();
+
+  // Tables for table selection
+  readonly tables = this.tableService.tables;
+  readonly tablesLoading = this.tableService.isLoading;
+
+  readonly availableTables = computed(() =>
+    this.tableService.tables().filter(t => t.status === 'available')
+  );
+
+  // Loading
+  readonly isLoading = this.menuService.isLoading;
+  readonly menuError = this.menuService.error;
+
+  // Collect all items from a category tree (handles nested subcategories)
+  private collectItems(cats: MenuCategory[]): MenuItem[] {
+    const items: MenuItem[] = [];
+    for (const cat of cats) {
+      if (cat.items) items.push(...cat.items);
+      if (cat.subcategories) items.push(...this.collectItems(cat.subcategories));
     }
+    return items;
+  }
 
-    if (query) {
-      items = items.filter(i =>
-        i.name.toLowerCase().includes(query) ||
-        (i.nameEn ?? '').toLowerCase().includes(query)
-      );
-    }
-
+  private terminalFilter(items: MenuItem[]): MenuItem[] {
     return items.filter(i =>
-      i.isActive !== false && !i.eightySixed && isItemAvailable(i) && this.menuService.isItemInActiveDaypart(i)
+      i.isActive !== false &&
+      !i.eightySixed &&
+      isItemAvailable(i) &&
+      this.menuService.isItemInActiveDaypart(i)
     );
+  }
+
+  // All available items (used for Favorites fallback)
+  private readonly allItems = computed(() => {
+    return this.terminalFilter(this.collectItems(this._categories()));
   });
 
-  // Table/Order state
-  private readonly _selectedTableId = signal<string | null>(null);
-  private readonly _activeOrderId = signal<string | null>(null);
-  private readonly _activeCheckIndex = signal(0);
+  // Filtered items for the grid based on active top tab
+  readonly gridItems = computed(() => {
+    const tab = this._activeTopTab();
+    const cats = this._categories();
+    const items = this.allItems();
 
-  readonly selectedTableId = this._selectedTableId.asReadonly();
-  readonly activeOrderId = this._activeOrderId.asReadonly();
-
-  readonly selectedTable = computed(() => {
-    const id = this._selectedTableId();
-    return id ? this.tables().find(t => t.id === id) ?? null : null;
-  });
-
-  readonly activeOrder = computed(() => {
-    const id = this._activeOrderId();
-    return id ? this.orders().find(o => o.guid === id) ?? null : null;
-  });
-
-  readonly activeCheck = computed(() => {
-    const order = this.activeOrder();
-    if (!order) return null;
-    const idx = this._activeCheckIndex();
-    return order.checks[idx] ?? order.checks[0] ?? null;
-  });
-
-  readonly activeCheckIndex = this._activeCheckIndex.asReadonly();
-
-  readonly tableOrders = computed(() => {
-    const tableId = this._selectedTableId();
-    if (!tableId) return [];
-    return this.orders().filter(
-      o => o.table?.guid === tableId && o.guestOrderStatus !== 'CLOSED' && o.guestOrderStatus !== 'VOIDED'
-    );
-  });
-
-  readonly tableElapsedMinutes = computed(() => {
-    const orders = this.tableOrders();
-    if (orders.length === 0) return 0;
-    const earliest = Math.min(...orders.map(o => o.timestamps.createdDate.getTime()));
-    return Math.floor((Date.now() - earliest) / 60000);
-  });
-
-  // Compact table list for left panel
-  readonly tableList = computed(() => {
-    return this.tables().map(table => {
-      const orders = this.orders().filter(
-        o => o.table?.guid === table.id && o.guestOrderStatus !== 'CLOSED' && o.guestOrderStatus !== 'VOIDED'
-      );
-      const total = orders.reduce((sum, o) => sum + o.totalAmount, 0);
-      const elapsed = orders.length > 0
-        ? Math.floor((Date.now() - Math.min(...orders.map(o => o.timestamps.createdDate.getTime()))) / 60000)
-        : 0;
-      return { ...table, orderCount: orders.length, total, elapsed };
-    });
-  });
-
-  // Open tabs (bar tabs not tied to tables)
-  readonly openTabs = computed(() => {
-    return this.orders().filter(o => {
-      const check = o.checks[0];
-      return check?.tabName && !check.tabClosedAt && o.guestOrderStatus !== 'CLOSED' && o.guestOrderStatus !== 'VOIDED';
-    });
-  });
-
-  // --- Course computeds ---
-
-  readonly orderCourses = computed<Course[]>(() => {
-    const order = this.activeOrder();
-    return order?.courses ?? [];
-  });
-
-  readonly courseGroupedSelections = computed<CourseGroup[]>(() => {
-    const check = this.activeCheck();
-    const courses = this.orderCourses();
-    if (!check || courses.length === 0) return [];
-
-    const groups: CourseGroup[] = [];
-
-    for (const course of courses) {
-      const sels = check.selections.filter(s => s.course?.guid === course.guid);
-      groups.push({ course, selections: sels });
+    if (tab === 'favorites') {
+      const popular = items.filter(i => i.popular || i.isPopular);
+      return popular.length > 0 ? popular : items;
     }
 
-    // Unassigned items
-    const unassigned = check.selections.filter(s => !s.course);
-    if (unassigned.length > 0) {
-      groups.push({
-        course: { guid: '__unassigned__', name: 'Unassigned', sortOrder: 999, fireStatus: 'PENDING' },
-        selections: unassigned,
-      });
+    if (tab === 'menu') {
+      const catId = this._selectedCategoryId();
+      if (catId) {
+        const cat = cats.find(c => c.id === catId);
+        return cat ? this.terminalFilter(this.collectItems([cat])) : [];
+      }
+      return items;
     }
 
-    return groups;
+    if (tab === 'library') {
+      return items;
+    }
+
+    // Keypad tab shows nothing (keypad input mode)
+    return [];
   });
 
-  readonly unassignedSelections = computed(() => {
-    const check = this.activeCheck();
-    if (!check) return [];
-    return check.selections.filter(s => !s.course);
-  });
+  // Cart computeds
+  readonly cartCount = computed(() =>
+    this._cartItems().reduce((sum, item) => sum + item.quantity, 0)
+  );
 
-  // Modal state
-  private readonly _activeModal = signal<PosModal>('none');
-  private readonly _modifierItem = signal<MenuItem | null>(null);
-  private readonly _voidSelection = signal<Selection | null>(null);
-  private readonly _splitMode = signal<'item' | 'equal' | 'seat'>('item');
-  private readonly _splitCount = signal(2);
-  private readonly _transferTargetId = signal<string | null>(null);
-  private readonly _tabName = signal('');
-  private readonly _tabPreauthEnabled = signal(false);
-  private readonly _tabPreauthAmount = signal(50);
-  private readonly _isTabProcessing = signal(false);
+  readonly subtotal = computed(() =>
+    this._cartItems().reduce((sum, item) => sum + item.totalPrice, 0)
+  );
 
-  // Course fire modal state
-  private readonly _newCourseNameInput = signal('');
+  readonly taxRate = 0.087; // 8.7% — configurable later
 
-  readonly activeModal = this._activeModal.asReadonly();
-  readonly modifierItem = this._modifierItem.asReadonly();
-  readonly voidSelection = this._voidSelection.asReadonly();
-  readonly splitMode = this._splitMode.asReadonly();
-  readonly splitCount = this._splitCount.asReadonly();
-  readonly transferTargetId = this._transferTargetId.asReadonly();
-  readonly tabName = this._tabName.asReadonly();
-  readonly tabPreauthEnabled = this._tabPreauthEnabled.asReadonly();
-  readonly tabPreauthAmount = this._tabPreauthAmount.asReadonly();
-  readonly isTabProcessing = this._isTabProcessing.asReadonly();
-  readonly newCourseNameInput = this._newCourseNameInput.asReadonly();
+  readonly tax = computed(() =>
+    Math.round(this.subtotal() * this.taxRate * 100) / 100
+  );
 
-  // Seat assignment for next item
-  private readonly _currentSeat = signal<number | undefined>(undefined);
-  readonly currentSeat = this._currentSeat.asReadonly();
+  readonly total = computed(() =>
+    Math.round((this.subtotal() + this.tax()) * 100) / 100
+  );
 
-  // Order Templates
-  readonly templates = this.orderService.templates;
-  private readonly _templateName = signal('');
-  private readonly _isApplyingTemplate = signal(false);
+  // Keypad state
+  private readonly _keypadValue = signal('');
+  readonly keypadValue = this._keypadValue.asReadonly();
 
-  readonly templateName = this._templateName.asReadonly();
-  readonly isApplyingTemplate = this._isApplyingTemplate.asReadonly();
-
-  // Payment terminal state
-  private readonly _paymentError = signal<string | null>(null);
-  readonly paymentError = this._paymentError.asReadonly();
-
-  // QR Pay (Scan to Pay)
-  private readonly _qrCodeUrl = signal<string | null>(null);
-  private readonly _isGeneratingQr = signal(false);
-  private readonly _scanToPayNotification = signal<{ checkGuid: string; tipAmount: number; total: number } | null>(null);
-
-  readonly qrCodeUrl = this._qrCodeUrl.asReadonly();
-  readonly isGeneratingQr = this._isGeneratingQr.asReadonly();
-  readonly scanToPayNotification = this._scanToPayNotification.asReadonly();
-
-  // --- Course timing suggestions (Step 6) ---
-  private readonly _courseSuggestionTick = signal(0);
-  private courseSuggestionTimer: ReturnType<typeof setInterval> | null = null;
-
-  readonly courseTimingSuggestions = computed(() => {
-    // Read tick to trigger reactivity every second
-    this._courseSuggestionTick();
-    const courses = this.orderCourses();
-    const gapSeconds = this.settingsService.aiSettings().targetCourseServeGapSeconds;
-    const suggestions: { courseGuid: string; nextCourseName: string; remainingSeconds: number }[] = [];
-
-    for (let i = 0; i < courses.length; i++) {
-      const course = courses[i];
-      const nextCourse = courses[i + 1];
-      if (
-        course.fireStatus === 'READY' &&
-        course.readyDate &&
-        nextCourse &&
-        nextCourse.fireStatus === 'PENDING'
-      ) {
-        const readyMs = course.readyDate instanceof Date
-          ? course.readyDate.getTime()
-          : new Date(course.readyDate).getTime();
-        const fireAtMs = readyMs + gapSeconds * 1000;
-        const remaining = Math.round((fireAtMs - Date.now()) / 1000);
-        suggestions.push({
-          courseGuid: nextCourse.guid,
-          nextCourseName: nextCourse.name,
-          remainingSeconds: remaining,
-        });
+  // React to categories loading — field initializer keeps injection context
+  private readonly _categoryEffect = effect(() => {
+    const cats = this.menuService.categories();
+    if (cats.length > 0) {
+      this._categories.set(cats);
+      if (!this._selectedCategoryId() && cats[0]) {
+        this._selectedCategoryId.set(cats[0].id);
       }
     }
-
-    return suggestions;
   });
-
-  formatCountdown(seconds: number): string {
-    if (seconds <= 0) return 'Fire now';
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
-  }
-
-  // --- Course complete notifications (Step 7) ---
-  readonly courseNotification = computed(() => {
-    const mode = this.settingsService.aiSettings().coursePacingMode;
-    if (mode !== 'server_fires') return null;
-    return this.orderService.courseCompleteNotifications();
-  });
-  private courseNotificationTimer: ReturnType<typeof setTimeout> | null = null;
-
-  dismissCourseNotification(): void {
-    this.orderService.clearCourseNotification();
-    if (this.courseNotificationTimer) {
-      clearTimeout(this.courseNotificationTimer);
-      this.courseNotificationTimer = null;
-    }
-  }
-
-  fireFromNotification(courseGuid: string): void {
-    const notif = this.orderService.courseCompleteNotifications();
-    if (notif) {
-      this.orderService.fireCourse(notif.orderId, courseGuid);
-      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-    }
-    this.dismissCourseNotification();
-  }
-
-  // --- Course templates (Step 8) ---
-  readonly courseTemplates = BUILT_IN_COURSE_TEMPLATES;
-
-  async applyCourseTemplate(template: CourseTemplate): Promise<void> {
-    const order = this.activeOrder();
-    if (!order) return;
-
-    const existingCourses = order.courses ?? [];
-    let sortOrder = existingCourses.length;
-
-    for (const courseName of template.courses) {
-      if (existingCourses.some(c => c.name.toLowerCase() === courseName.toLowerCase())) {
-        continue;
-      }
-      await this.orderService.addCourseToOrder(order.guid, courseName, sortOrder);
-      sortOrder++;
-    }
-
-    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-    this._activeModal.set('none');
-  }
-
-  readonly hasCheckItems = computed(() => {
-    const check = this.activeCheck();
-    return check ? check.selections.length > 0 : false;
-  });
-
-  // Partial payment progress (Scan to Pay split pay)
-  readonly checkPaidAmount = computed(() => {
-    const check = this.activeCheck();
-    if (!check) return 0;
-    return check.payments
-      .filter(p => p.status === 'PAID')
-      .reduce((sum, p) => sum + p.amount, 0);
-  });
-
-  readonly checkPaymentProgress = computed(() => {
-    const check = this.activeCheck();
-    if (!check || check.totalAmount === 0) return 0;
-    return Math.min(100, Math.round(this.checkPaidAmount() / check.totalAmount * 100));
-  });
-
-  readonly hasPartialPayment = computed(() => {
-    const check = this.activeCheck();
-    return check?.paymentStatus === 'PARTIAL' || (this.checkPaidAmount() > 0 && this.checkPaymentProgress() < 100);
-  });
-
-  // Customer-Facing Display (GAP-R10)
-  private customerDisplayChannel: BroadcastChannel | null = null;
-  private readonly _customerDisplayOpen = signal(false);
-  readonly customerDisplayOpen = this._customerDisplayOpen.asReadonly();
-
-  // Items:ready toast notifications
-  private readonly _itemReadyToasts = signal<{ id: string; stationName: string; items: { name: string }[]; timestamp: number }[]>([]);
-  readonly itemReadyToasts = this._itemReadyToasts.asReadonly();
-
-  // Order tracker drawer
-  private readonly _trackerOpen = signal(false);
-  readonly trackerOpen = this._trackerOpen.asReadonly();
-
-  readonly deviceOrders = computed(() => {
-    const deviceId = this.socketService.deviceId();
-    return this.orders().filter(o =>
-      o.device?.guid === deviceId &&
-      o.guestOrderStatus !== 'CLOSED' &&
-      o.guestOrderStatus !== 'VOIDED'
-    );
-  });
-
-  // Offline indicator
-  readonly isOffline = computed(() => !this.socketService.isOnline());
-  readonly offlineQueueCount = this.orderService.queuedCount;
-
-  private orderEventCleanup: (() => void) | null = null;
-  private scanToPayCleanup: (() => void) | null = null;
-  private itemReadyCleanup: (() => void) | null = null;
-
-  constructor() {
-    // React to menu categories loading (must be in injection context)
-    effect(() => {
-      const cats = this.menuService.categories();
-      if (cats.length > 0) {
-        this._categories.set(cats);
-        if (!this._selectedCategoryId()) {
-          this._selectedCategoryId.set(cats[0].id);
-        }
-      }
-    });
-  }
 
   ngOnInit(): void {
-    // Connect socket for real-time device-scoped communication
-    const restaurantId = this.authService.selectedRestaurantId();
-    if (restaurantId) {
-      this.socketService.connect(restaurantId, 'pos');
-    }
-
     this.menuService.loadMenu();
-    if (this.canUseFloorPlan()) {
-      this.tableService.loadTables();
-    }
-    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-    this.orderService.loadTemplates();
-
-    // Listen for order updates to keep state fresh
-    this.orderEventCleanup = this.orderService.onMappedOrderEvent((event: MappedOrderEvent) => {
-      // If active order was updated, state refreshes via signals automatically
-    });
-
-    // Listen for scan-to-pay completions
-    this.scanToPayCleanup = this.orderService.onScanToPayCompleted((data) => {
-      this._scanToPayNotification.set(data);
-      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-      // Auto-dismiss after 10 seconds
-      setTimeout(() => this._scanToPayNotification.set(null), 10000);
-    });
-
-    // Listen for items:ready events (per-station partial completion)
-    this.itemReadyCleanup = this.socketService.onCustomEvent('items:ready', (data: any) => {
-      const toast = {
-        id: crypto.randomUUID(),
-        stationName: data.stationName ?? 'Station',
-        items: (data.items ?? []).map((i: any) => ({ name: i.name ?? '' })),
-        timestamp: Date.now(),
-      };
-      this._itemReadyToasts.update(list => [toast, ...list].slice(0, 3));
-
-      // Auto-dismiss after 5 seconds
-      setTimeout(() => {
-        this._itemReadyToasts.update(list => list.filter(t => t.id !== toast.id));
-      }, 5000);
-    });
-
-    // Course timing suggestion tick (1-second interval)
-    this.courseSuggestionTimer = setInterval(() => {
-      this._courseSuggestionTick.update(v => v + 1);
-
-      // Auto-dismiss course notification after 15 seconds
-      const notif = this.orderService.courseCompleteNotifications();
-      if (notif && !this.courseNotificationTimer) {
-        this.courseNotificationTimer = setTimeout(() => {
-          this.orderService.clearCourseNotification();
-          this.courseNotificationTimer = null;
-        }, 15000);
-      }
-    }, 1000);
-    this.destroyRef.onDestroy(() => {
-      if (this.courseSuggestionTimer) {
-        clearInterval(this.courseSuggestionTimer);
-      }
-      if (this.courseNotificationTimer) {
-        clearTimeout(this.courseNotificationTimer);
-      }
-    });
+    this.tableService.loadTables();
+    this.settingsService.loadSettings();
   }
 
-  ngOnDestroy(): void {
-    this.orderEventCleanup?.();
-    this.scanToPayCleanup?.();
-    this.itemReadyCleanup?.();
-    this.customerDisplayChannel?.close();
-    this.socketService.disconnect();
+  // --- Tab navigation ---
+
+  selectTopTab(tab: TopTab): void {
+    this._activeTopTab.set(tab);
   }
 
-  // --- Table selection ---
-
-  selectTable(tableId: string): void {
-    this._selectedTableId.set(tableId);
-
-    // Auto-select the first active order for this table
-    const orders = this.orders().filter(
-      o => o.table?.guid === tableId && o.guestOrderStatus !== 'CLOSED' && o.guestOrderStatus !== 'VOIDED'
-    );
-    if (orders.length > 0) {
-      this._activeOrderId.set(orders[0].guid);
-      this._activeCheckIndex.set(0);
-    } else {
-      this._activeOrderId.set(null);
-    }
+  selectBottomTab(tab: BottomTab): void {
+    this._activeBottomTab.set(tab);
   }
 
-  selectOrder(orderId: string): void {
-    this._activeOrderId.set(orderId);
-    this._activeCheckIndex.set(0);
-  }
-
-  selectCheck(index: number): void {
-    this._activeCheckIndex.set(index);
-  }
-
-  // --- Menu navigation ---
-
-  selectCategory(categoryId: string | null): void {
+  selectCategory(categoryId: string): void {
     this._selectedCategoryId.set(categoryId);
   }
 
-  setSearchQuery(query: string): void {
-    this._searchQuery.set(query);
-  }
+  // --- Cart operations ---
 
-  // --- Item entry ---
+  addItem(item: MenuItem): void {
+    const price = typeof item.price === 'string' ? Number.parseFloat(item.price) : item.price;
+    const existing = this._cartItems().find(ci => ci.menuItem.id === item.id && !ci.modifierSummary);
 
-  onItemTap(item: MenuItem): void {
-    if (item.modifierGroups && item.modifierGroups.length > 0) {
-      this._modifierItem.set(item);
-      this._activeModal.set('modifier');
+    if (existing) {
+      this._cartItems.update(items =>
+        items.map(ci =>
+          ci.id === existing.id
+            ? { ...ci, quantity: ci.quantity + 1, totalPrice: (ci.quantity + 1) * ci.unitPrice }
+            : ci
+        )
+      );
     } else {
-      this.addItemDirectly(item);
+      const cartItem: PosCartItem = {
+        id: crypto.randomUUID(),
+        menuItem: item,
+        quantity: 1,
+        modifierSummary: '',
+        unitPrice: price,
+        totalPrice: price,
+      };
+      this._cartItems.update(items => [...items, cartItem]);
     }
   }
 
-  async onModifierConfirmed(result: ModifierPromptResult): Promise<void> {
-    this._activeModal.set('none');
-    this._modifierItem.set(null);
+  removeItem(cartItemId: string): void {
+    this._cartItems.update(items => items.filter(ci => ci.id !== cartItemId));
+  }
 
-    const order = this.activeOrder();
-    const check = this.activeCheck();
-    if (!order || !check) return;
-
-    const request = this.checkService.buildAddItemRequest(
-      result.menuItem,
-      result.quantity,
-      result.selectedModifiers,
-      result.seatNumber ?? this._currentSeat(),
-      result.specialInstructions
+  incrementItem(cartItemId: string): void {
+    this._cartItems.update(items =>
+      items.map(ci =>
+        ci.id === cartItemId
+          ? { ...ci, quantity: ci.quantity + 1, totalPrice: (ci.quantity + 1) * ci.unitPrice }
+          : ci
+      )
     );
-
-    await this.checkService.addItemToCheck(order.guid, check.guid, request);
-    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-    this.sendDisplayUpdate();
   }
 
-  onModifierCancelled(): void {
-    this._activeModal.set('none');
-    this._modifierItem.set(null);
-  }
-
-  private async addItemDirectly(item: MenuItem): Promise<void> {
-    const order = this.activeOrder();
-    const check = this.activeCheck();
-
-    if (!order || !check) {
-      // Need to create order first
-      await this.createNewOrder();
-      // Retry after creation
-      setTimeout(() => this.addItemDirectly(item), 300);
-      return;
-    }
-
-    const request = this.checkService.buildAddItemRequest(
-      item,
-      1,
-      [],
-      this._currentSeat()
+  decrementItem(cartItemId: string): void {
+    this._cartItems.update(items =>
+      items
+        .map(ci =>
+          ci.id === cartItemId
+            ? { ...ci, quantity: ci.quantity - 1, totalPrice: (ci.quantity - 1) * ci.unitPrice }
+            : ci
+        )
+        .filter(ci => ci.quantity > 0)
     );
-
-    await this.checkService.addItemToCheck(order.guid, check.guid, request);
-    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-    this.sendDisplayUpdate();
   }
 
-  // --- Order lifecycle ---
+  clearCart(): void {
+    this._cartItems.set([]);
+  }
 
-  async createNewOrder(): Promise<void> {
-    const table = this.selectedTable();
+  // --- Keypad ---
 
-    const order = await this.orderService.createOrder({
-      orderType: table ? 'dine-in' : 'takeout',
-      tableId: table?.id ?? null,
-      tableNumber: table?.tableNumber ?? null,
-      items: [],
-      sourceDeviceId: this.socketService.deviceId(),
-      orderSource: 'pos',
-    });
-
-    if (order) {
-      this._activeOrderId.set(order.guid);
-      this._activeCheckIndex.set(0);
-      if (table) {
-        await this.tableService.updateStatus(table.id, 'occupied');
-      }
+  onKeypadPress(key: string): void {
+    if (key === 'clear') {
+      this._keypadValue.set('');
+    } else if (key === 'backspace') {
+      this._keypadValue.update(v => v.slice(0, -1));
+    } else {
+      this._keypadValue.update(v => v + key);
     }
   }
 
-  async sendToKitchen(): Promise<void> {
-    const order = this.activeOrder();
-    if (!order) return;
-    await this.orderService.updateOrderStatus(order.guid, 'IN_PREPARATION');
+  // --- Send to Kitchen flow ---
+
+  sendToKitchen(): void {
+    if (this._cartItems().length === 0) return;
+    this._sendStep.set('dining-option');
+    this._sendError.set(null);
   }
 
-  // --- Course management ---
+  selectDiningOption(option: DiningOption): void {
+    this._diningOption.set(option);
 
-  openCourseFireModal(): void {
-    this._newCourseNameInput.set('');
-    this._activeModal.set('course-fire');
-  }
-
-  setNewCourseNameInput(value: string): void {
-    this._newCourseNameInput.set(value);
-  }
-
-  async addCourseToCurrentOrder(): Promise<void> {
-    const order = this.activeOrder();
-    if (!order) return;
-
-    const name = this._newCourseNameInput().trim();
-    if (!name) return;
-
-    const existingCourses = order.courses ?? [];
-    const sortOrder = existingCourses.length;
-
-    await this.orderService.addCourseToOrder(order.guid, name, sortOrder);
-    this._newCourseNameInput.set('');
-    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-  }
-
-  async addDefaultCourse(name: string): Promise<void> {
-    const order = this.activeOrder();
-    if (!order) return;
-
-    // Don't add if a course with this name already exists
-    const existingCourses = order.courses ?? [];
-    if (existingCourses.some(c => c.name.toLowerCase() === name.toLowerCase())) return;
-
-    const sortOrder = existingCourses.length;
-    await this.orderService.addCourseToOrder(order.guid, name, sortOrder);
-    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-  }
-
-  async removeCourseFromCurrentOrder(courseGuid: string): Promise<void> {
-    const order = this.activeOrder();
-    if (!order) return;
-
-    await this.orderService.removeCourseFromOrder(order.guid, courseGuid);
-    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-  }
-
-  async assignItemToCourse(selectionGuid: string, courseGuid: string): Promise<void> {
-    const order = this.activeOrder();
-    if (!order) return;
-
-    await this.orderService.assignSelectionToCourse(order.guid, selectionGuid, courseGuid);
-    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-  }
-
-  async doFireCourse(courseGuid: string): Promise<void> {
-    const order = this.activeOrder();
-    if (!order) return;
-    await this.orderService.fireCourse(order.guid, courseGuid);
-    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-  }
-
-  async doHoldCourse(courseGuid: string): Promise<void> {
-    const order = this.activeOrder();
-    if (!order) return;
-    await this.orderService.holdCourse(order.guid, courseGuid);
-    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-  }
-
-  getFireStatusClass(status: CourseFireStatus): string {
-    switch (status) {
-      case 'FIRED': return 'badge-fired';
-      case 'READY': return 'badge-ready';
-      case 'PENDING':
-      default: return 'badge-pending';
+    if (option === 'dine_in' && this.availableTables().length > 0) {
+      this._sendStep.set('table-select');
+    } else {
+      void this.createOrder();
     }
   }
 
-  getDefaultCourseNames(): string[] {
-    return this.settingsService.aiSettings().defaultCourseNames ?? ['Appetizer', 'Entree', 'Dessert'];
+  selectTable(table: RestaurantTable): void {
+    this._selectedTable.set(table);
+    void this.createOrder();
   }
 
-  isDefaultCourseAlreadyAdded(name: string): boolean {
-    const courses = this.orderCourses();
-    return courses.some(c => c.name.toLowerCase() === name.toLowerCase());
+  skipTableSelection(): void {
+    this._selectedTable.set(null);
+    void this.createOrder();
   }
 
-  // --- Check actions ---
+  private async createOrder(): Promise<void> {
+    this._isSending.set(true);
+    this._sendStep.set('sending');
+    this._sendError.set(null);
 
-  async addNewCheck(): Promise<void> {
-    const order = this.activeOrder();
-    if (!order) return;
-
-    const check = await this.checkService.addCheck(order.guid);
-    if (check) {
-      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-      this._activeCheckIndex.set(order.checks.length); // Select new check
-    }
-  }
-
-  // --- Void/Comp ---
-
-  openVoidModal(selection: Selection): void {
-    this._voidSelection.set(selection);
-    this._activeModal.set('void');
-  }
-
-  openCompModal(selection: Selection): void {
-    this._voidSelection.set(selection);
-    this._activeModal.set('comp');
-  }
-
-  async onVoidConfirm(result: VoidResult): Promise<void> {
-    const order = this.activeOrder();
-    const check = this.activeCheck();
-    const sel = this._voidSelection();
-    if (!order || !check || !sel) return;
-
-    const success = await this.checkService.voidItem(
-      order.guid, check.guid, sel.guid,
-      { reason: result.reason, managerPin: result.managerPin }
-    );
-
-    if (success) {
-      this._activeModal.set('none');
-      this._voidSelection.set(null);
-      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-    }
-  }
-
-  async onCompConfirm(result: CompResult): Promise<void> {
-    const order = this.activeOrder();
-    const check = this.activeCheck();
-    const sel = this._voidSelection();
-    if (!order || !check || !sel) return;
-
-    const success = await this.checkService.compItem(
-      order.guid, check.guid, sel.guid,
-      { reason: result.reason, managerPin: result.managerPin }
-    );
-
-    if (success) {
-      this._activeModal.set('none');
-      this._voidSelection.set(null);
-      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-    }
-  }
-
-  // --- Discount ---
-
-  openDiscountModal(): void {
-    this._activeModal.set('discount');
-  }
-
-  async onDiscountApply(result: DiscountResult): Promise<void> {
-    const order = this.activeOrder();
-    const check = this.activeCheck();
-    if (!order || !check) return;
-
-    const success = await this.checkService.applyDiscount(
-      order.guid, check.guid,
-      { type: result.type, value: result.value, reason: result.reason }
-    );
-
-    if (success) {
-      this._activeModal.set('none');
-      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-    }
-  }
-
-  // --- Split ---
-
-  openSplitModal(): void {
-    this._splitMode.set('item');
-    this._splitCount.set(2);
-    this._activeModal.set('split');
-  }
-
-  setSplitMode(mode: 'item' | 'equal' | 'seat'): void {
-    this._splitMode.set(mode);
-  }
-
-  setSplitCount(count: number): void {
-    this._splitCount.set(Math.max(2, count));
-  }
-
-  async executeSplit(): Promise<void> {
-    const order = this.activeOrder();
-    const check = this.activeCheck();
-    if (!order || !check) return;
-
-    const mode = this._splitMode();
-
-    if (mode === 'equal') {
-      await this.checkService.splitCheckByEqual(order.guid, check.guid, { numberOfWays: this._splitCount() });
-    } else if (mode === 'seat') {
-      await this.checkService.splitCheckBySeat(order.guid, check.guid);
-    }
-
-    this._activeModal.set('none');
-    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-  }
-
-  // --- Transfer ---
-
-  openTransferModal(): void {
-    this._transferTargetId.set(null);
-    this._activeModal.set('transfer');
-  }
-
-  setTransferTarget(tableId: string): void {
-    this._transferTargetId.set(tableId);
-  }
-
-  async executeTransfer(): Promise<void> {
-    const order = this.activeOrder();
-    const check = this.activeCheck();
-    const targetId = this._transferTargetId();
-    if (!order || !check || !targetId) return;
-
-    await this.checkService.transferCheck(order.guid, check.guid, { targetTableId: targetId });
-    this._activeModal.set('none');
-    this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-  }
-
-  // --- Tab ---
-
-  openTabModal(): void {
-    this._tabName.set('');
-    this._tabPreauthEnabled.set(false);
-    this._tabPreauthAmount.set(50);
-    this._isTabProcessing.set(false);
-    this._activeModal.set('tab');
-  }
-
-  setTabName(name: string): void {
-    this._tabName.set(name);
-  }
-
-  toggleTabPreauth(): void {
-    this._tabPreauthEnabled.update(v => !v);
-  }
-
-  setTabPreauthAmount(amount: number): void {
-    this._tabPreauthAmount.set(Math.max(1, amount));
-  }
-
-  async openTab(): Promise<void> {
-    const order = this.activeOrder();
-    const check = this.activeCheck();
-    const name = this._tabName().trim();
-    if (!order || !check || !name) return;
-
-    this._isTabProcessing.set(true);
-
-    try {
-      // If pre-auth enabled, authorize the card hold first
-      if (this._tabPreauthEnabled()) {
-        const preauthAmount = this._tabPreauthAmount();
-        const preauth = await this.paymentService.preauthorize(order.guid, preauthAmount);
-        if (!preauth) {
-          this._isTabProcessing.set(false);
-          return; // Error already set in PaymentService
-        }
-
-        // Open tab with pre-auth data
-        const success = await this.checkService.openTab(order.guid, check.guid, {
-          tabName: name,
-          preauthData: {
-            paymentMethodId: preauth.preauthId,
-            amount: preauth.amount,
-          },
-        });
-
-        if (success) {
-          this._activeModal.set('none');
-          this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-        }
-      } else {
-        // Open tab without pre-auth
-        const success = await this.checkService.openTab(order.guid, check.guid, { tabName: name });
-        if (success) {
-          this._activeModal.set('none');
-          this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-        }
-      }
-    } finally {
-      this._isTabProcessing.set(false);
-    }
-  }
-
-  async closeActiveTab(): Promise<void> {
-    const order = this.activeOrder();
-    const check = this.activeCheck();
-    if (!order || !check) return;
-
-    this._isTabProcessing.set(true);
-
-    try {
-      // If tab has pre-auth, capture it for the final amount
-      if (check.preauthId) {
-        const captureResult = await this.paymentService.capturePreauth(
-          order.guid,
-          check.totalAmount
-        );
-
-        if (captureResult?.success) {
-          this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-        }
-      } else {
-        await this.checkService.closeTab(order.guid, check.guid);
-        this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-      }
-    } finally {
-      this._isTabProcessing.set(false);
-    }
-  }
-
-  isTabOpen(): boolean {
-    const check = this.activeCheck();
-    return !!check?.tabName && !check.tabClosedAt;
-  }
-
-  getTabDuration(): number {
-    const check = this.activeCheck();
-    if (!check?.tabOpenedAt) return 0;
-    return Math.floor((Date.now() - check.tabOpenedAt.getTime()) / 60000);
-  }
-
-  // --- Order Templates ---
-
-  openTemplatesModal(): void {
-    this._activeModal.set('templates');
-  }
-
-  openSaveTemplateModal(): void {
-    this._templateName.set('');
-    this._activeModal.set('save-template');
-  }
-
-  setTemplateName(name: string): void {
-    this._templateName.set(name);
-  }
-
-  async applyTemplate(templateId: string): Promise<void> {
-    const order = this.activeOrder();
-    const check = this.activeCheck();
-
-    if (!order || !check) {
-      await this.createNewOrder();
-      setTimeout(() => this.applyTemplate(templateId), 300);
-      return;
-    }
-
-    this._isApplyingTemplate.set(true);
-
-    try {
-      const items = await this.orderService.applyOrderTemplate(templateId);
-
-      for (const item of items) {
-        const menuItem = this.menuService.allItems().find(mi => mi.id === item.menuItemId);
-        if (!menuItem || menuItem.eightySixed) continue;
-
-        const request = this.checkService.buildAddItemRequest(
-          menuItem,
-          item.quantity,
-          [],
-          this._currentSeat()
-        );
-
-        await this.checkService.addItemToCheck(order.guid, check.guid, request);
-      }
-
-      this.orderService.loadOrders({ sourceDeviceId: this.socketService.deviceId() });
-      this._activeModal.set('none');
-    } finally {
-      this._isApplyingTemplate.set(false);
-    }
-  }
-
-  async saveCurrentAsTemplate(): Promise<void> {
-    const name = this._templateName().trim();
-    const check = this.activeCheck();
-    if (!name || !check) return;
-
-    const items = check.selections.map(sel => ({
-      menuItemId: sel.menuItemGuid,
-      quantity: sel.quantity,
-      modifiers: sel.modifiers.map(m => m.guid),
+    const items = this._cartItems().map(ci => ({
+      menuItemId: ci.menuItem.id,
+      name: ci.menuItem.name,
+      quantity: ci.quantity,
+      unitPrice: ci.unitPrice,
+      totalPrice: ci.totalPrice,
+      modifiers: ci.modifierSummary || undefined,
     }));
 
-    const success = await this.orderService.saveTemplate(name, items);
-    if (success) {
-      this._activeModal.set('none');
-    }
-  }
+    const table = this._selectedTable();
+    const isDineIn = this._diningOption() === 'dine_in';
 
-  async deleteTemplate(templateId: string): Promise<void> {
-    await this.orderService.deleteTemplate(templateId);
-  }
+    const orderData: Record<string, unknown> = {
+      items,
+      orderType: isDineIn ? 'dine-in' : 'takeout',
+      orderSource: 'terminal',
+      ...(table ? { tableId: table.id, tableNumber: table.tableNumber } : {}),
+    };
 
-  // --- QR Pay (Scan to Pay) ---
+    const order = await this.orderService.createOrder(orderData);
 
-  async openQrPayModal(): Promise<void> {
-    const order = this.activeOrder();
-    const check = this.activeCheck();
-    if (!order || !check) return;
+    this._isSending.set(false);
 
-    this._isGeneratingQr.set(true);
-    this._qrCodeUrl.set(null);
-    this._activeModal.set('qr-pay');
-
-    const result = await this.orderService.generateCheckQr(order.guid, check.guid);
-    this._isGeneratingQr.set(false);
-
-    if (result) {
-      this._qrCodeUrl.set(result.qrCodeUrl);
-    }
-  }
-
-  dismissScanToPayNotification(): void {
-    this._scanToPayNotification.set(null);
-  }
-
-  // --- Payment ---
-
-  async closeAndPay(): Promise<void> {
-    const order = this.activeOrder();
-    if (!order) return;
-
-    const check = this.activeCheck();
-    if (!check) return;
-
-    // If tab has pre-auth, capture it
-    if (check.preauthId && check.tabName && !check.tabClosedAt) {
-      await this.closeActiveTab();
+    if (!order) {
+      this._sendError.set(this.orderService.error() ?? 'Failed to create order');
+      this._sendStep.set('failed');
       return;
     }
 
-    // Check if a payment processor is configured
-    const settings = this.settingsService.paymentSettings();
-    this.paymentService.setProcessorType(settings.processor);
+    this._sendStep.set('success');
 
-    if (this.paymentService.isConfigured()) {
-      // Show payment terminal modal
-      this._paymentError.set(null);
-      this._activeModal.set('payment');
-    } else {
-      // No processor — mark as cash / complete directly
-      await this.orderService.completeOrder(order.guid);
-    }
+    // Auto-dismiss success after 2 seconds
+    setTimeout(() => this.finishAndNewOrder(), 2000);
   }
 
-  onPaymentComplete(): void {
-    this._activeModal.set('none');
-    this._paymentError.set(null);
-    this.paymentService.reset();
-
-    const order = this.activeOrder();
-    if (order) {
-      this.orderService.completeOrder(order.guid);
-    }
-
-    this._activeOrderId.set(null);
-    this._selectedTableId.set(null);
-    this.sendDisplayPaymentComplete();
+  finishAndNewOrder(): void {
+    this.clearCart();
+    this.resetSend();
   }
 
-  onPaymentFailed(errorMessage: string): void {
-    this._paymentError.set(errorMessage);
+  cancelSend(): void {
+    this.resetSend();
   }
 
-  // --- Seat management ---
-
-  setCurrentSeat(seat: number | undefined): void {
-    this._currentSeat.set(seat);
+  retrySend(): void {
+    this._sendError.set(null);
+    this._sendStep.set('dining-option');
   }
 
-  // --- Print ---
-
-  printCheck(): void {
-    const order = this.activeOrder();
-    if (!order) return;
-    const includeQr = this.settingsService.scanToPaySettings().includeQrOnPrintedReceipts;
-    this.orderService.triggerPrint(order.guid, includeQr);
-  }
-
-  // --- Modal close ---
-
-  closeModal(): void {
-    this._activeModal.set('none');
-    this._modifierItem.set(null);
-    this._voidSelection.set(null);
+  private resetSend(): void {
+    this._sendStep.set('idle');
+    this._diningOption.set(null);
+    this._selectedTable.set(null);
+    this._sendError.set(null);
+    this._isSending.set(false);
   }
 
   // --- Helpers ---
 
-  getStatusClass(status: string): string {
-    switch (status) {
-      case 'available': return 'status-available';
-      case 'occupied': return 'status-occupied';
-      case 'reserved': return 'status-reserved';
-      case 'dirty': return 'status-dirty';
-      default: return 'status-available';
+  getItemImage(item: MenuItem): string | null {
+    return item.imageUrl ?? item.thumbnailUrl ?? item.image ?? null;
+  }
+
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    const container = img.parentElement;
+    if (container) {
+      container.classList.add('item-image-placeholder');
     }
   }
 
-  getCheckSubtotal(): number {
-    return this.activeCheck()?.subtotal ?? 0;
-  }
-
-  // --- Customer-Facing Display (GAP-R10) ---
-
-  openCustomerDisplay(): void {
-    if (!this.customerDisplayChannel) {
-      this.customerDisplayChannel = new BroadcastChannel('orderstack-customer-display');
-    }
-    window.open('/customer-display', 'orderstack-customer-display', 'width=1024,height=768');
-    this._customerDisplayOpen.set(true);
-  }
-
-  sendDisplayUpdate(): void {
-    if (!this.customerDisplayChannel) return;
-    const check = this.activeCheck();
-    if (!check) return;
-
-    const items = check.selections.map(s => ({
-      name: s.menuItemName ?? 'Item',
-      quantity: s.quantity,
-      price: s.unitPrice,
-    }));
-
-    this.customerDisplayChannel.postMessage({
-      type: 'totals-updated',
-      items,
-      subtotal: check.subtotal ?? 0,
-      tax: check.taxAmount ?? 0,
-      total: check.totalAmount ?? 0,
-    });
-  }
-
-  sendDisplayTipPrompt(): void {
-    this.customerDisplayChannel?.postMessage({
-      type: 'tip-prompt',
-      tipPresets: [15, 18, 20, 25],
-    });
-  }
-
-  sendDisplayPaymentComplete(): void {
-    this.customerDisplayChannel?.postMessage({
-      type: 'payment-complete',
-      brandingMessage: 'Thank you for your visit!',
-    });
-  }
-
-  resetCustomerDisplay(): void {
-    this.customerDisplayChannel?.postMessage({ type: 'reset' });
-  }
-
-  // --- Order Tracker Drawer ---
-
-  toggleTracker(): void {
-    this._trackerOpen.update(v => !v);
-  }
-
-  closeTracker(): void {
-    this._trackerOpen.set(false);
-  }
-
-  getItemReadyNames(toast: { items: { name: string }[] }): string {
-    return toast.items.map(i => i.name).join(', ');
-  }
-
-  dismissItemReadyToast(id: string): void {
-    this._itemReadyToasts.update(list => list.filter(t => t.id !== id));
-  }
-
-  getItemStatusClass(status: string): string {
-    switch (status?.toUpperCase()) {
-      case 'COMPLETED':
-      case 'READY':
-        return 'item-ready';
-      case 'PREPARING':
-      case 'SENT':
-        return 'item-preparing';
-      default:
-        return 'item-pending';
-    }
-  }
-
-  getOrderProgress(order: Order): { ready: number; total: number } {
-    const items = order.checks.flatMap(c => c.selections);
-    const total = items.length;
-    const ready = items.filter(s =>
-      s.fulfillmentStatus === 'SENT'
-    ).length;
-    return { ready, total };
+  formatPrice(price: number | string): number {
+    return typeof price === 'string' ? Number.parseFloat(price) : price;
   }
 }

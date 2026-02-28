@@ -6,6 +6,7 @@ export interface CartItem {
   menuItem: MenuItem;
   quantity: number;
   selectedModifiers: Modifier[];
+  modifierSummary?: string;
   specialInstructions?: string;
   unitPrice: number;
   totalPrice: number;
