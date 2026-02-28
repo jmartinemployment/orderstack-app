@@ -17,6 +17,14 @@ export class StripePaymentProvider implements PaymentProvider {
   private clientSecret: string | null = null;
   private storedContext: PaymentContext | null = null;
 
+  private buildHeaders(ctx: PaymentContext): Record<string, string> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (ctx.authToken) {
+      headers['Authorization'] = `Bearer ${ctx.authToken}`;
+    }
+    return headers;
+  }
+
   async createPayment(orderId: string, _amount: number, context: PaymentContext): Promise<PaymentCreateResult> {
     this.storedContext = context;
 
@@ -34,7 +42,7 @@ export class StripePaymentProvider implements PaymentProvider {
 
     const response = await fetch(
       `${context.apiUrl}/restaurant/${context.restaurantId}/orders/${orderId}/payment-intent`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }
+      { method: 'POST', headers: this.buildHeaders(context), body: '{}' }
     );
 
     if (!response.ok) {
@@ -101,7 +109,7 @@ export class StripePaymentProvider implements PaymentProvider {
 
     const response = await fetch(
       `${ctx.apiUrl}/restaurant/${ctx.restaurantId}/orders/${orderId}/cancel-payment`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }
+      { method: 'POST', headers: this.buildHeaders(ctx), body: '{}' }
     );
 
     return response.ok;
@@ -114,7 +122,7 @@ export class StripePaymentProvider implements PaymentProvider {
     const body = amount !== undefined ? JSON.stringify({ amount }) : '{}';
     const response = await fetch(
       `${ctx.apiUrl}/restaurant/${ctx.restaurantId}/orders/${orderId}/refund`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }
+      { method: 'POST', headers: this.buildHeaders(ctx), body }
     );
 
     if (!response.ok) return null;

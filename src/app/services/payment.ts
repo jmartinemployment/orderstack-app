@@ -45,7 +45,11 @@ export class PaymentService {
 
   private get paymentContext(): PaymentContext | null {
     if (!this.restaurantId) return null;
-    return { restaurantId: this.restaurantId, apiUrl: this.apiUrl };
+    return {
+      restaurantId: this.restaurantId,
+      apiUrl: this.apiUrl,
+      authToken: this.authService.token(),
+    };
   }
 
   setProcessorType(type: PaymentProcessorType): void {

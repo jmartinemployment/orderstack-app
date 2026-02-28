@@ -6,6 +6,7 @@ import {
   OnlinePricingSettings,
   CateringCapacitySettings,
   PaymentSettings,
+  PaymentProcessorType,
   TipManagementSettings,
   DeliverySettings,
   TimeclockSettings,
@@ -110,6 +111,7 @@ export class RestaurantSettingsService {
       const pricingFromServer = response['onlinePricingSettings'] as Partial<OnlinePricingSettings> | undefined;
       const cateringFromServer = response['cateringCapacitySettings'] as Partial<CateringCapacitySettings> | undefined;
       const paymentFromServer = response['paymentSettings'] as Partial<PaymentSettings> | undefined;
+      const processorFromServer = response['paymentProcessor'] as PaymentProcessorType | undefined;
 
       this._aiSettings.set(this.normalizeAISettings({
         ...defaultAISettings(),
@@ -118,7 +120,12 @@ export class RestaurantSettingsService {
       }));
       this._onlinePricingSettings.set({ ...defaultOnlinePricingSettings(), ...this.readLocalStorage('online-pricing-settings'), ...pricingFromServer });
       this._cateringCapacitySettings.set({ ...defaultCateringCapacitySettings(), ...this.readLocalStorage('catering-capacity-settings'), ...cateringFromServer });
-      this._paymentSettings.set({ ...defaultPaymentSettings(), ...this.readLocalStorage('payment-settings'), ...paymentFromServer });
+      this._paymentSettings.set({
+        ...defaultPaymentSettings(),
+        ...this.readLocalStorage('payment-settings'),
+        ...paymentFromServer,
+        ...(processorFromServer && !paymentFromServer ? { processor: processorFromServer } : {}),
+      });
 
       const tipFromServer = response['tipManagementSettings'] as Partial<TipManagementSettings> | undefined;
       this._tipManagementSettings.set({ ...defaultTipManagementSettings(), ...this.readLocalStorage('tip-management-settings'), ...tipFromServer });

@@ -8,6 +8,7 @@ export type PaymentStep = 'cart' | 'paying' | 'success' | 'failed';
 export interface PaymentContext {
   restaurantId: string;
   apiUrl: string;
+  authToken: string | null;
 }
 
 export interface PaymentCreateResult {

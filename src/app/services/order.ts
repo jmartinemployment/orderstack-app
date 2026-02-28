@@ -479,11 +479,6 @@ export class OrderService implements OnDestroy {
       return null;
     }
 
-    // If offline, queue instead of POST
-    if (!this.socketService.isOnline()) {
-      return this.queueOrder(orderData);
-    }
-
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -500,6 +495,10 @@ export class OrderService implements OnDestroy {
 
       return order;
     } catch (err: any) {
+      // Network failure — queue for retry when back online
+      if (err.status === 0 || err.status === undefined) {
+        return this.queueOrder(orderData);
+      }
       const message = err?.error?.message ?? 'Failed to create order';
       this._error.set(message);
       return null;

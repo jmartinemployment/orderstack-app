@@ -20,19 +20,26 @@ export class PayPalPaymentProvider implements PaymentProvider {
   private rejectConfirm: ((reason: Error) => void) | null = null;
   private paypalApproved = false;
 
+  private buildHeaders(ctx: PaymentContext): Record<string, string> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (ctx.authToken) {
+      headers['Authorization'] = `Bearer ${ctx.authToken}`;
+    }
+    return headers;
+  }
+
   async createPayment(orderId: string, _amount: number, context: PaymentContext): Promise<PaymentCreateResult> {
     this.storedContext = context;
     this.storedOrderId = orderId;
     this.paypalApproved = false;
 
     if (environment.paypalClientId === 'sb') {
-      // Sandbox mode — allowed but warn in console
       console.warn('PayPal is running in sandbox mode');
     }
 
     const response = await fetch(
       `${context.apiUrl}/restaurant/${context.restaurantId}/orders/${orderId}/paypal-create`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }
+      { method: 'POST', headers: this.buildHeaders(context), body: '{}' }
     );
 
     if (!response.ok) {
@@ -71,10 +78,9 @@ export class PayPalPaymentProvider implements PaymentProvider {
     const buttons = this.paypalInstance.Buttons({
       createOrder: async () => paypalOrderId,
       onApprove: async () => {
-        // Capture payment on the backend
         const captureResponse = await fetch(
           `${context.apiUrl}/restaurant/${context.restaurantId}/orders/${orderId}/paypal-capture`,
-          { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }
+          { method: 'POST', headers: this.buildHeaders(context), body: '{}' }
         );
 
         if (!captureResponse.ok) {
@@ -119,7 +125,6 @@ export class PayPalPaymentProvider implements PaymentProvider {
   }
 
   async confirmPayment(): Promise<boolean> {
-    // If onApprove already fired before confirmPayment() was called
     if (this.paypalApproved) {
       return true;
     }
@@ -136,7 +141,7 @@ export class PayPalPaymentProvider implements PaymentProvider {
 
     const response = await fetch(
       `${ctx.apiUrl}/restaurant/${ctx.restaurantId}/orders/${orderId}/cancel-payment`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }
+      { method: 'POST', headers: this.buildHeaders(ctx), body: '{}' }
     );
 
     return response.ok;
@@ -149,7 +154,7 @@ export class PayPalPaymentProvider implements PaymentProvider {
     const body = amount !== undefined ? JSON.stringify({ amount }) : '{}';
     const response = await fetch(
       `${ctx.apiUrl}/restaurant/${ctx.restaurantId}/orders/${orderId}/refund`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }
+      { method: 'POST', headers: this.buildHeaders(ctx), body }
     );
 
     if (!response.ok) return null;
