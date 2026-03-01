@@ -1,4 +1,4 @@
-.reservation-manager {
+.booking-manager {
   h2 { color: var(--os-text-primary); font-weight: 600; }
 }
 
@@ -44,7 +44,7 @@
 }
 
 // Reservation cards
-.reservation-list {
+.booking-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;

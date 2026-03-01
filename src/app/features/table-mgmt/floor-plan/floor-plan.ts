@@ -13,10 +13,10 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { TableService } from '@services/table';
 import { OrderService } from '@services/order';
 import { AuthService } from '@services/auth';
-import { ReservationService } from '@services/reservation';
+import { BookingService } from '@services/booking';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
-import { RestaurantTable, TableFormData, TableStatus, Reservation } from '@models/index';
+import { RestaurantTable, TableFormData, TableStatus, Booking } from '@models/index';
 import { Order, getOrderIdentifier } from '@models/index';
 
 export interface TableSelectedEvent {
@@ -36,7 +36,7 @@ export class FloorPlan implements OnInit {
   private readonly tableService = inject(TableService);
   private readonly orderService = inject(OrderService);
   private readonly authService = inject(AuthService);
-  private readonly reservationService = inject(ReservationService);
+  private readonly bookingService = inject(BookingService);
   private readonly canvasRef = viewChild<ElementRef<HTMLDivElement>>('floorCanvas');
 
   readonly tableSelected = output<TableSelectedEvent>();
@@ -140,8 +140,8 @@ export class FloorPlan implements OnInit {
   );
 
   readonly tableReservationMap = computed(() => {
-    const map = new Map<string, Reservation>();
-    for (const r of this.reservationService.reservations()) {
+    const map = new Map<string, Booking>();
+    for (const r of this.bookingService.reservations()) {
       if ((r.status === 'confirmed' || r.status === 'seated') && r.tableNumber) {
         if (!map.has(r.tableNumber)) {
           map.set(r.tableNumber, r);
@@ -151,7 +151,7 @@ export class FloorPlan implements OnInit {
     return map;
   });
 
-  getTableReservation(tableNumber: string): Reservation | null {
+  getTableReservation(tableNumber: string): Booking | null {
     return this.tableReservationMap().get(tableNumber) ?? null;
   }
 
@@ -166,7 +166,7 @@ export class FloorPlan implements OnInit {
   ngOnInit(): void {
     this.tableService.loadTables();
     this.orderService.loadOrders();
-    this.reservationService.loadReservations();
+    this.bookingService.loadBookings();
   }
 
   setView(view: 'floor' | 'list'): void {

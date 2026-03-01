@@ -213,7 +213,7 @@ export class DeviceSetup implements OnInit {
         this.router.navigate(['/pos']);
         break;
       case 'bookings':
-        this.router.navigate(['/reservations']);
+        this.router.navigate(['/bookings-terminal']);
         break;
       case 'services':
         this.router.navigate(['/invoicing']);

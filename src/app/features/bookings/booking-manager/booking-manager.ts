@@ -1,15 +1,15 @@
 import { Component, inject, signal, computed, effect, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { ReservationService } from '@services/reservation';
+import { BookingService } from '@services/booking';
 import { TableService } from '@services/table';
 import { AuthService } from '@services/auth';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
 import {
-  Reservation,
-  ReservationTab,
-  ReservationStatus,
+  Booking,
+  BookingTab,
+  BookingStatus,
   WaitlistEntry,
   WaitlistFormData,
   RecurrencePattern,
@@ -27,15 +27,15 @@ import {
 } from '@models/index';
 
 @Component({
-  selector: 'os-reservations',
+  selector: 'os-booking-manager',
   imports: [ReactiveFormsModule, DatePipe, LoadingSpinner, ErrorDisplay],
-  templateUrl: './reservation-manager.html',
-  styleUrl: './reservation-manager.scss',
+  templateUrl: './booking-manager.html',
+  styleUrl: './booking-manager.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ReservationManager {
+export class BookingManager {
   private readonly fb = inject(FormBuilder);
-  private readonly reservationService = inject(ReservationService);
+  private readonly bookingService = inject(BookingService);
   private readonly tableService = inject(TableService);
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
@@ -45,24 +45,24 @@ export class ReservationManager {
   readonly occasionOptions = OCCASION_OPTIONS;
 
   // ── Core state ──
-  private readonly _activeTab = signal<ReservationTab>('today');
+  private readonly _activeTab = signal<BookingTab>('today');
   private readonly _showForm = signal(false);
   private readonly _isSaving = signal(false);
-  private readonly _selectedReservation = signal<Reservation | null>(null);
+  private readonly _selectedBooking = signal<Booking | null>(null);
   private readonly _localError = signal<string | null>(null);
 
   readonly activeTab = this._activeTab.asReadonly();
   readonly showForm = this._showForm.asReadonly();
   readonly isSaving = this._isSaving.asReadonly();
-  readonly selectedReservation = this._selectedReservation.asReadonly();
+  readonly selectedBooking = this._selectedBooking.asReadonly();
   readonly localError = this._localError.asReadonly();
 
-  readonly isLoading = this.reservationService.isLoading;
-  readonly todayReservations = this.reservationService.todayReservations;
-  readonly upcomingReservations = this.reservationService.upcomingReservations;
-  readonly pastReservations = this.reservationService.pastReservations;
-  readonly activeWaitlist = this.reservationService.activeWaitlist;
-  readonly waitlistCount = this.reservationService.waitlistCount;
+  readonly isLoading = this.bookingService.isLoading;
+  readonly todayReservations = this.bookingService.todayReservations;
+  readonly upcomingReservations = this.bookingService.upcomingReservations;
+  readonly pastReservations = this.bookingService.pastReservations;
+  readonly activeWaitlist = this.bookingService.activeWaitlist;
+  readonly waitlistCount = this.bookingService.waitlistCount;
   readonly tables = this.tableService.tables;
 
   readonly availableTables = computed(() =>
@@ -93,13 +93,13 @@ export class ReservationManager {
   readonly waitlistNotes = this._waitlistNotes.asReadonly();
 
   // ── Dynamic Turn Time (Phase 2) ──
-  readonly turnTimeStats = this.reservationService.turnTimeStats;
-  readonly avgTableTurnMinutes = this.reservationService.dynamicTurnTime;
+  readonly turnTimeStats = this.bookingService.turnTimeStats;
+  readonly avgTableTurnMinutes = this.bookingService.dynamicTurnTime;
 
   // ── Recurring Reservations (Phase 2) ──
-  readonly recurringReservations = this.reservationService.recurringReservations;
-  readonly activeRecurring = this.reservationService.activeRecurring;
-  readonly isLoadingRecurring = this.reservationService.isLoadingRecurring;
+  readonly recurringReservations = this.bookingService.recurringReservations;
+  readonly activeRecurring = this.bookingService.activeRecurring;
+  readonly isLoadingRecurring = this.bookingService.isLoadingRecurring;
   private readonly _showRecurringForm = signal(false);
   private readonly _recurringPattern = signal<RecurrencePattern>('weekly');
   private readonly _recurringEndDate = signal('');
@@ -108,10 +108,10 @@ export class ReservationManager {
   readonly recurringEndDate = this._recurringEndDate.asReadonly();
 
   // ── Events (Phase 2) ──
-  readonly events = this.reservationService.events;
-  readonly upcomingEvents = this.reservationService.upcomingEvents;
-  readonly pastEvents = this.reservationService.pastEvents;
-  readonly isLoadingEvents = this.reservationService.isLoadingEvents;
+  readonly events = this.bookingService.events;
+  readonly upcomingEvents = this.bookingService.upcomingEvents;
+  readonly pastEvents = this.bookingService.pastEvents;
+  readonly isLoadingEvents = this.bookingService.isLoadingEvents;
   private readonly _showEventForm = signal(false);
   private readonly _selectedEvent = signal<EventBooking | null>(null);
   private readonly _eventFilter = signal<'upcoming' | 'past'>('upcoming');
@@ -164,13 +164,13 @@ export class ReservationManager {
 
   readonly timelineBlocks = computed((): TimelineBlock[] => {
     const date = this._timelineDate();
-    const dayReservations = this.reservationService.reservations()
+    const dayBookings = this.bookingService.reservations()
       .filter(r => r.reservationTime.startsWith(date) && r.status !== 'cancelled' && r.status !== 'no-show');
 
     const allTables = this.tableService.tables().filter(t => t.active);
     const blocks: TimelineBlock[] = [];
 
-    for (const res of dayReservations) {
+    for (const res of dayBookings) {
       const resDate = new Date(res.reservationTime);
       const startMinute = (resDate.getHours() - 9) * 60 + resDate.getMinutes();
       const duration = this.getTurnTimeForParty(res.partySize);
@@ -180,7 +180,7 @@ export class ReservationManager {
         : null;
 
       blocks.push({
-        reservation: res,
+        booking: res,
         startMinute,
         durationMinutes: duration,
         tableId: table?.id ?? 'unassigned',
@@ -225,7 +225,7 @@ export class ReservationManager {
       const endMin = startMin + 60;
       const covers = blocks
         .filter(b => b.startMinute < endMin && b.startMinute + b.durationMinutes > startMin)
-        .reduce((sum, b) => sum + b.reservation.partySize, 0);
+        .reduce((sum, b) => sum + b.booking.partySize, 0);
       hours.push({
         hour: `${String(h).padStart(2, '0')}:00`,
         covers,
@@ -236,16 +236,16 @@ export class ReservationManager {
   });
 
   // ── Phase 3: Calendar Sync ──
-  readonly calendarConnection = this.reservationService.calendarConnection;
-  readonly calendarBlocks = this.reservationService.calendarBlocks;
-  readonly isCalendarConnected = this.reservationService.isCalendarConnected;
+  readonly calendarConnection = this.bookingService.calendarConnection;
+  readonly calendarBlocks = this.bookingService.calendarBlocks;
+  readonly isCalendarConnected = this.bookingService.isCalendarConnected;
   private readonly _showCalendarSettings = signal(false);
   private readonly _calendarSyncing = signal(false);
   readonly showCalendarSettings = this._showCalendarSettings.asReadonly();
   readonly calendarSyncing = this._calendarSyncing.asReadonly();
 
   // ── Phase 3: Waitlist SMS Config ──
-  readonly waitlistSmsConfig = this.reservationService.waitlistSmsConfig;
+  readonly waitlistSmsConfig = this.bookingService.waitlistSmsConfig;
   private readonly _showSmsConfig = signal(false);
   private readonly _smsEnabled = signal(false);
   private readonly _smsMessage = signal('');
@@ -260,12 +260,12 @@ export class ReservationManager {
   readonly smsSaving = this._smsSaving.asReadonly();
 
   // ── Phase 3: Waitlist Analytics ──
-  readonly waitlistAnalytics = this.reservationService.waitlistAnalytics;
+  readonly waitlistAnalytics = this.bookingService.waitlistAnalytics;
   private readonly _showWaitlistAnalytics = signal(false);
   readonly showWaitlistAnalytics = this._showWaitlistAnalytics.asReadonly();
 
   // ── Phase 3: Virtual Waitlist ──
-  readonly virtualWaitlistConfig = this.reservationService.virtualWaitlistConfig;
+  readonly virtualWaitlistConfig = this.bookingService.virtualWaitlistConfig;
   private readonly _showVirtualConfig = signal(false);
   private readonly _virtualEnabled = signal(false);
   private readonly _virtualMaxQueue = signal(50);
@@ -276,10 +276,10 @@ export class ReservationManager {
   readonly virtualSaving = this._virtualSaving.asReadonly();
 
   // ── Phase 3: On My Way entries ──
-  readonly onMyWayEntries = this.reservationService.onMyWayEntries;
+  readonly onMyWayEntries = this.bookingService.onMyWayEntries;
 
   // ── Reservation Form ──
-  readonly reservationForm = this.fb.group({
+  readonly bookingForm = this.fb.group({
     customerName: ['', [Validators.required, Validators.minLength(2)]],
     customerPhone: ['', [Validators.required]],
     customerEmail: [''],
@@ -298,9 +298,9 @@ export class ReservationManager {
   constructor() {
     effect(() => {
       if (this.isAuthenticated() && this.authService.selectedRestaurantId()) {
-        this.reservationService.loadReservations();
-        this.reservationService.loadWaitlist();
-        this.reservationService.loadTurnTimeStats();
+        this.bookingService.loadBookings();
+        this.bookingService.loadWaitlist();
+        this.bookingService.loadTurnTimeStats();
         this.tableService.loadTables();
       }
     });
@@ -308,27 +308,27 @@ export class ReservationManager {
 
   // ── Tab Navigation ──
 
-  setTab(tab: ReservationTab): void {
+  setTab(tab: BookingTab): void {
     this._activeTab.set(tab);
     if (tab === 'waitlist') {
-      this.reservationService.loadWaitlist();
+      this.bookingService.loadWaitlist();
       if (!this.waitlistConfigLoaded) {
-        this.reservationService.loadWaitlistSmsConfig();
-        this.reservationService.loadVirtualWaitlistConfig();
-        this.reservationService.loadWaitlistAnalytics();
+        this.bookingService.loadWaitlistSmsConfig();
+        this.bookingService.loadVirtualWaitlistConfig();
+        this.bookingService.loadWaitlistAnalytics();
         this.waitlistConfigLoaded = true;
       }
     }
     if (tab === 'events' && !this.eventsLoaded) {
-      this.reservationService.loadEvents();
+      this.bookingService.loadEvents();
       this.eventsLoaded = true;
     }
     if ((tab === 'today' || tab === 'upcoming') && !this.recurringLoaded) {
-      this.reservationService.loadRecurringReservations();
+      this.bookingService.loadRecurringReservations();
       this.recurringLoaded = true;
     }
     if (tab === 'timeline' && !this.calendarLoaded) {
-      this.reservationService.loadCalendarConnection();
+      this.bookingService.loadCalendarConnection();
       this.calendarLoaded = true;
     }
   }
@@ -340,7 +340,7 @@ export class ReservationManager {
     const dateStr = now.toISOString().split('T')[0];
     const timeStr = `${String(now.getHours() + 1).padStart(2, '0')}:00`;
 
-    this.reservationForm.reset({
+    this.bookingForm.reset({
       customerName: '',
       customerPhone: '',
       customerEmail: '',
@@ -358,7 +358,7 @@ export class ReservationManager {
 
   closeForm(): void {
     this._showForm.set(false);
-    this.reservationForm.reset();
+    this.bookingForm.reset();
   }
 
   toggleRecurringForm(): void {
@@ -373,14 +373,14 @@ export class ReservationManager {
     this._recurringEndDate.set((event.target as HTMLInputElement).value);
   }
 
-  async saveReservation(): Promise<void> {
-    if (this.reservationForm.invalid || this._isSaving()) return;
+  async saveBooking(): Promise<void> {
+    if (this.bookingForm.invalid || this._isSaving()) return;
 
     this._isSaving.set(true);
     this._localError.set(null);
 
     try {
-      const form = this.reservationForm.value;
+      const form = this.bookingForm.value;
       const reservationTime = `${form.reservationDate}T${form.reservationTime}:00`;
 
       const data = {
@@ -396,19 +396,19 @@ export class ReservationManager {
       };
 
       if (this._showRecurringForm()) {
-        const result = await this.reservationService.createRecurringReservation(data);
+        const result = await this.bookingService.createRecurringBooking(data);
         if (result) {
           this.closeForm();
-          await this.reservationService.loadReservations();
+          await this.bookingService.loadBookings();
         } else {
-          this._localError.set(this.reservationService.error() ?? 'Failed to create recurring reservation');
+          this._localError.set(this.bookingService.error() ?? 'Failed to create recurring reservation');
         }
       } else {
-        const result = await this.reservationService.createReservation(data);
+        const result = await this.bookingService.createReservation(data);
         if (result) {
           this.closeForm();
         } else {
-          this._localError.set(this.reservationService.error() ?? 'Failed to create reservation');
+          this._localError.set(this.bookingService.error() ?? 'Failed to create reservation');
         }
       }
     } catch (err: unknown) {
@@ -418,36 +418,36 @@ export class ReservationManager {
     }
   }
 
-  async updateStatus(reservation: Reservation, status: ReservationStatus): Promise<void> {
+  async updateStatus(booking: Booking, status: BookingStatus): Promise<void> {
     this._localError.set(null);
-    const success = await this.reservationService.updateStatus(reservation.id, status);
+    const success = await this.bookingService.updateStatus(booking.id, status);
     if (!success) {
-      this._localError.set(this.reservationService.error() ?? 'Failed to update status');
+      this._localError.set(this.bookingService.error() ?? 'Failed to update status');
     }
   }
 
-  selectReservation(reservation: Reservation): void {
-    this._selectedReservation.set(reservation);
+  selectBooking(booking: Booking): void {
+    this._selectedBooking.set(booking);
   }
 
   closeDetail(): void {
-    this._selectedReservation.set(null);
+    this._selectedBooking.set(null);
   }
 
-  isRecurring(reservation: Reservation): boolean {
-    return reservation.recurringReservationId !== null;
+  isRecurring(booking: Booking): boolean {
+    return booking.recurringReservationId !== null;
   }
 
   async cancelRecurring(id: string): Promise<void> {
     this._localError.set(null);
-    const success = await this.reservationService.cancelRecurringReservation(id);
+    const success = await this.bookingService.cancelRecurringBooking(id);
     if (!success) {
-      this._localError.set(this.reservationService.error() ?? 'Failed to cancel recurring reservation');
+      this._localError.set(this.bookingService.error() ?? 'Failed to cancel recurring reservation');
     }
   }
 
   async toggleRecurringActive(id: string, isActive: boolean): Promise<void> {
-    await this.reservationService.toggleRecurring(id, isActive);
+    await this.bookingService.toggleRecurring(id, isActive);
   }
 
   getRecurrenceLabel(pattern: RecurrencePattern): string {
@@ -498,35 +498,35 @@ export class ReservationManager {
       notes: this._waitlistNotes().trim() || undefined,
     };
 
-    const result = await this.reservationService.addToWaitlist(data);
+    const result = await this.bookingService.addToWaitlist(data);
     this._waitlistSaving.set(false);
 
     if (result) {
       this.closeWaitlistForm();
     } else {
-      this._localError.set(this.reservationService.error() ?? 'Failed to add to waitlist');
+      this._localError.set(this.bookingService.error() ?? 'Failed to add to waitlist');
     }
   }
 
   async notifyGuest(entry: WaitlistEntry): Promise<void> {
-    await this.reservationService.notifyWaitlistEntry(entry.id);
+    await this.bookingService.notifyWaitlistEntry(entry.id);
   }
 
   async seatGuest(entry: WaitlistEntry): Promise<void> {
-    await this.reservationService.seatWaitlistEntry(entry.id);
+    await this.bookingService.seatWaitlistEntry(entry.id);
   }
 
   async removeGuest(entry: WaitlistEntry): Promise<void> {
-    await this.reservationService.removeFromWaitlist(entry.id);
+    await this.bookingService.removeFromWaitlist(entry.id);
   }
 
   async moveUp(entry: WaitlistEntry): Promise<void> {
     if (entry.position <= 1) return;
-    await this.reservationService.reorderWaitlist(entry.id, entry.position - 1);
+    await this.bookingService.reorderWaitlist(entry.id, entry.position - 1);
   }
 
   async moveDown(entry: WaitlistEntry): Promise<void> {
-    await this.reservationService.reorderWaitlist(entry.id, entry.position + 1);
+    await this.bookingService.reorderWaitlist(entry.id, entry.position + 1);
   }
 
   getEstimatedWait(entry: WaitlistEntry): number {
@@ -600,11 +600,11 @@ export class ReservationManager {
         isPublished: form.isPublished ?? false,
       };
 
-      const result = await this.reservationService.createEvent(data);
+      const result = await this.bookingService.createEvent(data);
       if (result) {
         this.closeEventForm();
       } else {
-        this._localError.set(this.reservationService.error() ?? 'Failed to create event');
+        this._localError.set(this.bookingService.error() ?? 'Failed to create event');
       }
     } catch (err: unknown) {
       this._localError.set(err instanceof Error ? err.message : 'An unexpected error occurred');
@@ -622,24 +622,24 @@ export class ReservationManager {
   }
 
   async togglePublished(event: EventBooking): Promise<void> {
-    await this.reservationService.toggleEventPublished(event.id, !event.isPublished);
+    await this.bookingService.toggleEventPublished(event.id, !event.isPublished);
   }
 
   async deleteEvent(event: EventBooking): Promise<void> {
     this._localError.set(null);
-    const success = await this.reservationService.deleteEvent(event.id);
+    const success = await this.bookingService.deleteEvent(event.id);
     if (!success) {
-      this._localError.set(this.reservationService.error() ?? 'Failed to delete event');
+      this._localError.set(this.bookingService.error() ?? 'Failed to delete event');
     }
     this._selectedEvent.set(null);
   }
 
   async checkInAttendee(eventId: string, attendeeId: string): Promise<void> {
-    await this.reservationService.checkInAttendee(eventId, attendeeId);
+    await this.bookingService.checkInAttendee(eventId, attendeeId);
   }
 
   async refundAttendee(eventId: string, attendeeId: string): Promise<void> {
-    await this.reservationService.refundAttendee(eventId, attendeeId);
+    await this.bookingService.refundAttendee(eventId, attendeeId);
   }
 
   getEventTypeLabel(type: string): string {
@@ -661,9 +661,9 @@ export class ReservationManager {
 
   // ── Guest Preferences (Phase 2) ──
 
-  openPreferences(reservation: Reservation): void {
-    const prefs = reservation.preferences;
-    this._preferencesReservationId.set(reservation.id);
+  openPreferences(booking: Booking): void {
+    const prefs = booking.preferences;
+    this._preferencesReservationId.set(booking.id);
     this._prefSeating.set(prefs?.seatingPreference ?? 'no_preference');
     this._prefHighChairs.set(prefs?.highChairsNeeded ?? 0);
     this._prefWheelchair.set(prefs?.wheelchairAccessible ?? false);
@@ -715,15 +715,15 @@ export class ReservationManager {
       notes: this._prefNotes(),
     };
 
-    const success = await this.reservationService.updateGuestPreferences(resId, preferences);
+    const success = await this.bookingService.updateGuestPreferences(resId, preferences);
     if (success) {
       this.closePreferences();
-      const sel = this._selectedReservation();
+      const sel = this._selectedBooking();
       if (sel?.id === resId) {
-        this._selectedReservation.set({ ...sel, preferences });
+        this._selectedBooking.set({ ...sel, preferences });
       }
     } else {
-      this._localError.set(this.reservationService.error() ?? 'Failed to save preferences');
+      this._localError.set(this.bookingService.error() ?? 'Failed to save preferences');
     }
   }
 
@@ -758,7 +758,7 @@ export class ReservationManager {
   }
 
   getBlockClass(block: TimelineBlock): string {
-    switch (block.reservation.status) {
+    switch (block.booking.status) {
       case 'pending': return 'block-pending';
       case 'confirmed': return 'block-confirmed';
       case 'seated': return 'block-seated';
@@ -791,27 +791,27 @@ export class ReservationManager {
   toggleCalendarSettings(): void {
     this._showCalendarSettings.update(v => !v);
     if (this._showCalendarSettings() && !this.calendarLoaded) {
-      this.reservationService.loadCalendarConnection();
+      this.bookingService.loadCalendarConnection();
       this.calendarLoaded = true;
     }
   }
 
   async connectCalendar(): Promise<void> {
-    const authUrl = await this.reservationService.connectGoogleCalendar();
+    const authUrl = await this.bookingService.connectGoogleCalendar();
     if (authUrl) {
       window.open(authUrl, '_blank', 'noopener,noreferrer');
     }
   }
 
   async disconnectCalendar(): Promise<void> {
-    await this.reservationService.disconnectCalendar();
+    await this.bookingService.disconnectCalendar();
   }
 
   async updateCalendarPush(event: Event): Promise<void> {
     const checked = (event.target as HTMLInputElement).checked;
     const conn = this.calendarConnection();
     if (conn) {
-      await this.reservationService.updateCalendarSettings({
+      await this.bookingService.updateCalendarSettings({
         pushReservations: checked,
         pullBlocks: conn.pullBlocks,
       });
@@ -822,7 +822,7 @@ export class ReservationManager {
     const checked = (event.target as HTMLInputElement).checked;
     const conn = this.calendarConnection();
     if (conn) {
-      await this.reservationService.updateCalendarSettings({
+      await this.bookingService.updateCalendarSettings({
         pushReservations: conn.pushReservations,
         pullBlocks: checked,
       });
@@ -831,7 +831,7 @@ export class ReservationManager {
 
   async syncCalendarNow(): Promise<void> {
     this._calendarSyncing.set(true);
-    await this.reservationService.syncCalendar();
+    await this.bookingService.syncCalendar();
     this._calendarSyncing.set(false);
   }
 
@@ -893,13 +893,13 @@ export class ReservationManager {
       autoRemoveMinutes: this._smsAutoRemove(),
     };
 
-    const success = await this.reservationService.saveWaitlistSmsConfig(config);
+    const success = await this.bookingService.saveWaitlistSmsConfig(config);
     this._smsSaving.set(false);
 
     if (success) {
       this.closeSmsConfig();
     } else {
-      this._localError.set(this.reservationService.error() ?? 'Failed to save SMS config');
+      this._localError.set(this.bookingService.error() ?? 'Failed to save SMS config');
     }
   }
 
@@ -908,7 +908,7 @@ export class ReservationManager {
   toggleWaitlistAnalytics(): void {
     this._showWaitlistAnalytics.update(v => !v);
     if (this._showWaitlistAnalytics()) {
-      this.reservationService.loadWaitlistAnalytics();
+      this.bookingService.loadWaitlistAnalytics();
     }
   }
 
@@ -923,7 +923,7 @@ export class ReservationManager {
   }
 
   async recalculateWaitTimes(): Promise<void> {
-    await this.reservationService.recalculateWaitTimes();
+    await this.bookingService.recalculateWaitTimes();
   }
 
   // ── Virtual Waitlist (Phase 3) ──
@@ -951,7 +951,7 @@ export class ReservationManager {
     if (this._virtualSaving()) return;
     this._virtualSaving.set(true);
 
-    const success = await this.reservationService.saveVirtualWaitlistConfig({
+    const success = await this.bookingService.saveVirtualWaitlistConfig({
       enabled: this._virtualEnabled(),
       maxQueueSize: this._virtualMaxQueue(),
     });
@@ -960,7 +960,7 @@ export class ReservationManager {
     if (success) {
       this.closeVirtualConfig();
     } else {
-      this._localError.set(this.reservationService.error() ?? 'Failed to save virtual waitlist config');
+      this._localError.set(this.bookingService.error() ?? 'Failed to save virtual waitlist config');
     }
   }
 
@@ -1021,6 +1021,6 @@ export class ReservationManager {
 
   retry(): void {
     this._localError.set(null);
-    this.reservationService.loadReservations();
+    this.bookingService.loadBookings();
   }
 }

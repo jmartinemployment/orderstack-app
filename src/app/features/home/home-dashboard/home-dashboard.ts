@@ -203,7 +203,7 @@ export class HomeDashboard implements OnInit {
     if (service) {
       return [
         { label: 'New invoice', icon: 'bi-file-earmark-text', route: '/invoicing', color: 'blue' },
-        { label: 'Appointments', icon: 'bi-calendar-check', route: '/reservations', color: 'green' },
+        { label: 'Bookings', icon: 'bi-calendar-check', route: '/bookings', color: 'green' },
         { label: 'Add service', icon: 'bi-plus-circle', route: '/menu', color: 'purple' },
         { label: 'View reports', icon: 'bi-graph-up', route: '/reports', color: 'amber' },
       ];

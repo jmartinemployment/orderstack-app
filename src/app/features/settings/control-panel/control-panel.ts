@@ -51,7 +51,7 @@ export class ControlPanel implements OnInit {
     { key: 'kitchen-orders', label: 'Kitchen & Orders' },
     { key: 'bar', label: 'Bar' },
     { key: 'online-pricing', label: 'Online Pricing', requiredModule: 'online_ordering' },
-    { key: 'catering-calendar', label: 'Catering Calendar', requiredModule: 'reservations' },
+    { key: 'catering-calendar', label: 'Catering Calendar', requiredModule: 'bookings' },
     { key: 'payments', label: 'Payments' },
     { key: 'tip-management', label: 'Tip Management', requiredFlag: 'enableTipping' },
     { key: 'loyalty', label: 'Loyalty', requiredModule: 'loyalty' },

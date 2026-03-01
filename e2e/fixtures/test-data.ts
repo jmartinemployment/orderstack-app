@@ -20,7 +20,7 @@ export const ROUTES = {
   menu: '/menu',
   combos: '/combos',
   floorPlan: '/floor-plan',
-  reservations: '/reservations',
+  bookings: '/bookings',
   orders: '/orders',
   orderHistory: '/order-history',
   scheduling: '/scheduling',

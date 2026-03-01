@@ -84,7 +84,7 @@ function getQuickActions(isRetail: boolean, isService: boolean): QuickAction[] {
   if (isService) {
     return [
       { label: 'New invoice', icon: 'bi-file-earmark-text', route: '/invoicing', color: 'blue' },
-      { label: 'Appointments', icon: 'bi-calendar-check', route: '/reservations', color: 'green' },
+      { label: 'Bookings', icon: 'bi-calendar-check', route: '/bookings', color: 'green' },
       { label: 'Add service', icon: 'bi-plus-circle', route: '/menu', color: 'purple' },
       { label: 'View reports', icon: 'bi-graph-up', route: '/reports', color: 'amber' },
     ];
@@ -236,7 +236,7 @@ describe('HomeDashboard — Quick Actions', () => {
     expect(actions).toHaveLength(4);
     expect(actions[0].label).toBe('New invoice');
     expect(actions[0].route).toBe('/invoicing');
-    expect(actions[1].label).toBe('Appointments');
+    expect(actions[1].label).toBe('Bookings');
   });
 
   it('returns restaurant actions by default', () => {

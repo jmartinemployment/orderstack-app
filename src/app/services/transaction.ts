@@ -113,22 +113,27 @@ export class TransactionService {
     effect(() => {
       const allOrders = this.orderService.orders();
       const device = this.deviceService.currentDevice();
-      if (!device) return;
 
-      const deviceOrders = allOrders.filter(
-        o => o.device.guid === device.id && o.guestOrderStatus === 'CLOSED'
-      );
-      this._transactions.set(deviceOrders);
+      const closedOrders = allOrders.filter(o => o.guestOrderStatus === 'CLOSED');
+
+      // If a device is set, scope to that device; otherwise show all restaurant transactions
+      if (device) {
+        this._transactions.set(closedOrders.filter(o => o.device.guid === device.id));
+      } else {
+        this._transactions.set(closedOrders);
+      }
     });
   }
 
   async loadTransactions(): Promise<void> {
-    const device = this.deviceService.currentDevice();
-    if (!device) return;
-
     this._isLoading.set(true);
     try {
-      await this.orderService.loadOrders({ sourceDeviceId: device.id, limit: 100 });
+      const device = this.deviceService.currentDevice();
+      // If a device is set, scope to it; otherwise load all restaurant orders
+      await this.orderService.loadOrders({
+        limit: 100,
+        ...(device ? { sourceDeviceId: device.id } : {}),
+      });
       // The effect above will pick up the new orders from orderService.orders()
     } finally {
       this._isLoading.set(false);

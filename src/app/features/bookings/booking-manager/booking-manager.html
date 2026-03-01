@@ -1,7 +1,7 @@
 @if (isAuthenticated()) {
-<div class="reservation-manager px-2">
+<div class="booking-manager px-2">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h4 mb-0">Reservations</h2>
+    <h2 class="h4 mb-0">Bookings</h2>
     <div class="d-flex gap-2">
       @if (activeTab() === 'events') {
         <button type="button" class="btn btn-primary" (click)="openEventForm()">
@@ -9,7 +9,7 @@
         </button>
       } @else {
         <button type="button" class="btn btn-primary" (click)="openForm()">
-          + New Reservation
+          + New Booking
         </button>
       }
     </div>
@@ -92,15 +92,15 @@
 
   @if (isLoading()) {
     <div class="d-flex justify-content-center p-5">
-      <os-loading-spinner message="Loading reservations..." />
+      <os-loading-spinner message="Loading bookings..." />
     </div>
   } @else {
 
     <!-- ═══ TODAY TAB ═══ -->
     @if (activeTab() === 'today') {
-      <div class="reservation-list">
+      <div class="booking-list">
         @for (res of todayReservations(); track res.id) {
-          <div class="res-card" (click)="selectReservation(res)">
+          <div class="res-card" (click)="selectBooking(res)">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div class="d-flex align-items-center gap-2">
                 <span class="res-time">{{ formatTime(res.reservationTime) }}</span>
@@ -161,7 +161,7 @@
           </div>
         } @empty {
           <div class="empty-state text-center p-4">
-            <p class="text-muted">No reservations for today</p>
+            <p class="text-muted">No bookings for today</p>
             <button type="button" class="btn btn-primary btn-sm" (click)="openForm()">Create one</button>
           </div>
         }
@@ -211,7 +211,7 @@
                 <input type="checkbox" class="form-check-input" id="calPush"
                   [checked]="conn.pushReservations" (change)="updateCalendarPush($event)" />
                 <label class="form-check-label" for="calPush">
-                  Push reservations to Google Calendar
+                  Push bookings to Google Calendar
                 </label>
               </div>
               <div class="form-check">
@@ -256,7 +256,7 @@
             </div>
           } @else {
             <p class="small text-muted mb-3">
-              Connect your Google Calendar to sync reservations and pull blocked times automatically.
+              Connect your Google Calendar to sync bookings and pull blocked times automatically.
             </p>
             <button type="button" class="btn btn-sm btn-primary" (click)="connectCalendar()">
               <i class="bi bi-google"></i> Connect Google Calendar
@@ -305,14 +305,14 @@
               }
             </div>
             <div class="timeline-grid-area">
-              @for (block of getBlocksForTable(table.id); track block.reservation.id) {
+              @for (block of getBlocksForTable(table.id); track block.booking.id) {
                 <div class="timeline-block" [class]="getBlockClass(block)"
                   [style.left]="getBlockStyle(block)['left']"
                   [style.width]="getBlockStyle(block)['width']"
-                  [title]="block.reservation.customerName + ' - Party of ' + block.reservation.partySize"
-                  (click)="selectReservation(block.reservation)">
-                  <span class="block-name">{{ block.reservation.customerName }}</span>
-                  <span class="block-size">{{ block.reservation.partySize }}</span>
+                  [title]="block.booking.customerName + ' - Party of ' + block.booking.partySize"
+                  (click)="selectBooking(block.booking)">
+                  <span class="block-name">{{ block.booking.customerName }}</span>
+                  <span class="block-size">{{ block.booking.partySize }}</span>
                 </div>
               }
             </div>
@@ -327,18 +327,18 @@
 
     <!-- ═══ UPCOMING TAB ═══ -->
     @if (activeTab() === 'upcoming') {
-      <!-- Recurring Reservations Summary -->
+      <!-- Recurring Bookings Summary -->
       @if (activeRecurring().length > 0) {
         <div class="recurring-section mb-4">
-          <h6 class="section-label mb-2">Active Recurring Reservations</h6>
+          <h6 class="section-label mb-2">Active Recurring Bookings</h6>
           <div class="recurring-list">
             @for (rec of activeRecurring(); track rec.id) {
               <div class="recurring-card d-flex justify-content-between align-items-center">
                 <div>
-                  <span class="fw-semibold">{{ rec.baseReservation.customerName }}</span>
+                  <span class="fw-semibold">{{ rec.baseBooking.customerName }}</span>
                   <span class="badge badge-recurring ms-2">{{ getRecurrenceLabel(rec.pattern) }}</span>
-                  @if (rec.baseReservation.partySize) {
-                    <span class="small text-muted ms-2">Party of {{ rec.baseReservation.partySize }}</span>
+                  @if (rec.baseBooking.partySize) {
+                    <span class="small text-muted ms-2">Party of {{ rec.baseBooking.partySize }}</span>
                   }
                 </div>
                 <div class="d-flex gap-2 align-items-center">
@@ -353,9 +353,9 @@
         </div>
       }
 
-      <div class="reservation-list">
+      <div class="booking-list">
         @for (res of upcomingReservations(); track res.id) {
-          <div class="res-card" (click)="selectReservation(res)">
+          <div class="res-card" (click)="selectBooking(res)">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div class="d-flex align-items-center gap-2">
                 <span class="res-date">{{ res.reservationTime | date:'EEE, MMM d' }}</span>
@@ -390,7 +390,7 @@
           </div>
         } @empty {
           <div class="empty-state text-center p-4">
-            <p class="text-muted">No upcoming reservations</p>
+            <p class="text-muted">No upcoming bookings</p>
           </div>
         }
       </div>
@@ -398,7 +398,7 @@
 
     <!-- ═══ PAST TAB ═══ -->
     @if (activeTab() === 'past') {
-      <div class="reservation-list">
+      <div class="booking-list">
         @for (res of pastReservations(); track res.id) {
           <div class="res-card res-past">
             <div class="d-flex justify-content-between align-items-start mb-1">
@@ -418,7 +418,7 @@
           </div>
         } @empty {
           <div class="empty-state text-center p-4">
-            <p class="text-muted">No past reservations</p>
+            <p class="text-muted">No past bookings</p>
           </div>
         }
       </div>
@@ -729,10 +729,10 @@
     <div class="modal-overlay" (click)="closeForm()">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <h4 class="mb-0">New Reservation</h4>
+          <h4 class="mb-0">New Booking</h4>
           <button type="button" class="btn-close" (click)="closeForm()"></button>
         </div>
-        <form [formGroup]="reservationForm" (ngSubmit)="saveReservation()">
+        <form [formGroup]="bookingForm" (ngSubmit)="saveBooking()">
           <div class="card-body">
             <div class="row g-3">
               <div class="col-12 col-md-6">
@@ -815,14 +815,14 @@
 
           <div class="card-footer d-flex gap-2 justify-content-end">
             <button type="button" class="btn btn-outline-secondary" (click)="closeForm()" [disabled]="isSaving()">Cancel</button>
-            <button type="submit" class="btn btn-primary" [disabled]="reservationForm.invalid || isSaving()">
+            <button type="submit" class="btn btn-primary" [disabled]="bookingForm.invalid || isSaving()">
               @if (isSaving()) {
                 <span class="spinner-border spinner-border-sm me-2"></span>
                 Saving...
               } @else if (showRecurringForm()) {
                 Create Recurring
               } @else {
-                Create Reservation
+                Create Booking
               }
             </button>
           </div>
@@ -913,11 +913,11 @@
   }
 
   <!-- ═══ RESERVATION DETAIL MODAL ═══ -->
-  @if (selectedReservation(); as res) {
+  @if (selectedBooking(); as res) {
     <div class="modal-overlay" (click)="closeDetail()">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <h4 class="mb-0">Reservation Details</h4>
+          <h4 class="mb-0">Booking Details</h4>
           <button type="button" class="btn-close" (click)="closeDetail()"></button>
         </div>
         <div class="card-body">
@@ -1312,7 +1312,7 @@
 <div class="auth-required d-flex align-items-center justify-content-center p-5">
   <div class="text-center">
     <h3 class="mb-3" style="color: var(--os-warning)">Authentication Required</h3>
-    <p style="color: var(--os-text-secondary)">Please log in to manage reservations.</p>
+    <p style="color: var(--os-text-secondary)">Please log in to manage bookings.</p>
   </div>
 </div>
 }

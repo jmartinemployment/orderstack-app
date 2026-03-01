@@ -14,66 +14,16 @@
   }
 
   <!-- Sidebar -->
-  <aside class="sidebar" [class.mobile-open]="mobileMenuOpen()">
-    <div class="sidebar-header">
-      <div class="brand-section">
-        <span class="brand-icon">
-          <i class="bi bi-stack"></i>
-        </span>
-        @if (!sidebarCollapsed()) {
-          <span class="brand-text">OrderStack</span>
-        }
-      </div>
-      <button class="btn btn-link collapse-btn d-none d-md-block" (click)="toggleSidebar()" [attr.aria-label]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'">
-        <i class="bi" [class.bi-chevron-left]="!sidebarCollapsed()" [class.bi-chevron-right]="sidebarCollapsed()"></i>
-      </button>
-    </div>
-
-    <nav class="sidebar-nav">
-      @for (item of navItems(); track (item.key ?? item.route)) {
-        <a class="nav-item"
-           [routerLink]="item.route"
-           routerLinkActive="active"
-           [class.nav-alert-critical]="item.alertSeverity === 'critical'"
-           [class.nav-alert-warning]="item.alertSeverity === 'warning'"
-           [class.nav-alert-info]="item.alertSeverity === 'info'"
-           (click)="closeMobileMenu()"
-           [title]="sidebarCollapsed() ? item.label : ''">
-          <i class="bi {{ item.icon }}"></i>
-          @if (!sidebarCollapsed()) {
-            <span class="nav-label">{{ item.label }}</span>
-          }
-        </a>
-      }
-    </nav>
-
-    <div class="sidebar-footer">
-      @if (selectedRestaurantName(); as name) {
-        <div class="restaurant-info" [title]="sidebarCollapsed() ? name : ''">
-          <i class="bi bi-shop"></i>
-          @if (!sidebarCollapsed()) {
-            <div class="restaurant-details">
-              <span class="restaurant-name">{{ name }}</span>
-              @if (selectedRestaurantAddress(); as addr) {
-                <small class="restaurant-address">{{ addr }}</small>
-              }
-            </div>
-          }
-        </div>
-      }
-      @if (user(); as u) {
-        <div class="user-info">
-          <i class="bi bi-person-circle"></i>
-          @if (!sidebarCollapsed()) {
-            <span class="user-name">{{ u.firstName }}</span>
-            <button class="btn btn-link logout-btn" (click)="logout()" aria-label="Logout">
-              <i class="bi bi-box-arrow-right"></i>
-            </button>
-          }
-        </div>
-      }
-    </div>
-  </aside>
+  <os-sidebar
+    [navItems]="navItems()"
+    [collapsed]="sidebarCollapsed()"
+    [mobileOpen]="mobileMenuOpen()"
+    [restaurantName]="selectedRestaurantName()"
+    [restaurantAddress]="selectedRestaurantAddress()"
+    [userName]="userName()"
+    (toggle)="toggleSidebar()"
+    (closeMobile)="closeMobileMenu()"
+    (loggedOut)="logout()" />
 
   <!-- Main content -->
   <main class="main-content">

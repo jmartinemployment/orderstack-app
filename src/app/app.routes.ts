@@ -129,6 +129,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/kds/kds-display/kds-display').then(m => m.KdsDisplay),
   },
 
+  // Bookings terminal — full-screen, no sidebar
+  {
+    path: 'bookings-terminal',
+    canActivate: [authGuard, onboardingGuard],
+    resolve: { deviceInit: deviceInitResolver },
+    loadComponent: () => import('./features/bookings/bookings-terminal/bookings-terminal').then(m => m.BookingsTerminal),
+  },
+
   // POS — full-screen, no sidebar
   {
     path: 'pos',
@@ -161,7 +169,7 @@ export const routes: Routes = [
       // Front of House
       { path: 'floor-plan', loadComponent: () => import('./features/table-mgmt/floor-plan/floor-plan').then(m => m.FloorPlan) },
       { path: 'tables', redirectTo: 'floor-plan', pathMatch: 'full' },
-      { path: 'reservations', loadComponent: () => import('./features/reservations/reservation-manager/reservation-manager').then(m => m.ReservationManager) },
+      { path: 'bookings', loadComponent: () => import('./features/bookings/booking-manager').then(m => m.BookingManager) },
 
       // Menu
       { path: 'menu', loadComponent: () => import('./features/menu-mgmt/menu-management').then(m => m.MenuManagement) },

@@ -2,14 +2,14 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
-  Reservation,
-  ReservationFormData,
-  ReservationStatus,
+  Booking,
+  BookingFormData,
+  BookingStatus,
   WaitlistEntry,
   WaitlistFormData,
   DayAvailability,
-  PublicReservationFormData,
-  RecurringReservation,
+  PublicBookingFormData,
+  RecurringBooking,
   EventBooking,
   EventFormData,
   EventAttendee,
@@ -28,19 +28,19 @@ import { environment } from '@environments/environment';
 @Injectable({
   providedIn: 'root',
 })
-export class ReservationService {
+export class BookingService {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
   private readonly tableService = inject(TableService);
   private readonly apiUrl = environment.apiUrl;
 
-  private readonly _reservations = signal<Reservation[]>([]);
+  private readonly _reservations = signal<Booking[]>([]);
   private readonly _waitlist = signal<WaitlistEntry[]>([]);
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
 
   // Phase 2 signals
-  private readonly _recurringReservations = signal<RecurringReservation[]>([]);
+  private readonly _recurringReservations = signal<RecurringBooking[]>([]);
   private readonly _events = signal<EventBooking[]>([]);
   private readonly _turnTimeStats = signal<TurnTimeStats | null>(null);
   private readonly _isLoadingEvents = signal(false);
@@ -133,7 +133,7 @@ export class ReservationService {
 
   // ── Reservations ──
 
-  async loadReservations(): Promise<void> {
+  async loadBookings(): Promise<void> {
     if (!this.restaurantId) return;
 
     this._isLoading.set(true);
@@ -141,26 +141,30 @@ export class ReservationService {
 
     try {
       const data = await firstValueFrom(
-        this.http.get<Reservation[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reservations`
+        this.http.get<Booking[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings`
         )
       );
       this._reservations.set(data ?? []);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load reservations';
-      this._error.set(message);
+      if (err instanceof Object && 'status' in err && (err as { status: number }).status === 404) {
+        this._reservations.set([]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to load reservations';
+        this._error.set(message);
+      }
     } finally {
       this._isLoading.set(false);
     }
   }
 
-  async createReservation(data: ReservationFormData): Promise<Reservation | null> {
+  async createReservation(data: BookingFormData): Promise<Booking | null> {
     if (!this.restaurantId) return null;
 
     try {
       const reservation = await firstValueFrom(
-        this.http.post<Reservation>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reservations`,
+        this.http.post<Booking>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings`,
           data
         )
       );
@@ -174,18 +178,18 @@ export class ReservationService {
     }
   }
 
-  async updateStatus(reservationId: string, status: ReservationStatus): Promise<boolean> {
+  async updateStatus(bookingId: string, status: BookingStatus): Promise<boolean> {
     if (!this.restaurantId) return false;
 
     try {
       const updated = await firstValueFrom(
-        this.http.patch<Reservation>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reservations/${reservationId}`,
+        this.http.patch<Booking>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/${bookingId}`,
           { status }
         )
       );
       this._reservations.update(list =>
-        list.map(r => r.id === reservationId ? updated : r)
+        list.map(r => r.id === bookingId ? updated : r)
       );
       this.syncTableStatus(updated.tableNumber, updated.status);
       return true;
@@ -196,18 +200,18 @@ export class ReservationService {
     }
   }
 
-  async assignTable(reservationId: string, tableNumber: string): Promise<boolean> {
+  async assignTable(bookingId: string, tableNumber: string): Promise<boolean> {
     if (!this.restaurantId) return false;
 
     try {
       const updated = await firstValueFrom(
-        this.http.patch<Reservation>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reservations/${reservationId}`,
+        this.http.patch<Booking>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/${bookingId}`,
           { tableNumber }
         )
       );
       this._reservations.update(list =>
-        list.map(r => r.id === reservationId ? updated : r)
+        list.map(r => r.id === bookingId ? updated : r)
       );
       this.syncTableStatus(updated.tableNumber, updated.status);
       return true;
@@ -218,8 +222,8 @@ export class ReservationService {
     }
   }
 
-  async cancelReservation(reservationId: string): Promise<boolean> {
-    return this.updateStatus(reservationId, 'cancelled');
+  async cancelBooking(bookingId: string): Promise<boolean> {
+    return this.updateStatus(bookingId, 'cancelled');
   }
 
   // ── Waitlist ──
@@ -235,8 +239,12 @@ export class ReservationService {
       );
       this._waitlist.set(data ?? []);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load waitlist';
-      this._error.set(message);
+      if (err instanceof Object && 'status' in err && (err as { status: number }).status === 404) {
+        this._waitlist.set([]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to load waitlist';
+        this._error.set(message);
+      }
     }
   }
 
@@ -352,11 +360,11 @@ export class ReservationService {
     }
   }
 
-  async createPublicReservation(restaurantSlug: string, data: PublicReservationFormData): Promise<Reservation | null> {
+  async createPublicBooking(restaurantSlug: string, data: PublicBookingFormData): Promise<Booking | null> {
     try {
       return await firstValueFrom(
-        this.http.post<Reservation>(
-          `${this.apiUrl}/public/restaurant/${restaurantSlug}/reservations`,
+        this.http.post<Booking>(
+          `${this.apiUrl}/public/restaurant/${restaurantSlug}/bookings`,
           data
         )
       );
@@ -367,13 +375,13 @@ export class ReservationService {
     }
   }
 
-  async getCustomerReservations(customerId: string): Promise<Reservation[]> {
+  async getCustomerBookings(customerId: string): Promise<Booking[]> {
     if (!this.restaurantId) return [];
 
     try {
       const data = await firstValueFrom(
-        this.http.get<Reservation[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reservations?customerId=${encodeURIComponent(customerId)}`
+        this.http.get<Booking[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings?customerId=${encodeURIComponent(customerId)}`
         )
       );
       return data ?? [];
@@ -391,26 +399,30 @@ export class ReservationService {
 
     try {
       const data = await firstValueFrom(
-        this.http.get<RecurringReservation[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reservations/recurring`
+        this.http.get<RecurringBooking[]>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/recurring`
         )
       );
       this._recurringReservations.set(data ?? []);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load recurring reservations';
-      this._error.set(message);
+      if (err instanceof Object && 'status' in err && (err as { status: number }).status === 404) {
+        this._recurringReservations.set([]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to load recurring reservations';
+        this._error.set(message);
+      }
     } finally {
       this._isLoadingRecurring.set(false);
     }
   }
 
-  async createRecurringReservation(data: ReservationFormData): Promise<RecurringReservation | null> {
+  async createRecurringBooking(data: BookingFormData): Promise<RecurringBooking | null> {
     if (!this.restaurantId) return null;
 
     try {
       const recurring = await firstValueFrom(
-        this.http.post<RecurringReservation>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reservations/recurring`,
+        this.http.post<RecurringBooking>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/recurring`,
           data
         )
       );
@@ -423,13 +435,13 @@ export class ReservationService {
     }
   }
 
-  async cancelRecurringReservation(id: string): Promise<boolean> {
+  async cancelRecurringBooking(id: string): Promise<boolean> {
     if (!this.restaurantId) return false;
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reservations/recurring/${id}`
+          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/recurring/${id}`
         )
       );
       this._recurringReservations.update(list => list.filter(r => r.id !== id));
@@ -446,8 +458,8 @@ export class ReservationService {
 
     try {
       const updated = await firstValueFrom(
-        this.http.patch<RecurringReservation>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reservations/recurring/${id}`,
+        this.http.patch<RecurringBooking>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/recurring/${id}`,
           { isActive }
         )
       );
@@ -477,8 +489,12 @@ export class ReservationService {
       );
       this._events.set(data ?? []);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load events';
-      this._error.set(message);
+      if (err instanceof Object && 'status' in err && (err as { status: number }).status === 404) {
+        this._events.set([]);
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to load events';
+        this._error.set(message);
+      }
     } finally {
       this._isLoadingEvents.set(false);
     }
@@ -588,7 +604,7 @@ export class ReservationService {
     try {
       const stats = await firstValueFrom(
         this.http.get<TurnTimeStats>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reservations/turn-time-stats`
+          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/turn-time-stats`
         )
       );
       this._turnTimeStats.set(stats);
@@ -599,18 +615,18 @@ export class ReservationService {
 
   // ── Guest Preferences (Phase 2) ──
 
-  async updateGuestPreferences(reservationId: string, preferences: GuestPreferences): Promise<boolean> {
+  async updateGuestPreferences(bookingId: string, preferences: GuestPreferences): Promise<boolean> {
     if (!this.restaurantId) return false;
 
     try {
       const updated = await firstValueFrom(
-        this.http.patch<Reservation>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reservations/${reservationId}`,
+        this.http.patch<Booking>(
+          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/${bookingId}`,
           { preferences }
         )
       );
       this._reservations.update(list =>
-        list.map(r => r.id === reservationId ? updated : r)
+        list.map(r => r.id === bookingId ? updated : r)
       );
       return true;
     } catch (err: unknown) {
@@ -782,8 +798,12 @@ export class ReservationService {
       );
       this._waitlistAnalytics.set(analytics);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load waitlist analytics';
-      this._error.set(message);
+      if (err instanceof Object && 'status' in err && (err as { status: number }).status === 404) {
+        this._waitlistAnalytics.set(null);
+      } else {
+        const message = err instanceof Error ? err.message : 'Failed to load waitlist analytics';
+        this._error.set(message);
+      }
     }
   }
 
@@ -843,7 +863,7 @@ export class ReservationService {
     }
   }
 
-  private syncTableStatus(tableNumber: string | null, reservationStatus: ReservationStatus): void {
+  private syncTableStatus(tableNumber: string | null, bookingStatus: BookingStatus): void {
     if (!tableNumber) return;
     const table = this.tableService.tables().find(t => t.tableNumber === tableNumber);
     if (!table) return;
@@ -854,7 +874,7 @@ export class ReservationService {
       cancelled: 'available',
       'no-show': 'available',
     };
-    const newStatus = statusMap[reservationStatus];
+    const newStatus = statusMap[bookingStatus];
     if (newStatus && table.status !== newStatus) {
       this.tableService.updateStatus(table.id, newStatus);
     }

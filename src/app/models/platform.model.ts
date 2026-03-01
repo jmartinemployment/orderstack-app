@@ -34,7 +34,7 @@ export const BUSINESS_VERTICAL_CATALOG: BusinessVerticalConfig[] = [
     icon: 'bi-cup-hot',
     availableModes: ['quick_service', 'full_service', 'bar', 'standard'],
     enabledModules: [
-      'menu_management', 'table_management', 'kds', 'reservations',
+      'menu_management', 'table_management', 'kds', 'bookings',
       'online_ordering', 'inventory', 'marketing', 'loyalty',
       'delivery', 'gift_cards', 'staff_scheduling', 'payroll',
       'reports', 'crm', 'multi_location',
@@ -129,7 +129,7 @@ export type PlatformModule =
   | 'menu_management'
   | 'table_management'
   | 'kds'
-  | 'reservations'
+  | 'bookings'
   | 'online_ordering'
   | 'inventory'
   | 'invoicing'
@@ -418,7 +418,7 @@ export const DEVICE_POS_MODE_CATALOG: DevicePosModeConfig[] = [
     description: 'Offer service with open checks, coursing, and customized restaurant floor plans.',
     icon: 'bi-layout-text-sidebar',
     category: 'restaurant',
-    highlights: ['Open checks & coursing', 'Table management', 'Floor plan editor', 'Reservations'],
+    highlights: ['Open checks & coursing', 'Table management', 'Floor plan editor', 'Bookings'],
     featureFlags: RESTAURANT_MODE_FULL_SERVICE,
   },
   {
@@ -473,7 +473,7 @@ export const DEVICE_POS_MODE_ROUTES: Record<DevicePosMode, string> = {
   quick_service: '/kiosk',
   full_service: '/pos',
   bar: '/bar',
-  bookings: '/reservations',
+  bookings: '/bookings-terminal',
   retail: '/retail',
   services: '/invoicing',
 };
@@ -786,7 +786,7 @@ export const NAVIGATION_ITEMS: NavigationItem[] = [
   { label: 'Menu', icon: 'bi-book', route: '/menu', requiredModule: 'menu_management', verticals: ['food_and_drink'] },
   { label: 'Floor Plan', icon: 'bi-grid-3x3', route: '/floor-plan', requiredFeatureFlag: 'enableFloorPlan' },
   { label: 'KDS', icon: 'bi-display', route: '/kds', requiredFeatureFlag: 'enableKds' },
-  { label: 'Reservations', icon: 'bi-calendar-event', route: '/reservations', requiredModule: 'reservations' },
+  { label: 'Bookings', icon: 'bi-calendar-event', route: '/bookings', requiredModule: 'bookings' },
   { label: 'Catalog', icon: 'bi-box', route: '/catalog', verticals: ['retail', 'grocery'] },
   { label: 'Appointments', icon: 'bi-calendar-check', route: '/appointments', requiredFeatureFlag: 'enableAppointmentBooking' },
   { label: 'Invoices', icon: 'bi-receipt-cutoff', route: '/invoices', requiredModule: 'invoicing' },

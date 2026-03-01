@@ -6,10 +6,10 @@ import { HttpClient } from '@angular/common/http';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
-import { ReservationService } from '@services/reservation';
+import { BookingService } from '@services/booking';
 import {
   BookingStep, TimeSlot, DayAvailability,
-  SeatingPreference, Reservation,
+  SeatingPreference, Booking,
   DIETARY_OPTIONS, OCCASION_OPTIONS,
 } from '@models/index';
 import { environment } from '@environments/environment';
@@ -23,7 +23,7 @@ import { environment } from '@environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookingWidget {
-  private readonly reservationService = inject(ReservationService);
+  private readonly bookingService = inject(BookingService);
   private readonly http = inject(HttpClient);
 
   readonly restaurantSlug = input<string>('');
@@ -38,7 +38,7 @@ export class BookingWidget {
   private readonly _isLoadingSlots = signal(false);
   private readonly _isSubmitting = signal(false);
   private readonly _error = signal<string | null>(null);
-  private readonly _confirmedReservation = signal<Reservation | null>(null);
+  private readonly _confirmedBooking = signal<Booking | null>(null);
 
   // Form fields
   private readonly _name = signal('');
@@ -59,7 +59,7 @@ export class BookingWidget {
   readonly isLoadingSlots = this._isLoadingSlots.asReadonly();
   readonly isSubmitting = this._isSubmitting.asReadonly();
   readonly error = this._error.asReadonly();
-  readonly confirmedReservation = this._confirmedReservation.asReadonly();
+  readonly confirmedBooking = this._confirmedBooking.asReadonly();
 
   readonly name = this._name.asReadonly();
   readonly phone = this._phone.asReadonly();
@@ -159,7 +159,7 @@ export class BookingWidget {
 
     this._isLoadingSlots.set(true);
     try {
-      const avail = await this.reservationService.getPublicAvailability(slug, date, this._partySize());
+      const avail = await this.bookingService.getPublicAvailability(slug, date, this._partySize());
       this._availability.set(avail);
     } finally {
       this._isLoadingSlots.set(false);
@@ -223,7 +223,7 @@ export class BookingWidget {
     this._error.set(null);
 
     try {
-      const reservation = await this.reservationService.createPublicReservation(
+      const booking = await this.bookingService.createPublicBooking(
         this.restaurantSlug(),
         {
           customerName: this._name().trim(),
@@ -238,8 +238,8 @@ export class BookingWidget {
         }
       );
 
-      if (reservation) {
-        this._confirmedReservation.set(reservation);
+      if (booking) {
+        this._confirmedBooking.set(booking);
         this._step.set('confirm');
       } else {
         this._error.set('Failed to create reservation. Please try again.');
@@ -283,16 +283,16 @@ export class BookingWidget {
     this._dietaryRestrictions.set([]);
     this._seatingPreference.set('no_preference');
     this._occasion.set('');
-    this._confirmedReservation.set(null);
+    this._confirmedBooking.set(null);
     this._error.set(null);
   }
 
   generateIcsUrl(): string {
-    const reservation = this._confirmedReservation();
-    if (!reservation) return '';
-    const start = new Date(reservation.reservationTime);
+    const confirmed = this._confirmedBooking();
+    if (!confirmed) return '';
+    const start = new Date(confirmed.reservationTime);
     const end = new Date(start.getTime() + 90 * 60 * 1000);
     const fmt = (d: Date) => d.toISOString().replaceAll(/[-:]/g, '').split('.')[0] + 'Z';
-    return `data:text/calendar;charset=utf-8,BEGIN:VCALENDAR%0AVERSION:2.0%0ABEGIN:VEVENT%0ADTSTART:${fmt(start)}%0ADTEND:${fmt(end)}%0ASUMMARY:Dinner Reservation - ${this._restaurantName()}%0ADESCRIPTION:Party of ${reservation.partySize}%0AEND:VEVENT%0AEND:VCALENDAR`;
+    return `data:text/calendar;charset=utf-8,BEGIN:VCALENDAR%0AVERSION:2.0%0ABEGIN:VEVENT%0ADTSTART:${fmt(start)}%0ADTEND:${fmt(end)}%0ASUMMARY:Dinner Booking - ${this._restaurantName()}%0ADESCRIPTION:Party of ${confirmed.partySize}%0AEND:VEVENT%0AEND:VCALENDAR`;
   }
 }

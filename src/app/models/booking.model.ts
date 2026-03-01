@@ -1,6 +1,6 @@
-export type ReservationStatus = 'pending' | 'confirmed' | 'seated' | 'completed' | 'cancelled' | 'no-show';
+export type BookingStatus = 'pending' | 'confirmed' | 'seated' | 'completed' | 'cancelled' | 'no-show';
 
-export interface Reservation {
+export interface Booking {
   id: string;
   restaurantId: string;
   customerId: string | null;
@@ -11,7 +11,7 @@ export interface Reservation {
   reservationTime: string;
   endTime: string | null;
   tableNumber: string | null;
-  status: ReservationStatus;
+  status: BookingStatus;
   specialRequests: string | null;
   confirmationSent: boolean;
   reminderSent: boolean;
@@ -21,7 +21,7 @@ export interface Reservation {
   updatedAt: string;
 }
 
-export interface ReservationFormData {
+export interface BookingFormData {
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
@@ -34,8 +34,8 @@ export interface ReservationFormData {
   recurringEndDate?: string;
 }
 
-export type ReservationTab = 'today' | 'upcoming' | 'past' | 'waitlist' | 'events' | 'timeline';
-export type ReservationViewMode = 'list' | 'timeline';
+export type BookingTab = 'today' | 'upcoming' | 'past' | 'waitlist' | 'events' | 'timeline';
+export type BookingViewMode = 'list' | 'timeline';
 
 export type WaitlistStatus = 'waiting' | 'notified' | 'seated' | 'cancelled' | 'no-show';
 
@@ -81,7 +81,7 @@ export interface DayAvailability {
   slots: TimeSlot[];
 }
 
-export interface PublicReservationFormData {
+export interface PublicBookingFormData {
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
@@ -103,11 +103,11 @@ export const OCCASION_OPTIONS: string[] = [
   'Celebration', 'Holiday', 'Other',
 ];
 
-// --- Recurring Reservations (Phase 2) ---
+// --- Recurring Bookings (Phase 2) ---
 
 export type RecurrencePattern = 'weekly' | 'biweekly' | 'monthly' | 'first_weekday' | 'last_weekday';
 
-export interface RecurringReservation {
+export interface RecurringBooking {
   id: string;
   restaurantId: string;
   pattern: RecurrencePattern;
@@ -115,7 +115,7 @@ export interface RecurringReservation {
   dayOfMonth: number | null;
   startDate: string;
   endDate: string | null;
-  baseReservation: Partial<Reservation>;
+  baseBooking: Partial<Booking>;
   generatedReservationIds: string[];
   isActive: boolean;
   createdAt: string;
@@ -207,7 +207,7 @@ export interface GuestPreferences {
 // --- Timeline View (Phase 2) ---
 
 export interface TimelineBlock {
-  reservation: Reservation;
+  booking: Booking;
   startMinute: number;
   durationMinutes: number;
   tableId: string;

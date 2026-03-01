@@ -35,7 +35,7 @@ interface CalendarConnection {
   status: 'connected' | 'disconnected';
 }
 
-// --- Pure function replicas of ReservationService computed logic ---
+// --- Pure function replicas of BookingService computed logic ---
 
 function activeWaitlist(entries: WaitlistEntry[]): WaitlistEntry[] {
   return entries
@@ -111,7 +111,7 @@ function removeWaitlistEntry(list: WaitlistEntry[], id: string): WaitlistEntry[]
 
 // --- Tests ---
 
-describe('ReservationService — activeWaitlist', () => {
+describe('BookingService — activeWaitlist', () => {
   const entries: WaitlistEntry[] = [
     { id: 'w-1', status: 'waiting', position: 3, onMyWayAt: null },
     { id: 'w-2', status: 'seated', position: 1, onMyWayAt: null },
@@ -137,7 +137,7 @@ describe('ReservationService — activeWaitlist', () => {
   });
 });
 
-describe('ReservationService — onMyWayEntries', () => {
+describe('BookingService — onMyWayEntries', () => {
   it('includes waiting entries with onMyWayAt set', () => {
     const entries: WaitlistEntry[] = [
       { id: 'w-1', status: 'waiting', position: 1, onMyWayAt: '2026-02-25T12:00:00' },
@@ -150,7 +150,7 @@ describe('ReservationService — onMyWayEntries', () => {
   });
 });
 
-describe('ReservationService — waitlistCount', () => {
+describe('BookingService — waitlistCount', () => {
   it('counts active entries', () => {
     const entries: WaitlistEntry[] = [
       { id: 'w-1', status: 'waiting', position: 1, onMyWayAt: null },
@@ -160,7 +160,7 @@ describe('ReservationService — waitlistCount', () => {
   });
 });
 
-describe('ReservationService — todayReservations', () => {
+describe('BookingService — todayReservations', () => {
   it('filters by today date prefix', () => {
     const reservations: Reservation[] = [
       { id: 'r-1', reservationTime: '2026-02-25T18:00:00', status: 'confirmed', guestName: 'A' },
@@ -170,7 +170,7 @@ describe('ReservationService — todayReservations', () => {
   });
 });
 
-describe('ReservationService — upcomingReservations', () => {
+describe('BookingService — upcomingReservations', () => {
   it('excludes cancelled and no-show, sorts ascending', () => {
     const now = '2026-02-25T12:00:00';
     const reservations: Reservation[] = [
@@ -186,7 +186,7 @@ describe('ReservationService — upcomingReservations', () => {
   });
 });
 
-describe('ReservationService — pastReservations', () => {
+describe('BookingService — pastReservations', () => {
   it('includes past times, completed, cancelled, no-show', () => {
     const now = '2026-02-25T12:00:00';
     const reservations: Reservation[] = [
@@ -209,7 +209,7 @@ describe('ReservationService — pastReservations', () => {
   });
 });
 
-describe('ReservationService — upcomingEvents and pastEvents', () => {
+describe('BookingService — upcomingEvents and pastEvents', () => {
   const events: EventBooking[] = [
     { id: 'e-1', date: '2026-02-20', name: 'Past' },
     { id: 'e-2', date: '2026-02-25', name: 'Today' },
@@ -230,7 +230,7 @@ describe('ReservationService — upcomingEvents and pastEvents', () => {
   });
 });
 
-describe('ReservationService — activeRecurring', () => {
+describe('BookingService — activeRecurring', () => {
   it('filters active reservations', () => {
     const recurring: RecurringReservation[] = [
       { id: 'rr-1', isActive: true },
@@ -241,7 +241,7 @@ describe('ReservationService — activeRecurring', () => {
   });
 });
 
-describe('ReservationService — dynamicTurnTime', () => {
+describe('BookingService — dynamicTurnTime', () => {
   it('returns overall from stats', () => {
     expect(dynamicTurnTime({ overall: 60 })).toBe(60);
   });
@@ -251,7 +251,7 @@ describe('ReservationService — dynamicTurnTime', () => {
   });
 });
 
-describe('ReservationService — isCalendarConnected', () => {
+describe('BookingService — isCalendarConnected', () => {
   it('true when connected', () => {
     expect(isCalendarConnected({ status: 'connected' })).toBe(true);
   });
@@ -265,7 +265,7 @@ describe('ReservationService — isCalendarConnected', () => {
   });
 });
 
-describe('ReservationService — list mutations', () => {
+describe('BookingService — list mutations', () => {
   it('addReservation prepends', () => {
     const list: Reservation[] = [{ id: 'r-1', reservationTime: '', status: 'confirmed', guestName: 'A' }];
     const result = addReservation(list, { id: 'r-2', reservationTime: '', status: 'confirmed', guestName: 'B' });

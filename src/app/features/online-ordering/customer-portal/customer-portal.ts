@@ -4,10 +4,10 @@ import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { CustomerService } from '@services/customer';
 import { LoyaltyService } from '@services/loyalty';
 import { GiftCardService } from '@services/gift-card';
-import { ReservationService } from '@services/reservation';
+import { BookingService } from '@services/booking';
 import {
   Customer, SavedAddress, FeedbackRequest, Order, LoyaltyProfile,
-  LoyaltyTransaction, LoyaltyReward, Reservation, getTierLabel, getTierColor,
+  LoyaltyTransaction, LoyaltyReward, Booking, getTierLabel, getTierColor,
 } from '@models/index';
 
 type PortalTab = 'orders' | 'loyalty' | 'profile' | 'gift-cards' | 'reservations' | 'feedback';
@@ -25,7 +25,7 @@ export class CustomerPortal {
   private readonly customerService = inject(CustomerService);
   private readonly loyaltyService = inject(LoyaltyService);
   private readonly giftCardService = inject(GiftCardService);
-  private readonly reservationService = inject(ReservationService);
+  private readonly bookingService = inject(BookingService);
 
   // Auth state
   private readonly _authState = signal<AuthState>('phone');
@@ -42,7 +42,7 @@ export class CustomerPortal {
   private readonly _loyaltyTransactions = signal<LoyaltyTransaction[]>([]);
   private readonly _availableRewards = signal<LoyaltyReward[]>([]);
   private readonly _feedback = signal<FeedbackRequest[]>([]);
-  private readonly _reservations = signal<Reservation[]>([]);
+  private readonly _reservations = signal<Booking[]>([]);
   private readonly _activeTab = signal<PortalTab>('orders');
   private readonly _isLoading = signal(false);
 
@@ -215,7 +215,7 @@ export class CustomerPortal {
   }
 
   private async loadReservations(customerId: string): Promise<void> {
-    const reservations = await this.reservationService.getCustomerReservations(customerId);
+    const reservations = await this.bookingService.getCustomerBookings(customerId);
     this._reservations.set(reservations);
   }
 

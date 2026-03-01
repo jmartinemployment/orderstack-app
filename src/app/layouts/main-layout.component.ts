@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 import { AuthService } from '@services/auth';
 import { PlatformService } from '@services/platform';
 import { InventoryService } from '@services/inventory';
@@ -7,21 +7,12 @@ import { StaffManagementService } from '@services/staff-management';
 import { MenuService } from '@services/menu';
 import { TableService } from '@services/table';
 import { OrderService } from '@services/order';
-
-type AlertSeverity = 'critical' | 'warning' | 'info' | null;
-
-interface NavItem {
-  label: string;
-  icon: string;
-  route: string;
-  key?: string;
-  alertSeverity?: AlertSeverity;
-}
+import { Sidebar, type AlertSeverity, type NavItem } from '@shared/sidebar/sidebar';
 
 @Component({
   selector: 'os-main-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, Sidebar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './main-layout.component.html',
   styleUrl: './main-layout.component.scss',
@@ -41,6 +32,8 @@ export class MainLayoutComponent {
   readonly user = this.auth.user;
   readonly selectedRestaurantName = this.auth.selectedRestaurantName;
   readonly selectedRestaurantAddress = this.auth.selectedRestaurantAddress;
+
+  readonly userName = computed(() => this.user()?.firstName ?? null);
 
   private readonly sidebarAlerts = computed<Record<string, AlertSeverity>>(() => {
     const alerts: Record<string, AlertSeverity> = {};
@@ -149,8 +142,8 @@ export class MainLayoutComponent {
       if (flags.enableFloorPlan) {
         items.push({ label: 'Floor Plan', icon: 'bi-columns-gap', route: '/floor-plan' });
       }
-      if (hasModule(modules, 'reservations')) {
-        items.push({ label: 'Reservations', icon: 'bi-calendar-event', route: '/reservations' });
+      if (hasModule(modules, 'bookings')) {
+        items.push({ label: 'Bookings', icon: 'bi-calendar-event', route: '/bookings' });
       }
     }
 
@@ -160,7 +153,7 @@ export class MainLayoutComponent {
     }
 
     if (mode === 'bookings') {
-      items.push({ label: 'Appointments', icon: 'bi-calendar-check', route: '/reservations' });
+      items.push({ label: 'Bookings', icon: 'bi-calendar-check', route: '/bookings' });
     }
 
     if (mode === 'services' && hasModule(modules, 'invoicing')) {

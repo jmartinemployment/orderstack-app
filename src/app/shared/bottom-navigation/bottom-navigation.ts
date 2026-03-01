@@ -52,8 +52,8 @@ export class BottomNavigation {
     this._activeModal.set(null);
   }
 
-  async selectMode(mode: DevicePosMode): Promise<void> {
-    await this.deviceService.registerBrowserDevice(mode);
+  selectMode(mode: DevicePosMode): void {
+    this.deviceService.registerBrowserDevice(mode);
     this._activeModal.set(null);
     this.router.navigate([DEVICE_POS_MODE_ROUTES[mode]]);
   }

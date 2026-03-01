@@ -63,8 +63,8 @@ function buildNavItems(
     if (flags.enableFloorPlan) {
       items.push({ label: 'Floor Plan', icon: 'bi-columns-gap', route: '/floor-plan' });
     }
-    if (hasModule(modules, 'reservations')) {
-      items.push({ label: 'Reservations', icon: 'bi-calendar-event', route: '/reservations' });
+    if (hasModule(modules, 'bookings')) {
+      items.push({ label: 'Bookings', icon: 'bi-calendar-event', route: '/bookings' });
     }
   }
 
@@ -74,7 +74,7 @@ function buildNavItems(
   }
 
   if (mode === 'bookings') {
-    items.push({ label: 'Appointments', icon: 'bi-calendar-check', route: '/reservations' });
+    items.push({ label: 'Bookings', icon: 'bi-calendar-check', route: '/bookings' });
   }
 
   if (mode === 'services' && hasModule(modules, 'invoicing')) {
@@ -96,7 +96,7 @@ describe('MainLayout — Full Service mode', () => {
   const items = buildNavItems(
     'full_service', false, false, true,
     { enableFloorPlan: true },
-    ['menu_management', 'inventory', 'online_ordering', 'reservations'],
+    ['menu_management', 'inventory', 'online_ordering', 'bookings'],
   );
   const labels = getLabels(items);
 
@@ -127,9 +127,9 @@ describe('MainLayout — Full Service mode', () => {
     expect(labels).toContain('Online');
   });
 
-  it('includes Floor Plan and Reservations', () => {
+  it('includes Floor Plan and Bookings', () => {
     expect(labels).toContain('Floor Plan');
-    expect(labels).toContain('Reservations');
+    expect(labels).toContain('Bookings');
   });
 
   it('includes Inventory at /inventory', () => {
@@ -192,9 +192,9 @@ describe('MainLayout — Retail mode', () => {
     expect(labels).toContain('Fulfillment');
   });
 
-  it('does NOT include Floor Plan or Reservations', () => {
+  it('does NOT include Floor Plan or Bookings', () => {
     expect(labels).not.toContain('Floor Plan');
-    expect(labels).not.toContain('Reservations');
+    expect(labels).not.toContain('Bookings');
   });
 
   it('always includes Customers, Reports, Staff, Settings', () => {
@@ -230,8 +230,8 @@ describe('MainLayout — Services mode', () => {
     expect(inv?.route).toBe('/invoicing');
   });
 
-  it('does NOT include Appointments (services != bookings)', () => {
-    expect(labels).not.toContain('Appointments');
+  it('does NOT include Bookings (services != bookings)', () => {
+    expect(labels).not.toContain('Bookings');
   });
 });
 
@@ -243,10 +243,10 @@ describe('MainLayout — Bookings mode', () => {
   );
   const labels = getLabels(items);
 
-  it('includes Appointments', () => {
-    expect(labels).toContain('Appointments');
-    const appt = items.find(i => i.label === 'Appointments');
-    expect(appt?.route).toBe('/reservations');
+  it('includes Bookings', () => {
+    expect(labels).toContain('Bookings');
+    const booking = items.find(i => i.label === 'Bookings');
+    expect(booking?.route).toBe('/bookings');
   });
 });
 
@@ -254,13 +254,13 @@ describe('MainLayout — Bar mode', () => {
   const items = buildNavItems(
     'bar', false, false, true,
     { enableFloorPlan: true },
-    ['menu_management', 'reservations'],
+    ['menu_management', 'bookings'],
   );
   const labels = getLabels(items);
 
-  it('includes Floor Plan and Reservations (same as full_service)', () => {
+  it('includes Floor Plan and Bookings (same as full_service)', () => {
     expect(labels).toContain('Floor Plan');
-    expect(labels).toContain('Reservations');
+    expect(labels).toContain('Bookings');
   });
 });
 
