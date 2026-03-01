@@ -221,14 +221,29 @@
           <div class="success-icon">
             <i class="bi bi-check-circle-fill"></i>
           </div>
-          @if (mode() === 'send') {
+          @if (checkout.isCounterService()) {
             <h2 class="checkout-title">Order sent!</h2>
+            @if (checkout.orderNumber()) {
+              <p class="checkout-order-number">#{{ checkout.orderNumber() }}</p>
+            }
+            <p class="checkout-subtitle">Listen for your order number.</p>
+            <button type="button" class="checkout-done-btn" (click)="checkout.finishAndNewOrder()">
+              New order
+            </button>
+          } @else if (mode() === 'send') {
+            <h2 class="checkout-title">Order sent!</h2>
+            @if (checkout.orderNumber()) {
+              <p class="checkout-order-number">#{{ checkout.orderNumber() }}</p>
+            }
             <p class="checkout-subtitle">The kitchen is preparing this order.</p>
             <button type="button" class="checkout-done-btn" (click)="checkout.finishAndNewOrder()">
               New order
             </button>
           } @else {
             <h2 class="checkout-title">Order placed!</h2>
+            @if (checkout.orderNumber()) {
+              <p class="checkout-order-number">#{{ checkout.orderNumber() }}</p>
+            }
             <p class="checkout-subtitle">
               @if (checkout.hasCustomerContact()) {
                 Your order is being prepared. We'll notify you when it's ready!
@@ -237,7 +252,7 @@
               } @else if (checkout.diningOption() === 'dine_in') {
                 Your order is being prepared. Please take a seat.
               } @else {
-                Your order is being prepared. We'll call your name when it's ready.
+                Your order is being prepared. We'll call your number when it's ready.
               }
             </p>
             <button type="button" class="checkout-done-btn" (click)="checkout.finishAndNewOrder()">

@@ -145,6 +145,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/pos/server-pos-terminal/server-pos-terminal').then(m => m.ServerPosTerminal),
   },
 
+  // Quick Service — full-screen, no sidebar
+  {
+    path: 'quick-service',
+    canActivate: [authGuard, onboardingGuard],
+    resolve: { deviceInit: deviceInitResolver },
+    loadComponent: () => import('./features/quick-service/quick-service-terminal/quick-service-terminal').then(m => m.QuickServiceTerminal),
+  },
+
   // Authenticated routes
   {
     path: '',

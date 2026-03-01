@@ -470,7 +470,7 @@ export const DEVICE_POS_MODE_CATALOG: DevicePosModeConfig[] = [
 
 export const DEVICE_POS_MODE_ROUTES: Record<DevicePosMode, string> = {
   standard: '/register',
-  quick_service: '/kiosk',
+  quick_service: '/quick-service',
   full_service: '/pos',
   bar: '/bar',
   bookings: '/bookings-terminal',

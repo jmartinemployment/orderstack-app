@@ -80,6 +80,8 @@ export class CheckoutService {
   private readonly _checkoutError = signal<string | null>(null);
   private readonly _isCreatingOrder = signal(false);
 
+  private readonly _orderNumber = signal<string | null>(null);
+
   readonly checkoutStep = this._checkoutStep.asReadonly();
   readonly checkoutMode = this._checkoutMode.asReadonly();
   readonly diningOption = this._diningOption.asReadonly();
@@ -87,6 +89,13 @@ export class CheckoutService {
   readonly createdOrderId = this._createdOrderId.asReadonly();
   readonly checkoutError = this._checkoutError.asReadonly();
   readonly isCreatingOrder = this._isCreatingOrder.asReadonly();
+  readonly orderNumber = this._orderNumber.asReadonly();
+
+  // Counter service modes skip table selection and customer info
+  readonly isCounterService = computed(() => {
+    const src = this._orderSource();
+    return src === 'quick-service' || src === 'kiosk' || src === 'register';
+  });
 
   // --- Customer info state ---
 
@@ -227,6 +236,12 @@ export class CheckoutService {
   selectDiningOption(option: DiningOption): void {
     this._diningOption.set(option);
 
+    // Counter service: skip tables and customer info, send to kitchen then payment
+    if (this.isCounterService()) {
+      void this.createOrderAndPay();
+      return;
+    }
+
     if (option === 'dine_in' && this.availableTables().length > 0) {
       this._checkoutStep.set('table-select');
     } else if (option === 'takeout') {
@@ -349,6 +364,7 @@ export class CheckoutService {
     }
 
     this._createdOrderId.set(order.guid);
+    this._orderNumber.set(order.orderNumber || order.guid.slice(-4).toUpperCase());
     this._checkoutStep.set('payment');
   }
 
@@ -367,10 +383,13 @@ export class CheckoutService {
       return;
     }
 
+    this._createdOrderId.set(order.guid);
+    this._orderNumber.set(order.orderNumber || order.guid.slice(-4).toUpperCase());
     this._checkoutStep.set('success');
 
-    // Auto-dismiss success after 2 seconds for send mode
-    setTimeout(() => this.finishAndNewOrder(), 2000);
+    // Auto-dismiss success after 3 seconds for counter service, 2 for others
+    const delay = this.isCounterService() ? 3000 : 2000;
+    setTimeout(() => this.finishAndNewOrder(), delay);
   }
 
   // --- Payment callbacks ---
@@ -426,6 +445,7 @@ export class CheckoutService {
     this._diningOption.set(null);
     this._selectedTable.set(null);
     this._createdOrderId.set(null);
+    this._orderNumber.set(null);
     this._checkoutError.set(null);
     this._isCreatingOrder.set(false);
     this._customerName.set('');

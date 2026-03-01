@@ -9,6 +9,7 @@ export interface MenuCategory {
   descriptionEn?: string;      // English
   description_en?: string;     // API may use snake_case
   icon?: string;
+  color?: string;
   displayOrder: number;
   parentId?: string;
   subcategories?: MenuCategory[];
