@@ -14,6 +14,10 @@ type BottomNavModal = 'checkout' | 'transactions' | 'notifications' | 'more' | n
 
 const HIDDEN_MODES: ReadonlySet<DevicePosMode> = new Set(['retail', 'services']);
 
+const ROUTE_TO_MODE: Record<string, DevicePosMode> = Object.fromEntries(
+  Object.entries(DEVICE_POS_MODE_ROUTES).map(([mode, route]) => [route, mode as DevicePosMode])
+) as Record<string, DevicePosMode>;
+
 @Component({
   selector: 'os-bottom-navigation',
   imports: [BottomNavCheckout, Transactions],
@@ -36,7 +40,8 @@ export class BottomNavigation {
   }
 
   isModeActive(mode: DevicePosMode): boolean {
-    return this.deviceService.currentDevicePosMode() === mode;
+    const currentRoute = '/' + this.router.url.split('/')[1];
+    return ROUTE_TO_MODE[currentRoute] === mode;
   }
 
   openModal(modal: BottomNavModal): void {

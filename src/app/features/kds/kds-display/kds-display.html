@@ -398,7 +398,8 @@
     </div>
   }
 
-  @if (showPaymentModal() && paymentOrder()) {
+  <!-- Payment modal disabled — payment collection moved to bar terminal incoming orders mode -->
+  <!-- @if (showPaymentModal() && paymentOrder()) {
     <div class="kds-payment-overlay" (click)="closePaymentModal()">
       <div class="kds-payment-modal" (click)="$event.stopPropagation()">
         <div class="kds-payment-modal-header">
@@ -426,7 +427,7 @@
         </div>
       </div>
     </div>
-  }
+  } -->
 </div>
 } @else {
   <div class="auth-required d-flex align-items-center justify-content-center p-5">

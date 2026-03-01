@@ -868,7 +868,7 @@ export class OnlineOrderPortal implements OnDestroy {
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           totalPrice: item.totalPrice,
-          modifiers: item.selectedModifiers.map(m => ({
+          modifiers: (item.selectedModifiers ?? []).map(m => ({
             id: m.id,
             name: m.name,
             priceAdjustment: m.priceAdjustment,

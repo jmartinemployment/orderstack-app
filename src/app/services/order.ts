@@ -274,6 +274,18 @@ export class OrderService implements OnDestroy {
     return this._printStatuses().get(orderId) ?? 'none';
   }
 
+  private playNotificationSound(): void {
+    try {
+      const audio = new Audio('assets/sounds/chime.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(() => {
+        // Browser autoplay policy may block — ignore
+      });
+    } catch {
+      // Ignore audio errors
+    }
+  }
+
   private get restaurantId(): string | null {
     return this.authService.selectedRestaurantId();
   }
@@ -332,6 +344,9 @@ export class OrderService implements OnDestroy {
         const updated = [notification, ...list];
         return updated.slice(0, 5);
       });
+
+      // Play notification sound
+      this.playNotificationSound();
 
       // If allReady, update the order status locally
       if (notification.allReady) {

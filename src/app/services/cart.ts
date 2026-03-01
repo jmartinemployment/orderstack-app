@@ -243,7 +243,7 @@ export class CartService {
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         totalPrice: item.totalPrice,
-        modifiers: item.selectedModifiers.map(mod => ({
+        modifiers: (item.selectedModifiers ?? []).map(mod => ({
           id: mod.id,
           name: mod.name,
           priceAdjustment: mod.priceAdjustment,

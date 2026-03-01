@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, computed, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { CheckoutService, CheckoutMode } from '@services/checkout';
 import { Checkout } from '../../checkout/checkout';
@@ -19,8 +19,9 @@ const ROUTE_CHECKOUT_CONFIG: Record<string, { mode: CheckoutMode; source: string
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BottomNavCheckout {
+export class BottomNavCheckout implements OnInit, OnDestroy {
   private readonly router = inject(Router);
+  private readonly checkout = inject(CheckoutService);
 
   readonly checkoutMode = computed<CheckoutMode>(() => {
     const config = ROUTE_CHECKOUT_CONFIG[this.router.url];
@@ -31,4 +32,12 @@ export class BottomNavCheckout {
     const config = ROUTE_CHECKOUT_CONFIG[this.router.url];
     return config?.source ?? 'terminal';
   });
+
+  ngOnInit(): void {
+    this.checkout.startCheckout(this.checkoutMode(), this.checkoutSource());
+  }
+
+  ngOnDestroy(): void {
+    this.checkout.cancelCheckout();
+  }
 }

@@ -1,14 +1,76 @@
-// ===== Bar Terminal — Square POS Layout =====
+// ===== Bar Terminal — Square POS Layout + Incoming Orders KDS =====
 
 :host {
   display: block;
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
+
+// ===== Bar Mode Toggle =====
+
+.bar-mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 0 20px;
+  flex-shrink: 0;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-size: 15px;
+    font-weight: 500;
+    color: #6b6b6b;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+
+    i {
+      font-size: 16px;
+    }
+
+    &:hover {
+      color: #1a1a1a;
+    }
+
+    &.active {
+      color: #006aff;
+      border-bottom-color: #006aff;
+      font-weight: 600;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 10px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+    }
+  }
+}
+
+// ===== Create Orders Mode =====
 
 .bar-terminal {
   display: grid;
   grid-template-columns: 1fr 340px;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   background: #f6f6f6;
   color: #1a1a1a;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -32,54 +94,6 @@
   border-right: 1px solid #e8e8e8;
 }
 
-// --- Top Tabs ---
-
-.top-tabs {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  padding: 12px 20px 0;
-  border-bottom: 1px solid #e8e8e8;
-  background: #fff;
-}
-
-.top-tab {
-  padding: 10px 16px 12px;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  font-size: 15px;
-  font-weight: 500;
-  color: #6b6b6b;
-  cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
-  white-space: nowrap;
-
-  &:hover {
-    color: #1a1a1a;
-  }
-
-  &.active {
-    color: #006aff;
-    border-bottom-color: #006aff;
-    font-weight: 600;
-  }
-}
-
-.top-tab-more {
-  margin-left: auto;
-  padding: 8px;
-  background: none;
-  border: none;
-  color: #6b6b6b;
-  cursor: pointer;
-  font-size: 18px;
-  border-radius: 50%;
-
-  &:hover {
-    background: #f0f0f0;
-  }
-}
 
 // --- Category Pills ---
 
@@ -384,48 +398,6 @@
   font-weight: 500;
   color: #1a1a1a;
   text-align: center;
-}
-
-// --- Bottom Navigation ---
-
-.bottom-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: 8px 0 12px;
-  border-top: 1px solid #e8e8e8;
-  background: #fff;
-}
-
-.bottom-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 6px 32px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #9ca3af;
-  transition: color 0.15s;
-
-  i {
-    font-size: 20px;
-  }
-
-  span {
-    font-size: 11px;
-    font-weight: 500;
-  }
-
-  &:hover {
-    color: #6b6b6b;
-  }
-
-  &.active {
-    color: #006aff;
-  }
 }
 
 // ===== RIGHT: Sale Panel =====
@@ -1018,7 +990,199 @@
   }
 }
 
-// --- Animations ---
+// ===== Incoming Orders Mode (Bar KDS) =====
+
+.bar-incoming {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--os-bg);
+  color: var(--os-text-primary);
+}
+
+.bar-incoming-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 8px 16px;
+  background: var(--os-bg-card);
+  border-bottom: 1px solid var(--os-border);
+}
+
+.bar-order-columns {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+  min-height: 0;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bar-order-column {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--os-bg-card);
+  border-radius: var(--os-radius);
+  border: 1px solid var(--os-border);
+  overflow: hidden;
+}
+
+.column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+
+  h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  &.new {
+    background-color: var(--os-primary);
+  }
+
+  &.cooking {
+    background-color: var(--os-order-dinein);
+  }
+
+  &.ready {
+    background-color: var(--os-success);
+  }
+}
+
+.column-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.column-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--os-border);
+    border-radius: 3px;
+  }
+}
+
+.empty-column {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  color: var(--os-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+// ===== Bar Payment Modal (same pattern as KDS) =====
+
+.bar-payment-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  animation: fadeIn 0.2s ease;
+}
+
+.bar-payment-modal {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  animation: slideUp 0.25s ease;
+}
+
+.bar-payment-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e8e8e8;
+
+  h5 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+  }
+}
+
+.bar-payment-modal-amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: #22c55e;
+  margin-left: auto;
+}
+
+.btn-modal-close {
+  padding: 8px;
+  background: none;
+  border: none;
+  color: #6b6b6b;
+  cursor: pointer;
+  font-size: 18px;
+  border-radius: 50%;
+
+  &:hover {
+    background: #f0f0f0;
+    color: #1a1a1a;
+  }
+}
+
+.bar-payment-modal-error {
+  padding: 12px 20px;
+  background: rgba(239, 68, 68, 0.1);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  font-size: 14px;
+}
+
+.bar-payment-modal-body {
+  padding: 20px;
+}
+
+// ===== Animations =====
 
 @keyframes fadeIn {
   from { opacity: 0; }

@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest';
 interface Device {
   id: string;
   deviceName: string;
-  deviceType: 'pos_terminal' | 'kds_station' | 'kiosk' | 'order_pad' | 'printer_station';
+  deviceType: 'pos' | 'kds' | 'kiosk' | 'order_pad' | 'printer_station';
   status: 'active' | 'pending' | 'revoked';
   posMode: string | null;
   modeId: string | null;
@@ -59,7 +59,7 @@ function defaultPrinterProfile(profiles: PrinterProfile[]): PrinterProfile | nul
 }
 
 function devicesByType(devices: Device[]): { type: string; count: number }[] {
-  const types = ['pos_terminal', 'kds_station', 'kiosk', 'order_pad', 'printer_station'];
+  const types = ['pos', 'kds', 'kiosk', 'order_pad', 'printer_station'];
   return types.map(type => ({
     type,
     count: devices.filter(d => d.deviceType === type && d.status === 'active').length,
@@ -119,10 +119,10 @@ const recentTime = new Date(now - 10 * 60 * 1000).toISOString(); // 10 min ago
 const staleTime = new Date(now - 2 * 60 * 60 * 1000).toISOString(); // 2 hours ago
 
 const devices: Device[] = [
-  { id: 'd-1', deviceName: 'POS 1', deviceType: 'pos_terminal', status: 'active', posMode: 'server', modeId: 'm-1', lastSeenAt: recentTime },
-  { id: 'd-2', deviceName: 'KDS 1', deviceType: 'kds_station', status: 'active', posMode: null, modeId: null, lastSeenAt: staleTime },
-  { id: 'd-3', deviceName: 'Kiosk', deviceType: 'kiosk', status: 'pending', posMode: null, modeId: null, lastSeenAt: null },
-  { id: 'd-4', deviceName: 'POS 2', deviceType: 'pos_terminal', status: 'revoked', posMode: null, modeId: null, lastSeenAt: null },
+  { id: 'd-1', deviceName: 'POS 1', deviceType: 'pos', status: 'active', posMode: 'server', modeId: 'm-1', lastSeenAt: recentTime },
+  { id: 'd-2', deviceName: 'KDS 1', deviceType: 'kds', status: 'active', posMode: null, modeId: null, lastSeenAt: staleTime },
+  { id: 'd-3', deviceName: 'Kiosk', deviceType: 'kiosk', status: 'active', posMode: null, modeId: null, lastSeenAt: null },
+  { id: 'd-4', deviceName: 'Register 1', deviceType: 'register', status: 'active', posMode: null, modeId: null, lastSeenAt: null },
 ];
 
 describe('DeviceService — computed signals', () => {
@@ -208,8 +208,8 @@ describe('DeviceService — defaultPrinterProfile', () => {
 describe('DeviceService — devicesByType', () => {
   it('counts active devices per type', () => {
     const result = devicesByType(devices);
-    const pos = result.find(r => r.type === 'pos_terminal');
-    const kds = result.find(r => r.type === 'kds_station');
+    const pos = result.find(r => r.type === 'pos');
+    const kds = result.find(r => r.type === 'kds');
     const kiosk = result.find(r => r.type === 'kiosk');
     expect(pos?.count).toBe(1); // only d-1 is active POS
     expect(kds?.count).toBe(1);
@@ -238,7 +238,7 @@ describe('DeviceService — deviceHealthSummary', () => {
 
 describe('DeviceService — list mutations', () => {
   it('addDevice appends', () => {
-    const newDev: Device = { id: 'd-5', deviceName: 'New', deviceType: 'pos_terminal', status: 'pending', posMode: null, modeId: null, lastSeenAt: null };
+    const newDev: Device = { id: 'd-5', deviceName: 'New', deviceType: 'pos', status: 'pending', posMode: null, modeId: null, lastSeenAt: null };
     expect(addDevice(devices, newDev)).toHaveLength(5);
   });
 

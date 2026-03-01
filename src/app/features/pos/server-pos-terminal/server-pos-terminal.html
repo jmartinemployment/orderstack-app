@@ -3,39 +3,11 @@
   <main class="pos-main">
 
     <!-- Top Tabs -->
-    <nav class="top-tabs">
-      <button
-        type="button"
-        class="top-tab"
-        [class.active]="activeTopTab() === 'keypad'"
-        (click)="selectTopTab('keypad')">
-        Keypad
-      </button>
-      <button
-        type="button"
-        class="top-tab"
-        [class.active]="activeTopTab() === 'library'"
-        (click)="selectTopTab('library')">
-        Library
-      </button>
-      <button
-        type="button"
-        class="top-tab"
-        [class.active]="activeTopTab() === 'favorites'"
-        (click)="selectTopTab('favorites')">
-        Favorites
-      </button>
-      <button
-        type="button"
-        class="top-tab"
-        [class.active]="activeTopTab() === 'menu'"
-        (click)="selectTopTab('menu')">
-        Menu
-      </button>
-      <button type="button" class="top-tab-more" aria-label="More options">
-        <i class="bi bi-three-dots"></i>
-      </button>
-    </nav>
+    <os-top-navigation
+      [tabs]="topTabs"
+      [activeTab]="activeTopTab()"
+      (tabChange)="selectTopTab($event)"
+      (moreClick)="onMoreClick()" />
 
     <!-- Category pills (only visible on Menu tab) -->
     @if (activeTopTab() === 'menu') {
@@ -90,7 +62,7 @@
         } @else {
           <div class="item-grid">
             @for (item of gridItems(); track item.id) {
-              <button type="button" class="item-tile" (click)="addItem(item)">
+              <button type="button" class="item-tile" (click)="checkout.addItem(item)">
                 @if (getItemImage(item); as imgUrl) {
                   <div class="item-image">
                     <img [src]="imgUrl" [alt]="item.name" loading="lazy" (error)="onImageError($event)" />
@@ -145,47 +117,13 @@
       </div>
     }
 
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav">
-      <button
-        type="button"
-        class="bottom-nav-item"
-        [class.active]="activeBottomTab() === 'checkout'"
-        (click)="selectBottomTab('checkout')">
-        <i class="bi bi-grid-3x3-gap-fill"></i>
-        <span>Checkout</span>
-      </button>
-      <button
-        type="button"
-        class="bottom-nav-item"
-        [class.active]="activeBottomTab() === 'open-orders'"
-        (click)="selectBottomTab('open-orders')">
-        <i class="bi bi-receipt"></i>
-        <span>Open Orders</span>
-      </button>
-      <button
-        type="button"
-        class="bottom-nav-item"
-        [class.active]="activeBottomTab() === 'notifications'"
-        (click)="selectBottomTab('notifications')">
-        <i class="bi bi-bell"></i>
-        <span>Notifications</span>
-      </button>
-      <button
-        type="button"
-        class="bottom-nav-item"
-        [class.active]="activeBottomTab() === 'more'"
-        (click)="selectBottomTab('more')">
-        <i class="bi bi-list"></i>
-        <span>More</span>
-      </button>
-    </nav>
+    <os-bottom-navigation />
   </main>
 
   <!-- ==================== RIGHT: Current Sale Panel ==================== -->
   <aside class="sale-panel">
     <div class="sale-header">
-      <h2>Current sale{{ cartCount() > 0 ? ' (' + cartCount() + ')' : '' }}</h2>
+      <h2>Current sale{{ checkout.cartCount() > 0 ? ' (' + checkout.cartCount() + ')' : '' }}</h2>
       <button type="button" class="sale-more-btn" aria-label="Sale options">
         <i class="bi bi-three-dots"></i>
       </button>
@@ -202,15 +140,15 @@
 
     <!-- Line items -->
     <div class="sale-items">
-      @if (cartItems().length === 0) {
+      @if (checkout.cartItems().length === 0) {
         <div class="sale-empty">
           <p>No items yet</p>
         </div>
       } @else {
-        @for (item of cartItems(); track item.id) {
+        @for (item of checkout.cartItems(); track item.id) {
           <div class="sale-line-item">
             <div class="line-item-info">
-              <button type="button" class="line-item-name" (click)="removeItem(item.id)">
+              <button type="button" class="line-item-name" (click)="checkout.removeItem(item.id)">
                 @if (item.weightUnit) {
                   <span class="line-item-qty">{{ item.quantity }} {{ weightUnitLabels[item.weightUnit] }}</span>
                 } @else if (item.quantity > 1) {
@@ -233,11 +171,11 @@
 
     <!-- Totals + actions -->
     <div class="sale-footer">
-      @if (cartItems().length > 0) {
+      @if (checkout.cartItems().length > 0) {
         <div class="sale-totals">
           <div class="total-row">
             <span>Tax</span>
-            <span>{{ tax() | currency:'USD':'symbol':'1.2-2' }}</span>
+            <span>{{ checkout.tax() | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
           <div class="total-divider"></div>
           <button type="button" class="add-discount-btn">Add discount</button>
@@ -247,9 +185,9 @@
       <button
         type="button"
         class="send-btn"
-        [disabled]="cartItems().length === 0"
-        (click)="sendToKitchen()">
-        @if (cartItems().length > 0) {
+        [disabled]="checkout.cartItems().length === 0"
+        (click)="checkout.startCheckout('send', 'terminal')">
+        @if (checkout.cartItems().length > 0) {
           <i class="bi bi-send-fill"></i> Send to Kitchen
         } @else {
           Send to Kitchen
@@ -260,138 +198,18 @@
 </div>
 
 <!-- ==================== WEIGHT SCALE OVERLAY ==================== -->
-@if (showWeightScale()) {
+@if (checkout.showWeightScale()) {
   <div class="send-overlay">
     <div class="send-modal">
       <os-weight-scale
-        [itemName]="weightScaleItem()!.name"
-        [unitPrice]="weightScaleUnitPrice()"
-        [weightUnit]="weightScaleUnit()"
-        (weightConfirmed)="onWeightConfirmed($event)"
-        (cancelled)="closeWeightScale()" />
+        [itemName]="checkout.weightScaleItem()!.name"
+        [unitPrice]="checkout.weightScaleUnitPrice()"
+        [weightUnit]="checkout.weightScaleUnit()"
+        (weightConfirmed)="checkout.onWeightConfirmed($event)"
+        (cancelled)="checkout.closeWeightScale()" />
     </div>
   </div>
 }
 
 <!-- ==================== SEND TO KITCHEN OVERLAY ==================== -->
-@if (sendStep() !== 'idle') {
-  <div class="send-overlay">
-    <div class="send-modal">
-
-      <!-- Step 1: Dining Option -->
-      @if (sendStep() === 'dining-option') {
-        <div class="send-step">
-          <h2 class="send-title">Order type</h2>
-          <p class="send-subtitle">Where is this order going?</p>
-          <div class="dining-options">
-            <button
-              type="button"
-              class="dining-option-card"
-              (click)="selectDiningOption('dine_in')">
-              <div class="dining-option-icon">
-                <i class="bi bi-cup-hot-fill"></i>
-              </div>
-              <span class="dining-option-label">Dine In</span>
-            </button>
-            <button
-              type="button"
-              class="dining-option-card"
-              (click)="selectDiningOption('takeout')">
-              <div class="dining-option-icon">
-                <i class="bi bi-bag-fill"></i>
-              </div>
-              <span class="dining-option-label">Takeout</span>
-            </button>
-          </div>
-          <button type="button" class="send-cancel-btn" (click)="cancelSend()">Cancel</button>
-        </div>
-      }
-
-      <!-- Step 2: Table Selection (Dine In only) -->
-      @if (sendStep() === 'table-select') {
-        <div class="send-step">
-          <h2 class="send-title">Select table</h2>
-          <p class="send-subtitle">Choose the table for this order</p>
-
-          @if (tablesLoading()) {
-            <div class="table-loading">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading tables...</span>
-              </div>
-            </div>
-          } @else {
-            <div class="table-grid">
-              @for (table of availableTables(); track table.id) {
-                <button
-                  type="button"
-                  class="table-card"
-                  (click)="selectTable(table)">
-                  <span class="table-number">{{ table.tableNumber }}</span>
-                  <span class="table-name">{{ table.tableName ?? 'Table ' + table.tableNumber }}</span>
-                  <span class="table-capacity">
-                    <i class="bi bi-people-fill"></i> {{ table.capacity }}
-                  </span>
-                </button>
-              }
-            </div>
-
-            @if (availableTables().length === 0) {
-              <p class="no-tables-msg">No tables available right now</p>
-            }
-          }
-
-          <div class="send-step-actions">
-            <button type="button" class="send-skip-btn" (click)="skipTableSelection()">
-              Skip — no table
-            </button>
-            <button type="button" class="send-cancel-btn" (click)="cancelSend()">Cancel</button>
-          </div>
-        </div>
-      }
-
-      <!-- Sending spinner -->
-      @if (sendStep() === 'sending') {
-        <div class="send-step send-step-centered">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Sending order...</span>
-          </div>
-          <p class="send-subtitle">Sending to kitchen...</p>
-        </div>
-      }
-
-      <!-- Success -->
-      @if (sendStep() === 'success') {
-        <div class="send-step send-step-centered">
-          <div class="success-icon">
-            <i class="bi bi-check-circle-fill"></i>
-          </div>
-          <h2 class="send-title">Order sent!</h2>
-          <p class="send-subtitle">The kitchen is preparing this order.</p>
-          <button type="button" class="send-done-btn" (click)="finishAndNewOrder()">
-            New order
-          </button>
-        </div>
-      }
-
-      <!-- Failed -->
-      @if (sendStep() === 'failed') {
-        <div class="send-step send-step-centered">
-          <div class="failed-icon">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-          </div>
-          <h2 class="send-title">Something went wrong</h2>
-          <p class="send-subtitle">{{ sendError() }}</p>
-          <div class="send-step-actions">
-            <button type="button" class="send-retry-btn" (click)="retrySend()">
-              Try again
-            </button>
-            <button type="button" class="send-cancel-btn" (click)="cancelSend()">
-              Go back
-            </button>
-          </div>
-        </div>
-      }
-
-    </div>
-  </div>
-}
+<os-checkout [mode]="'send'" [orderSource]="'terminal'" />

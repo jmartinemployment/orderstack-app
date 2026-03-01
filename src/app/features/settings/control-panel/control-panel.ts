@@ -17,6 +17,7 @@ import { BreakConfig } from '../break-config';
 import { AccountBilling } from '../account-billing';
 import { SupplierSettings } from '../supplier-settings';
 import { NotificationSettingsComponent } from '../notification-settings';
+import { BarSettingsComponent } from '../bar-settings';
 import { ControlPanelTab, PlatformModule } from '@models/index';
 import type { ModeFeatureFlags } from '@models/index';
 
@@ -29,7 +30,7 @@ interface TabConfig {
 
 @Component({
   selector: 'os-control-panel',
-  imports: [DeviceHub, AiSettings, KitchenOrders, OnlinePricing, CateringCalendar, PaymentSettingsComponent, TipManagement, LoyaltySettings, DeliverySettingsComponent, GiftCardManagement, SupplierSettings, StaffManagement, BreakConfig, AccountBilling, NotificationSettingsComponent],
+  imports: [DeviceHub, AiSettings, KitchenOrders, BarSettingsComponent, OnlinePricing, CateringCalendar, PaymentSettingsComponent, TipManagement, LoyaltySettings, DeliverySettingsComponent, GiftCardManagement, SupplierSettings, StaffManagement, BreakConfig, AccountBilling, NotificationSettingsComponent],
   templateUrl: './control-panel.html',
   styleUrl: './control-panel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,6 +49,7 @@ export class ControlPanel implements OnInit {
     { key: 'hardware', label: 'Hardware' },
     { key: 'ai-settings', label: 'AI Settings', requiredModule: 'menu_management' },
     { key: 'kitchen-orders', label: 'Kitchen & Orders' },
+    { key: 'bar', label: 'Bar' },
     { key: 'online-pricing', label: 'Online Pricing', requiredModule: 'online_ordering' },
     { key: 'catering-calendar', label: 'Catering Calendar', requiredModule: 'reservations' },
     { key: 'payments', label: 'Payments' },

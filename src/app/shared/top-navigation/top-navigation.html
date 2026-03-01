@@ -1,0 +1,14 @@
+<nav class="top-tabs">
+  @for (tab of tabs(); track tab.key) {
+    <button
+      type="button"
+      class="top-tab"
+      [class.active]="activeTab() === tab.key"
+      (click)="tabChange.emit(tab.key)">
+      {{ tab.label }}
+    </button>
+  }
+  <button type="button" class="top-tab-more" aria-label="More options" (click)="moreClick.emit()">
+    <i class="bi bi-three-dots"></i>
+  </button>
+</nav>

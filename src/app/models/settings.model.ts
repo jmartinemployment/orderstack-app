@@ -3,7 +3,7 @@ import { DeliveryProviderType } from './delivery.model';
 import { PaymentProcessorType } from './payment.model';
 import { TipPoolRule, TipOutRule } from './tip.model';
 
-export type ControlPanelTab = 'hardware' | 'ai-settings' | 'kitchen-orders' | 'online-pricing' | 'catering-calendar' | 'payments' | 'tip-management' | 'loyalty' | 'delivery' | 'gift-cards' | 'suppliers' | 'staff' | 'time-clock-config' | 'notifications' | 'account-billing';
+export type ControlPanelTab = 'hardware' | 'ai-settings' | 'kitchen-orders' | 'bar' | 'online-pricing' | 'catering-calendar' | 'payments' | 'tip-management' | 'loyalty' | 'delivery' | 'gift-cards' | 'suppliers' | 'staff' | 'time-clock-config' | 'notifications' | 'account-billing';
 
 /**
  * AI Settings — Control Panel > AI Settings tab
@@ -356,6 +356,26 @@ export interface NotificationSettings {
   orderReadyNotifyServer: boolean;
   orderReadyChannels: NotificationChannel[];
   orderReadyTemplate: string;
+}
+
+// --- Bar Settings ---
+
+export type BarSoundName = 'chime' | 'bell' | 'ding';
+
+export interface BarSettings {
+  beverageCategoryIds: string[];
+  defaultMode: 'create' | 'incoming';
+  soundEnabled: boolean;
+  soundName: BarSoundName;
+}
+
+export function defaultBarSettings(): BarSettings {
+  return {
+    beverageCategoryIds: [],
+    defaultMode: 'create',
+    soundEnabled: true,
+    soundName: 'chime',
+  };
 }
 
 export function defaultNotificationSettings(): NotificationSettings {

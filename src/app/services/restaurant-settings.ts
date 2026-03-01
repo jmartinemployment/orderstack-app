@@ -15,6 +15,8 @@ import {
   AIUsageSummary,
   AIFeatureKey,
   NotificationSettings,
+  BarSettings,
+  defaultBarSettings,
   defaultAISettings,
   defaultOnlinePricingSettings,
   defaultCateringCapacitySettings,
@@ -52,6 +54,7 @@ export class RestaurantSettingsService {
   private readonly _autoGratuitySettings = signal<AutoGratuitySettings>(defaultAutoGratuitySettings());
   private readonly _scanToPaySettings = signal<ScanToPaySettings>(defaultScanToPaySettings());
   private readonly _notificationSettings = signal<NotificationSettings>(defaultNotificationSettings());
+  private readonly _barSettings = signal<BarSettings>(defaultBarSettings());
   private readonly _capacityBlocks = signal<CapacityBlock[]>([]);
   private readonly _cateringOrders = signal<Order[]>([]);
   private readonly _aiAdminConfig = signal<AIAdminConfig | null>(null);
@@ -74,6 +77,7 @@ export class RestaurantSettingsService {
   readonly autoGratuitySettings = this._autoGratuitySettings.asReadonly();
   readonly scanToPaySettings = this._scanToPaySettings.asReadonly();
   readonly notificationSettings = this._notificationSettings.asReadonly();
+  readonly barSettings = this._barSettings.asReadonly();
   readonly capacityBlocks = this._capacityBlocks.asReadonly();
   readonly cateringOrders = this._cateringOrders.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
@@ -144,6 +148,9 @@ export class RestaurantSettingsService {
 
       const notificationFromServer = response['notificationSettings'] as Partial<NotificationSettings> | undefined;
       this._notificationSettings.set({ ...defaultNotificationSettings(), ...this.readLocalStorage('notification-settings'), ...notificationFromServer });
+
+      const barFromServer = response['barSettings'] as Partial<BarSettings> | undefined;
+      this._barSettings.set({ ...defaultBarSettings(), ...this.readLocalStorage('bar-settings'), ...barFromServer });
     } catch {
       // Backend may not have these fields yet — fall back to localStorage
       this._aiSettings.set(this.normalizeAISettings({
@@ -159,6 +166,7 @@ export class RestaurantSettingsService {
       this._autoGratuitySettings.set({ ...defaultAutoGratuitySettings(), ...this.readLocalStorage('auto-gratuity-settings') });
       this._scanToPaySettings.set({ ...defaultScanToPaySettings(), ...this.readLocalStorage('scan-to-pay-settings') });
       this._notificationSettings.set({ ...defaultNotificationSettings(), ...this.readLocalStorage('notification-settings') });
+      this._barSettings.set({ ...defaultBarSettings(), ...this.readLocalStorage('bar-settings') });
     } finally {
       this.loadCapacityBlocks();
       this._isLoading.set(false);
@@ -372,6 +380,27 @@ export class RestaurantSettingsService {
     } finally {
       localStorage.setItem(`${this.restaurantId}-notification-settings`, JSON.stringify(s));
       this._notificationSettings.set(s);
+      this._isSaving.set(false);
+    }
+  }
+
+  async saveBarSettings(s: BarSettings): Promise<void> {
+    if (!this.restaurantId) return;
+    this._isSaving.set(true);
+    this._error.set(null);
+
+    try {
+      await firstValueFrom(
+        this.http.patch(
+          `${this.apiUrl}/restaurant/${this.restaurantId}`,
+          { barSettings: s }
+        )
+      );
+    } catch {
+      this._error.set('Settings saved locally only — backend sync failed');
+    } finally {
+      localStorage.setItem(`${this.restaurantId}-bar-settings`, JSON.stringify(s));
+      this._barSettings.set(s);
       this._isSaving.set(false);
     }
   }

@@ -3,39 +3,11 @@
   <main class="register-main">
 
     <!-- Top Tabs -->
-    <nav class="top-tabs">
-      <button
-        type="button"
-        class="top-tab"
-        [class.active]="activeTopTab() === 'keypad'"
-        (click)="selectTopTab('keypad')">
-        Keypad
-      </button>
-      <button
-        type="button"
-        class="top-tab"
-        [class.active]="activeTopTab() === 'library'"
-        (click)="selectTopTab('library')">
-        Library
-      </button>
-      <button
-        type="button"
-        class="top-tab"
-        [class.active]="activeTopTab() === 'favorites'"
-        (click)="selectTopTab('favorites')">
-        Favorites
-      </button>
-      <button
-        type="button"
-        class="top-tab"
-        [class.active]="activeTopTab() === 'menu'"
-        (click)="selectTopTab('menu')">
-        Menu
-      </button>
-      <button type="button" class="top-tab-more" aria-label="More options">
-        <i class="bi bi-three-dots"></i>
-      </button>
-    </nav>
+    <os-top-navigation
+      [tabs]="topTabs"
+      [activeTab]="activeTopTab()"
+      (tabChange)="selectTopTab($event)"
+      (moreClick)="onMoreClick()" />
 
     <!-- Category pills (only visible on Menu tab) -->
     @if (activeTopTab() === 'menu') {
@@ -90,7 +62,7 @@
         } @else {
           <div class="item-grid">
             @for (item of gridItems(); track item.id) {
-              <button type="button" class="item-tile" (click)="addItem(item)">
+              <button type="button" class="item-tile" (click)="checkout.addItem(item)">
                 @if (getItemImage(item); as imgUrl) {
                   <div class="item-image">
                     <img [src]="imgUrl" [alt]="item.name" loading="lazy" (error)="onImageError($event)" />
@@ -145,47 +117,13 @@
       </div>
     }
 
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav">
-      <button
-        type="button"
-        class="bottom-nav-item"
-        [class.active]="activeBottomTab() === 'checkout'"
-        (click)="selectBottomTab('checkout')">
-        <i class="bi bi-grid-3x3-gap-fill"></i>
-        <span>Checkout</span>
-      </button>
-      <button
-        type="button"
-        class="bottom-nav-item"
-        [class.active]="activeBottomTab() === 'transactions'"
-        (click)="selectBottomTab('transactions')">
-        <i class="bi bi-arrow-left-right"></i>
-        <span>Transactions</span>
-      </button>
-      <button
-        type="button"
-        class="bottom-nav-item"
-        [class.active]="activeBottomTab() === 'notifications'"
-        (click)="selectBottomTab('notifications')">
-        <i class="bi bi-bell"></i>
-        <span>Notifications</span>
-      </button>
-      <button
-        type="button"
-        class="bottom-nav-item"
-        [class.active]="activeBottomTab() === 'more'"
-        (click)="selectBottomTab('more')">
-        <i class="bi bi-list"></i>
-        <span>More</span>
-      </button>
-    </nav>
+    <os-bottom-navigation />
   </main>
 
   <!-- ==================== RIGHT: Current Sale Panel ==================== -->
   <aside class="sale-panel">
     <div class="sale-header">
-      <h2>Current sale{{ cartCount() > 0 ? ' (' + cartCount() + ')' : '' }}</h2>
+      <h2>Current sale{{ checkout.cartCount() > 0 ? ' (' + checkout.cartCount() + ')' : '' }}</h2>
       <button type="button" class="sale-more-btn" aria-label="Sale options">
         <i class="bi bi-three-dots"></i>
       </button>
@@ -202,15 +140,15 @@
 
     <!-- Line items -->
     <div class="sale-items">
-      @if (cartItems().length === 0) {
+      @if (checkout.cartItems().length === 0) {
         <div class="sale-empty">
           <p>No items yet</p>
         </div>
       } @else {
-        @for (item of cartItems(); track item.id) {
+        @for (item of checkout.cartItems(); track item.id) {
           <div class="sale-line-item">
             <div class="line-item-info">
-              <button type="button" class="line-item-name" (click)="removeItem(item.id)">
+              <button type="button" class="line-item-name" (click)="checkout.removeItem(item.id)">
                 @if (item.weightUnit) {
                   <span class="line-item-qty">{{ item.quantity }} {{ weightUnitLabels[item.weightUnit] }}</span>
                 } @else if (item.quantity > 1) {
@@ -233,11 +171,11 @@
 
     <!-- Totals + actions -->
     <div class="sale-footer">
-      @if (cartItems().length > 0) {
+      @if (checkout.cartItems().length > 0) {
         <div class="sale-totals">
           <div class="total-row">
             <span>Tax</span>
-            <span>{{ tax() | currency:'USD':'symbol':'1.2-2' }}</span>
+            <span>{{ checkout.tax() | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
           <div class="total-divider"></div>
           <button type="button" class="add-discount-btn">Add discount</button>
@@ -247,10 +185,10 @@
       <button
         type="button"
         class="charge-btn"
-        [disabled]="cartItems().length === 0"
-        (click)="charge()">
-        @if (cartItems().length > 0) {
-          Charge {{ total() | currency:'USD':'symbol':'1.2-2' }}
+        [disabled]="checkout.cartItems().length === 0"
+        (click)="checkout.startCheckout('charge', 'register')">
+        @if (checkout.cartItems().length > 0) {
+          Charge {{ checkout.total() | currency:'USD':'symbol':'1.2-2' }}
         } @else {
           Charge
         }
@@ -260,247 +198,18 @@
 </div>
 
 <!-- ==================== WEIGHT SCALE OVERLAY ==================== -->
-@if (showWeightScale()) {
+@if (checkout.showWeightScale()) {
   <div class="checkout-overlay">
     <div class="checkout-modal">
       <os-weight-scale
-        [itemName]="weightScaleItem()!.name"
-        [unitPrice]="weightScaleUnitPrice()"
-        [weightUnit]="weightScaleUnit()"
-        (weightConfirmed)="onWeightConfirmed($event)"
-        (cancelled)="closeWeightScale()" />
+        [itemName]="checkout.weightScaleItem()!.name"
+        [unitPrice]="checkout.weightScaleUnitPrice()"
+        [weightUnit]="checkout.weightScaleUnit()"
+        (weightConfirmed)="checkout.onWeightConfirmed($event)"
+        (cancelled)="checkout.closeWeightScale()" />
     </div>
   </div>
 }
 
 <!-- ==================== CHECKOUT OVERLAY ==================== -->
-@if (checkoutStep() !== 'idle') {
-  <div class="checkout-overlay">
-    <div class="checkout-modal">
-
-      <!-- Step 1: Dining Option -->
-      @if (checkoutStep() === 'dining-option') {
-        <div class="checkout-step">
-          <h2 class="checkout-title">How are you dining?</h2>
-          <p class="checkout-subtitle">Select your dining preference</p>
-          <div class="dining-options">
-            <button
-              type="button"
-              class="dining-option-card"
-              (click)="selectDiningOption('dine_in')">
-              <div class="dining-option-icon">
-                <i class="bi bi-cup-hot-fill"></i>
-              </div>
-              <span class="dining-option-label">Dine In</span>
-              <span class="dining-option-desc">Eat here at the restaurant</span>
-            </button>
-            <button
-              type="button"
-              class="dining-option-card"
-              (click)="selectDiningOption('takeout')">
-              <div class="dining-option-icon">
-                <i class="bi bi-bag-fill"></i>
-              </div>
-              <span class="dining-option-label">Takeout</span>
-              <span class="dining-option-desc">Take your order to go</span>
-            </button>
-          </div>
-          <button type="button" class="checkout-cancel-btn" (click)="cancelCheckout()">Cancel</button>
-        </div>
-      }
-
-      <!-- Step 2: Table Selection (Dine In only) -->
-      @if (checkoutStep() === 'table-select') {
-        <div class="checkout-step">
-          <h2 class="checkout-title">Select your table</h2>
-          <p class="checkout-subtitle">Choose where you're seated</p>
-
-          @if (tablesLoading()) {
-            <div class="table-loading">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading tables...</span>
-              </div>
-            </div>
-          } @else {
-            <div class="table-grid">
-              @for (table of availableTables(); track table.id) {
-                <button
-                  type="button"
-                  class="table-card"
-                  (click)="selectTable(table)">
-                  <span class="table-number">{{ table.tableNumber }}</span>
-                  <span class="table-name">{{ table.tableName ?? 'Table ' + table.tableNumber }}</span>
-                  <span class="table-capacity">
-                    <i class="bi bi-people-fill"></i> {{ table.capacity }}
-                  </span>
-                </button>
-              }
-            </div>
-
-            @if (availableTables().length === 0) {
-              <p class="no-tables-msg">No tables available right now</p>
-            }
-          }
-
-          <div class="checkout-step-actions">
-            <button type="button" class="checkout-skip-btn" (click)="skipTableSelection()">
-              Skip — server will seat me
-            </button>
-            <button type="button" class="checkout-cancel-btn" (click)="cancelCheckout()">Cancel</button>
-          </div>
-        </div>
-      }
-
-      <!-- Step 3: Customer Info (optional) -->
-      @if (checkoutStep() === 'customer-info') {
-        <div class="checkout-step">
-          <h2 class="checkout-title">Get notified when it's ready</h2>
-          <p class="checkout-subtitle">We'll text or email you when your order is ready for pickup. All fields are optional.</p>
-
-          <div class="customer-info-form">
-            <div class="form-field">
-              <label class="form-label" for="registerCustomerName">Name</label>
-              <input
-                type="text"
-                class="form-control"
-                id="registerCustomerName"
-                placeholder="Your name"
-                [ngModel]="customerName()"
-                (ngModelChange)="onCustomerNameChange($event)"
-                autocomplete="name">
-            </div>
-            <div class="form-field">
-              <label class="form-label" for="registerCustomerPhone">Phone</label>
-              <input
-                type="tel"
-                class="form-control"
-                id="registerCustomerPhone"
-                placeholder="(555) 123-4567"
-                [ngModel]="customerPhone()"
-                (ngModelChange)="onCustomerPhoneChange($event)"
-                autocomplete="tel">
-            </div>
-            <div class="form-field">
-              <label class="form-label" for="registerCustomerEmail">Email</label>
-              <input
-                type="email"
-                class="form-control"
-                id="registerCustomerEmail"
-                placeholder="you@example.com"
-                [ngModel]="customerEmail()"
-                (ngModelChange)="onCustomerEmailChange($event)"
-                autocomplete="email">
-            </div>
-          </div>
-
-          <div class="checkout-step-actions">
-            <button type="button" class="checkout-continue-btn" (click)="submitCustomerInfo()">
-              @if (hasCustomerContact()) {
-                Continue
-              } @else {
-                Continue without info
-              }
-            </button>
-            <button type="button" class="checkout-skip-btn" (click)="skipCustomerInfo()">
-              Skip — just give me an order number
-            </button>
-            <button type="button" class="checkout-cancel-btn" (click)="cancelCheckout()">Cancel</button>
-          </div>
-        </div>
-      }
-
-      <!-- Creating Order spinner -->
-      @if (isCreatingOrder()) {
-        <div class="checkout-step checkout-step-centered">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Creating order...</span>
-          </div>
-          <p class="checkout-subtitle">Placing your order...</p>
-        </div>
-      }
-
-      <!-- Step 4: Payment -->
-      @if (checkoutStep() === 'payment' && createdOrderId()) {
-        <div class="checkout-step">
-          <h2 class="checkout-title">Payment</h2>
-          <p class="checkout-amount">{{ total() | currency:'USD':'symbol':'1.2-2' }}</p>
-          <os-payment-terminal
-            [amount]="total()"
-            [orderId]="createdOrderId()!"
-            [showOnScreen]="showOnScreenPayment()"
-            [showCardReader]="showCardReader()"
-            (paymentComplete)="onPaymentComplete()"
-            (paymentFailed)="onPaymentFailed($event)" />
-          <button type="button" class="checkout-cancel-btn" (click)="cancelCheckout()">Cancel</button>
-        </div>
-      }
-
-      <!-- Step 5: Loyalty Prompt (shown after payment if eligible) -->
-      @if (checkoutStep() === 'loyalty-prompt') {
-        <div class="checkout-step checkout-step-centered">
-          <div class="loyalty-icon">
-            <i class="bi bi-star-fill"></i>
-          </div>
-          <h2 class="checkout-title">Join our rewards program?</h2>
-          <p class="checkout-subtitle">
-            Earn points on every order and unlock exclusive rewards. It's free to join!
-          </p>
-          <div class="checkout-step-actions">
-            <button type="button" class="checkout-continue-btn" (click)="joinLoyalty()">
-              Join rewards
-            </button>
-            <button type="button" class="checkout-skip-btn" (click)="skipLoyalty()">
-              No thanks
-            </button>
-          </div>
-        </div>
-      }
-
-      <!-- Success -->
-      @if (checkoutStep() === 'success') {
-        <div class="checkout-step checkout-step-centered">
-          <div class="success-icon">
-            <i class="bi bi-check-circle-fill"></i>
-          </div>
-          <h2 class="checkout-title">Order placed!</h2>
-          <p class="checkout-subtitle">
-            @if (hasCustomerContact()) {
-              Your order is being prepared. We'll notify you when it's ready!
-            } @else if (diningOption() === 'dine_in' && selectedTable()) {
-              Your order is being prepared. You're at Table {{ selectedTable()!.tableNumber }}.
-            } @else if (diningOption() === 'dine_in') {
-              Your order is being prepared. Please take a seat.
-            } @else {
-              Your order is being prepared. We'll call your name when it's ready.
-            }
-          </p>
-          <button type="button" class="checkout-done-btn" (click)="finishAndNewOrder()">
-            Start new order
-          </button>
-        </div>
-      }
-
-      <!-- Failed -->
-      @if (checkoutStep() === 'failed') {
-        <div class="checkout-step checkout-step-centered">
-          <div class="failed-icon">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-          </div>
-          <h2 class="checkout-title">Something went wrong</h2>
-          <p class="checkout-subtitle">{{ checkoutError() }}</p>
-          <div class="checkout-step-actions">
-            @if (createdOrderId()) {
-              <button type="button" class="checkout-retry-btn" (click)="retryPayment()">
-                Retry payment
-              </button>
-            }
-            <button type="button" class="checkout-cancel-btn" (click)="cancelCheckout()">
-              Go back
-            </button>
-          </div>
-        </div>
-      }
-
-    </div>
-  </div>
-}
+<os-checkout [mode]="'charge'" [orderSource]="'register'" />
