@@ -10,5 +10,5 @@ export const authGuard = () => {
     return true;
   }
 
-  return false;
+  return router.createUrlTree(['/login']);
 };

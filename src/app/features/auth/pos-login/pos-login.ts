@@ -112,7 +112,7 @@ export class PosLogin {
 
   readonly passcodeLength = computed(() => {
     const member = this._selectedMember();
-    return member?.passcode?.length ?? 6;
+    return member?.passcode?.length ?? 4;
   });
 
   readonly passcodeDots = computed(() => {
