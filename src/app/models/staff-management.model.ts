@@ -47,7 +47,7 @@ export type OnboardingStatus = 'not_started' | 'in_progress' | 'complete';
 
 export interface TeamMember {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   displayName: string;
   email: string | null;
   phone: string | null;
@@ -102,7 +102,7 @@ export interface PermissionDefinition {
 
 export interface PermissionSet {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   permissions: Record<string, boolean>;
   isDefault: boolean;

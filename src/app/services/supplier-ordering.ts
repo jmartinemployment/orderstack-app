@@ -26,18 +26,18 @@ export class SupplierOrderingService {
   readonly isProcessing = this._isProcessing.asReadonly();
   readonly error = this._error.asReadonly();
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   async loadCredentialSummary(): Promise<SupplierCredentialSummary | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const summary = await firstValueFrom(
         this.http.get<SupplierCredentialSummary>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/supplier-credentials`
+          `${this.apiUrl}/merchant/${this.merchantId}/supplier-credentials`
         )
       );
       this._credentialSummary.set(summary);
@@ -60,13 +60,13 @@ export class SupplierOrderingService {
   }
 
   async saveSyscoCredentials(payload: SupplierCredentialPayload): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const summary = await firstValueFrom(
         this.http.put<SupplierCredentialSummary>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/supplier-credentials/sysco`,
+          `${this.apiUrl}/merchant/${this.merchantId}/supplier-credentials/sysco`,
           payload
         )
       );
@@ -82,13 +82,13 @@ export class SupplierOrderingService {
   }
 
   async saveGfsCredentials(payload: SupplierCredentialPayload): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const summary = await firstValueFrom(
         this.http.put<SupplierCredentialSummary>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/supplier-credentials/gfs`,
+          `${this.apiUrl}/merchant/${this.merchantId}/supplier-credentials/gfs`,
           payload
         )
       );
@@ -104,13 +104,13 @@ export class SupplierOrderingService {
   }
 
   async deleteSyscoCredentials(): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const summary = await firstValueFrom(
         this.http.delete<SupplierCredentialSummary>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/supplier-credentials/sysco`
+          `${this.apiUrl}/merchant/${this.merchantId}/supplier-credentials/sysco`
         )
       );
       this._credentialSummary.set(summary);
@@ -125,13 +125,13 @@ export class SupplierOrderingService {
   }
 
   async deleteGfsCredentials(): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const summary = await firstValueFrom(
         this.http.delete<SupplierCredentialSummary>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/supplier-credentials/gfs`
+          `${this.apiUrl}/merchant/${this.merchantId}/supplier-credentials/gfs`
         )
       );
       this._credentialSummary.set(summary);
@@ -146,13 +146,13 @@ export class SupplierOrderingService {
   }
 
   async testConnection(provider: SupplierProviderType): Promise<SupplierConnectionTestResult | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const result = await firstValueFrom(
         this.http.post<SupplierConnectionTestResult>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/supplier-credentials/test`,
+          `${this.apiUrl}/merchant/${this.merchantId}/supplier-credentials/test`,
           { provider }
         )
       );

@@ -13,23 +13,23 @@ import type { Combo, MenuItem, MenuCategory } from '@models/index';
 function createMockAuthService() {
   return {
     isAuthenticated: computed(() => true),
-    selectedRestaurantId: signal<string | null>('r-1').asReadonly(),
-    selectedRestaurantName: signal<string | null>('Test').asReadonly(),
+    selectedMerchantId: signal<string | null>('r-1').asReadonly(),
+    selectedMerchantName: signal<string | null>('Test').asReadonly(),
   };
 }
 
 function createMockMenuItems(): MenuItem[] {
   return [
-    { id: 'mi-1', name: 'Burger', price: 10, categoryId: 'cat-1', restaurantId: 'r-1', isActive: true } as MenuItem,
-    { id: 'mi-2', name: 'Fries', price: 5, categoryId: 'cat-1', restaurantId: 'r-1', isActive: true } as MenuItem,
-    { id: 'mi-3', name: 'Soda', price: 3, categoryId: 'cat-1', restaurantId: 'r-1', isActive: true } as MenuItem,
-    { id: 'mi-4', name: 'Inactive Item', price: 8, categoryId: 'cat-1', restaurantId: 'r-1', isActive: false } as MenuItem,
+    { id: 'mi-1', name: 'Burger', price: 10, categoryId: 'cat-1', merchantId: 'r-1', isActive: true } as MenuItem,
+    { id: 'mi-2', name: 'Fries', price: 5, categoryId: 'cat-1', merchantId: 'r-1', isActive: true } as MenuItem,
+    { id: 'mi-3', name: 'Soda', price: 3, categoryId: 'cat-1', merchantId: 'r-1', isActive: true } as MenuItem,
+    { id: 'mi-4', name: 'Inactive Item', price: 8, categoryId: 'cat-1', merchantId: 'r-1', isActive: false } as MenuItem,
   ];
 }
 
 function createMockCombo(): Combo {
   return {
-    id: 'combo-1', restaurantId: 'r-1', name: 'Burger Meal', description: 'A classic combo',
+    id: 'combo-1', merchantId: 'r-1', name: 'Burger Meal', description: 'A classic combo',
     image: null, basePrice: 15, regularPrice: 18, savings: 3,
     items: [
       { menuItemId: 'mi-1', menuItemName: 'Burger', quantity: 1, isRequired: true },
@@ -60,7 +60,7 @@ function createMockMenuService() {
   return {
     allItems: signal<MenuItem[]>(createMockMenuItems()).asReadonly(),
     categories: signal<MenuCategory[]>([
-      { id: 'cat-1', name: 'Mains', restaurantId: 'r-1', isActive: true, displayOrder: 0 },
+      { id: 'cat-1', name: 'Mains', merchantId: 'r-1', isActive: true, displayOrder: 0 },
     ]).asReadonly(),
     isLoading: signal(false).asReadonly(),
     error: signal<string | null>(null).asReadonly(),

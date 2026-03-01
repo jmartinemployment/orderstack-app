@@ -91,7 +91,7 @@ function makeListing(overrides: Partial<ProductListing> = {}): ProductListing {
   return {
     id: 'pl-1',
     retailItemId: 'ri-1',
-    restaurantId: 'r-1',
+    merchantId: 'r-1',
     title: 'Test Listing',
     description: 'desc',
     seoTitle: '',
@@ -111,7 +111,7 @@ function makeOrder(overrides: Partial<EcommerceOrder> = {}): EcommerceOrder {
   return {
     id: 'o-1',
     orderNumber: 'ORD-1001',
-    restaurantId: 'r-1',
+    merchantId: 'r-1',
     customerId: null,
     customerEmail: 'test@example.com',
     customerName: 'Test User',
@@ -137,7 +137,7 @@ function makeOrder(overrides: Partial<EcommerceOrder> = {}): EcommerceOrder {
 function makeShippingMethod(overrides: Partial<ShippingMethod> = {}): ShippingMethod {
   return {
     id: 'sm-1',
-    restaurantId: 'r-1',
+    merchantId: 'r-1',
     name: 'Standard',
     type: 'flat_rate',
     rate: 5.99,

@@ -39,14 +39,14 @@ export class PaymentService {
   readonly currentPaymentId = this._currentPaymentId.asReadonly();
   readonly processorType = this._processorType.asReadonly();
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   private get paymentContext(): PaymentContext | null {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     return {
-      restaurantId: this.restaurantId,
+      merchantId: this.merchantId,
       apiUrl: this.apiUrl,
       authToken: this.authService.token(),
     };
@@ -151,12 +151,12 @@ export class PaymentService {
   }
 
   async getPaymentStatus(orderId: string): Promise<PaymentStatusResponse | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<PaymentStatusResponse>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/payment-status`
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/payment-status`
         )
       );
     } catch {
@@ -199,7 +199,7 @@ export class PaymentService {
   }
 
   async preauthorize(orderId: string, amount: number): Promise<PreauthResponse | null> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return null;
     }
@@ -210,7 +210,7 @@ export class PaymentService {
     try {
       const result = await firstValueFrom(
         this.http.post<PreauthResponse>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/preauth`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/preauth`,
           { amount }
         )
       );
@@ -225,7 +225,7 @@ export class PaymentService {
   }
 
   async capturePreauth(orderId: string, captureAmount?: number): Promise<CaptureResponse | null> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return null;
     }
@@ -240,7 +240,7 @@ export class PaymentService {
       }
       const result = await firstValueFrom(
         this.http.post<CaptureResponse>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/close-tab`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/close-tab`,
           body
         )
       );

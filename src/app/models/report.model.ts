@@ -23,7 +23,7 @@ export interface ReportBlock {
 
 export interface SavedReport {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   blocks: ReportBlock[];
   createdBy: string;
@@ -40,7 +40,7 @@ export type ReportScheduleFrequency = 'daily' | 'weekly' | 'monthly';
 
 export interface ReportSchedule {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   savedReportId: string;
   frequency: ReportScheduleFrequency;
   dayOfWeek: number | null;

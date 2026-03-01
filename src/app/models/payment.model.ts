@@ -6,7 +6,7 @@ export type ActivePaymentProcessorType = Exclude<PaymentProcessorType, 'none'>;
 export type PaymentStep = 'cart' | 'paying' | 'success' | 'failed';
 
 export interface PaymentContext {
-  restaurantId: string;
+  merchantId: string;
   apiUrl: string;
   authToken: string | null;
 }

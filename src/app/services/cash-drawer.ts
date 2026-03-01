@@ -278,16 +278,16 @@ export class CashDrawerService {
     this._reportTypeFilter.set(null);
   }
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   private get storageKey(): string {
-    return `cash-drawer-${this.restaurantId ?? 'unknown'}`;
+    return `cash-drawer-${this.merchantId ?? 'unknown'}`;
   }
 
   private get historyKey(): string {
-    return `cash-drawer-history-${this.restaurantId ?? 'unknown'}`;
+    return `cash-drawer-history-${this.merchantId ?? 'unknown'}`;
   }
 
   constructor() {
@@ -298,7 +298,7 @@ export class CashDrawerService {
     const performer = this.authService.user()?.email ?? 'unknown';
     const session: CashDrawerSession = {
       id: crypto.randomUUID(),
-      restaurantId: this.restaurantId ?? undefined,
+      merchantId: this.merchantId ?? undefined,
       openedAt: new Date(),
       openedBy: performer,
       openingFloat,

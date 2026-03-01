@@ -10,21 +10,21 @@ import { AuthService } from '@services/auth';
 
 function createMockAuthService(opts: {
   authenticated?: boolean;
-  restaurantIds?: string[];
+  merchantIds?: string[];
   user?: { firstName: string } | null;
 } = {}) {
   const _token = signal(opts.authenticated !== false ? 'tok' : null);
   const _user = signal(opts.user ?? (opts.authenticated !== false ? { firstName: 'Jeff' } : null));
-  const _restaurants = signal((opts.restaurantIds ?? []).map(id => ({ id })));
+  const _merchants = signal((opts.merchantIds ?? []).map(id => ({ id })));
 
   return {
     isAuthenticated: computed(() => !!_token() && !!_user()),
     user: _user.asReadonly(),
-    userRestaurants: computed(() => _restaurants().map(r => r.id)),
-    selectedRestaurantId: signal<string | null>(null).asReadonly(),
-    selectRestaurant: vi.fn(),
+    userMerchants: computed(() => _merchants().map(r => r.id)),
+    selectedMerchantId: signal<string | null>(null).asReadonly(),
+    selectMerchant: vi.fn(),
     logout: vi.fn().mockResolvedValue(undefined),
-    restaurants: _restaurants.asReadonly(),
+    merchants: _merchants.asReadonly(),
   };
 }
 
@@ -38,7 +38,7 @@ describe('RestaurantSelect', () => {
   beforeEach(() => {
     authService = createMockAuthService({
       authenticated: true,
-      restaurantIds: ['r-1', 'r-2'],
+      merchantIds: ['r-1', 'r-2'],
     });
     router = { navigate: vi.fn() };
     httpClient = {
@@ -109,7 +109,7 @@ describe('RestaurantSelect', () => {
     fixture.detectChanges();
     const items = fixture.nativeElement.querySelectorAll('.restaurant-item');
     items[0].click();
-    expect(authService.selectRestaurant).toHaveBeenCalledWith('r-1', 'Taipa', null, '123 Main');
+    expect(authService.selectMerchant).toHaveBeenCalledWith('r-1', 'Taipa', null, '123 Main');
     expect(router.navigate).toHaveBeenCalledWith(['/']);
   });
 

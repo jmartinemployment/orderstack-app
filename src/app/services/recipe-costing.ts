@@ -31,17 +31,17 @@ export class RecipeCostingService {
     this._recipes().filter(r => r.totalCost !== undefined && r.totalCost > 0)
   );
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   async loadRecipes(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
     try {
       const recipes = await firstValueFrom(
-        this.http.get<Recipe[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/recipes`)
+        this.http.get<Recipe[]>(`${this.apiUrl}/merchant/${this.merchantId}/recipes`)
       );
       this._recipes.set(recipes);
     } catch {
@@ -52,11 +52,11 @@ export class RecipeCostingService {
   }
 
   async createRecipe(data: RecipeFormData): Promise<Recipe | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
     try {
       const recipe = await firstValueFrom(
-        this.http.post<Recipe>(`${this.apiUrl}/restaurant/${this.restaurantId}/recipes`, data)
+        this.http.post<Recipe>(`${this.apiUrl}/merchant/${this.merchantId}/recipes`, data)
       );
       this._recipes.update(list => [...list, recipe]);
       return recipe;
@@ -67,11 +67,11 @@ export class RecipeCostingService {
   }
 
   async updateRecipe(id: string, data: Partial<RecipeFormData>): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._error.set(null);
     try {
       const updated = await firstValueFrom(
-        this.http.patch<Recipe>(`${this.apiUrl}/restaurant/${this.restaurantId}/recipes/${id}`, data)
+        this.http.patch<Recipe>(`${this.apiUrl}/merchant/${this.merchantId}/recipes/${id}`, data)
       );
       this._recipes.update(list => list.map(r => r.id === id ? updated : r));
     } catch {
@@ -80,11 +80,11 @@ export class RecipeCostingService {
   }
 
   async deleteRecipe(id: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/recipes/${id}`)
+        this.http.delete(`${this.apiUrl}/merchant/${this.merchantId}/recipes/${id}`)
       );
       this._recipes.update(list => list.filter(r => r.id !== id));
     } catch {
@@ -93,13 +93,13 @@ export class RecipeCostingService {
   }
 
   async loadFoodCostReport(days: number = 30): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
     try {
       const summary = await firstValueFrom(
         this.http.get<FoodCostSummary>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/food-cost-report`,
+          `${this.apiUrl}/merchant/${this.merchantId}/food-cost-report`,
           { params: { days: days.toString() } }
         )
       );

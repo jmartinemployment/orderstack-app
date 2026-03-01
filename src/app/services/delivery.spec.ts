@@ -12,7 +12,7 @@ import type {
 
 function createHarness() {
   const authMock = {
-    selectedRestaurantId: vi.fn(() => 'r-1'),
+    selectedMerchantId: vi.fn(() => 'r-1'),
     isAuthenticated: signal(true).asReadonly(),
   };
 

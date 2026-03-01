@@ -13,11 +13,11 @@ function createMockAuthService() {
   return {
     isAuthenticated: computed(() => !!_token() && !!_user()),
     user: _user.asReadonly(),
-    selectedRestaurantId: signal<string | null>('r-1').asReadonly(),
-    selectedRestaurantName: signal<string | null>('Test').asReadonly(),
-    restaurants: signal([{ id: 'r-1' }]).asReadonly(),
-    userRestaurants: computed(() => ['r-1']),
-    selectRestaurant: vi.fn(),
+    selectedMerchantId: signal<string | null>('r-1').asReadonly(),
+    selectedMerchantName: signal<string | null>('Test').asReadonly(),
+    merchants: signal([{ id: 'r-1' }]).asReadonly(),
+    userMerchants: computed(() => ['r-1']),
+    selectMerchant: vi.fn(),
   };
 }
 

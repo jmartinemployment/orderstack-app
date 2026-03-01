@@ -146,8 +146,8 @@ export class StaffManagement {
 
   constructor() {
     effect(() => {
-      const restaurantId = this.authService.selectedRestaurantId();
-      if (this.isAuthenticated() && restaurantId && !this._menuLoaded()) {
+      const merchantId = this.authService.selectedMerchantId();
+      if (this.isAuthenticated() && merchantId && !this._menuLoaded()) {
         this._menuLoaded.set(true);
         if (this.canManagePins()) {
           this.staffService.loadPins();

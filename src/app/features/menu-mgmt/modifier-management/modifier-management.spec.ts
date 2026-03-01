@@ -12,14 +12,14 @@ import type { ModifierGroup, Modifier } from '@models/index';
 function createMockAuthService() {
   return {
     isAuthenticated: computed(() => true),
-    selectedRestaurantId: signal<string | null>('r-1').asReadonly(),
+    selectedMerchantId: signal<string | null>('r-1').asReadonly(),
   };
 }
 
 function createMockModifierService() {
   const _groups = signal<ModifierGroup[]>([
     {
-      id: 'mg-1', name: 'Sizes', restaurantId: 'r-1', description: 'Choose a size',
+      id: 'mg-1', name: 'Sizes', merchantId: 'r-1', description: 'Choose a size',
       required: true, multiSelect: false, minSelections: 1, maxSelections: 1,
       modifiers: [
         { id: 'opt-1', name: 'Small', priceAdjustment: 0, isDefault: true, displayOrder: 0 },
@@ -226,7 +226,7 @@ describe('ModifierManagement', () => {
 
   it('getSelectionLabel returns Required with min-max for required groups', () => {
     const group: ModifierGroup = {
-      id: 'mg-1', name: 'Sizes', restaurantId: 'r-1',
+      id: 'mg-1', name: 'Sizes', merchantId: 'r-1',
       required: true, multiSelect: false, minSelections: 1, maxSelections: 3, modifiers: [],
     };
     expect(component.getSelectionLabel(group)).toBe('Required (1-3)');
@@ -234,7 +234,7 @@ describe('ModifierManagement', () => {
 
   it('getSelectionLabel returns Required with single count', () => {
     const group: ModifierGroup = {
-      id: 'mg-1', name: 'Sizes', restaurantId: 'r-1',
+      id: 'mg-1', name: 'Sizes', merchantId: 'r-1',
       required: true, multiSelect: false, minSelections: 1, maxSelections: 1, modifiers: [],
     };
     expect(component.getSelectionLabel(group)).toBe('Required (1)');
@@ -242,7 +242,7 @@ describe('ModifierManagement', () => {
 
   it('getSelectionLabel returns Optional with max', () => {
     const group: ModifierGroup = {
-      id: 'mg-1', name: 'Toppings', restaurantId: 'r-1',
+      id: 'mg-1', name: 'Toppings', merchantId: 'r-1',
       required: false, multiSelect: true, minSelections: 0, maxSelections: 5, modifiers: [],
     };
     expect(component.getSelectionLabel(group)).toBe('Optional (up to 5)');
@@ -250,7 +250,7 @@ describe('ModifierManagement', () => {
 
   it('getSelectionLabel returns Optional with no max', () => {
     const group: ModifierGroup = {
-      id: 'mg-1', name: 'Notes', restaurantId: 'r-1',
+      id: 'mg-1', name: 'Notes', merchantId: 'r-1',
       required: false, multiSelect: true, minSelections: 0, maxSelections: 0, modifiers: [],
     };
     expect(component.getSelectionLabel(group)).toBe('Optional');

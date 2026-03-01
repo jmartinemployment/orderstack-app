@@ -22,7 +22,7 @@ export class RestaurantSelect {
   private readonly apiUrl = environment.apiUrl;
 
   readonly isAuthenticated = this.authService.isAuthenticated;
-  readonly selectedRestaurantId = this.authService.selectedRestaurantId;
+  readonly selectedMerchantId = this.authService.selectedMerchantId;
 
   private readonly _restaurants = signal<Restaurant[]>([]);
   private readonly _isLoading = signal(false);
@@ -44,8 +44,8 @@ export class RestaurantSelect {
   }
 
   private async loadRestaurants(): Promise<void> {
-    const restaurantIds = this.authService.userRestaurants();
-    if (restaurantIds.length === 0) {
+    const merchantIds = this.authService.userMerchants();
+    if (merchantIds.length === 0) {
       this._error.set('No restaurants assigned to your account');
       return;
     }
@@ -55,9 +55,9 @@ export class RestaurantSelect {
 
     try {
       const restaurants: Restaurant[] = [];
-      for (const id of restaurantIds) {
+      for (const id of merchantIds) {
         const restaurant = await firstValueFrom(
-          this.http.get<Restaurant>(`${this.apiUrl}/restaurant/${id}`)
+          this.http.get<Restaurant>(`${this.apiUrl}/merchant/${id}`)
         );
         restaurants.push(restaurant);
       }
@@ -70,8 +70,8 @@ export class RestaurantSelect {
     }
   }
 
-  selectRestaurant(restaurant: Restaurant): void {
-    this.authService.selectRestaurant(restaurant.id, restaurant.name, restaurant.logo, restaurant.address);
+  selectMerchant(restaurant: Restaurant): void {
+    this.authService.selectMerchant(restaurant.id, restaurant.name, restaurant.logo, restaurant.address);
     this.router.navigate(['/']);
   }
 

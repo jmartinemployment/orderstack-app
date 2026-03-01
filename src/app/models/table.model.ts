@@ -2,7 +2,7 @@ export type TableStatus = 'available' | 'occupied' | 'reserved' | 'dirty' | 'mai
 
 export interface RestaurantTable {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   tableNumber: string;
   tableName: string | null;
   capacity: number;

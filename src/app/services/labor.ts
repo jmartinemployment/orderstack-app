@@ -117,17 +117,17 @@ export class LaborService {
   readonly complianceAlerts = this._complianceAlerts.asReadonly();
   readonly complianceSummary = this._complianceSummary.asReadonly();
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   async loadStaffMembers(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<StaffMember[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/pins`
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/pins`
         )
       );
       this._staffMembers.set(data);
@@ -138,7 +138,7 @@ export class LaborService {
   }
 
   async loadShifts(startDate: string, endDate: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -146,7 +146,7 @@ export class LaborService {
     try {
       const data = await firstValueFrom(
         this.http.get<Shift[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/shifts`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/shifts`,
           { params: { startDate, endDate } }
         )
       );
@@ -160,14 +160,14 @@ export class LaborService {
   }
 
   async createShift(data: ShiftFormData): Promise<Shift | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.post<Shift>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/shifts`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/shifts`,
           data
         )
       );
@@ -181,14 +181,14 @@ export class LaborService {
   }
 
   async updateShift(shiftId: string, data: Partial<ShiftFormData>): Promise<Shift | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.patch<Shift>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/shifts/${shiftId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/shifts/${shiftId}`,
           data
         )
       );
@@ -202,14 +202,14 @@ export class LaborService {
   }
 
   async deleteShift(shiftId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/shifts/${shiftId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/shifts/${shiftId}`
         )
       );
       this._shifts.update(s => s.filter(sh => sh.id !== shiftId));
@@ -222,14 +222,14 @@ export class LaborService {
   }
 
   async publishWeek(weekStartDate: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/shifts/publish`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/shifts/publish`,
           { weekStartDate }
         )
       );
@@ -243,14 +243,14 @@ export class LaborService {
   }
 
   async clockIn(staffPinId: string, shiftId?: string): Promise<TimeEntry | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.post<TimeEntry>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/clock-in`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/clock-in`,
           { staffPinId, shiftId }
         )
       );
@@ -264,14 +264,14 @@ export class LaborService {
   }
 
   async clockOut(timeEntryId: string, breakMinutes?: number): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/clock-out/${timeEntryId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/clock-out/${timeEntryId}`,
           { breakMinutes }
         )
       );
@@ -285,12 +285,12 @@ export class LaborService {
   }
 
   async loadActiveClocks(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<TimeEntry[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/active-clocks`
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/active-clocks`
         )
       );
       this._activeClocks.set(data);
@@ -301,7 +301,7 @@ export class LaborService {
   }
 
   async loadLaborReport(startDate: string, endDate: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -309,7 +309,7 @@ export class LaborService {
     try {
       const data = await firstValueFrom(
         this.http.get<LaborReport>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/labor-report`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/labor-report`,
           { params: { startDate, endDate } }
         )
       );
@@ -323,7 +323,7 @@ export class LaborService {
   }
 
   async loadRecommendations(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -331,7 +331,7 @@ export class LaborService {
     try {
       const data = await firstValueFrom(
         this.http.get<LaborRecommendation[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/labor-recommendations`
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/labor-recommendations`
         )
       );
       this._recommendations.set(data);
@@ -344,12 +344,12 @@ export class LaborService {
   }
 
   async loadTargets(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<LaborTarget[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/labor-targets`
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/labor-targets`
         )
       );
       // Cast targetPercent from Prisma Decimal (string) to number
@@ -367,12 +367,12 @@ export class LaborService {
   // --- Staff Portal methods ---
 
   async validateStaffPin(pin: string): Promise<StaffMember | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const result = await firstValueFrom(
         this.http.post<{ valid: boolean; staffPinId: string; name: string; role: string; permissions?: Record<string, boolean> }>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/auth/validate-pin`,
+          `${this.apiUrl}/merchant/${this.merchantId}/auth/validate-pin`,
           { pin }
         )
       );
@@ -386,12 +386,12 @@ export class LaborService {
   }
 
   async loadStaffShifts(staffPinId: string, startDate: string, endDate: string): Promise<Shift[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       const data = await firstValueFrom(
         this.http.get<Shift[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/shifts`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/shifts`,
           { params: { startDate, endDate, staffPinId } }
         )
       );
@@ -402,12 +402,12 @@ export class LaborService {
   }
 
   async loadStaffEarnings(staffPinId: string, startDate: string, endDate: string): Promise<StaffEarnings | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<StaffEarnings>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/${staffPinId}/earnings`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/${staffPinId}/earnings`,
           { params: { startDate, endDate } }
         )
       );
@@ -417,12 +417,12 @@ export class LaborService {
   }
 
   async loadAvailability(staffPinId: string): Promise<AvailabilityPreference[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       return await firstValueFrom(
         this.http.get<AvailabilityPreference[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/${staffPinId}/availability`
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/${staffPinId}/availability`
         )
       );
     } catch {
@@ -431,12 +431,12 @@ export class LaborService {
   }
 
   async saveAvailability(staffPinId: string, prefs: Partial<AvailabilityPreference>[]): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.put(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/${staffPinId}/availability`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/${staffPinId}/availability`,
           { preferences: prefs }
         )
       );
@@ -447,12 +447,12 @@ export class LaborService {
   }
 
   async loadSwapRequests(staffPinId: string): Promise<SwapRequest[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       return await firstValueFrom(
         this.http.get<SwapRequest[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/${staffPinId}/swap-requests`
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/${staffPinId}/swap-requests`
         )
       );
     } catch {
@@ -461,12 +461,12 @@ export class LaborService {
   }
 
   async createSwapRequest(shiftId: string, requestorPinId: string, reason: string): Promise<SwapRequest | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.post<SwapRequest>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/swap-requests`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/swap-requests`,
           { shiftId, requestorPinId, reason }
         )
       );
@@ -476,12 +476,12 @@ export class LaborService {
   }
 
   async respondToSwapRequest(requestId: string, action: 'approved' | 'rejected', respondedBy: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/swap-requests/${requestId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/swap-requests/${requestId}`,
           { status: action, respondedBy }
         )
       );
@@ -492,14 +492,14 @@ export class LaborService {
   }
 
   async setTarget(dayOfWeek: number, targetPercent: number, targetCost?: number): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.put(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/labor-targets`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/labor-targets`,
           { dayOfWeek, targetPercent, targetCost }
         )
       );
@@ -515,7 +515,7 @@ export class LaborService {
   // ============ Timecard Methods ============
 
   async loadTimecards(filters?: { status?: string; startDate?: string; endDate?: string; teamMemberId?: string }): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -529,7 +529,7 @@ export class LaborService {
 
       const data = await firstValueFrom(
         this.http.get<Timecard[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/timecards`,
+          `${this.apiUrl}/merchant/${this.merchantId}/timecards`,
           { params }
         )
       );
@@ -542,12 +542,12 @@ export class LaborService {
   }
 
   async getTimecard(id: string): Promise<Timecard | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<Timecard>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/timecards/${id}`
+          `${this.apiUrl}/merchant/${this.merchantId}/timecards/${id}`
         )
       );
     } catch {
@@ -556,7 +556,7 @@ export class LaborService {
   }
 
   async clockInWithJob(teamMemberId: string, jobTitle?: string): Promise<Timecard | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
@@ -566,7 +566,7 @@ export class LaborService {
 
       const result = await firstValueFrom(
         this.http.post<Timecard>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/timecards`,
+          `${this.apiUrl}/merchant/${this.merchantId}/timecards`,
           body
         )
       );
@@ -579,7 +579,7 @@ export class LaborService {
   }
 
   async clockOutWithTips(timecardId: string, declaredCashTips?: number): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
@@ -589,7 +589,7 @@ export class LaborService {
 
       const result = await firstValueFrom(
         this.http.patch<Timecard>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/timecards/${timecardId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/timecards/${timecardId}`,
           body
         )
       );
@@ -602,14 +602,14 @@ export class LaborService {
   }
 
   async startBreak(timecardId: string, breakTypeId: string): Promise<TimecardBreak | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.post<TimecardBreak>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/timecards/${timecardId}/breaks`,
+          `${this.apiUrl}/merchant/${this.merchantId}/timecards/${timecardId}/breaks`,
           { breakTypeId }
         )
       );
@@ -627,14 +627,14 @@ export class LaborService {
   }
 
   async endBreak(timecardId: string, breakId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.patch<TimecardBreak>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/timecards/${timecardId}/breaks/${breakId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/timecards/${timecardId}/breaks/${breakId}`,
           {}
         )
       );
@@ -654,12 +654,12 @@ export class LaborService {
   // ============ Break Types ============
 
   async loadBreakTypes(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<BreakType[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/break-types`
+          `${this.apiUrl}/merchant/${this.merchantId}/break-types`
         )
       );
       this._breakTypes.set(data);
@@ -668,15 +668,15 @@ export class LaborService {
     }
   }
 
-  async createBreakType(data: Omit<BreakType, 'id' | 'restaurantId'>): Promise<BreakType | null> {
-    if (!this.restaurantId) return null;
+  async createBreakType(data: Omit<BreakType, 'id' | 'merchantId'>): Promise<BreakType | null> {
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.post<BreakType>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/break-types`,
+          `${this.apiUrl}/merchant/${this.merchantId}/break-types`,
           data
         )
       );
@@ -689,14 +689,14 @@ export class LaborService {
   }
 
   async updateBreakType(id: string, data: Partial<BreakType>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.patch<BreakType>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/break-types/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/break-types/${id}`,
           data
         )
       );
@@ -711,7 +711,7 @@ export class LaborService {
   // ============ Timecard Edits ============
 
   async loadTimecardEdits(filters?: { status?: string; teamMemberId?: string }): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const params: Record<string, string> = {};
@@ -720,7 +720,7 @@ export class LaborService {
 
       const data = await firstValueFrom(
         this.http.get<TimecardEdit[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/timecard-edits`,
+          `${this.apiUrl}/merchant/${this.merchantId}/timecard-edits`,
           { params }
         )
       );
@@ -735,14 +735,14 @@ export class LaborService {
   }
 
   async requestTimecardEdit(data: { timecardId: string; editType: string; originalValue: string; newValue: string; reason: string }): Promise<TimecardEdit | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.post<TimecardEdit>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/timecard-edits`,
+          `${this.apiUrl}/merchant/${this.merchantId}/timecard-edits`,
           data
         )
       );
@@ -755,14 +755,14 @@ export class LaborService {
   }
 
   async resolveTimecardEdit(id: string, status: TimecardEditStatus): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.patch<TimecardEdit>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/timecard-edits/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/timecard-edits/${id}`,
           { status }
         )
       );
@@ -777,12 +777,12 @@ export class LaborService {
   // ============ Workweek Config ============
 
   async loadWorkweekConfig(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<WorkweekConfig>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/workweek-config`
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/workweek-config`
         )
       );
       this._workweekConfig.set(data);
@@ -793,14 +793,14 @@ export class LaborService {
   }
 
   async updateWorkweekConfig(data: Partial<WorkweekConfig>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.put<WorkweekConfig>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/workweek-config`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/workweek-config`,
           data
         )
       );
@@ -815,14 +815,14 @@ export class LaborService {
   // ============ POS Login ============
 
   async posLogin(passcode: string): Promise<PosSession | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.post<PosSession>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/pos/login`,
+          `${this.apiUrl}/merchant/${this.merchantId}/pos/login`,
           { passcode }
         )
       );
@@ -835,12 +835,12 @@ export class LaborService {
   }
 
   async posLogout(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/pos/logout`,
+          `${this.apiUrl}/merchant/${this.merchantId}/pos/logout`,
           {}
         )
       );
@@ -858,12 +858,12 @@ export class LaborService {
   // ============ Schedule Templates ============
 
   async loadTemplates(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<ScheduleTemplate[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/schedule-templates`
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/schedule-templates`
         )
       );
       this._scheduleTemplates.set(data);
@@ -873,14 +873,14 @@ export class LaborService {
   }
 
   async saveAsTemplate(name: string, weekStartDate: string): Promise<ScheduleTemplate | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.post<ScheduleTemplate>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/schedule-templates`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/schedule-templates`,
           { name, weekStartDate }
         )
       );
@@ -893,14 +893,14 @@ export class LaborService {
   }
 
   async applyTemplate(templateId: string, weekStartDate: string): Promise<Shift[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.post<Shift[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/schedule-templates/${templateId}/apply`,
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/schedule-templates/${templateId}/apply`,
           { weekStartDate }
         )
       );
@@ -913,14 +913,14 @@ export class LaborService {
   }
 
   async deleteTemplate(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/schedule-templates/${id}`
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/schedule-templates/${id}`
         )
       );
       this._scheduleTemplates.update(t => t.filter(tpl => tpl.id !== id));
@@ -932,7 +932,7 @@ export class LaborService {
   }
 
   async copyPreviousWeek(targetWeekStart: string): Promise<Shift[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -940,7 +940,7 @@ export class LaborService {
     try {
       const result = await firstValueFrom(
         this.http.post<Shift[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/copy-week`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/copy-week`,
           { targetWeekStart }
         )
       );
@@ -957,12 +957,12 @@ export class LaborService {
   // ============ Live Labor ============
 
   async getLiveLabor(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<LiveLaborData>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/staff/labor-live`
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/labor-live`
         )
       );
       this._liveLabor.set(data);
@@ -975,14 +975,14 @@ export class LaborService {
   // ============ Staff Notifications ============
 
   async sendScheduleNotification(weekStart: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/notifications/schedule-published`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/notifications/schedule-published`,
           { weekStart }
         )
       );
@@ -994,14 +994,14 @@ export class LaborService {
   }
 
   async sendAnnouncement(message: string, recipientPinIds: string[]): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/notifications/announcement`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/notifications/announcement`,
           { message, recipientPinIds }
         )
       );
@@ -1013,12 +1013,12 @@ export class LaborService {
   }
 
   async loadNotifications(pinId: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<StaffNotification[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/notifications`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/notifications`,
           { params: { pinId } }
         )
       );
@@ -1029,12 +1029,12 @@ export class LaborService {
   }
 
   async markNotificationRead(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/notifications/${id}/read`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/notifications/${id}/read`,
           {}
         )
       );
@@ -1048,7 +1048,7 @@ export class LaborService {
   // ============ Payroll ============
 
   async loadPayrollPeriods(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -1056,7 +1056,7 @@ export class LaborService {
     try {
       const data = await firstValueFrom(
         this.http.get<PayrollPeriod[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/payroll`
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/payroll`
         )
       );
       this._payrollPeriods.set(data);
@@ -1072,7 +1072,7 @@ export class LaborService {
   }
 
   async generatePayrollPeriod(periodStart: string, periodEnd: string): Promise<PayrollPeriod | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -1080,7 +1080,7 @@ export class LaborService {
     try {
       const result = await firstValueFrom(
         this.http.post<PayrollPeriod>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/payroll/generate`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/payroll/generate`,
           { periodStart, periodEnd }
         )
       );
@@ -1095,14 +1095,14 @@ export class LaborService {
   }
 
   async getPayrollPeriod(id: string): Promise<PayrollPeriod | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.get<PayrollPeriod>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/payroll/${id}`
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/payroll/${id}`
         )
       );
       this._selectedPayroll.set(result);
@@ -1114,14 +1114,14 @@ export class LaborService {
   }
 
   async approvePayroll(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.patch<PayrollPeriod>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/payroll/${id}/approve`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/payroll/${id}/approve`,
           {}
         )
       );
@@ -1135,14 +1135,14 @@ export class LaborService {
   }
 
   async exportPayroll(id: string, format: 'csv' | 'pdf'): Promise<Blob | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const data = await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/payroll/${id}/export`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/payroll/${id}/export`,
           { format },
           { responseType: 'blob' }
         )
@@ -1161,12 +1161,12 @@ export class LaborService {
   // ============ Commission Rules ============
 
   async loadCommissionRules(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<CommissionRule[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/commissions/rules`
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/commissions/rules`
         )
       );
       this._commissionRules.set(data);
@@ -1179,15 +1179,15 @@ export class LaborService {
     }
   }
 
-  async createCommissionRule(data: Omit<CommissionRule, 'id' | 'restaurantId'>): Promise<CommissionRule | null> {
-    if (!this.restaurantId) return null;
+  async createCommissionRule(data: Omit<CommissionRule, 'id' | 'merchantId'>): Promise<CommissionRule | null> {
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.post<CommissionRule>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/commissions/rules`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/commissions/rules`,
           data
         )
       );
@@ -1200,14 +1200,14 @@ export class LaborService {
   }
 
   async updateCommissionRule(id: string, data: Partial<CommissionRule>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.patch<CommissionRule>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/commissions/rules/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/commissions/rules/${id}`,
           data
         )
       );
@@ -1220,14 +1220,14 @@ export class LaborService {
   }
 
   async deleteCommissionRule(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/commissions/rules/${id}`
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/commissions/rules/${id}`
         )
       );
       this._commissionRules.update(r => r.filter(rule => rule.id !== id));
@@ -1239,12 +1239,12 @@ export class LaborService {
   }
 
   async calculateCommissions(periodStart: string, periodEnd: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<CommissionCalculation[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/commissions/calculate`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/commissions/calculate`,
           { params: { start: periodStart, end: periodEnd } }
         )
       );
@@ -1257,12 +1257,12 @@ export class LaborService {
   // ============ PTO Policies ============
 
   async loadPtoPolicies(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<PtoPolicy[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/policies`
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/pto/policies`
         )
       );
       this._ptoPolicies.set(data);
@@ -1271,15 +1271,15 @@ export class LaborService {
     }
   }
 
-  async createPtoPolicy(data: Omit<PtoPolicy, 'id' | 'restaurantId'>): Promise<PtoPolicy | null> {
-    if (!this.restaurantId) return null;
+  async createPtoPolicy(data: Omit<PtoPolicy, 'id' | 'merchantId'>): Promise<PtoPolicy | null> {
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.post<PtoPolicy>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/policies`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/pto/policies`,
           data
         )
       );
@@ -1292,14 +1292,14 @@ export class LaborService {
   }
 
   async updatePtoPolicy(id: string, data: Partial<PtoPolicy>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.patch<PtoPolicy>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/policies/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/pto/policies/${id}`,
           data
         )
       );
@@ -1314,7 +1314,7 @@ export class LaborService {
   // ============ PTO Requests ============
 
   async loadPtoRequests(status?: PtoRequestStatus): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const params: Record<string, string> = {};
@@ -1322,7 +1322,7 @@ export class LaborService {
 
       const data = await firstValueFrom(
         this.http.get<PtoRequest[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/requests`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/pto/requests`,
           { params }
         )
       );
@@ -1337,14 +1337,14 @@ export class LaborService {
   }
 
   async submitPtoRequest(data: { teamMemberId: string; type: string; startDate: string; endDate: string; hoursRequested: number; reason?: string }): Promise<PtoRequest | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.post<PtoRequest>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/requests`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/pto/requests`,
           data
         )
       );
@@ -1357,14 +1357,14 @@ export class LaborService {
   }
 
   async approvePtoRequest(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.patch<PtoRequest>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/requests/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/pto/requests/${id}`,
           { status: 'approved' }
         )
       );
@@ -1377,14 +1377,14 @@ export class LaborService {
   }
 
   async denyPtoRequest(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.patch<PtoRequest>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/requests/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/pto/requests/${id}`,
           { status: 'denied' }
         )
       );
@@ -1397,12 +1397,12 @@ export class LaborService {
   }
 
   async getPtoBalances(teamMemberId: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<PtoBalance[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/pto/balances/${teamMemberId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/pto/balances/${teamMemberId}`
         )
       );
       this._ptoBalances.set(data);
@@ -1414,12 +1414,12 @@ export class LaborService {
   // --- Labor Forecasting ---
 
   async getLaborForecast(weekStart: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<LaborForecast>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/forecast`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/forecast`,
           { params: { weekStart } }
         )
       );
@@ -1436,12 +1436,12 @@ export class LaborService {
   // --- Compliance ---
 
   async loadComplianceAlerts(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<ComplianceAlert[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/compliance/alerts`
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/compliance/alerts`
         )
       );
       this._complianceAlerts.set(data);
@@ -1455,12 +1455,12 @@ export class LaborService {
   }
 
   async loadComplianceSummary(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<ComplianceSummary>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/compliance/summary`
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/compliance/summary`
         )
       );
       this._complianceSummary.set(data);
@@ -1474,14 +1474,14 @@ export class LaborService {
   }
 
   async resolveComplianceAlert(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.patch<ComplianceAlert>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/labor/compliance/alerts/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/labor/compliance/alerts/${id}`,
           { isResolved: true }
         )
       );

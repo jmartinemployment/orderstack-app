@@ -61,8 +61,8 @@ function buildAddItemRequest(
   };
 }
 
-function baseUrl(apiUrl: string, restaurantId: string | null, orderId: string): string {
-  return `${apiUrl}/restaurant/${restaurantId}/orders/${orderId}`;
+function baseUrl(apiUrl: string, merchantId: string | null, orderId: string): string {
+  return `${apiUrl}/merchant/${merchantId}/orders/${orderId}`;
 }
 
 function mapCheck(raw: any): {
@@ -195,12 +195,12 @@ describe('CheckService — buildAddItemRequest', () => {
 describe('CheckService — baseUrl', () => {
   it('constructs URL with restaurant and order IDs', () => {
     const url = baseUrl('https://api.example.com/api', 'r-123', 'ord-456');
-    expect(url).toBe('https://api.example.com/api/restaurant/r-123/orders/ord-456');
+    expect(url).toBe('https://api.example.com/api/merchant/r-123/orders/ord-456');
   });
 
   it('handles null restaurant ID', () => {
     const url = baseUrl('https://api.example.com/api', null, 'ord-456');
-    expect(url).toBe('https://api.example.com/api/restaurant/null/orders/ord-456');
+    expect(url).toBe('https://api.example.com/api/merchant/null/orders/ord-456');
   });
 });
 
@@ -462,15 +462,15 @@ describe('CheckService — request type shapes', () => {
 });
 
 describe('CheckService — no-restaurant guard logic', () => {
-  it('null restaurantId should produce error', () => {
-    const restaurantId: string | null = null;
-    const error = !restaurantId ? 'No restaurant selected' : null;
+  it('null merchantId should produce error', () => {
+    const merchantId: string | null = null;
+    const error = !merchantId ? 'No restaurant selected' : null;
     expect(error).toBe('No restaurant selected');
   });
 
-  it('valid restaurantId passes guard', () => {
-    const restaurantId: string | null = 'r-1';
-    const error = !restaurantId ? 'No restaurant selected' : null;
+  it('valid merchantId passes guard', () => {
+    const merchantId: string | null = 'r-1';
+    const error = !merchantId ? 'No restaurant selected' : null;
     expect(error).toBeNull();
   });
 });

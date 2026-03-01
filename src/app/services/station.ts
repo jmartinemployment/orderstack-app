@@ -36,18 +36,18 @@ export class StationService {
     this._stations().filter(s => s.isActive)
   );
 
-  private get restaurantId(): string {
-    return this.authService.selectedRestaurantId() ?? '';
+  private get merchantId(): string {
+    return this.authService.selectedMerchantId() ?? '';
   }
 
   async loadStations(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
 
     try {
       const stations = await firstValueFrom(
-        this.http.get<KdsStation[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/stations`)
+        this.http.get<KdsStation[]>(`${this.apiUrl}/merchant/${this.merchantId}/stations`)
       );
       this._stations.set(stations);
     } catch {
@@ -58,11 +58,11 @@ export class StationService {
   }
 
   async loadCategoryMappings(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     try {
       const mappings = await firstValueFrom(
         this.http.get<StationCategoryMapping[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/station-category-mappings`
+          `${this.apiUrl}/merchant/${this.merchantId}/station-category-mappings`
         )
       );
       this._mappings.set(mappings);
@@ -72,12 +72,12 @@ export class StationService {
   }
 
   async createStation(data: StationFormData): Promise<KdsStation | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
 
     try {
       const station = await firstValueFrom(
-        this.http.post<KdsStation>(`${this.apiUrl}/restaurant/${this.restaurantId}/stations`, data)
+        this.http.post<KdsStation>(`${this.apiUrl}/merchant/${this.merchantId}/stations`, data)
       );
       this._stations.update(stations => [...stations, station]);
       return station;
@@ -88,13 +88,13 @@ export class StationService {
   }
 
   async updateStation(stationId: string, data: Partial<StationFormData>): Promise<KdsStation | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<KdsStation>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/stations/${stationId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/stations/${stationId}`,
           data
         )
       );
@@ -109,12 +109,12 @@ export class StationService {
   }
 
   async deleteStation(stationId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
 
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/stations/${stationId}`)
+        this.http.delete(`${this.apiUrl}/merchant/${this.merchantId}/stations/${stationId}`)
       );
       this._stations.update(stations => stations.filter(s => s.id !== stationId));
       // Also remove mappings for deleted station
@@ -127,13 +127,13 @@ export class StationService {
   }
 
   async setCategoryMappings(stationId: string, categoryIds: string[]): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.put(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/stations/${stationId}/categories`,
+          `${this.apiUrl}/merchant/${this.merchantId}/stations/${stationId}/categories`,
           { categoryIds }
         )
       );

@@ -78,19 +78,19 @@ export class VendorService {
     ).length
   );
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   // ── Vendors ──
 
   async loadVendors(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
     try {
       const vendors = await firstValueFrom(
-        this.http.get<Vendor[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/vendors`)
+        this.http.get<Vendor[]>(`${this.apiUrl}/merchant/${this.merchantId}/vendors`)
       );
       this._vendors.set(vendors);
     } catch (err: unknown) {
@@ -102,11 +102,11 @@ export class VendorService {
   }
 
   async createVendor(data: VendorFormData): Promise<Vendor | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
     try {
       const vendor = await firstValueFrom(
-        this.http.post<Vendor>(`${this.apiUrl}/restaurant/${this.restaurantId}/vendors`, data)
+        this.http.post<Vendor>(`${this.apiUrl}/merchant/${this.merchantId}/vendors`, data)
       );
       this._vendors.update(list => [...list, vendor]);
       return vendor;
@@ -118,11 +118,11 @@ export class VendorService {
   }
 
   async updateVendor(id: string, data: Partial<VendorFormData> & { isActive?: boolean }): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._error.set(null);
     try {
       const updated = await firstValueFrom(
-        this.http.patch<Vendor>(`${this.apiUrl}/restaurant/${this.restaurantId}/vendors/${id}`, data)
+        this.http.patch<Vendor>(`${this.apiUrl}/merchant/${this.merchantId}/vendors/${id}`, data)
       );
       this._vendors.update(list => list.map(v => v.id === id ? updated : v));
     } catch (err: unknown) {
@@ -132,11 +132,11 @@ export class VendorService {
   }
 
   async deleteVendor(id: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/vendors/${id}`)
+        this.http.delete(`${this.apiUrl}/merchant/${this.merchantId}/vendors/${id}`)
       );
       this._vendors.update(list => list.filter(v => v.id !== id));
     } catch (err: unknown) {
@@ -148,12 +148,12 @@ export class VendorService {
   // ── Invoices ──
 
   async loadInvoices(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
     try {
       const invoices = await firstValueFrom(
-        this.http.get<PurchaseInvoice[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/purchase-invoices`)
+        this.http.get<PurchaseInvoice[]>(`${this.apiUrl}/merchant/${this.merchantId}/purchase-invoices`)
       );
       this._invoices.set(invoices);
     } catch (err: unknown) {
@@ -165,7 +165,7 @@ export class VendorService {
   }
 
   async uploadInvoice(file: File): Promise<PurchaseInvoice | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isUploading.set(true);
     this._error.set(null);
     try {
@@ -173,7 +173,7 @@ export class VendorService {
       formData.append('invoice', file);
       const invoice = await firstValueFrom(
         this.http.post<PurchaseInvoice>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/purchase-invoices/upload`,
+          `${this.apiUrl}/merchant/${this.merchantId}/purchase-invoices/upload`,
           formData
         )
       );
@@ -189,12 +189,12 @@ export class VendorService {
   }
 
   async createInvoice(data: PurchaseInvoiceFormData): Promise<PurchaseInvoice | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
     try {
       const invoice = await firstValueFrom(
         this.http.post<PurchaseInvoice>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/purchase-invoices`,
+          `${this.apiUrl}/merchant/${this.merchantId}/purchase-invoices`,
           data
         )
       );
@@ -208,12 +208,12 @@ export class VendorService {
   }
 
   async approveInvoice(id: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._error.set(null);
     try {
       const updated = await firstValueFrom(
         this.http.patch<PurchaseInvoice>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/purchase-invoices/${id}/approve`,
+          `${this.apiUrl}/merchant/${this.merchantId}/purchase-invoices/${id}/approve`,
           {}
         )
       );
@@ -225,12 +225,12 @@ export class VendorService {
   }
 
   async markInvoicePaid(id: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._error.set(null);
     try {
       const updated = await firstValueFrom(
         this.http.patch<PurchaseInvoice>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/purchase-invoices/${id}/paid`,
+          `${this.apiUrl}/merchant/${this.merchantId}/purchase-invoices/${id}/paid`,
           {}
         )
       );
@@ -242,11 +242,11 @@ export class VendorService {
   }
 
   async deleteInvoice(id: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/purchase-invoices/${id}`)
+        this.http.delete(`${this.apiUrl}/merchant/${this.merchantId}/purchase-invoices/${id}`)
       );
       this._invoices.update(list => list.filter(i => i.id !== id));
     } catch (err: unknown) {
@@ -256,14 +256,14 @@ export class VendorService {
   }
 
   async loadPriceHistory(ingredientName?: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._error.set(null);
     try {
       const params: Record<string, string> = {};
       if (ingredientName) params['ingredient'] = ingredientName;
       const history = await firstValueFrom(
         this.http.get<IngredientPriceHistory[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/purchase-invoices/price-history`,
+          `${this.apiUrl}/merchant/${this.merchantId}/purchase-invoices/price-history`,
           { params }
         )
       );
@@ -277,12 +277,12 @@ export class VendorService {
   // ── Purchase Orders ──
 
   async loadPurchaseOrders(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._error.set(null);
     try {
       const data = await firstValueFrom(
         this.http.get<PurchaseOrder[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/purchase-orders`
+          `${this.apiUrl}/merchant/${this.merchantId}/purchase-orders`
         )
       );
       this._purchaseOrders.set(data);
@@ -293,12 +293,12 @@ export class VendorService {
   }
 
   async createPurchaseOrder(data: PurchaseOrderFormData): Promise<PurchaseOrder | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
     try {
       const po = await firstValueFrom(
         this.http.post<PurchaseOrder>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/purchase-orders`,
+          `${this.apiUrl}/merchant/${this.merchantId}/purchase-orders`,
           data
         )
       );
@@ -312,12 +312,12 @@ export class VendorService {
   }
 
   async submitPurchaseOrder(poId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       const updated = await firstValueFrom(
         this.http.patch<PurchaseOrder>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/purchase-orders/${poId}/submit`,
+          `${this.apiUrl}/merchant/${this.merchantId}/purchase-orders/${poId}/submit`,
           {}
         )
       );
@@ -331,12 +331,12 @@ export class VendorService {
   }
 
   async receivePurchaseOrder(poId: string, receivedItems: { inventoryItemId: string; receivedQuantity: number }[]): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       const updated = await firstValueFrom(
         this.http.patch<PurchaseOrder>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/purchase-orders/${poId}/receive`,
+          `${this.apiUrl}/merchant/${this.merchantId}/purchase-orders/${poId}/receive`,
           { receivedItems }
         )
       );
@@ -350,12 +350,12 @@ export class VendorService {
   }
 
   async cancelPurchaseOrder(poId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       const updated = await firstValueFrom(
         this.http.patch<PurchaseOrder>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/purchase-orders/${poId}/cancel`,
+          `${this.apiUrl}/merchant/${this.merchantId}/purchase-orders/${poId}/cancel`,
           {}
         )
       );

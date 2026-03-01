@@ -219,8 +219,8 @@ describe('InventoryService — shouldSkip404', () => {
 });
 
 describe('InventoryService — no-restaurant guard', () => {
-  it('null restaurantId blocks all operations', () => {
-    const restaurantId: string | null = null;
-    expect(!restaurantId).toBe(true);
+  it('null merchantId blocks all operations', () => {
+    const merchantId: string | null = null;
+    expect(!merchantId).toBe(true);
   });
 });

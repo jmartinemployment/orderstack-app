@@ -11,7 +11,7 @@ function createMockAuthService() {
   const _isLoading = signal(false);
   const _error = signal<string | null>(null);
   const _sessionExpiredMessage = signal<string | null>(null);
-  const _restaurants = signal<{ id: string; name: string }[]>([]);
+  const _merchants = signal<{ id: string; name: string }[]>([]);
 
   const _user = signal<{ onboardingStatus?: string } | null>(null);
 
@@ -19,18 +19,18 @@ function createMockAuthService() {
     _isLoading,
     _error,
     _sessionExpiredMessage,
-    _restaurants,
+    _merchants,
     _user,
     isLoading: _isLoading.asReadonly(),
     error: _error.asReadonly(),
     sessionExpiredMessage: _sessionExpiredMessage.asReadonly(),
-    restaurants: _restaurants.asReadonly(),
+    merchants: _merchants.asReadonly(),
     user: _user.asReadonly(),
     login: vi.fn().mockResolvedValue(true),
     signup: vi.fn().mockResolvedValue(true),
     clearError: vi.fn(),
     clearSessionExpiredMessage: vi.fn(),
-    selectRestaurant: vi.fn(),
+    selectMerchant: vi.fn(),
   };
 }
 
@@ -248,7 +248,7 @@ describe('Login', () => {
 
   it('selects restaurant and navigates to / when exactly 1 restaurant', async () => {
     const mockAuth = createMockAuthService();
-    mockAuth._restaurants.set([{ id: 'r-1', name: 'Test' }]);
+    mockAuth._merchants.set([{ id: 'r-1', name: 'Test' }]);
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       imports: [Login],
@@ -263,13 +263,13 @@ describe('Login', () => {
     c.switchToSignIn();
     c.loginForm.setValue({ email: 'user@test.com', password: 'pass123' });
     await c.onSignIn();
-    expect(mockAuth.selectRestaurant).toHaveBeenCalledWith('r-1', 'Test');
+    expect(mockAuth.selectMerchant).toHaveBeenCalledWith('r-1', 'Test');
     expect(router.navigate).toHaveBeenCalledWith(['/']);
   });
 
   it('navigates to /select-restaurant when multiple restaurants', async () => {
     const mockAuth = createMockAuthService();
-    mockAuth._restaurants.set([
+    mockAuth._merchants.set([
       { id: 'r-1', name: 'A' },
       { id: 'r-2', name: 'B' },
     ]);

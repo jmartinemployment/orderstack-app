@@ -266,7 +266,7 @@ export interface DeliveryAnalyticsReport {
 
 // --- Context passed to provider classes (mirrors PaymentContext) ---
 export interface DeliveryContext {
-  restaurantId: string;
+  merchantId: string;
   apiUrl: string;
 }
 

@@ -7,7 +7,7 @@ import type { EcommerceCartItem, ProductFilterState, ProductSortOption } from '@
 function makeItem(overrides: Partial<RetailItem> = {}): RetailItem {
   return {
     id: 'i-1',
-    restaurantId: 'r-1',
+    merchantId: 'r-1',
     name: 'Test Item',
     sku: 'TST-001',
     barcode: null,

@@ -1,6 +1,7 @@
 @if (checkout.checkoutStep() !== 'idle') {
   <div class="checkout-overlay">
     <div class="checkout-modal">
+      <button type="button" class="btn-close" aria-label="Close" (click)="checkout.cancelCheckout()"></button>
 
       <!-- Step: Dining Option -->
       @if (checkout.checkoutStep() === 'dining-option') {
@@ -76,19 +77,26 @@
           }
 
           <div class="checkout-step-actions">
-            <button type="button" class="checkout-skip-btn" (click)="checkout.skipTableSelection()">
-              {{ mode() === 'charge' ? 'Skip — server will seat me' : 'Skip — no table' }}
-            </button>
+            @if (mode() === 'charge') {
+              <button type="button" class="checkout-skip-btn" (click)="checkout.skipTableSelection()">
+                Skip — server will seat me
+              </button>
+            }
             <button type="button" class="checkout-cancel-btn" (click)="checkout.cancelCheckout()">Cancel</button>
           </div>
         </div>
       }
 
-      <!-- Step: Customer Info (charge mode only) -->
+      <!-- Step: Customer Info -->
       @if (checkout.checkoutStep() === 'customer-info') {
         <div class="checkout-step">
-          <h2 class="checkout-title">Get notified when it's ready</h2>
-          <p class="checkout-subtitle">We'll text or email you when your order is ready for pickup. All fields are optional.</p>
+          @if (mode() === 'send') {
+            <h2 class="checkout-title">Who is this order for?</h2>
+            <p class="checkout-subtitle">Name is required so we can call the customer when the order is ready.</p>
+          } @else {
+            <h2 class="checkout-title">Get notified when it's ready</h2>
+            <p class="checkout-subtitle">We'll text or email you when your order is ready for pickup. All fields are optional.</p>
+          }
 
           <div class="customer-info-form">
             <div class="form-field">
@@ -97,7 +105,7 @@
                 type="text"
                 class="form-control"
                 id="checkoutCustomerName"
-                placeholder="Your name"
+                placeholder="Customer name"
                 [ngModel]="checkout.customerName()"
                 (ngModelChange)="checkout.onCustomerNameChange($event)"
                 autocomplete="name">
@@ -127,16 +135,24 @@
           </div>
 
           <div class="checkout-step-actions">
-            <button type="button" class="checkout-continue-btn" (click)="checkout.submitCustomerInfo()">
-              @if (checkout.hasCustomerContact()) {
+            <button
+              type="button"
+              class="checkout-continue-btn"
+              [disabled]="mode() === 'send' && !checkout.hasCustomerContact()"
+              (click)="checkout.submitCustomerInfo()">
+              @if (mode() === 'send') {
+                Send to kitchen
+              } @else if (checkout.hasCustomerContact()) {
                 Continue
               } @else {
                 Continue without info
               }
             </button>
-            <button type="button" class="checkout-skip-btn" (click)="checkout.skipCustomerInfo()">
-              Skip — just give me an order number
-            </button>
+            @if (mode() === 'charge') {
+              <button type="button" class="checkout-skip-btn" (click)="checkout.skipCustomerInfo()">
+                Skip — just give me an order number
+              </button>
+            }
             <button type="button" class="checkout-cancel-btn" (click)="checkout.cancelCheckout()">Cancel</button>
           </div>
         </div>

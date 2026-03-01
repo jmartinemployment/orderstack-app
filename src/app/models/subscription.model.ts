@@ -118,7 +118,7 @@ export interface CancellationFeedback {
 
 export interface Subscription {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   planName: string;
   status: SubscriptionStatus;
   currentPeriodStart: string;

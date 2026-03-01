@@ -152,8 +152,8 @@ function markThreadAsRead(threads: MessageThread[], customerId: string): Message
 
 // --- URL builder ---
 
-function buildFeedbackUrl(baseUrl: string, restaurantId: string, dateFrom?: string, dateTo?: string): string {
-  let url = `${baseUrl}/restaurant/${restaurantId}/customers/feedback`;
+function buildFeedbackUrl(baseUrl: string, merchantId: string, dateFrom?: string, dateTo?: string): string {
+  let url = `${baseUrl}/merchant/${merchantId}/customers/feedback`;
   const params: string[] = [];
   if (dateFrom) params.push(`dateFrom=${encodeURIComponent(dateFrom)}`);
   if (dateTo) params.push(`dateTo=${encodeURIComponent(dateTo)}`);
@@ -406,7 +406,7 @@ describe('CustomerService — message thread mutations', () => {
 
 describe('CustomerService — buildFeedbackUrl', () => {
   it('builds base URL without params', () => {
-    expect(buildFeedbackUrl('/api', 'r-1')).toBe('/api/restaurant/r-1/customers/feedback');
+    expect(buildFeedbackUrl('/api', 'r-1')).toBe('/api/merchant/r-1/customers/feedback');
   });
 
   it('adds dateFrom param', () => {
@@ -423,8 +423,8 @@ describe('CustomerService — buildFeedbackUrl', () => {
 });
 
 describe('CustomerService — no-restaurant guard', () => {
-  it('null restaurantId blocks operations', () => {
-    const restaurantId: string | null = null;
-    expect(!restaurantId).toBe(true);
+  it('null merchantId blocks operations', () => {
+    const merchantId: string | null = null;
+    expect(!merchantId).toBe(true);
   });
 });

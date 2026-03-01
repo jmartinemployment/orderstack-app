@@ -613,13 +613,13 @@ describe('LaborService — 404 tolerance', () => {
 });
 
 describe('LaborService — no-restaurant guard', () => {
-  it('null restaurantId blocks operations', () => {
-    const restaurantId: string | null = null;
-    expect(!restaurantId).toBe(true);
+  it('null merchantId blocks operations', () => {
+    const merchantId: string | null = null;
+    expect(!merchantId).toBe(true);
   });
 
-  it('valid restaurantId allows operations', () => {
-    const restaurantId: string | null = 'r-1';
-    expect(!restaurantId).toBe(false);
+  it('valid merchantId allows operations', () => {
+    const merchantId: string | null = 'r-1';
+    expect(!merchantId).toBe(false);
   });
 });

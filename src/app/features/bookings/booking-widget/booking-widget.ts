@@ -125,7 +125,7 @@ export class BookingWidget {
   private async resolveRestaurant(slug: string): Promise<void> {
     try {
       const res = await firstValueFrom(
-        this.http.get<{ name: string }>(`${environment.apiUrl}/restaurant/slug/${slug}`)
+        this.http.get<{ name: string }>(`${environment.apiUrl}/merchant/slug/${slug}`)
       );
       this._restaurantName.set(res?.name ?? slug);
     } catch {

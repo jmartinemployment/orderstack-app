@@ -2,7 +2,7 @@ export type BookingStatus = 'pending' | 'confirmed' | 'seated' | 'completed' | '
 
 export interface Booking {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   customerId: string | null;
   customerName: string;
   customerPhone: string;
@@ -41,7 +41,7 @@ export type WaitlistStatus = 'waiting' | 'notified' | 'seated' | 'cancelled' | '
 
 export interface WaitlistEntry {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   partyName: string;
   partySize: number;
   phone: string;
@@ -109,7 +109,7 @@ export type RecurrencePattern = 'weekly' | 'biweekly' | 'monthly' | 'first_weekd
 
 export interface RecurringBooking {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   pattern: RecurrencePattern;
   dayOfWeek: number | null;
   dayOfMonth: number | null;
@@ -127,7 +127,7 @@ export type BookingType = 'reservation' | 'event' | 'class';
 
 export interface EventBooking {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   bookingType: BookingType;
   title: string;
   description: string;
@@ -170,7 +170,7 @@ export interface EventFormData {
 
 export interface IntakeForm {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   fields: IntakeFormField[];
 }
@@ -220,7 +220,7 @@ export type CalendarSyncStatus = 'disconnected' | 'connected' | 'syncing' | 'err
 
 export interface CalendarConnection {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   provider: 'google';
   email: string;
   calendarId: string;

@@ -15,19 +15,19 @@ function createMockAuthService() {
   return {
     isAuthenticated: computed(() => !!_token() && !!_user()),
     user: _user.asReadonly(),
-    selectedRestaurantId: signal<string | null>('r-1').asReadonly(),
-    selectedRestaurantName: signal<string | null>('Test').asReadonly(),
-    restaurants: signal([{ id: 'r-1' }]).asReadonly(),
-    userRestaurants: computed(() => ['r-1']),
-    selectRestaurant: vi.fn(),
+    selectedMerchantId: signal<string | null>('r-1').asReadonly(),
+    selectedMerchantName: signal<string | null>('Test').asReadonly(),
+    merchants: signal([{ id: 'r-1' }]).asReadonly(),
+    userMerchants: computed(() => ['r-1']),
+    selectMerchant: vi.fn(),
   };
 }
 
 function createMockMenuService() {
   return {
     categories: signal<MenuCategory[]>([
-      { id: 'cat-1', name: 'Appetizers', restaurantId: 'r-1', isActive: true, displayOrder: 0 },
-      { id: 'cat-2', name: 'Entrees', restaurantId: 'r-1', isActive: true, displayOrder: 1 },
+      { id: 'cat-1', name: 'Appetizers', merchantId: 'r-1', isActive: true, displayOrder: 0 },
+      { id: 'cat-2', name: 'Entrees', merchantId: 'r-1', isActive: true, displayOrder: 1 },
     ]).asReadonly(),
     isLoading: signal(false).asReadonly(),
     error: signal<string | null>(null).asReadonly(),
@@ -83,7 +83,7 @@ describe('CategoryManagement', () => {
   });
 
   it('openEditForm shows form with category values', () => {
-    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', restaurantId: 'r-1', isActive: true, displayOrder: 0 };
+    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', merchantId: 'r-1', isActive: true, displayOrder: 0 };
     component.openEditForm(cat);
     expect(component.showForm()).toBe(true);
     expect(component.editingCategory()).toBe(cat);
@@ -119,7 +119,7 @@ describe('CategoryManagement', () => {
   });
 
   it('saveCategory updates existing category', async () => {
-    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', restaurantId: 'r-1', isActive: true, displayOrder: 0 };
+    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', merchantId: 'r-1', isActive: true, displayOrder: 0 };
     component.openEditForm(cat);
     component.categoryForm.patchValue({ name: 'Starters' });
     await component.saveCategory();
@@ -138,7 +138,7 @@ describe('CategoryManagement', () => {
 
   it('saveCategory shows error on update failure', async () => {
     menuService.updateCategory.mockResolvedValue(false);
-    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', restaurantId: 'r-1', isActive: true, displayOrder: 0 };
+    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', merchantId: 'r-1', isActive: true, displayOrder: 0 };
     component.openEditForm(cat);
     component.categoryForm.patchValue({ name: 'Starters' });
     await component.saveCategory();
@@ -156,20 +156,20 @@ describe('CategoryManagement', () => {
   // --- Delete ---
 
   it('confirmDelete sets delete target', () => {
-    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', restaurantId: 'r-1', isActive: true, displayOrder: 0 };
+    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', merchantId: 'r-1', isActive: true, displayOrder: 0 };
     component.confirmDelete(cat);
     expect(component.deleteTarget()).toBe(cat);
   });
 
   it('cancelDelete clears delete target', () => {
-    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', restaurantId: 'r-1', isActive: true, displayOrder: 0 };
+    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', merchantId: 'r-1', isActive: true, displayOrder: 0 };
     component.confirmDelete(cat);
     component.cancelDelete();
     expect(component.deleteTarget()).toBeNull();
   });
 
   it('executeDelete calls service and clears target', async () => {
-    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', restaurantId: 'r-1', isActive: true, displayOrder: 0 };
+    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', merchantId: 'r-1', isActive: true, displayOrder: 0 };
     component.confirmDelete(cat);
     await component.executeDelete();
     expect(menuService.deleteCategory).toHaveBeenCalledWith('cat-1');
@@ -183,7 +183,7 @@ describe('CategoryManagement', () => {
 
   it('executeDelete shows error on failure', async () => {
     menuService.deleteCategory.mockResolvedValue(false);
-    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', restaurantId: 'r-1', isActive: true, displayOrder: 0 };
+    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', merchantId: 'r-1', isActive: true, displayOrder: 0 };
     component.confirmDelete(cat);
     await component.executeDelete();
     expect(component.localError()).toBeTruthy();
@@ -192,7 +192,7 @@ describe('CategoryManagement', () => {
   // --- Toggle active ---
 
   it('toggleActive calls updateCategory with inverted isActive', async () => {
-    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', restaurantId: 'r-1', isActive: true, displayOrder: 0 };
+    const cat: MenuCategory = { id: 'cat-1', name: 'Appetizers', merchantId: 'r-1', isActive: true, displayOrder: 0 };
     await component.toggleActive(cat);
     expect(menuService.updateCategory).toHaveBeenCalledWith('cat-1', { isActive: false });
   });
@@ -229,7 +229,7 @@ describe('CategoryManagement', () => {
   });
 
   it('openReportingEditForm shows form with values', () => {
-    const rc: ReportingCategory = { id: 'rc-1', name: 'Food', restaurantId: 'r-1', displayOrder: 0 };
+    const rc: ReportingCategory = { id: 'rc-1', name: 'Food', merchantId: 'r-1', displayOrder: 0 };
     component.openReportingEditForm(rc);
     expect(component.showReportingForm()).toBe(true);
     expect(component.editingReportingCategory()).toBe(rc);
@@ -258,7 +258,7 @@ describe('CategoryManagement', () => {
   });
 
   it('deleteReporting flow works', async () => {
-    const rc: ReportingCategory = { id: 'rc-1', name: 'Food', restaurantId: 'r-1', displayOrder: 0 };
+    const rc: ReportingCategory = { id: 'rc-1', name: 'Food', merchantId: 'r-1', displayOrder: 0 };
     component.confirmDeleteReporting(rc);
     expect(component.deleteReportingTarget()).toBe(rc);
     await component.executeDeleteReporting();
@@ -267,7 +267,7 @@ describe('CategoryManagement', () => {
   });
 
   it('cancelDeleteReporting clears target', () => {
-    const rc: ReportingCategory = { id: 'rc-1', name: 'Food', restaurantId: 'r-1', displayOrder: 0 };
+    const rc: ReportingCategory = { id: 'rc-1', name: 'Food', merchantId: 'r-1', displayOrder: 0 };
     component.confirmDeleteReporting(rc);
     component.cancelDeleteReporting();
     expect(component.deleteReportingTarget()).toBeNull();

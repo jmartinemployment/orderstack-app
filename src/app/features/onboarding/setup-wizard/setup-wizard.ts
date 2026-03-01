@@ -600,7 +600,7 @@ const DELIVERY_PROVIDERS: DeliveryProviderConfig[] = [
     icon: 'bi-basket',
     color: '#f63440',
     fields: [
-      { key: 'restaurantId', label: 'Restaurant ID', placeholder: 'Your Grubhub Restaurant ID', type: 'text' },
+      { key: 'merchantId', label: 'Restaurant ID', placeholder: 'Your Grubhub Restaurant ID', type: 'text' },
       { key: 'apiKey', label: 'API Key', placeholder: 'Your Grubhub API Key', type: 'password' },
     ],
   },
@@ -1238,7 +1238,7 @@ export class SetupWizard implements OnInit {
     this._isSubmitting.set(false);
 
     if (result) {
-      this.authService.selectRestaurant(result.restaurantId, payload.businessName);
+      this.authService.selectMerchant(result.merchantId, payload.businessName);
       this._onboardingDone.set(true);
 
       // Register device in background

@@ -41,7 +41,7 @@ export class StripePaymentProvider implements PaymentProvider {
     }
 
     const response = await fetch(
-      `${context.apiUrl}/restaurant/${context.restaurantId}/orders/${orderId}/payment-intent`,
+      `${context.apiUrl}/merchant/${context.merchantId}/orders/${orderId}/payment-intent`,
       { method: 'POST', headers: this.buildHeaders(context), body: '{}' }
     );
 
@@ -108,7 +108,7 @@ export class StripePaymentProvider implements PaymentProvider {
     if (!ctx) return false;
 
     const response = await fetch(
-      `${ctx.apiUrl}/restaurant/${ctx.restaurantId}/orders/${orderId}/cancel-payment`,
+      `${ctx.apiUrl}/merchant/${ctx.merchantId}/orders/${orderId}/cancel-payment`,
       { method: 'POST', headers: this.buildHeaders(ctx), body: '{}' }
     );
 
@@ -121,7 +121,7 @@ export class StripePaymentProvider implements PaymentProvider {
 
     const body = amount !== undefined ? JSON.stringify({ amount }) : '{}';
     const response = await fetch(
-      `${ctx.apiUrl}/restaurant/${ctx.restaurantId}/orders/${orderId}/refund`,
+      `${ctx.apiUrl}/merchant/${ctx.merchantId}/orders/${orderId}/refund`,
       { method: 'POST', headers: this.buildHeaders(ctx), body }
     );
 

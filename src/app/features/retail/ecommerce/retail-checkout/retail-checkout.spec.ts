@@ -108,7 +108,7 @@ function makeCartItem(overrides: Partial<EcommerceCartItem> = {}): EcommerceCart
 function makeShippingMethod(overrides: Partial<ShippingMethod> = {}): ShippingMethod {
   return {
     id: 'sm-1',
-    restaurantId: 'r-1',
+    merchantId: 'r-1',
     name: 'Standard',
     type: 'flat_rate',
     rate: 5.99,

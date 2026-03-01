@@ -38,7 +38,7 @@ export class PayPalPaymentProvider implements PaymentProvider {
     }
 
     const response = await fetch(
-      `${context.apiUrl}/restaurant/${context.restaurantId}/orders/${orderId}/paypal-create`,
+      `${context.apiUrl}/merchant/${context.merchantId}/orders/${orderId}/paypal-create`,
       { method: 'POST', headers: this.buildHeaders(context), body: '{}' }
     );
 
@@ -79,7 +79,7 @@ export class PayPalPaymentProvider implements PaymentProvider {
       createOrder: async () => paypalOrderId,
       onApprove: async () => {
         const captureResponse = await fetch(
-          `${context.apiUrl}/restaurant/${context.restaurantId}/orders/${orderId}/paypal-capture`,
+          `${context.apiUrl}/merchant/${context.merchantId}/orders/${orderId}/paypal-capture`,
           { method: 'POST', headers: this.buildHeaders(context), body: '{}' }
         );
 
@@ -140,7 +140,7 @@ export class PayPalPaymentProvider implements PaymentProvider {
     if (!ctx) return false;
 
     const response = await fetch(
-      `${ctx.apiUrl}/restaurant/${ctx.restaurantId}/orders/${orderId}/cancel-payment`,
+      `${ctx.apiUrl}/merchant/${ctx.merchantId}/orders/${orderId}/cancel-payment`,
       { method: 'POST', headers: this.buildHeaders(ctx), body: '{}' }
     );
 
@@ -153,7 +153,7 @@ export class PayPalPaymentProvider implements PaymentProvider {
 
     const body = amount !== undefined ? JSON.stringify({ amount }) : '{}';
     const response = await fetch(
-      `${ctx.apiUrl}/restaurant/${ctx.restaurantId}/orders/${orderId}/refund`,
+      `${ctx.apiUrl}/merchant/${ctx.merchantId}/orders/${orderId}/refund`,
       { method: 'POST', headers: this.buildHeaders(ctx), body }
     );
 

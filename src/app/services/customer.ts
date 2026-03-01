@@ -69,8 +69,8 @@ export class CustomerService {
     this._feedback().filter(f => (f.npsScore !== null && f.npsScore <= 6) || (f.rating !== null && f.rating <= 2))
   );
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   private normalizeCustomer(c: Customer): Customer {
@@ -88,7 +88,7 @@ export class CustomerService {
   // --- Customers ---
 
   async loadCustomers(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -96,7 +96,7 @@ export class CustomerService {
     try {
       const data = await firstValueFrom(
         this.http.get<Customer[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers`
+          `${this.apiUrl}/merchant/${this.merchantId}/customers`
         )
       );
       this._customers.set((data ?? []).map(c => this.normalizeCustomer(c)));
@@ -109,7 +109,7 @@ export class CustomerService {
   }
 
   async searchCustomers(query: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -117,7 +117,7 @@ export class CustomerService {
     try {
       const data = await firstValueFrom(
         this.http.get<Customer[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers?search=${encodeURIComponent(query)}`
+          `${this.apiUrl}/merchant/${this.merchantId}/customers?search=${encodeURIComponent(query)}`
         )
       );
       this._customers.set((data ?? []).map(c => this.normalizeCustomer(c)));
@@ -130,12 +130,12 @@ export class CustomerService {
   }
 
   async updateTags(customerId: string, tags: string[]): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/${customerId}`,
           { tags }
         )
       );
@@ -153,12 +153,12 @@ export class CustomerService {
   // --- Saved Addresses ---
 
   async loadSavedAddresses(customerId: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<SavedAddress[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/addresses`
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/${customerId}/addresses`
         )
       );
       this._savedAddresses.set(data ?? []);
@@ -168,12 +168,12 @@ export class CustomerService {
   }
 
   async saveAddress(customerId: string, data: SavedAddressFormData): Promise<SavedAddress | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const address = await firstValueFrom(
         this.http.post<SavedAddress>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/addresses`,
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/${customerId}/addresses`,
           data
         )
       );
@@ -185,12 +185,12 @@ export class CustomerService {
   }
 
   async deleteAddress(customerId: string, addressId: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/addresses/${addressId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/${customerId}/addresses/${addressId}`
         )
       );
       this._savedAddresses.update(list => list.filter(a => a.id !== addressId));
@@ -206,12 +206,12 @@ export class CustomerService {
   // --- Feedback ---
 
   async sendFeedbackRequest(orderId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/feedback/request`,
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/feedback/request`,
           { orderId }
         )
       );
@@ -224,10 +224,10 @@ export class CustomerService {
   }
 
   async loadFeedback(dateFrom?: string, dateTo?: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
-      let url = `${this.apiUrl}/restaurant/${this.restaurantId}/customers/feedback`;
+      let url = `${this.apiUrl}/merchant/${this.merchantId}/customers/feedback`;
       const params: string[] = [];
       if (dateFrom) params.push(`dateFrom=${encodeURIComponent(dateFrom)}`);
       if (dateTo) params.push(`dateTo=${encodeURIComponent(dateTo)}`);
@@ -248,12 +248,12 @@ export class CustomerService {
   }
 
   async respondToFeedback(feedbackId: string, response: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.post<FeedbackRequest>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/feedback/${feedbackId}/respond`,
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/feedback/${feedbackId}/respond`,
           { response }
         )
       );
@@ -271,12 +271,12 @@ export class CustomerService {
   // --- Referrals ---
 
   async loadReferralConfig(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const config = await firstValueFrom(
         this.http.get<ReferralConfig>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/referrals/config`
+          `${this.apiUrl}/merchant/${this.merchantId}/referrals/config`
         )
       );
       this._referralConfig.set(config);
@@ -286,12 +286,12 @@ export class CustomerService {
   }
 
   async saveReferralConfig(config: ReferralConfig): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const saved = await firstValueFrom(
         this.http.put<ReferralConfig>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/referrals/config`,
+          `${this.apiUrl}/merchant/${this.merchantId}/referrals/config`,
           config
         )
       );
@@ -305,10 +305,10 @@ export class CustomerService {
   }
 
   async loadReferrals(customerId?: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
-      let url = `${this.apiUrl}/restaurant/${this.restaurantId}/referrals`;
+      let url = `${this.apiUrl}/merchant/${this.merchantId}/referrals`;
       if (customerId) url += `?customerId=${encodeURIComponent(customerId)}`;
 
       const data = await firstValueFrom(
@@ -347,7 +347,7 @@ export class CustomerService {
   async sendOtp(phone: string, restaurantSlug: string): Promise<boolean> {
     try {
       await firstValueFrom(
-        this.http.post(`${this.apiUrl}/public/restaurant/${restaurantSlug}/customers/otp/send`, { phone })
+        this.http.post(`${this.apiUrl}/public/merchant/${restaurantSlug}/customers/otp/send`, { phone })
       );
       return true;
     } catch {
@@ -359,7 +359,7 @@ export class CustomerService {
     try {
       return await firstValueFrom(
         this.http.post<Customer>(
-          `${this.apiUrl}/public/restaurant/${restaurantSlug}/customers/otp/verify`,
+          `${this.apiUrl}/public/merchant/${restaurantSlug}/customers/otp/verify`,
           { phone, code }
         )
       );
@@ -369,12 +369,12 @@ export class CustomerService {
   }
 
   async getCustomerOrders(customerId: string): Promise<unknown[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       const data = await firstValueFrom(
         this.http.get<unknown[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/orders`
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/${customerId}/orders`
         )
       );
       return data ?? [];
@@ -384,12 +384,12 @@ export class CustomerService {
   }
 
   async updateCustomerProfile(customerId: string, updates: { firstName?: string; lastName?: string; email?: string | null }): Promise<Customer | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<Customer>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/${customerId}`,
           updates
         )
       );
@@ -405,12 +405,12 @@ export class CustomerService {
   // === Smart Customer Groups (Phase 3) ===
 
   async loadSmartGroups(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoadingGroups.set(true);
     try {
       const groups = await firstValueFrom(
         this.http.get<SmartGroup[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/smart-groups`
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/smart-groups`
         )
       );
       this._smartGroups.set(groups ?? []);
@@ -422,11 +422,11 @@ export class CustomerService {
   }
 
   async createSmartGroup(data: SmartGroupFormData): Promise<SmartGroup | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     try {
       const group = await firstValueFrom(
         this.http.post<SmartGroup>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/smart-groups`,
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/smart-groups`,
           data
         )
       );
@@ -438,11 +438,11 @@ export class CustomerService {
   }
 
   async updateSmartGroup(groupId: string, data: SmartGroupFormData): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     try {
       const updated = await firstValueFrom(
         this.http.patch<SmartGroup>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/smart-groups/${groupId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/smart-groups/${groupId}`,
           data
         )
       );
@@ -454,11 +454,11 @@ export class CustomerService {
   }
 
   async deleteSmartGroup(groupId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/smart-groups/${groupId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/smart-groups/${groupId}`
         )
       );
       this._smartGroups.update(list => list.filter(g => g.id !== groupId));
@@ -469,11 +469,11 @@ export class CustomerService {
   }
 
   async refreshSmartGroupCounts(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     try {
       const groups = await firstValueFrom(
         this.http.post<SmartGroup[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/smart-groups/refresh`,
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/smart-groups/refresh`,
           {}
         )
       );
@@ -488,12 +488,12 @@ export class CustomerService {
   // === Unified Messaging Inbox (Phase 3) ===
 
   async loadMessageThreads(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoadingThreads.set(true);
     try {
       const threads = await firstValueFrom(
         this.http.get<MessageThread[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/messages/threads`
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/messages/threads`
         )
       );
       this._threads.set(threads ?? []);
@@ -505,11 +505,11 @@ export class CustomerService {
   }
 
   async sendMessage(customerId: string, body: string, channel: 'sms' | 'email'): Promise<CustomerMessage | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     try {
       const message = await firstValueFrom(
         this.http.post<CustomerMessage>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/messages`,
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/${customerId}/messages`,
           { body, channel }
         )
       );
@@ -526,11 +526,11 @@ export class CustomerService {
   }
 
   async markThreadRead(customerId: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/messages/read`,
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/${customerId}/messages/read`,
           {}
         )
       );
@@ -546,11 +546,11 @@ export class CustomerService {
   }
 
   async loadMessageTemplates(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     try {
       const templates = await firstValueFrom(
         this.http.get<MessageTemplate[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/messages/templates`
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/messages/templates`
         )
       );
       this._templates.set(templates ?? []);

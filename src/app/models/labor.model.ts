@@ -12,7 +12,7 @@ export interface StaffMember {
 
 export interface Shift {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   staffPinId: string;
   staffName: string;
   staffRole: string;
@@ -114,7 +114,7 @@ export interface TimecardBreak {
 
 export interface Timecard {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   locationId: string | null;
   teamMemberId: string;
   teamMemberName: string;
@@ -138,7 +138,7 @@ export interface Timecard {
 
 export interface BreakType {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   expectedMinutes: number;
   isPaid: boolean;
@@ -164,7 +164,7 @@ export interface TimecardEdit {
 
 export interface WorkweekConfig {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   startDay: number;
   startTime: string;
   overtimeThresholdHours: number;
@@ -242,7 +242,7 @@ export interface LaborRecommendation {
 
 export interface ScheduleTemplate {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   shifts: TemplateShift[];
   createdBy: string;
@@ -281,7 +281,7 @@ export type StaffNotificationType =
 
 export interface StaffNotification {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   recipientPinId: string;
   type: StaffNotificationType;
   title: string;
@@ -297,7 +297,7 @@ export type PayrollStatus = 'draft' | 'reviewed' | 'approved' | 'exported';
 
 export interface PayrollPeriod {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   frequency: PayrollFrequency;
   periodStart: string;
   periodEnd: string;
@@ -338,7 +338,7 @@ export interface PayrollJobBreakdown {
 
 export interface CommissionRule {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   jobTitle: string;
   type: 'percentage' | 'flat_per_order';
@@ -362,7 +362,7 @@ export type PtoRequestStatus = 'pending' | 'approved' | 'denied';
 
 export interface PtoPolicy {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   type: PtoType;
   accrualRate: number;

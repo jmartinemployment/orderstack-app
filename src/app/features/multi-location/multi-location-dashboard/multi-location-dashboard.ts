@@ -51,9 +51,9 @@ export class MultiLocationDashboard implements OnInit {
   readonly isPropagating = this.mlService.isPropagating;
   readonly error = this.mlService.error;
 
-  readonly restaurants = this.authService.restaurants;
-  readonly currentRestaurantId = this.authService.selectedRestaurantId;
-  readonly currentRestaurantName = this.authService.selectedRestaurantName;
+  readonly restaurants = this.authService.merchants;
+  readonly currentRestaurantId = this.authService.selectedMerchantId;
+  readonly currentRestaurantName = this.authService.selectedMerchantName;
 
   // Phase 2 signals from service
   readonly crossLocationStaff = this.mlService.crossLocationStaff;
@@ -338,11 +338,11 @@ export class MultiLocationDashboard implements OnInit {
 
   // ── Compliance ──
 
-  toggleComplianceExpand(restaurantId: string): void {
-    if (this.expandedComplianceId() === restaurantId) {
+  toggleComplianceExpand(merchantId: string): void {
+    if (this.expandedComplianceId() === merchantId) {
       this.expandedComplianceId.set(null);
     } else {
-      this.expandedComplianceId.set(restaurantId);
+      this.expandedComplianceId.set(merchantId);
     }
   }
 
@@ -381,10 +381,10 @@ export class MultiLocationDashboard implements OnInit {
     return loc.items.filter(i => !i.isPassing);
   }
 
-  async resolveComplianceItem(restaurantId: string, checkId: string): Promise<void> {
+  async resolveComplianceItem(merchantId: string, checkId: string): Promise<void> {
     const firstGroup = this.groups().at(0);
     if (!firstGroup) return;
-    await this.mlService.resolveComplianceItem(firstGroup.id, restaurantId, checkId);
+    await this.mlService.resolveComplianceItem(firstGroup.id, merchantId, checkId);
   }
 
   // ── Groups ──
@@ -395,7 +395,7 @@ export class MultiLocationDashboard implements OnInit {
       this.groupName.set(group.name);
       this.groupDescription.set(group.description ?? '');
       const members = this.groupMembers().get(group.id) ?? [];
-      this.selectedMemberIds.set(new Set(members.map(m => m.restaurantId)));
+      this.selectedMemberIds.set(new Set(members.map(m => m.merchantId)));
     } else {
       this.editingGroup.set(null);
       this.groupName.set('');
@@ -429,7 +429,7 @@ export class MultiLocationDashboard implements OnInit {
     const data: LocationGroupFormData = {
       name: this.groupName(),
       description: this.groupDescription() || undefined,
-      restaurantIds: [...this.selectedMemberIds()],
+      merchantIds: [...this.selectedMemberIds()],
     };
 
     const editing = this.editingGroup();

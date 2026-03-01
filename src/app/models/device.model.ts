@@ -15,7 +15,7 @@ export type DeviceType = 'terminal' | 'kds' | 'kiosk' | 'printer' | 'register' |
 
 export interface Device {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   locationId: string | null;
   deviceCode: string;
   deviceName: string;
@@ -51,7 +51,7 @@ export interface DeviceFormData {
 
 export interface DeviceMode {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   deviceType: DeviceType;
   isDefault: boolean;
@@ -107,7 +107,7 @@ export type PrintJobType =
 
 export interface PrinterProfile {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   isDefault: boolean;
   routingRules: PrintRoutingRule[];
@@ -135,7 +135,7 @@ export type PeripheralConnectionType = 'usb' | 'bluetooth' | 'network';
 
 export interface PeripheralDevice {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   parentDeviceId: string;
   type: PeripheralType;
   name: string;
@@ -148,7 +148,7 @@ export interface PeripheralDevice {
 
 export interface KioskProfile {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   posMode: DevicePosMode;
   welcomeMessage: string;

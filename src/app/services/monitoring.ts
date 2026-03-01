@@ -116,8 +116,8 @@ export class MonitoringService {
   }
 
   async runScan(): Promise<void> {
-    const restaurantId = this.authService.selectedRestaurantId();
-    if (!restaurantId) return;
+    const merchantId = this.authService.selectedMerchantId();
+    if (!merchantId) return;
 
     try {
       const enabledRules = this._rules().filter(r => r.enabled);

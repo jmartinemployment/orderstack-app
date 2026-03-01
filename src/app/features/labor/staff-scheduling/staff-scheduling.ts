@@ -405,7 +405,7 @@ export class StaffScheduling implements OnDestroy {
 
   constructor() {
     effect(() => {
-      if (this.authService.isAuthenticated() && this.authService.selectedRestaurantId()) {
+      if (this.authService.isAuthenticated() && this.authService.selectedMerchantId()) {
         this.laborService.loadStaffMembers();
         this.staffMgmt.loadTeamMembers();
         this.loadCurrentWeek();

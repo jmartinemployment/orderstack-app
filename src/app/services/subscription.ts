@@ -70,12 +70,12 @@ export class SubscriptionService {
     return `$${dollars}${suffix}`;
   });
 
-  private get restaurantId(): string {
-    return this.authService.selectedRestaurantId() ?? '';
+  private get merchantId(): string {
+    return this.authService.selectedMerchantId() ?? '';
   }
 
   async loadSubscription(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     if (this._subscription() !== null) return;
 
     this._isLoading.set(true);
@@ -84,7 +84,7 @@ export class SubscriptionService {
     try {
       const sub = await firstValueFrom(
         this.http.get<Subscription>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/subscription`
+          `${this.apiUrl}/merchant/${this.merchantId}/subscription`
         )
       );
       this._subscription.set(sub);
@@ -96,7 +96,7 @@ export class SubscriptionService {
   }
 
   async changePlan(newTier: PlanTierKey): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -110,7 +110,7 @@ export class SubscriptionService {
     try {
       const updated = await firstValueFrom(
         this.http.post<Subscription>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/subscription/change-plan`,
+          `${this.apiUrl}/merchant/${this.merchantId}/subscription/change-plan`,
           { planTier: newTier }
         )
       );
@@ -134,7 +134,7 @@ export class SubscriptionService {
   }
 
   async cancelSubscription(feedback: CancellationFeedback): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -142,7 +142,7 @@ export class SubscriptionService {
     try {
       const updated = await firstValueFrom(
         this.http.post<Subscription>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/subscription/cancel`,
+          `${this.apiUrl}/merchant/${this.merchantId}/subscription/cancel`,
           feedback
         )
       );
@@ -165,7 +165,7 @@ export class SubscriptionService {
   }
 
   async extendTrial(): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -173,7 +173,7 @@ export class SubscriptionService {
     try {
       const updated = await firstValueFrom(
         this.http.post<Subscription>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/subscription/extend-trial`,
+          `${this.apiUrl}/merchant/${this.merchantId}/subscription/extend-trial`,
           {}
         )
       );
@@ -197,7 +197,7 @@ export class SubscriptionService {
   }
 
   async applyDiscount(): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -205,7 +205,7 @@ export class SubscriptionService {
     try {
       const updated = await firstValueFrom(
         this.http.post<Subscription>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/subscription/apply-discount`,
+          `${this.apiUrl}/merchant/${this.merchantId}/subscription/apply-discount`,
           { discountPercent: 50, durationMonths: 3 }
         )
       );
@@ -230,7 +230,7 @@ export class SubscriptionService {
 
     this._subscription.set({
       id: 'sub_mock_free',
-      restaurantId: this.restaurantId,
+      merchantId: this.merchantId,
       planName: 'Free',
       status: 'active',
       currentPeriodStart: now.toISOString(),

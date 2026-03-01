@@ -343,7 +343,7 @@ export class OnlineOrderPortal implements OnDestroy {
     // Resolve restaurant from slug attribute or fall back to auth selection
     effect(() => {
       const slug = this.restaurantSlug();
-      const authId = this.authService.selectedRestaurantId();
+      const authId = this.authService.selectedMerchantId();
 
       if (slug) {
         void this.resolveSlug(slug);
@@ -383,9 +383,9 @@ export class OnlineOrderPortal implements OnDestroy {
     }
 
     // Single location or direct restaurant slug
-    const restaurant = await this.authService.resolveRestaurantBySlug(slug);
+    const restaurant = await this.authService.resolveMerchantBySlug(slug);
     if (restaurant) {
-      this.authService.selectRestaurant(restaurant.id, restaurant.name, restaurant.logo);
+      this.authService.selectMerchant(restaurant.id, restaurant.name, restaurant.logo);
       if (restaurant.taxRate > 0) {
         this.cartService.setTaxRate(restaurant.taxRate);
       }
@@ -394,7 +394,7 @@ export class OnlineOrderPortal implements OnDestroy {
       this.loyaltyService.loadRewards();
       await this.settingsService.loadSettings();
       await this.checkHours(restaurant.id);
-      this.analyticsService.trackOnlineEvent('page_view', { page: 'menu', restaurantId: restaurant.id });
+      this.analyticsService.trackOnlineEvent('page_view', { page: 'menu', merchantId: restaurant.id });
     } else {
       this._resolveError.set(`Restaurant "${slug}" not found`);
     }
@@ -406,14 +406,14 @@ export class OnlineOrderPortal implements OnDestroy {
     this._selectedLocationId.set(location.id);
     this._isMultiLocation.set(true);
 
-    this.authService.selectRestaurant(location.id, location.name, location.logo ?? undefined);
+    this.authService.selectMerchant(location.id, location.name, location.logo ?? undefined);
     this.menuService.loadMenuForRestaurant(location.id);
     this.loyaltyService.loadConfig();
     this.loyaltyService.loadRewards();
     await this.settingsService.loadSettings();
     await this.checkHours(location.id);
     this._step.set('menu');
-    this.analyticsService.trackOnlineEvent('page_view', { page: 'menu', restaurantId: location.id });
+    this.analyticsService.trackOnlineEvent('page_view', { page: 'menu', merchantId: location.id });
   }
 
   async findNearest(): Promise<void> {
@@ -439,10 +439,10 @@ export class OnlineOrderPortal implements OnDestroy {
 
   // --- Business Hours methods (Phase 3, Step 11) ---
 
-  private async checkHours(restaurantId: string): Promise<void> {
+  private async checkHours(merchantId: string): Promise<void> {
     this._isCheckingHours.set(true);
     try {
-      const check = await this.settingsService.checkBusinessHours(restaurantId);
+      const check = await this.settingsService.checkBusinessHours(merchantId);
       this._businessHoursCheck.set(check);
     } finally {
       this._isCheckingHours.set(false);

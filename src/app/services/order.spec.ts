@@ -518,7 +518,7 @@ describe('OrderService — applyOrderTemplate', () => {
   const templates: OrderTemplate[] = [
     {
       id: 'tmpl-1',
-      restaurantId: 'r-1',
+      merchantId: 'r-1',
       name: 'Lunch Special',
       items: templateItems,
       createdBy: 'admin',
@@ -545,7 +545,7 @@ describe('OrderService — applyOrderTemplate', () => {
       ...templates,
       {
         id: 'tmpl-2',
-        restaurantId: 'r-1',
+        merchantId: 'r-1',
         name: 'Dinner Special',
         items: [{ menuItemId: 'mi-3', quantity: 1, modifiers: [] }],
         createdBy: 'admin',

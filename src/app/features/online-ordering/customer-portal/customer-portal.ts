@@ -190,7 +190,7 @@ export class CustomerPortal {
     await Promise.all([
       this.loadLoyalty(customerId),
       this.loadFeedback(customerId),
-      this.loadReservations(customerId),
+      this.loadBookings(customerId),
       this.loadAddresses(customerId),
     ]);
 
@@ -214,7 +214,7 @@ export class CustomerPortal {
     this._feedback.set(allFeedback.filter(f => f.customerId === customerId));
   }
 
-  private async loadReservations(customerId: string): Promise<void> {
+  private async loadBookings(customerId: string): Promise<void> {
     const reservations = await this.bookingService.getCustomerBookings(customerId);
     this._reservations.set(reservations);
   }

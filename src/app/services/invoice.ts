@@ -38,16 +38,16 @@ export class InvoiceService {
     this._invoices().reduce((sum, i) => sum + i.amountPaid, 0)
   );
 
-  private get restaurantId(): string {
-    return this.authService.selectedRestaurantId() ?? '';
+  private get merchantId(): string {
+    return this.authService.selectedMerchantId() ?? '';
   }
 
   private get baseUrl(): string {
-    return `${environment.apiUrl}/restaurant/${this.restaurantId}`;
+    return `${environment.apiUrl}/merchant/${this.merchantId}`;
   }
 
   async loadInvoices(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
     try {
@@ -113,7 +113,7 @@ export class InvoiceService {
   }
 
   async loadHouseAccounts(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     try {
       const accounts = await firstValueFrom(
         this.http.get<HouseAccount[]>(`${this.baseUrl}/house-accounts`)

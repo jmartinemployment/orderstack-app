@@ -43,7 +43,7 @@ export class DeviceManagement {
 
   constructor() {
     effect(() => {
-      if (this.authService.selectedRestaurantId() && !this._loaded()) {
+      if (this.authService.selectedMerchantId() && !this._loaded()) {
         this._loaded.set(true);
         this.staffService.loadDevices();
       }

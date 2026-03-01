@@ -1,6 +1,6 @@
 export interface KdsStation {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   color: string | null;
   displayOrder: number;

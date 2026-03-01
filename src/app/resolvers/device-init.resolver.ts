@@ -10,9 +10,9 @@ export const deviceInitResolver: ResolveFn<boolean> = async (_route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Ensure restaurantId is set before loading anything
-  if (!authService.selectedRestaurantId()) {
-    const restaurants = authService.restaurants();
+  // Ensure merchantId is set before loading anything
+  if (!authService.selectedMerchantId()) {
+    const restaurants = authService.merchants();
 
     if (restaurants.length === 0) {
       router.navigate(['/setup']);
@@ -21,7 +21,7 @@ export const deviceInitResolver: ResolveFn<boolean> = async (_route, state) => {
 
     if (restaurants.length === 1) {
       const r = restaurants[0];
-      authService.selectRestaurant(r.id, r.name);
+      authService.selectMerchant(r.id, r.name);
     } else {
       router.navigate(['/select-restaurant']);
       return false;

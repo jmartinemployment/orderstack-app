@@ -44,7 +44,7 @@ function createDeliveryOrder(id: string): Order {
   const now = new Date();
   return {
     guid: id,
-    restaurantId: 'restaurant-1',
+    merchantId: 'restaurant-1',
     orderNumber: '1001',
     guestOrderStatus: 'READY_FOR_PICKUP',
     server: { guid: 'server-1', name: 'Server', entityType: 'RestaurantUser' },
@@ -187,8 +187,8 @@ function createHarness(autoDispatch = true): KdsHarness {
 
   const authServiceMock = {
     isAuthenticated: signal(true).asReadonly(),
-    selectedRestaurantName: signal('Test Kitchen').asReadonly(),
-    selectedRestaurantId: vi.fn(() => 'restaurant-1'),
+    selectedMerchantName: signal('Test Kitchen').asReadonly(),
+    selectedMerchantId: vi.fn(() => 'restaurant-1'),
   };
 
   const socketServiceMock = {

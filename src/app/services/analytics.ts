@@ -124,8 +124,8 @@ export class AnalyticsService {
 
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   // === Upsell ===
@@ -152,7 +152,7 @@ export class AnalyticsService {
     priorDayNetSales: number;
     priorDayOrderCount: number;
   } | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
@@ -161,7 +161,7 @@ export class AnalyticsService {
           orderCount: number;
           priorDayNetSales: number;
           priorDayOrderCount: number;
-        }>(`${this.apiUrl}/restaurant/${this.restaurantId}/analytics/today-stats`)
+        }>(`${this.apiUrl}/merchant/${this.merchantId}/analytics/today-stats`)
       );
     } catch {
       return null;
@@ -171,7 +171,7 @@ export class AnalyticsService {
   // === Menu Engineering ===
 
   async loadMenuEngineering(days = 30): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     if (this._isLoadingEngineering()) return;
 
     this._isLoadingEngineering.set(true);
@@ -180,7 +180,7 @@ export class AnalyticsService {
     try {
       const data = await firstValueFrom(
         this.http.get<MenuEngineeringData>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/menu-engineering?days=${days}`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/menu-engineering?days=${days}`
         )
       );
       this._menuEngineering.set({
@@ -208,7 +208,7 @@ export class AnalyticsService {
   // === Sales Report ===
 
   async loadSalesReport(period: 'daily' | 'weekly' = 'daily'): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     if (this._isLoadingSales()) return;
 
     this._isLoadingSales.set(true);
@@ -217,7 +217,7 @@ export class AnalyticsService {
     try {
       const data = await firstValueFrom(
         this.http.get<SalesReport>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/sales/${period}`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/sales/${period}`
         )
       );
       this._salesReport.set(data);
@@ -232,7 +232,7 @@ export class AnalyticsService {
   // === Sales Goals ===
 
   async loadGoals(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     if (this._isLoadingGoals()) return;
 
     this._isLoadingGoals.set(true);
@@ -240,7 +240,7 @@ export class AnalyticsService {
     try {
       const data = await firstValueFrom(
         this.http.get<SalesGoal[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/goals`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/goals`
         )
       );
       this._goals.set(data);
@@ -257,12 +257,12 @@ export class AnalyticsService {
   }
 
   async createGoal(data: SalesGoalFormData): Promise<SalesGoal | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const goal = await firstValueFrom(
         this.http.post<SalesGoal>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/goals`,
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/goals`,
           data
         )
       );
@@ -275,12 +275,12 @@ export class AnalyticsService {
   }
 
   async updateGoal(goalId: string, data: Partial<SalesGoalFormData>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<SalesGoal>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/goals/${goalId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/goals/${goalId}`,
           data
         )
       );
@@ -292,12 +292,12 @@ export class AnalyticsService {
   }
 
   async deleteGoal(goalId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/goals/${goalId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/goals/${goalId}`
         )
       );
       this._goals.update(goals => goals.filter(g => g.id !== goalId));
@@ -311,12 +311,12 @@ export class AnalyticsService {
   }
 
   async loadGoalProgress(goalId: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const progress = await firstValueFrom(
         this.http.get<GoalProgress>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/goals/${goalId}/progress`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/goals/${goalId}/progress`
         )
       );
       this._activeGoalProgress.set(progress);
@@ -328,7 +328,7 @@ export class AnalyticsService {
   // === Team Performance ===
 
   async loadTeamSalesReport(startDate: string, endDate: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     if (this._isLoadingTeam()) return;
 
     this._isLoadingTeam.set(true);
@@ -336,7 +336,7 @@ export class AnalyticsService {
     try {
       const data = await firstValueFrom(
         this.http.get<TeamSalesReport>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/team/sales`,
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/team/sales`,
           { params: { startDate, endDate } }
         )
       );
@@ -351,7 +351,7 @@ export class AnalyticsService {
   // === Conversion Funnel ===
 
   async loadConversionFunnel(startDate: string, endDate: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     if (this._isLoadingFunnel()) return;
 
     this._isLoadingFunnel.set(true);
@@ -359,7 +359,7 @@ export class AnalyticsService {
     try {
       const data = await firstValueFrom(
         this.http.get<ConversionFunnel>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/conversion-funnel`,
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/conversion-funnel`,
           { params: { startDate, endDate } }
         )
       );
@@ -374,7 +374,7 @@ export class AnalyticsService {
   // === Sales Alerts ===
 
   async loadSalesAlerts(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     if (this._isLoadingAlerts()) return;
 
     this._isLoadingAlerts.set(true);
@@ -382,7 +382,7 @@ export class AnalyticsService {
     try {
       const data = await firstValueFrom(
         this.http.get<SalesAlert[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/sales-alerts`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/sales-alerts`
         )
       );
       this._salesAlerts.set(data);
@@ -394,12 +394,12 @@ export class AnalyticsService {
   }
 
   async acknowledgeSalesAlert(alertId: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/sales-alerts/${alertId}/acknowledge`,
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/sales-alerts/${alertId}/acknowledge`,
           {}
         )
       );
@@ -426,7 +426,7 @@ export class AnalyticsService {
   });
 
   async loadPrepTimeAccuracy(days = 30): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     if (this._isLoadingPrepAccuracy()) return;
 
     this._isLoadingPrepAccuracy.set(true);
@@ -434,7 +434,7 @@ export class AnalyticsService {
     try {
       const data = await firstValueFrom(
         this.http.get<PrepTimeAccuracyRow[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/prep-time-accuracy?days=${days}`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/prep-time-accuracy?days=${days}`
         )
       );
       this._prepTimeAccuracy.set(data);
@@ -446,12 +446,12 @@ export class AnalyticsService {
   }
 
   async applyPrepTimeSuggestion(itemId: string, newMinutes: number): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/items/${itemId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/items/${itemId}`,
           { prepTimeMinutes: newMinutes }
         )
       );
@@ -474,12 +474,12 @@ export class AnalyticsService {
   // === Menu Deep Dive (Phase 3) ===
 
   async getItemProfitabilityTrend(itemId: string, days = 30): Promise<ItemProfitabilityTrend | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<ItemProfitabilityTrend>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/menu/item/${itemId}/profitability?days=${days}`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/menu/item/${itemId}/profitability?days=${days}`
         )
       );
     } catch {
@@ -488,12 +488,12 @@ export class AnalyticsService {
   }
 
   async getPriceElasticity(): Promise<PriceElasticityIndicator[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       return await firstValueFrom(
         this.http.get<PriceElasticityIndicator[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/menu/price-elasticity`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/menu/price-elasticity`
         )
       ) ?? [];
     } catch {
@@ -502,12 +502,12 @@ export class AnalyticsService {
   }
 
   async getCannibalization(days = 60): Promise<CannibalizationResult[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       return await firstValueFrom(
         this.http.get<CannibalizationResult[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/menu/cannibalization?days=${days}`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/menu/cannibalization?days=${days}`
         )
       ) ?? [];
     } catch {
@@ -516,12 +516,12 @@ export class AnalyticsService {
   }
 
   async getSeasonalPattern(itemId: string): Promise<SeasonalPattern | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<SeasonalPattern>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/menu/item/${itemId}/seasonal`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/menu/item/${itemId}/seasonal`
         )
       );
     } catch {
@@ -532,12 +532,12 @@ export class AnalyticsService {
   // === Predictive Analytics (Phase 3) ===
 
   async getRevenueForecast(days = 14): Promise<RevenueForecast | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<RevenueForecast>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/forecast/revenue?days=${days}`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/forecast/revenue?days=${days}`
         )
       );
     } catch {
@@ -546,12 +546,12 @@ export class AnalyticsService {
   }
 
   async getDemandForecast(date: string): Promise<DemandForecastItem[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       return await firstValueFrom(
         this.http.get<DemandForecastItem[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/forecast/demand?date=${encodeURIComponent(date)}`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/forecast/demand?date=${encodeURIComponent(date)}`
         )
       ) ?? [];
     } catch {
@@ -560,12 +560,12 @@ export class AnalyticsService {
   }
 
   async getStaffingRecommendation(date: string): Promise<StaffingRecommendation | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<StaffingRecommendation>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/forecast/staffing?date=${encodeURIComponent(date)}`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/forecast/staffing?date=${encodeURIComponent(date)}`
         )
       );
     } catch {
@@ -576,7 +576,7 @@ export class AnalyticsService {
   // === Private ===
 
   private async loadUpsellSuggestions(cartItemIds: string[]): Promise<void> {
-    if (!this.restaurantId || cartItemIds.length === 0) {
+    if (!this.merchantId || cartItemIds.length === 0) {
       this._upsellSuggestions.set([]);
       return;
     }
@@ -587,7 +587,7 @@ export class AnalyticsService {
       const params = cartItemIds.join(',');
       const raw = await firstValueFrom(
         this.http.get<any[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/analytics/upsell-suggestions?cartItems=${params}`
+          `${this.apiUrl}/merchant/${this.merchantId}/analytics/upsell-suggestions?cartItems=${params}`
         )
       );
       const mapped: UpsellSuggestion[] = (raw ?? []).map(s => ({
@@ -626,13 +626,13 @@ export class AnalyticsService {
   }
 
   async trackOnlineEvent(type: OnlineOrderEventType, metadata: Record<string, unknown> = {}): Promise<void> {
-    const restaurantId = this.authService.selectedRestaurantId();
-    if (!restaurantId) return;
+    const merchantId = this.authService.selectedMerchantId();
+    if (!merchantId) return;
     try {
       await firstValueFrom(
         this.http.post(`${this.apiUrl}/analytics/online-events`, {
           type,
-          restaurantId,
+          merchantId,
           sessionId: this.getOnlineSessionId(),
           metadata,
           timestamp: new Date().toISOString(),
@@ -663,13 +663,13 @@ export class AnalyticsService {
   readonly isLoadingProactiveInsights = this._isLoadingProactiveInsights.asReadonly();
 
   async loadProactiveInsights(): Promise<void> {
-    const restaurantId = this.authService.selectedRestaurantId();
-    if (!restaurantId) return;
+    const merchantId = this.authService.selectedMerchantId();
+    if (!merchantId) return;
     if (this._isLoadingProactiveInsights()) return;
     this._isLoadingProactiveInsights.set(true);
     try {
       const cards = await firstValueFrom(
-        this.http.get<AiInsightCard[]>(`${this.apiUrl}/analytics/proactive-insights?restaurantId=${restaurantId}`)
+        this.http.get<AiInsightCard[]>(`${this.apiUrl}/analytics/proactive-insights?merchantId=${merchantId}`)
       );
       this._proactiveInsights.set(cards);
     } catch {
@@ -790,13 +790,13 @@ export class AnalyticsService {
   }
 
   async queryAi(question: string): Promise<AiQueryResponse> {
-    const restaurantId = this.authService.selectedRestaurantId();
+    const merchantId = this.authService.selectedMerchantId();
     this._isQueryingAi.set(true);
     try {
       const response = await firstValueFrom(
         this.http.post<AiQueryResponse>(`${this.apiUrl}/analytics/ai-query`, {
           question,
-          restaurantId,
+          merchantId,
         })
       );
       return response;
@@ -820,16 +820,16 @@ export class AnalyticsService {
   }
 
   async loadPinnedWidgets(): Promise<void> {
-    const restaurantId = this.authService.selectedRestaurantId();
-    if (!restaurantId) return;
+    const merchantId = this.authService.selectedMerchantId();
+    if (!merchantId) return;
     try {
       const widgets = await firstValueFrom(
-        this.http.get<PinnedWidget[]>(`${this.apiUrl}/analytics/pinned-widgets?restaurantId=${restaurantId}`)
+        this.http.get<PinnedWidget[]>(`${this.apiUrl}/analytics/pinned-widgets?merchantId=${merchantId}`)
       );
       this._pinnedWidgets.set(widgets);
     } catch {
       // Load from localStorage fallback
-      const stored = localStorage.getItem(`pinned-widgets-${restaurantId}`);
+      const stored = localStorage.getItem(`pinned-widgets-${merchantId}`);
       if (stored) {
         this._pinnedWidgets.set(JSON.parse(stored) as PinnedWidget[]);
       }
@@ -837,7 +837,7 @@ export class AnalyticsService {
   }
 
   pinWidget(card: AiInsightCard): void {
-    const restaurantId = this.authService.selectedRestaurantId();
+    const merchantId = this.authService.selectedMerchantId();
     const widget: PinnedWidget = {
       id: crypto.randomUUID(),
       insightCard: card,
@@ -847,20 +847,20 @@ export class AnalyticsService {
       pinnedBy: this.authService.user()?.firstName ?? 'unknown',
     };
     this._pinnedWidgets.update(w => [...w, widget]);
-    if (restaurantId) {
-      localStorage.setItem(`pinned-widgets-${restaurantId}`, JSON.stringify(this._pinnedWidgets()));
+    if (merchantId) {
+      localStorage.setItem(`pinned-widgets-${merchantId}`, JSON.stringify(this._pinnedWidgets()));
     }
     // Fire and forget API persistence
     firstValueFrom(
-      this.http.post(`${this.apiUrl}/analytics/pinned-widgets`, { ...widget, restaurantId })
+      this.http.post(`${this.apiUrl}/analytics/pinned-widgets`, { ...widget, merchantId })
     ).catch(() => { /* localStorage fallback already saved */ });
   }
 
   unpinWidget(widgetId: string): void {
-    const restaurantId = this.authService.selectedRestaurantId();
+    const merchantId = this.authService.selectedMerchantId();
     this._pinnedWidgets.update(w => w.filter(pw => pw.id !== widgetId));
-    if (restaurantId) {
-      localStorage.setItem(`pinned-widgets-${restaurantId}`, JSON.stringify(this._pinnedWidgets()));
+    if (merchantId) {
+      localStorage.setItem(`pinned-widgets-${merchantId}`, JSON.stringify(this._pinnedWidgets()));
     }
     firstValueFrom(
       this.http.delete(`${this.apiUrl}/analytics/pinned-widgets/${widgetId}`)

@@ -22,12 +22,12 @@ export class ChatService {
   readonly isTyping = this._isTyping.asReadonly();
   readonly error = this._error.asReadonly();
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   async sendMessage(content: string): Promise<void> {
-    if (!this.restaurantId || !content.trim()) return;
+    if (!this.merchantId || !content.trim()) return;
 
     // Add user message
     const userMessage: ChatMessage = {
@@ -48,7 +48,7 @@ export class ChatService {
 
       const response = await firstValueFrom(
         this.http.post<ChatResponse>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/chat`,
+          `${this.apiUrl}/merchant/${this.merchantId}/chat`,
           request
         )
       );

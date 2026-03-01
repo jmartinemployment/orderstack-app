@@ -175,14 +175,14 @@ export class MultiLocationService {
     }
   }
 
-  async addMember(groupId: string, restaurantId: string): Promise<void> {
+  async addMember(groupId: string, merchantId: string): Promise<void> {
     if (!this.groupId) return;
     this._error.set(null);
     try {
       const member = await firstValueFrom(
         this.http.post<LocationGroupMember>(
           `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${groupId}/members`,
-          { restaurantId }
+          { merchantId }
         )
       );
       this._groupMembers.update(map => {
@@ -541,19 +541,19 @@ export class MultiLocationService {
     }
   }
 
-  async resolveComplianceItem(lgId: string, restaurantId: string, checkId: string): Promise<void> {
+  async resolveComplianceItem(lgId: string, merchantId: string, checkId: string): Promise<void> {
     if (!this.groupId) return;
     this._error.set(null);
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/compliance/${restaurantId}/resolve`,
+          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/compliance/${merchantId}/resolve`,
           { checkId }
         )
       );
       this._compliance.update(list =>
         list.map(loc => {
-          if (loc.restaurantId !== restaurantId) return loc;
+          if (loc.merchantId !== merchantId) return loc;
           const updatedItems = loc.items.map(item =>
             item.id === checkId ? { ...item, isPassing: true, resolvedAt: new Date().toISOString() } : item
           );

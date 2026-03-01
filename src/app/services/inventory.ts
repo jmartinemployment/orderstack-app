@@ -46,12 +46,12 @@ export class InventoryService {
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   async loadReport(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -59,7 +59,7 @@ export class InventoryService {
     try {
       const data = await firstValueFrom(
         this.http.get<InventoryReport>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/report`
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory/report`
         )
       );
       this._report.set(data);
@@ -72,7 +72,7 @@ export class InventoryService {
   }
 
   async loadItems(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -80,7 +80,7 @@ export class InventoryService {
     try {
       const data = await firstValueFrom(
         this.http.get<InventoryItem[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory`
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory`
         )
       );
       this._items.set(data);
@@ -93,14 +93,14 @@ export class InventoryService {
   }
 
   async loadAlerts(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     if (this._isLoadingAlerts()) return;
     this._isLoadingAlerts.set(true);
 
     try {
       const data = await firstValueFrom(
         this.http.get<InventoryAlert[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/alerts`
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory/alerts`
         )
       );
       this._alerts.set(data);
@@ -113,14 +113,14 @@ export class InventoryService {
   }
 
   async loadPredictions(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     if (this._isLoadingPredictions()) return;
     this._isLoadingPredictions.set(true);
 
     try {
       const data = await firstValueFrom(
         this.http.get<StockPrediction[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/predictions`
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory/predictions`
         )
       );
       this._predictions.set(data);
@@ -133,12 +133,12 @@ export class InventoryService {
   }
 
   async createItem(data: Partial<InventoryItem>): Promise<InventoryItem | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const item = await firstValueFrom(
         this.http.post<InventoryItem>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory`,
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory`,
           data
         )
       );
@@ -152,12 +152,12 @@ export class InventoryService {
   }
 
   async updateStock(itemId: string, stock: number, reason: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/${itemId}/stock`,
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory/${itemId}/stock`,
           { currentStock: stock, reason }
         )
       );
@@ -175,12 +175,12 @@ export class InventoryService {
   }
 
   async recordUsage(itemId: string, quantity: number, reason: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/${itemId}/usage`,
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory/${itemId}/usage`,
           { quantity, reason }
         )
       );
@@ -201,12 +201,12 @@ export class InventoryService {
   }
 
   async recordRestock(itemId: string, quantity: number, invoiceNumber?: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/${itemId}/restock`,
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory/${itemId}/restock`,
           { quantity, invoiceNumber }
         )
       );
@@ -227,12 +227,12 @@ export class InventoryService {
   }
 
   async predictItem(itemId: string): Promise<StockPrediction | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const prediction = await firstValueFrom(
         this.http.get<StockPrediction>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/${itemId}/predict`
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory/${itemId}/predict`
         )
       );
       this._predictions.update(preds => {
@@ -255,12 +255,12 @@ export class InventoryService {
   // --- Cycle Counts ---
 
   async loadCycleCounts(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<CycleCount[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/cycle-counts`
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory/cycle-counts`
         )
       );
       this._cycleCounts.set(data);
@@ -271,12 +271,12 @@ export class InventoryService {
   }
 
   async startCycleCount(category?: string): Promise<CycleCount | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const count = await firstValueFrom(
         this.http.post<CycleCount>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/cycle-counts`,
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory/cycle-counts`,
           { category: category ?? null }
         )
       );
@@ -290,12 +290,12 @@ export class InventoryService {
   }
 
   async submitCycleCount(countId: string, entries: CycleCountEntry[]): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const result = await firstValueFrom(
         this.http.patch<CycleCount>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/cycle-counts/${countId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory/cycle-counts/${countId}`,
           { entries }
         )
       );
@@ -312,12 +312,12 @@ export class InventoryService {
   // --- Expiring Items ---
 
   async loadExpiringItems(daysAhead: number = 7): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<ExpiringItem[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/expiring`,
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory/expiring`,
           { params: { days: daysAhead.toString() } }
         )
       );
@@ -331,12 +331,12 @@ export class InventoryService {
   // --- Unit Conversions ---
 
   async loadUnitConversions(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<UnitConversion[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/unit-conversions`
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory/unit-conversions`
         )
       );
       this._unitConversions.set(data);
@@ -346,13 +346,13 @@ export class InventoryService {
     }
   }
 
-  async createUnitConversion(data: Omit<UnitConversion, 'id' | 'restaurantId'>): Promise<UnitConversion | null> {
-    if (!this.restaurantId) return null;
+  async createUnitConversion(data: Omit<UnitConversion, 'id' | 'merchantId'>): Promise<UnitConversion | null> {
+    if (!this.merchantId) return null;
 
     try {
       const conversion = await firstValueFrom(
         this.http.post<UnitConversion>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/unit-conversions`,
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory/unit-conversions`,
           data
         )
       );
@@ -366,12 +366,12 @@ export class InventoryService {
   }
 
   async deleteUnitConversion(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/inventory/unit-conversions/${id}`
+          `${this.apiUrl}/merchant/${this.merchantId}/inventory/unit-conversions/${id}`
         )
       );
       this._unitConversions.update(list => list.filter(c => c.id !== id));
@@ -384,7 +384,7 @@ export class InventoryService {
   }
 
   async refresh(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     this._isLoading.set(true);
     this._error.set(null);

@@ -9,7 +9,7 @@ interface LocationGroup {
 
 interface LocationGroupMember {
   id: string;
-  restaurantId: string;
+  merchantId: string;
 }
 
 interface CrossLocationInventoryItem {
@@ -107,10 +107,10 @@ describe('MultiLocationService — group mutations', () => {
 });
 
 describe('MultiLocationService — member mutations', () => {
-  const members: LocationGroupMember[] = [{ id: 'm-1', restaurantId: 'r-1' }];
+  const members: LocationGroupMember[] = [{ id: 'm-1', merchantId: 'r-1' }];
 
   it('addMember appends', () => {
-    expect(addMember(members, { id: 'm-2', restaurantId: 'r-2' })).toHaveLength(2);
+    expect(addMember(members, { id: 'm-2', merchantId: 'r-2' })).toHaveLength(2);
   });
 
   it('removeMember removes matching', () => {

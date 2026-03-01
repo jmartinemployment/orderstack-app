@@ -102,7 +102,7 @@ export class DynamicPricing {
   constructor() {
     // Load menu when authenticated
     effect(() => {
-      if (this.isAuthenticated() && this.authService.selectedRestaurantId()) {
+      if (this.isAuthenticated() && this.authService.selectedMerchantId()) {
         this.menuService.loadMenu();
         this.loadRulesFromStorage();
       }
@@ -111,7 +111,7 @@ export class DynamicPricing {
     // Persist rules to localStorage on change
     effect(() => {
       const rules = this._rules();
-      const rid = this.authService.selectedRestaurantId();
+      const rid = this.authService.selectedMerchantId();
       if (rid) {
         localStorage.setItem(`pricing_rules_${rid}`, JSON.stringify(rules));
       }
@@ -119,7 +119,7 @@ export class DynamicPricing {
   }
 
   private loadRulesFromStorage(): void {
-    const rid = this.authService.selectedRestaurantId();
+    const rid = this.authService.selectedMerchantId();
     if (!rid) return;
     const stored = localStorage.getItem(`pricing_rules_${rid}`);
     if (stored) {

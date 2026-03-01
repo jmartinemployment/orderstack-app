@@ -779,7 +779,7 @@ export class PendingOrders implements OnInit, OnDestroy {
   }
 
   private printCheck(order: Order): void {
-    const restaurantName = this.authService.selectedRestaurantName() ?? 'Restaurant';
+    const restaurantName = this.authService.selectedMerchantName() ?? 'Restaurant';
     const orderNumber = this.getOrderNumber(order);
     const date = order.timestamps.createdDate.toLocaleDateString('en-US', {
       year: 'numeric', month: 'short', day: 'numeric',

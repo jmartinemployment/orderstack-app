@@ -10,7 +10,7 @@ function createOrder(status: GuestOrderStatus): Order {
   const now = new Date();
   return {
     guid: 'order-1',
-    restaurantId: 'r-1',
+    merchantId: 'r-1',
     orderNumber: '1001',
     guestOrderStatus: status,
     server: { guid: 'srv-1', name: 'Server', entityType: 'RestaurantUser' },

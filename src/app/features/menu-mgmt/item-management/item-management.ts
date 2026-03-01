@@ -185,8 +185,8 @@ export class ItemManagement {
 
   constructor() {
     effect(() => {
-      const restaurantId = this.authService.selectedRestaurantId();
-      if (this.isAuthenticated() && restaurantId && !this._menuLoaded()) {
+      const merchantId = this.authService.selectedMerchantId();
+      if (this.isAuthenticated() && merchantId && !this._menuLoaded()) {
         this._menuLoaded.set(true);
         this.menuService.loadMenu();
         this.modifierService.loadGroups();

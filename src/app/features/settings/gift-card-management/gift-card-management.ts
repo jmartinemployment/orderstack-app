@@ -99,7 +99,7 @@ export class GiftCardManagement {
   readonly activateError = this._activateError.asReadonly();
 
   constructor() {
-    if (this.authService.isAuthenticated() && this.authService.selectedRestaurantId()) {
+    if (this.authService.isAuthenticated() && this.authService.selectedMerchantId()) {
       this.giftCardService.loadGiftCards();
     }
   }

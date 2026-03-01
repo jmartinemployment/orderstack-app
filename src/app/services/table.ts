@@ -8,7 +8,7 @@ const TABLE = 'restaurant_tables';
 function toModel(row: Record<string, unknown>): RestaurantTable {
   return {
     id: row['id'] as string,
-    restaurantId: row['restaurant_id'] as string,
+    merchantId: row['restaurant_id'] as string,
     tableNumber: row['table_number'] as string,
     tableName: (row['table_name'] as string) ?? null,
     capacity: row['capacity'] as number,
@@ -24,7 +24,7 @@ function toModel(row: Record<string, unknown>): RestaurantTable {
 
 function toRow(data: Partial<RestaurantTable>): Record<string, unknown> {
   const map: Record<string, unknown> = {};
-  if (data.restaurantId !== undefined) map['restaurant_id'] = data.restaurantId;
+  if (data.merchantId !== undefined) map['restaurant_id'] = data.merchantId;
   if (data.tableNumber !== undefined) map['table_number'] = data.tableNumber;
   if (data.tableName !== undefined) map['table_name'] = data.tableName;
   if (data.capacity !== undefined) map['capacity'] = data.capacity;
@@ -50,12 +50,12 @@ export class TableService {
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
 
-  private get restaurantId(): string {
-    return this.authService.selectedRestaurantId() ?? '';
+  private get merchantId(): string {
+    return this.authService.selectedMerchantId() ?? '';
   }
 
   async loadTables(): Promise<void> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected — cannot load tables');
       return;
     }
@@ -65,7 +65,7 @@ export class TableService {
     const { data, error } = await supabase()
       .from(TABLE)
       .select('*')
-      .eq('restaurant_id', this.restaurantId)
+      .eq('restaurant_id', this.merchantId)
       .eq('active', true)
       .order('table_number');
 
@@ -79,7 +79,7 @@ export class TableService {
   }
 
   async createTable(data: TableFormData): Promise<RestaurantTable | null> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected — cannot create table');
       return null;
     }
@@ -88,7 +88,7 @@ export class TableService {
     const now = new Date().toISOString();
     const row = {
       id: crypto.randomUUID(),
-      restaurant_id: this.restaurantId,
+      restaurant_id: this.merchantId,
       table_number: data.tableNumber,
       table_name: data.tableName ?? null,
       capacity: data.capacity,
@@ -118,7 +118,7 @@ export class TableService {
   }
 
   async updateTable(tableId: string, data: Partial<RestaurantTable>): Promise<RestaurantTable | null> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected — cannot update table');
       return null;
     }
@@ -131,7 +131,7 @@ export class TableService {
       .from(TABLE)
       .update(row)
       .eq('id', tableId)
-      .eq('restaurant_id', this.restaurantId)
+      .eq('restaurant_id', this.merchantId)
       .select()
       .single();
 
@@ -154,7 +154,7 @@ export class TableService {
   }
 
   async deleteTable(tableId: string): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected — cannot delete table');
       return false;
     }
@@ -164,7 +164,7 @@ export class TableService {
       .from(TABLE)
       .update({ active: false, updated_at: new Date().toISOString() })
       .eq('id', tableId)
-      .eq('restaurant_id', this.restaurantId);
+      .eq('restaurant_id', this.merchantId);
 
     if (error) {
       this._error.set(error.message);

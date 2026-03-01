@@ -33,8 +33,8 @@ function buildErrorMessage(): ChatMessage {
   };
 }
 
-function shouldSendMessage(restaurantId: string | null, content: string): boolean {
-  return restaurantId !== null && content.trim().length > 0;
+function shouldSendMessage(merchantId: string | null, content: string): boolean {
+  return merchantId !== null && content.trim().length > 0;
 }
 
 // --- Tests ---

@@ -30,8 +30,8 @@ export class MainLayoutComponent {
   readonly mobileMenuOpen = signal(false);
 
   readonly user = this.auth.user;
-  readonly selectedRestaurantName = this.auth.selectedRestaurantName;
-  readonly selectedRestaurantAddress = this.auth.selectedRestaurantAddress;
+  readonly selectedMerchantName = this.auth.selectedMerchantName;
+  readonly selectedMerchantAddress = this.auth.selectedMerchantAddress;
 
   readonly userName = computed(() => this.user()?.firstName ?? null);
 

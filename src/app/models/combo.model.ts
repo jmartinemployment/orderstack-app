@@ -14,7 +14,7 @@ export interface ComboSubstituteGroup {
 
 export interface Combo {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   description: string | null;
   image: string | null;

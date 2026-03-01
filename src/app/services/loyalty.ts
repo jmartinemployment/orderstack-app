@@ -32,14 +32,14 @@ export class LoyaltyService {
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
 
-  private get restaurantId(): string {
-    return this.authService.selectedRestaurantId() ?? '';
+  private get merchantId(): string {
+    return this.authService.selectedMerchantId() ?? '';
   }
 
   // --- Config ---
 
   async loadConfig(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     if (this._isLoadingConfig()) return;
     this._isLoadingConfig.set(true);
     this._error.set(null);
@@ -47,7 +47,7 @@ export class LoyaltyService {
     try {
       const config = await firstValueFrom(
         this.http.get<LoyaltyConfig>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/loyalty/config`
+          `${this.apiUrl}/merchant/${this.merchantId}/loyalty/config`
         )
       );
       this._config.set(config);
@@ -59,13 +59,13 @@ export class LoyaltyService {
   }
 
   async saveConfig(config: Partial<LoyaltyConfig>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<LoyaltyConfig>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/loyalty/config`,
+          `${this.apiUrl}/merchant/${this.merchantId}/loyalty/config`,
           config
         )
       );
@@ -80,7 +80,7 @@ export class LoyaltyService {
   // --- Rewards ---
 
   async loadRewards(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     if (this._isLoadingRewards()) return;
     this._isLoadingRewards.set(true);
     this._error.set(null);
@@ -88,7 +88,7 @@ export class LoyaltyService {
     try {
       const rewards = await firstValueFrom(
         this.http.get<LoyaltyReward[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/loyalty/rewards`
+          `${this.apiUrl}/merchant/${this.merchantId}/loyalty/rewards`
         )
       );
       this._rewards.set(rewards);
@@ -100,13 +100,13 @@ export class LoyaltyService {
   }
 
   async createReward(data: Partial<LoyaltyReward>): Promise<LoyaltyReward | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
 
     try {
       const reward = await firstValueFrom(
         this.http.post<LoyaltyReward>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/loyalty/rewards`,
+          `${this.apiUrl}/merchant/${this.merchantId}/loyalty/rewards`,
           data
         )
       );
@@ -119,13 +119,13 @@ export class LoyaltyService {
   }
 
   async updateReward(id: string, data: Partial<LoyaltyReward>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<LoyaltyReward>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/loyalty/rewards/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/loyalty/rewards/${id}`,
           data
         )
       );
@@ -138,13 +138,13 @@ export class LoyaltyService {
   }
 
   async deleteReward(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/loyalty/rewards/${id}`
+          `${this.apiUrl}/merchant/${this.merchantId}/loyalty/rewards/${id}`
         )
       );
       this._rewards.update(rewards => rewards.filter(r => r.id !== id));
@@ -158,12 +158,12 @@ export class LoyaltyService {
   // --- Customer Loyalty ---
 
   async getCustomerLoyalty(customerId: string): Promise<LoyaltyProfile | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<LoyaltyProfile>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/loyalty`
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/${customerId}/loyalty`
         )
       );
     } catch {
@@ -172,12 +172,12 @@ export class LoyaltyService {
   }
 
   async getPointsHistory(customerId: string): Promise<LoyaltyTransaction[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       return await firstValueFrom(
         this.http.get<LoyaltyTransaction[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/loyalty/history`
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/${customerId}/loyalty/history`
         )
       );
     } catch {
@@ -186,13 +186,13 @@ export class LoyaltyService {
   }
 
   async adjustPoints(customerId: string, points: number, reason: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/loyalty/adjust`,
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/${customerId}/loyalty/adjust`,
           { points, reason }
         )
       );
@@ -204,12 +204,12 @@ export class LoyaltyService {
   }
 
   async lookupCustomerByPhone(phone: string): Promise<Customer | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<Customer>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/lookup?phone=${encodeURIComponent(phone)}`
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/lookup?phone=${encodeURIComponent(phone)}`
         )
       );
     } catch {
@@ -218,12 +218,12 @@ export class LoyaltyService {
   }
 
   async getAvailableRewards(customerId: string): Promise<LoyaltyReward[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       return await firstValueFrom(
         this.http.get<LoyaltyReward[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/customers/${customerId}/loyalty/rewards`
+          `${this.apiUrl}/merchant/${this.merchantId}/customers/${customerId}/loyalty/rewards`
         )
       );
     } catch {

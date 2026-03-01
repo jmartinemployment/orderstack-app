@@ -8,20 +8,20 @@ function authGuardDecision(isAuthenticated: boolean): boolean | string {
 }
 
 // guestGuard: if not authenticated → true (allow login page)
-//             if authenticated with restaurant → redirect /home
+//             if authenticated with restaurant → redirect /administration
 //             if authenticated without restaurant → redirect /setup
 function guestGuardDecision(
   isAuthenticated: boolean,
-  selectedRestaurantId: string | null,
+  selectedMerchantId: string | null,
   restaurantCount: number,
 ): boolean | string {
   if (!isAuthenticated) return true;
-  if (selectedRestaurantId || restaurantCount > 0) return '/administration';
+  if (selectedMerchantId || restaurantCount > 0) return '/administration';
   return '/setup';
 }
 
 // onboardingGuard: profile loaded → true
-//                  no profile but restaurantId → reload and check
+//                  no profile but merchantId → reload and check
 //                  has restaurants from login → true (returning user)
 //                  nothing → redirect /setup
 function onboardingGuardDecision(
@@ -36,7 +36,7 @@ function onboardingGuardDecision(
   return '/setup';
 }
 
-// deviceModeRedirectGuard: always redirects to /home
+// deviceModeRedirectGuard: always redirects to /administration
 function deviceModeRedirectGuardDecision(): string {
   return '/administration';
 }
@@ -71,11 +71,11 @@ describe('guestGuard — decision logic', () => {
     expect(guestGuardDecision(false, null, 0)).toBe(true);
   });
 
-  it('redirects to /home when authenticated with selected restaurant', () => {
+  it('redirects to /administration when authenticated with selected restaurant', () => {
     expect(guestGuardDecision(true, 'r-1', 0)).toBe('/administration');
   });
 
-  it('redirects to /home when authenticated with restaurants list', () => {
+  it('redirects to /administration when authenticated with restaurants list', () => {
     expect(guestGuardDecision(true, null, 2)).toBe('/administration');
   });
 
@@ -83,7 +83,7 @@ describe('guestGuard — decision logic', () => {
     expect(guestGuardDecision(true, null, 0)).toBe('/setup');
   });
 
-  it('prefers selectedRestaurantId over count', () => {
+  it('prefers selectedMerchantId over count', () => {
     expect(guestGuardDecision(true, 'r-1', 0)).toBe('/administration');
   });
 });
@@ -111,7 +111,7 @@ describe('onboardingGuard — decision logic', () => {
 });
 
 describe('deviceModeRedirectGuard — decision logic', () => {
-  it('always redirects to /home', () => {
+  it('always redirects to /administration', () => {
     expect(deviceModeRedirectGuardDecision()).toBe('/administration');
   });
 });

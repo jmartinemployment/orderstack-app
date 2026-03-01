@@ -78,7 +78,7 @@ export type GoalPeriodType = 'daily' | 'weekly' | 'monthly';
 
 export interface SalesGoal {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   type: GoalPeriodType;
   targetRevenue: number;
   startDate: string;
@@ -296,7 +296,7 @@ export type OnlineOrderEventType =
 
 export interface OnlineOrderEvent {
   type: OnlineOrderEventType;
-  restaurantId: string;
+  merchantId: string;
   sessionId: string;
   metadata: Record<string, unknown>;
   timestamp: string;

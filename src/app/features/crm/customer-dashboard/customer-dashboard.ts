@@ -190,7 +190,7 @@ export class CustomerDashboard {
 
   constructor() {
     effect(() => {
-      if (this.isAuthenticated() && this.authService.selectedRestaurantId()) {
+      if (this.isAuthenticated() && this.authService.selectedMerchantId()) {
         this.customerService.loadCustomers();
         this.loyaltyService.loadConfig();
       }

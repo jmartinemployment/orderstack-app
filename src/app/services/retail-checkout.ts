@@ -71,8 +71,8 @@ export class RetailCheckoutService {
     this.cartSubtotal() + this.cartTax()
   );
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   // --- Cart Operations ---
@@ -210,14 +210,14 @@ export class RetailCheckoutService {
   // --- Payment ---
 
   async processPayment(payments: RetailPayment[], isGiftReceipt: boolean = false): Promise<RetailTransaction | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isProcessing.set(true);
     this._error.set(null);
 
     try {
       const transaction = await firstValueFrom(
         this.http.post<RetailTransaction>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/checkout`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/checkout`,
           {
             items: this._cart().map(c => ({
               itemId: c.itemId,
@@ -283,12 +283,12 @@ export class RetailCheckoutService {
   // --- Quick Keys ---
 
   async loadQuickKeys(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<QuickKey[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/quick-keys`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/quick-keys`
         )
       );
       this._quickKeys.set(data);
@@ -303,12 +303,12 @@ export class RetailCheckoutService {
   }
 
   async saveQuickKey(formData: QuickKeyFormData): Promise<QuickKey | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const key = await firstValueFrom(
         this.http.post<QuickKey>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/quick-keys`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/quick-keys`,
           formData
         )
       );
@@ -328,12 +328,12 @@ export class RetailCheckoutService {
   }
 
   async deleteQuickKey(keyId: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/quick-keys/${keyId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/quick-keys/${keyId}`
         )
       );
       this._quickKeys.update(keys => keys.filter(k => k.id !== keyId));
@@ -346,12 +346,12 @@ export class RetailCheckoutService {
   // --- Gift Card ---
 
   async lookupGiftCard(cardNumber: string): Promise<{ balance: number; cardNumber: string } | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<{ balance: number; cardNumber: string }>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/gift-cards/lookup`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/gift-cards/lookup`,
           { params: { cardNumber } }
         )
       );
@@ -368,12 +368,12 @@ export class RetailCheckoutService {
   readonly storeCredits = this._storeCredits.asReadonly();
 
   async lookupStoreCredit(customerId: string): Promise<StoreCredit | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const credit = await firstValueFrom(
         this.http.get<StoreCredit>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/store-credits/${customerId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/store-credits/${customerId}`
         )
       );
       return credit;
@@ -385,12 +385,12 @@ export class RetailCheckoutService {
   }
 
   async issueStoreCredit(customerId: string, amount: number, reason: string): Promise<StoreCredit | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.post<StoreCredit>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/store-credits`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/store-credits`,
           { customerId, amount, reason }
         )
       );
@@ -411,12 +411,12 @@ export class RetailCheckoutService {
   );
 
   async loadLayaways(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<LayawayRecord[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/layaways`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/layaways`
         )
       );
       this._layaways.set(data);
@@ -431,13 +431,13 @@ export class RetailCheckoutService {
   }
 
   async createLayaway(customerId: string, depositAmount: number, depositMethod: RetailPaymentMethod): Promise<LayawayRecord | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isProcessing.set(true);
 
     try {
       const record = await firstValueFrom(
         this.http.post<LayawayRecord>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/layaways`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/layaways`,
           {
             customerId,
             items: this._cart().map(c => ({
@@ -466,13 +466,13 @@ export class RetailCheckoutService {
   }
 
   async makeLayawayPayment(layawayId: string, amount: number, method: RetailPaymentMethod): Promise<LayawayRecord | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isProcessing.set(true);
 
     try {
       const updated = await firstValueFrom(
         this.http.post<LayawayRecord>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/layaways/${layawayId}/payments`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/layaways/${layawayId}/payments`,
           { amount, method }
         )
       );
@@ -488,12 +488,12 @@ export class RetailCheckoutService {
   }
 
   async cancelLayaway(layawayId: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/layaways/${layawayId}/cancel`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/layaways/${layawayId}/cancel`,
           {}
         )
       );
@@ -512,12 +512,12 @@ export class RetailCheckoutService {
   readonly receiptTemplate = this._receiptTemplate.asReadonly();
 
   async loadReceiptTemplate(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const template = await firstValueFrom(
         this.http.get<ReceiptTemplate>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/receipt-template`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/receipt-template`
         )
       );
       this._receiptTemplate.set(template);
@@ -528,12 +528,12 @@ export class RetailCheckoutService {
   }
 
   async saveReceiptTemplate(template: ReceiptTemplate): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const saved = await firstValueFrom(
         this.http.put<ReceiptTemplate>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/receipt-template`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/receipt-template`,
           template
         )
       );
@@ -547,12 +547,12 @@ export class RetailCheckoutService {
   // --- Transaction Lookup ---
 
   async lookupTransaction(receiptNumber: string): Promise<RetailTransaction | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<RetailTransaction>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/transactions/lookup`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/transactions/lookup`,
           { params: { receiptNumber } }
         )
       );
@@ -570,12 +570,12 @@ export class RetailCheckoutService {
     dateFrom?: string;
     dateTo?: string;
   }): Promise<RetailTransaction[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       return await firstValueFrom(
         this.http.get<RetailTransaction[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/transactions/search`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/transactions/search`,
           { params: params as Record<string, string> }
         )
       );
@@ -592,12 +592,12 @@ export class RetailCheckoutService {
   readonly returnPolicy = this._returnPolicy.asReadonly();
 
   async loadReturnPolicy(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const policy = await firstValueFrom(
         this.http.get<ReturnPolicy>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/return-policy`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/return-policy`
         )
       );
       this._returnPolicy.set(policy);
@@ -614,12 +614,12 @@ export class RetailCheckoutService {
   }
 
   async saveReturnPolicy(policy: ReturnPolicy): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const saved = await firstValueFrom(
         this.http.put<ReturnPolicy>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/return-policy`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/return-policy`,
           policy
         )
       );
@@ -631,14 +631,14 @@ export class RetailCheckoutService {
   }
 
   async processReturn(request: ReturnRequest): Promise<RetailTransaction | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isProcessing.set(true);
     this._error.set(null);
 
     try {
       const transaction = await firstValueFrom(
         this.http.post<RetailTransaction>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/returns`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/returns`,
           request
         )
       );
@@ -679,14 +679,14 @@ export class RetailCheckoutService {
     newPayments: RetailPayment[],
     isGiftReceipt: boolean
   ): Promise<RetailTransaction | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isProcessing.set(true);
     this._error.set(null);
 
     try {
       const transaction = await firstValueFrom(
         this.http.post<RetailTransaction>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/exchanges`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/exchanges`,
           {
             returnRequest,
             newItems: this._cart().map(c => ({

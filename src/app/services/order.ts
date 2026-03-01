@@ -286,8 +286,8 @@ export class OrderService implements OnDestroy {
     }
   }
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   constructor() {
@@ -372,7 +372,7 @@ export class OrderService implements OnDestroy {
 
     // Load persisted queue when restaurant changes
     effect(() => {
-      if (this.authService.selectedRestaurantId()) {
+      if (this.authService.selectedMerchantId()) {
         this.loadQueue();
       }
     });
@@ -456,7 +456,7 @@ export class OrderService implements OnDestroy {
   }
 
   async loadOrders(options?: { limit?: number; sourceDeviceId?: string }): Promise<void> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return;
     }
@@ -471,7 +471,7 @@ export class OrderService implements OnDestroy {
     this._error.set(null);
 
     try {
-      let url = `${this.apiUrl}/restaurant/${this.restaurantId}/orders?limit=${limit}`;
+      let url = `${this.apiUrl}/merchant/${this.merchantId}/orders?limit=${limit}`;
       if (sourceDeviceId) {
         url += `&sourceDeviceId=${encodeURIComponent(sourceDeviceId)}`;
       }
@@ -489,7 +489,7 @@ export class OrderService implements OnDestroy {
   }
 
   async createOrder(orderData: Record<string, unknown>): Promise<Order | null> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return null;
     }
@@ -500,7 +500,7 @@ export class OrderService implements OnDestroy {
     try {
       const raw = await firstValueFrom(
         this.http.post<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders`,
           orderData
         )
       );
@@ -523,7 +523,7 @@ export class OrderService implements OnDestroy {
   }
 
   async updateOrderStatus(orderId: string, status: GuestOrderStatus, options?: { skipPrint?: boolean }): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return false;
     }
@@ -536,7 +536,7 @@ export class OrderService implements OnDestroy {
     try {
       const raw = await firstValueFrom(
         this.http.patch<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/status`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/status`,
           { status: backendStatus }
         )
       );
@@ -620,12 +620,12 @@ export class OrderService implements OnDestroy {
   }
 
   async getProfitInsight(orderId: string): Promise<ProfitInsight | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<ProfitInsight>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/profit-insight`
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/profit-insight`
         )
       );
     } catch {
@@ -634,12 +634,12 @@ export class OrderService implements OnDestroy {
   }
 
   async getRecentProfit(limit = 10): Promise<RecentProfitSummary | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<RecentProfitSummary>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/recent-profit?limit=${limit}`
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/recent-profit?limit=${limit}`
         )
       );
     } catch {
@@ -648,7 +648,7 @@ export class OrderService implements OnDestroy {
   }
 
   async fireCourse(orderId: string, courseGuid: string): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return false;
     }
@@ -656,7 +656,7 @@ export class OrderService implements OnDestroy {
     try {
       const raw = await firstValueFrom(
         this.http.patch<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/fire-course`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/fire-course`,
           { courseGuid }
         )
       );
@@ -672,7 +672,7 @@ export class OrderService implements OnDestroy {
   }
 
   async addCourseToOrder(orderId: string, courseName: string, sortOrder: number): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return false;
     }
@@ -680,7 +680,7 @@ export class OrderService implements OnDestroy {
     try {
       const raw = await firstValueFrom(
         this.http.post<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/courses`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/courses`,
           { name: courseName, sortOrder }
         )
       );
@@ -696,7 +696,7 @@ export class OrderService implements OnDestroy {
   }
 
   async assignSelectionToCourse(orderId: string, selectionGuid: string, courseGuid: string): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return false;
     }
@@ -704,7 +704,7 @@ export class OrderService implements OnDestroy {
     try {
       const raw = await firstValueFrom(
         this.http.patch<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/assign-course`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/assign-course`,
           { selectionGuid, courseGuid }
         )
       );
@@ -720,7 +720,7 @@ export class OrderService implements OnDestroy {
   }
 
   async holdCourse(orderId: string, courseGuid: string): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return false;
     }
@@ -728,7 +728,7 @@ export class OrderService implements OnDestroy {
     try {
       const raw = await firstValueFrom(
         this.http.patch<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/hold-course`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/hold-course`,
           { courseGuid }
         )
       );
@@ -744,7 +744,7 @@ export class OrderService implements OnDestroy {
   }
 
   async removeCourseFromOrder(orderId: string, courseGuid: string): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return false;
     }
@@ -752,7 +752,7 @@ export class OrderService implements OnDestroy {
     try {
       const raw = await firstValueFrom(
         this.http.delete<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/courses/${courseGuid}`
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/courses/${courseGuid}`
         )
       );
       const updatedOrder = this.mapOrder(raw);
@@ -767,7 +767,7 @@ export class OrderService implements OnDestroy {
   }
 
   async fireItemNow(orderId: string, selectionGuid: string): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return false;
     }
@@ -775,7 +775,7 @@ export class OrderService implements OnDestroy {
     try {
       const raw = await firstValueFrom(
         this.http.patch<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/fire-item`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/fire-item`,
           { selectionGuid }
         )
       );
@@ -792,14 +792,14 @@ export class OrderService implements OnDestroy {
   }
 
   async getCoursePacingMetrics(lookbackDays = 30): Promise<CoursePacingMetrics | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     const safeLookbackDays = Math.max(1, Math.min(90, Math.round(Number(lookbackDays) || 30)));
 
     try {
       const raw = await firstValueFrom(
         this.http.get<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/course-pacing/metrics`,
+          `${this.apiUrl}/merchant/${this.merchantId}/course-pacing/metrics`,
           { params: { lookbackDays: String(safeLookbackDays) } }
         )
       );
@@ -824,12 +824,12 @@ export class OrderService implements OnDestroy {
   }
 
   async getOrderThrottlingStatus(): Promise<OrderThrottlingStatus | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const raw = await firstValueFrom(
         this.http.get<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/throttling/status`
+          `${this.apiUrl}/merchant/${this.merchantId}/throttling/status`
         )
       );
 
@@ -862,7 +862,7 @@ export class OrderService implements OnDestroy {
   }
 
   async holdOrderForThrottling(orderId: string): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return false;
     }
@@ -870,7 +870,7 @@ export class OrderService implements OnDestroy {
     try {
       const raw = await firstValueFrom(
         this.http.post<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/throttle/hold`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/throttle/hold`,
           {}
         )
       );
@@ -887,7 +887,7 @@ export class OrderService implements OnDestroy {
   }
 
   async releaseOrderFromThrottling(orderId: string): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return false;
     }
@@ -895,7 +895,7 @@ export class OrderService implements OnDestroy {
     try {
       const raw = await firstValueFrom(
         this.http.post<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/throttle/release`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/throttle/release`,
           {}
         )
       );
@@ -919,7 +919,7 @@ export class OrderService implements OnDestroy {
       localId,
       orderData,
       queuedAt: Date.now(),
-      restaurantId: this.restaurantId ?? '',
+      merchantId: this.merchantId ?? '',
       retryCount: 0,
     };
 
@@ -964,7 +964,7 @@ export class OrderService implements OnDestroy {
 
     return {
       guid: localId,
-      restaurantId: this.restaurantId ?? '',
+      merchantId: this.merchantId ?? '',
       orderNumber: 'Q-' + localId.slice(0, 4).toUpperCase(),
       guestOrderStatus: 'RECEIVED',
       server: { guid: 'offline', name: 'Offline', entityType: 'RestaurantUser' },
@@ -981,14 +981,14 @@ export class OrderService implements OnDestroy {
   }
 
   private persistQueue(): void {
-    if (!this.restaurantId) return;
-    const key = `${this.restaurantId}-offline-queue`;
+    if (!this.merchantId) return;
+    const key = `${this.merchantId}-offline-queue`;
     localStorage.setItem(key, JSON.stringify(this._queuedOrders()));
   }
 
   private loadQueue(): void {
-    if (!this.restaurantId) return;
-    const key = `${this.restaurantId}-offline-queue`;
+    if (!this.merchantId) return;
+    const key = `${this.merchantId}-offline-queue`;
     const stored = localStorage.getItem(key);
     if (stored) {
       try {
@@ -1014,7 +1014,7 @@ export class OrderService implements OnDestroy {
       try {
         const raw = await firstValueFrom(
           this.http.post<any>(
-            `${this.apiUrl}/restaurant/${queued.restaurantId}/orders`,
+            `${this.apiUrl}/merchant/${queued.merchantId}/orders`,
             queued.orderData
           )
         );
@@ -1061,12 +1061,12 @@ export class OrderService implements OnDestroy {
   readonly activityEvents = this._activityEvents.asReadonly();
 
   async loadOrderActivity(orderId: string): Promise<OrderActivityEvent[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       const events = await firstValueFrom(
         this.http.get<OrderActivityEvent[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/activity`
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/activity`
         )
       );
       this._activityEvents.update(map => {
@@ -1087,14 +1087,14 @@ export class OrderService implements OnDestroy {
   // --- Bulk Status Updates ---
 
   async bulkUpdateStatus(orderIds: string[], newStatus: GuestOrderStatus): Promise<boolean> {
-    if (!this.restaurantId || orderIds.length === 0) return false;
+    if (!this.merchantId || orderIds.length === 0) return false;
     this._error.set(null);
 
     const backendStatus = mapGuestToBackendStatus(newStatus);
     try {
       const results = await firstValueFrom(
         this.http.patch<any[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/bulk-status`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/bulk-status`,
           { orderIds, status: backendStatus }
         )
       );
@@ -1117,13 +1117,13 @@ export class OrderService implements OnDestroy {
   // --- Order Notes ---
 
   async addOrderNote(orderId: string, noteType: OrderNoteType, text: string, checkGuid?: string): Promise<OrderNote | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
 
     try {
       const note = await firstValueFrom(
         this.http.post<OrderNote>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/notes`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/notes`,
           { noteType, text, checkGuid }
         )
       );
@@ -1145,11 +1145,11 @@ export class OrderService implements OnDestroy {
   readonly templates = this._templates.asReadonly();
 
   async loadTemplates(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     try {
       const templates = await firstValueFrom(
         this.http.get<OrderTemplate[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/order-templates`
+          `${this.apiUrl}/merchant/${this.merchantId}/order-templates`
         )
       );
       this._templates.set(templates);
@@ -1159,12 +1159,12 @@ export class OrderService implements OnDestroy {
   }
 
   async saveTemplate(name: string, items: { menuItemId: string; quantity: number; modifiers: string[] }[]): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/order-templates`,
+          `${this.apiUrl}/merchant/${this.merchantId}/order-templates`,
           { name, items }
         )
       );
@@ -1177,11 +1177,11 @@ export class OrderService implements OnDestroy {
   }
 
   async deleteTemplate(templateId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/order-templates/${templateId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/order-templates/${templateId}`
         )
       );
       this._templates.update(t => t.filter(tmpl => tmpl.id !== templateId));
@@ -1202,13 +1202,13 @@ export class OrderService implements OnDestroy {
   private readonly _scanToPayCallbacks: Array<(data: { orderId: string; checkGuid: string; tipAmount: number; total: number }) => void> = [];
 
   async generateCheckQr(orderId: string, checkId: string): Promise<{ token: string; qrCodeUrl: string } | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.post<{ token: string; qrCodeUrl: string }>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/checks/${checkId}/scan-to-pay`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/checks/${checkId}/scan-to-pay`,
           {}
         )
       );
@@ -1329,14 +1329,14 @@ export class OrderService implements OnDestroy {
     selectionGuid: string,
     reason: string
   ): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._isLoading.set(true);
     this._error.set(null);
 
     try {
       const raw = await firstValueFrom(
         this.http.post<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/checks/${checkGuid}/items/${selectionGuid}/remake`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/checks/${checkGuid}/items/${selectionGuid}/remake`,
           { reason }
         )
       );
@@ -1354,12 +1354,12 @@ export class OrderService implements OnDestroy {
   // --- Customer Recent Orders (Online Portal) ---
 
   async getCustomerRecentOrders(phone: string, limit = 5): Promise<Order[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       const rawOrders = await firstValueFrom(
         this.http.get<any[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/recent`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/recent`,
           { params: { phone, limit: limit.toString() } }
         )
       );
@@ -1618,7 +1618,7 @@ export class OrderService implements OnDestroy {
 
     return {
       guid: raw.id ?? crypto.randomUUID(),
-      restaurantId: raw.restaurantId ?? '',
+      merchantId: raw.merchantId ?? '',
       orderNumber: raw.orderNumber ?? '',
       guestOrderStatus,
       orderSource: raw.orderSource ?? undefined,
@@ -1682,11 +1682,11 @@ export class OrderService implements OnDestroy {
   // --- Dining option action methods ---
 
   async updateDeliveryStatus(orderId: string, deliveryStatus: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     try {
       const raw = await firstValueFrom(
         this.http.patch<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/delivery-status`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/delivery-status`,
           { deliveryStatus }
         )
       );
@@ -1699,11 +1699,11 @@ export class OrderService implements OnDestroy {
   }
 
   async approveOrder(orderId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     try {
       const raw = await firstValueFrom(
         this.http.patch<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/approval`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/approval`,
           { status: 'APPROVED' }
         )
       );
@@ -1716,11 +1716,11 @@ export class OrderService implements OnDestroy {
   }
 
   async rejectOrder(orderId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     try {
       const raw = await firstValueFrom(
         this.http.patch<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/approval`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/approval`,
           { status: 'NOT_APPROVED' }
         )
       );
@@ -1733,11 +1733,11 @@ export class OrderService implements OnDestroy {
   }
 
   async notifyCurbsideArrival(orderId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     try {
       const raw = await firstValueFrom(
         this.http.patch<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/arrival`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/arrival`,
           {}
         )
       );
@@ -1750,7 +1750,7 @@ export class OrderService implements OnDestroy {
   }
 
   async retryPrint(orderId: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     this.setPrintStatus(orderId, 'printing');
     this.startPrintTimeout(orderId);
@@ -1758,7 +1758,7 @@ export class OrderService implements OnDestroy {
     try {
       await firstValueFrom(
         this.http.post<any>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}/reprint`,
+          `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}/reprint`,
           {}
         )
       );

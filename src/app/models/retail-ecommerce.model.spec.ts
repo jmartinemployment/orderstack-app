@@ -72,7 +72,7 @@ describe('retail-ecommerce.model types', () => {
       const listing: ProductListing = {
         id: 'pl-1',
         retailItemId: 'ri-1',
-        restaurantId: 'r-1',
+        merchantId: 'r-1',
         title: 'Red Shirt',
         description: 'A nice red shirt',
         seoTitle: 'Red Shirt - Buy Online',
@@ -93,7 +93,7 @@ describe('retail-ecommerce.model types', () => {
 
   // --- ProductListingFormData ---
   describe('ProductListingFormData', () => {
-    it('should construct form data without restaurantId', () => {
+    it('should construct form data without merchantId', () => {
       const form: ProductListingFormData = {
         retailItemId: 'ri-1',
         title: 'Blue Pants',
@@ -106,7 +106,7 @@ describe('retail-ecommerce.model types', () => {
         fulfillmentOptions: ['pickup'],
       };
       expect(form.isPublished).toBe(false);
-      expect((form as Record<string, unknown>)['restaurantId']).toBeUndefined();
+      expect((form as Record<string, unknown>)['merchantId']).toBeUndefined();
     });
   });
 
@@ -122,7 +122,7 @@ describe('retail-ecommerce.model types', () => {
     it('should construct a flat rate method', () => {
       const method: ShippingMethod = {
         id: 'sm-1',
-        restaurantId: 'r-1',
+        merchantId: 'r-1',
         name: 'Standard Shipping',
         type: 'flat_rate',
         rate: 5.99,
@@ -138,7 +138,7 @@ describe('retail-ecommerce.model types', () => {
 
   // --- ShippingMethodFormData ---
   describe('ShippingMethodFormData', () => {
-    it('should construct form data without id or restaurantId', () => {
+    it('should construct form data without id or merchantId', () => {
       const form: ShippingMethodFormData = {
         name: 'Express',
         type: 'flat_rate',
@@ -225,7 +225,7 @@ describe('retail-ecommerce.model types', () => {
       const order: EcommerceOrder = {
         id: 'o-1',
         orderNumber: 'ORD-1001',
-        restaurantId: 'r-1',
+        merchantId: 'r-1',
         customerId: 'c-1',
         customerEmail: 'jane@example.com',
         customerName: 'Jane Doe',
@@ -254,7 +254,7 @@ describe('retail-ecommerce.model types', () => {
       const order: EcommerceOrder = {
         id: 'o-2',
         orderNumber: 'ORD-1002',
-        restaurantId: 'r-1',
+        merchantId: 'r-1',
         customerId: null,
         customerEmail: 'guest@example.com',
         customerName: 'Guest User',
@@ -352,7 +352,7 @@ describe('retail-ecommerce.model types', () => {
   describe('StoreConfig', () => {
     it('should construct a store config with all fulfillment options enabled', () => {
       const config: StoreConfig = {
-        restaurantId: 'r-1',
+        merchantId: 'r-1',
         storeSlug: 'cool-store',
         storeName: 'Cool Store',
         logoUrl: 'https://example.com/logo.png',
@@ -377,7 +377,7 @@ describe('retail-ecommerce.model types', () => {
 
     it('should allow null optional fields', () => {
       const config: StoreConfig = {
-        restaurantId: 'r-2',
+        merchantId: 'r-2',
         storeSlug: 'basic-shop',
         storeName: 'Basic Shop',
         logoUrl: null,
@@ -487,7 +487,7 @@ describe('retail-ecommerce.model types', () => {
   describe('ChannelSyncConfig', () => {
     it('should construct a channel sync config', () => {
       const config: ChannelSyncConfig = {
-        restaurantId: 'r-1',
+        merchantId: 'r-1',
         enableRealTimeInventorySync: true,
         enablePriceSync: true,
         bufferStockPerChannel: 5,
@@ -508,7 +508,7 @@ describe('retail-ecommerce.model types', () => {
 
   // --- ChannelSyncConfigFormData ---
   describe('ChannelSyncConfigFormData', () => {
-    it('should not include restaurantId', () => {
+    it('should not include merchantId', () => {
       const form: ChannelSyncConfigFormData = {
         enableRealTimeInventorySync: false,
         enablePriceSync: false,
@@ -516,7 +516,7 @@ describe('retail-ecommerce.model types', () => {
         perChannelPricing: true,
         outOfStockBehavior: 'hide',
       };
-      expect((form as Record<string, unknown>)['restaurantId']).toBeUndefined();
+      expect((form as Record<string, unknown>)['merchantId']).toBeUndefined();
     });
   });
 

@@ -1,6 +1,6 @@
 export interface MenuCategory {
   id: string;
-  restaurantId?: string;
+  merchantId?: string;
   slug?: string;
   name: string;
   nameEs?: string;
@@ -205,7 +205,7 @@ export type BarcodeFormat = 'UPC-A' | 'EAN-13' | 'CODE-128';
 
 export interface ReportingCategory {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   displayOrder: number;
 }
@@ -228,7 +228,7 @@ export interface ItemVariation {
 
 export interface ItemOptionSet {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   values: string[];
 }
@@ -247,7 +247,7 @@ export interface Daypart {
 
 export interface MenuSchedule {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   dayparts: Daypart[];
   isDefault: boolean;

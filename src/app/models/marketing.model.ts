@@ -24,7 +24,7 @@ export interface CampaignPerformance {
 
 export interface Campaign {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   type: CampaignType;
   channel: CampaignChannel;
@@ -117,7 +117,7 @@ export type AutomationTrigger =
 
 export interface MarketingAutomation {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   trigger: AutomationTrigger;
   name: string;
   campaignTemplateId: string | null;

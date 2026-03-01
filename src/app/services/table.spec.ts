@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 
 interface RestaurantTable {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   tableNumber: string;
   tableName: string | null;
   capacity: number;
@@ -20,7 +20,7 @@ interface RestaurantTable {
 function toModel(row: Record<string, unknown>): RestaurantTable {
   return {
     id: row['id'] as string,
-    restaurantId: row['restaurant_id'] as string,
+    merchantId: row['restaurant_id'] as string,
     tableNumber: row['table_number'] as string,
     tableName: (row['table_name'] as string) ?? null,
     capacity: row['capacity'] as number,
@@ -36,7 +36,7 @@ function toModel(row: Record<string, unknown>): RestaurantTable {
 
 function toRow(data: Partial<RestaurantTable>): Record<string, unknown> {
   const map: Record<string, unknown> = {};
-  if (data.restaurantId !== undefined) map['restaurant_id'] = data.restaurantId;
+  if (data.merchantId !== undefined) map['restaurant_id'] = data.merchantId;
   if (data.tableNumber !== undefined) map['table_number'] = data.tableNumber;
   if (data.tableName !== undefined) map['table_name'] = data.tableName;
   if (data.capacity !== undefined) map['capacity'] = data.capacity;
@@ -68,7 +68,7 @@ describe('TableService — toModel', () => {
     };
     const table = toModel(row);
     expect(table.id).toBe('t-1');
-    expect(table.restaurantId).toBe('r-1');
+    expect(table.merchantId).toBe('r-1');
     expect(table.tableNumber).toBe('5');
     expect(table.tableName).toBe('Window');
     expect(table.capacity).toBe(4);

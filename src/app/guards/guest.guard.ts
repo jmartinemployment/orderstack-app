@@ -15,7 +15,7 @@ export const guestGuard = () => {
   }
 
   // Authenticated — redirect based on whether they have a restaurant
-  if (auth.selectedRestaurantId() || auth.restaurants().length > 0) {
+  if (auth.selectedMerchantId() || auth.merchants().length > 0) {
     return router.createUrlTree(['/administration']);
   }
 

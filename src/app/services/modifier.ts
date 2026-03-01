@@ -21,17 +21,17 @@ export class ModifierService {
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   async loadGroups(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
     try {
       const groups = await firstValueFrom(
-        this.http.get<ModifierGroup[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/modifiers`)
+        this.http.get<ModifierGroup[]>(`${this.apiUrl}/merchant/${this.merchantId}/modifiers`)
       );
       this._groups.set(groups);
     } catch (err: unknown) {
@@ -42,11 +42,11 @@ export class ModifierService {
   }
 
   async createGroup(data: ModifierGroupFormData): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.post(`${this.apiUrl}/restaurant/${this.restaurantId}/modifiers`, data)
+        this.http.post(`${this.apiUrl}/merchant/${this.merchantId}/modifiers`, data)
       );
       await this.loadGroups();
       return true;
@@ -57,11 +57,11 @@ export class ModifierService {
   }
 
   async updateGroup(groupId: string, data: Partial<ModifierGroupFormData>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.patch(`${this.apiUrl}/restaurant/${this.restaurantId}/modifiers/${groupId}`, data)
+        this.http.patch(`${this.apiUrl}/merchant/${this.merchantId}/modifiers/${groupId}`, data)
       );
       await this.loadGroups();
       return true;
@@ -72,11 +72,11 @@ export class ModifierService {
   }
 
   async deleteGroup(groupId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/modifiers/${groupId}`)
+        this.http.delete(`${this.apiUrl}/merchant/${this.merchantId}/modifiers/${groupId}`)
       );
       await this.loadGroups();
       return true;
@@ -87,11 +87,11 @@ export class ModifierService {
   }
 
   async createOption(groupId: string, data: ModifierFormData): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.post(`${this.apiUrl}/restaurant/${this.restaurantId}/modifiers/${groupId}/options`, data)
+        this.http.post(`${this.apiUrl}/merchant/${this.merchantId}/modifiers/${groupId}/options`, data)
       );
       await this.loadGroups();
       return true;
@@ -102,11 +102,11 @@ export class ModifierService {
   }
 
   async updateOption(groupId: string, optionId: string, data: Partial<ModifierFormData>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.patch(`${this.apiUrl}/restaurant/${this.restaurantId}/modifiers/${groupId}/options/${optionId}`, data)
+        this.http.patch(`${this.apiUrl}/merchant/${this.merchantId}/modifiers/${groupId}/options/${optionId}`, data)
       );
       await this.loadGroups();
       return true;
@@ -117,11 +117,11 @@ export class ModifierService {
   }
 
   async deleteOption(groupId: string, optionId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/modifiers/${groupId}/options/${optionId}`)
+        this.http.delete(`${this.apiUrl}/merchant/${this.merchantId}/modifiers/${groupId}/options/${optionId}`)
       );
       await this.loadGroups();
       return true;

@@ -164,20 +164,20 @@ export class Login {
       const user = this.authService.user();
       if (user?.onboardingStatus && user.onboardingStatus !== 'complete') {
         // Auto-select first restaurant for onboarding users
-        const restaurants = this.authService.restaurants();
+        const restaurants = this.authService.merchants();
         if (restaurants.length > 0) {
-          this.authService.selectRestaurant(restaurants[0].id, restaurants[0].name);
+          this.authService.selectMerchant(restaurants[0].id, restaurants[0].name);
         }
         this.router.navigate(['/onboarding-checklist']);
         return;
       }
 
-      const restaurants = this.authService.restaurants();
+      const restaurants = this.authService.merchants();
 
       if (restaurants.length === 0) {
         this.router.navigate(['/setup']);
       } else if (restaurants.length === 1) {
-        this.authService.selectRestaurant(restaurants[0].id, restaurants[0].name);
+        this.authService.selectMerchant(restaurants[0].id, restaurants[0].name);
         this.router.navigate(['/']);
       } else {
         this.router.navigate(['/select-restaurant']);

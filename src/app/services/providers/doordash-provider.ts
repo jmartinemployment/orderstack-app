@@ -34,7 +34,7 @@ export class DoorDashDeliveryProvider implements DeliveryProvider {
 
   async requestQuote(orderId: string, context: DeliveryContext): Promise<DeliveryQuote> {
     const response = await fetch(
-      `${context.apiUrl}/restaurant/${context.restaurantId}/delivery/quote`,
+      `${context.apiUrl}/merchant/${context.merchantId}/delivery/quote`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -51,7 +51,7 @@ export class DoorDashDeliveryProvider implements DeliveryProvider {
 
   async acceptQuote(orderId: string, quoteId: string, context: DeliveryContext): Promise<DeliveryDispatchResult> {
     const response = await fetch(
-      `${context.apiUrl}/restaurant/${context.restaurantId}/delivery/dispatch`,
+      `${context.apiUrl}/merchant/${context.merchantId}/delivery/dispatch`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -68,7 +68,7 @@ export class DoorDashDeliveryProvider implements DeliveryProvider {
 
   async cancelDelivery(orderId: string, deliveryExternalId: string, context: DeliveryContext): Promise<boolean> {
     const response = await fetch(
-      `${context.apiUrl}/restaurant/${context.restaurantId}/delivery/cancel`,
+      `${context.apiUrl}/merchant/${context.merchantId}/delivery/cancel`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -81,7 +81,7 @@ export class DoorDashDeliveryProvider implements DeliveryProvider {
 
   async getStatus(orderId: string, deliveryExternalId: string, context: DeliveryContext): Promise<DeliveryDriverInfo> {
     const response = await fetch(
-      `${context.apiUrl}/restaurant/${context.restaurantId}/delivery/status/${deliveryExternalId}`
+      `${context.apiUrl}/merchant/${context.merchantId}/delivery/status/${deliveryExternalId}`
     );
 
     if (!response.ok) {

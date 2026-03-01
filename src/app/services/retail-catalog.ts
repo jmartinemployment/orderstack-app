@@ -109,21 +109,21 @@ export class RetailCatalogService {
     this._bundles().filter(b => b.isActive)
   );
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   // --- Items CRUD ---
 
   async loadItems(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
 
     try {
       const data = await firstValueFrom(
         this.http.get<RetailItem[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/items`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/items`
         )
       );
       this._items.set(data);
@@ -140,12 +140,12 @@ export class RetailCatalogService {
   }
 
   async createItem(formData: RetailItemFormData): Promise<RetailItem | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const item = await firstValueFrom(
         this.http.post<RetailItem>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/items`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/items`,
           formData
         )
       );
@@ -159,12 +159,12 @@ export class RetailCatalogService {
   }
 
   async updateItem(itemId: string, formData: Partial<RetailItemFormData>): Promise<RetailItem | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const item = await firstValueFrom(
         this.http.put<RetailItem>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/items/${itemId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/items/${itemId}`,
           formData
         )
       );
@@ -178,12 +178,12 @@ export class RetailCatalogService {
   }
 
   async deleteItem(itemId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/items/${itemId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/items/${itemId}`
         )
       );
       this._items.update(items => items.filter(i => i.id !== itemId));
@@ -234,12 +234,12 @@ export class RetailCatalogService {
   // --- Variations ---
 
   async createVariation(itemId: string, variation: Omit<RetailItemVariation, 'id' | 'itemId'>): Promise<RetailItemVariation | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const created = await firstValueFrom(
         this.http.post<RetailItemVariation>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/items/${itemId}/variations`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/items/${itemId}/variations`,
           variation
         )
       );
@@ -256,12 +256,12 @@ export class RetailCatalogService {
   }
 
   async updateVariation(itemId: string, variationId: string, data: Partial<RetailItemVariation>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.put<RetailItemVariation>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/items/${itemId}/variations/${variationId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/items/${itemId}/variations/${variationId}`,
           data
         )
       );
@@ -278,12 +278,12 @@ export class RetailCatalogService {
   }
 
   async deleteVariation(itemId: string, variationId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/items/${itemId}/variations/${variationId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/items/${itemId}/variations/${variationId}`
         )
       );
       this._items.update(items => items.map(i => {
@@ -323,12 +323,12 @@ export class RetailCatalogService {
   }
 
   async bulkUpdateVariationPrices(itemId: string, adjustment: { type: 'percent' | 'fixed'; value: number }): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.post<RetailItemVariation[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/items/${itemId}/variations/bulk-price`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/items/${itemId}/variations/bulk-price`,
           adjustment
         )
       );
@@ -347,12 +347,12 @@ export class RetailCatalogService {
   // --- Option Sets ---
 
   async loadOptionSets(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<RetailOptionSet[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/option-sets`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/option-sets`
         )
       );
       this._optionSets.set(data);
@@ -367,12 +367,12 @@ export class RetailCatalogService {
   }
 
   async createOptionSet(formData: RetailOptionSetFormData): Promise<RetailOptionSet | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const created = await firstValueFrom(
         this.http.post<RetailOptionSet>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/option-sets`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/option-sets`,
           formData
         )
       );
@@ -386,12 +386,12 @@ export class RetailCatalogService {
   }
 
   async updateOptionSet(id: string, formData: RetailOptionSetFormData): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.put<RetailOptionSet>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/option-sets/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/option-sets/${id}`,
           formData
         )
       );
@@ -405,12 +405,12 @@ export class RetailCatalogService {
   }
 
   async deleteOptionSet(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/option-sets/${id}`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/option-sets/${id}`
         )
       );
       this._optionSets.update(sets => sets.filter(s => s.id !== id));
@@ -425,12 +425,12 @@ export class RetailCatalogService {
   // --- Categories ---
 
   async loadCategories(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<RetailCategory[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/categories`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/categories`
         )
       );
       this._categories.set(data);
@@ -445,12 +445,12 @@ export class RetailCatalogService {
   }
 
   async createCategory(formData: RetailCategoryFormData): Promise<RetailCategory | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const created = await firstValueFrom(
         this.http.post<RetailCategory>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/categories`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/categories`,
           formData
         )
       );
@@ -464,12 +464,12 @@ export class RetailCatalogService {
   }
 
   async updateCategory(id: string, formData: Partial<RetailCategoryFormData>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.put<RetailCategory>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/categories/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/categories/${id}`,
           formData
         )
       );
@@ -483,12 +483,12 @@ export class RetailCatalogService {
   }
 
   async deleteCategory(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/categories/${id}`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/categories/${id}`
         )
       );
       this._categories.update(cats => cats.filter(c => c.id !== id));
@@ -513,11 +513,11 @@ export class RetailCatalogService {
     cats[swapIdx] = { ...cats[swapIdx], sortOrder: temp };
     this._categories.set(cats);
 
-    if (this.restaurantId) {
+    if (this.merchantId) {
       try {
         await firstValueFrom(
           this.http.post(
-            `${this.apiUrl}/restaurant/${this.restaurantId}/retail/categories/${id}/move`,
+            `${this.apiUrl}/merchant/${this.merchantId}/retail/categories/${id}/move`,
             { direction }
           )
         );
@@ -530,12 +530,12 @@ export class RetailCatalogService {
   // --- Collections ---
 
   async loadCollections(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<RetailCollection[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/collections`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/collections`
         )
       );
       this._collections.set(data);
@@ -546,12 +546,12 @@ export class RetailCatalogService {
   }
 
   async createCollection(formData: RetailCollectionFormData): Promise<RetailCollection | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const created = await firstValueFrom(
         this.http.post<RetailCollection>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/collections`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/collections`,
           formData
         )
       );
@@ -565,12 +565,12 @@ export class RetailCatalogService {
   }
 
   async updateCollection(id: string, formData: Partial<RetailCollectionFormData>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.put<RetailCollection>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/collections/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/collections/${id}`,
           formData
         )
       );
@@ -584,12 +584,12 @@ export class RetailCatalogService {
   }
 
   async deleteCollection(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/collections/${id}`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/collections/${id}`
         )
       );
       this._collections.update(cols => cols.filter(c => c.id !== id));
@@ -604,12 +604,12 @@ export class RetailCatalogService {
   // --- Bundles ---
 
   async loadBundles(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<RetailBundle[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/bundles`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/bundles`
         )
       );
       this._bundles.set(data);
@@ -620,12 +620,12 @@ export class RetailCatalogService {
   }
 
   async createBundle(formData: RetailBundleFormData): Promise<RetailBundle | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const created = await firstValueFrom(
         this.http.post<RetailBundle>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/bundles`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/bundles`,
           formData
         )
       );
@@ -639,12 +639,12 @@ export class RetailCatalogService {
   }
 
   async updateBundle(id: string, formData: Partial<RetailBundleFormData>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.put<RetailBundle>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/bundles/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/bundles/${id}`,
           formData
         )
       );
@@ -658,12 +658,12 @@ export class RetailCatalogService {
   }
 
   async deleteBundle(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/bundles/${id}`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/bundles/${id}`
         )
       );
       this._bundles.update(bundles => bundles.filter(b => b.id !== id));
@@ -678,12 +678,12 @@ export class RetailCatalogService {
   // --- Tax Rules ---
 
   async loadTaxRules(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<CategoryTaxRule[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/tax-rules`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/tax-rules`
         )
       );
       this._taxRules.set(data);
@@ -694,12 +694,12 @@ export class RetailCatalogService {
   }
 
   async saveTaxRule(categoryId: string, taxRateId: string, isExempt: boolean): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const rule = await firstValueFrom(
         this.http.post<CategoryTaxRule>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/tax-rules`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/tax-rules`,
           { categoryId, taxRateId, isExempt }
         )
       );
@@ -721,7 +721,7 @@ export class RetailCatalogService {
   // --- Import / Export ---
 
   async importFromCsv(file: File): Promise<RetailCatalogImportResult | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     const formData = new FormData();
     formData.append('file', file);
@@ -729,7 +729,7 @@ export class RetailCatalogService {
     try {
       const result = await firstValueFrom(
         this.http.post<RetailCatalogImportResult>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/items/import`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/items/import`,
           formData
         )
       );
@@ -743,12 +743,12 @@ export class RetailCatalogService {
   }
 
   async exportToCsv(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const blob = await firstValueFrom(
         this.http.get(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/items/export`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/items/export`,
           { responseType: 'blob' }
         )
       );
@@ -776,12 +776,12 @@ export class RetailCatalogService {
   // --- Bulk Operations ---
 
   async bulkUpdateCategory(itemIds: string[], categoryId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/items/bulk`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/items/bulk`,
           { itemIds, action: 'update_category', categoryId }
         )
       );
@@ -797,12 +797,12 @@ export class RetailCatalogService {
   }
 
   async bulkUpdatePrice(itemIds: string[], adjustment: { type: 'percent' | 'fixed'; value: number }): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/items/bulk`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/items/bulk`,
           { itemIds, action: 'update_price', ...adjustment }
         )
       );
@@ -822,12 +822,12 @@ export class RetailCatalogService {
   }
 
   async bulkUpdateVisibility(itemIds: string[], visibility: Partial<RetailItem['channelVisibility']>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/items/bulk`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/items/bulk`,
           { itemIds, action: 'update_visibility', ...visibility }
         )
       );
@@ -844,12 +844,12 @@ export class RetailCatalogService {
   }
 
   async bulkDelete(itemIds: string[]): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/items/bulk`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/items/bulk`,
           { itemIds, action: 'delete' }
         )
       );

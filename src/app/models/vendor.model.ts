@@ -1,6 +1,6 @@
 export interface Vendor {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   contactName: string | null;
   contactEmail: string | null;
@@ -47,7 +47,7 @@ export interface PurchaseLineItem {
 
 export interface PurchaseInvoice {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   vendorId: string;
   vendorName?: string;
   invoiceNumber: string;
@@ -90,7 +90,7 @@ export interface RecipeIngredient {
 export interface Recipe {
   id: string;
   menuItemId: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   yieldQty: number;
   yieldUnit: string;
@@ -141,7 +141,7 @@ export type PurchaseOrderStatus = 'draft' | 'submitted' | 'partially_received' |
 
 export interface PurchaseOrder {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   vendorId: string;
   vendorName: string;
   poNumber: string;

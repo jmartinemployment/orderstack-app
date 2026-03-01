@@ -56,37 +56,37 @@ function extractSignupErrorMessage(err: unknown): string {
 interface StorageState {
   token: string | null;
   user: User | null;
-  restaurants: UserRestaurant[];
-  selectedRestaurantId: string | null;
-  selectedRestaurantName: string | null;
-  selectedRestaurantLogo: string | null;
+  merchants: UserRestaurant[];
+  selectedMerchantId: string | null;
+  selectedMerchantName: string | null;
+  selectedMerchantLogo: string | null;
 }
 
 function loadFromStorage(storage: Record<string, string | null>): StorageState {
   const token = storage['auth_token'] ?? null;
   const userJson = storage['auth_user'] ?? null;
-  const restaurantsJson = storage['auth_restaurants'] ?? null;
-  const restaurantId = storage['selected_restaurant_id'] ?? null;
-  const restaurantName = storage['selected_restaurant_name'] ?? null;
-  const restaurantLogo = storage['selected_restaurant_logo'] ?? null;
+  const merchantsJson = storage['auth_merchants'] ?? null;
+  const merchantId = storage['selected_merchant_id'] ?? null;
+  const merchantName = storage['selected_merchant_name'] ?? null;
+  const merchantLogo = storage['selected_merchant_logo'] ?? null;
 
   let user: User | null = null;
-  let restaurants: UserRestaurant[] = [];
+  let merchants: UserRestaurant[] = [];
 
   if (token && userJson) {
     try {
       user = JSON.parse(userJson) as User;
-      if (restaurantsJson) {
-        restaurants = JSON.parse(restaurantsJson) as UserRestaurant[];
+      if (merchantsJson) {
+        merchants = JSON.parse(merchantsJson) as UserRestaurant[];
       }
     } catch {
       return {
         token: null,
         user: null,
-        restaurants: [],
-        selectedRestaurantId: null,
-        selectedRestaurantName: null,
-        selectedRestaurantLogo: null,
+        merchants: [],
+        selectedMerchantId: null,
+        selectedMerchantName: null,
+        selectedMerchantLogo: null,
       };
     }
   }
@@ -94,18 +94,18 @@ function loadFromStorage(storage: Record<string, string | null>): StorageState {
   return {
     token: token && user ? token : null,
     user,
-    restaurants,
-    selectedRestaurantId: restaurantId,
-    selectedRestaurantName: restaurantName,
-    selectedRestaurantLogo: restaurantLogo,
+    merchants,
+    selectedMerchantId: merchantId,
+    selectedMerchantName: merchantName,
+    selectedMerchantLogo: merchantLogo,
   };
 }
 
-function saveToStorage(token: string, user: User, restaurants: UserRestaurant[]): Record<string, string> {
+function saveToStorage(token: string, user: User, merchants: UserRestaurant[]): Record<string, string> {
   return {
     auth_token: token,
     auth_user: JSON.stringify(user),
-    auth_restaurants: JSON.stringify(restaurants),
+    auth_merchants: JSON.stringify(merchants),
   };
 }
 
@@ -113,35 +113,35 @@ function isAuthenticated(token: string | null, user: User | null): boolean {
   return !!token && !!user;
 }
 
-function userRestaurantIds(restaurants: UserRestaurant[]): string[] {
-  return restaurants.map(r => r.id);
+function userRestaurantIds(merchants: UserRestaurant[]): string[] {
+  return merchants.map(r => r.id);
 }
 
 function applyLoginResponse(response: LoginResponse): {
   token: string;
   user: User;
-  restaurants: UserRestaurant[];
+  merchants: UserRestaurant[];
 } {
   return {
     token: response.token,
     user: response.user,
-    restaurants: response.restaurants || [],
+    merchants: response.restaurants || [],
   };
 }
 
-function selectRestaurantStorage(
-  restaurantId: string,
-  restaurantName: string,
-  restaurantLogo?: string,
+function selectMerchantStorage(
+  merchantId: string,
+  merchantName: string,
+  merchantLogo?: string,
 ): Record<string, string | null> {
   const result: Record<string, string | null> = {
-    selected_restaurant_id: restaurantId,
-    selected_restaurant_name: restaurantName,
+    selected_merchant_id: merchantId,
+    selected_merchant_name: merchantName,
   };
-  if (restaurantLogo) {
-    result['selected_restaurant_logo'] = restaurantLogo;
+  if (merchantLogo) {
+    result['selected_merchant_logo'] = merchantLogo;
   } else {
-    result['selected_restaurant_logo'] = null;
+    result['selected_merchant_logo'] = null;
   }
   return result;
 }
@@ -200,23 +200,23 @@ describe('AuthService — extractSignupErrorMessage', () => {
 describe('AuthService — loadFromStorage', () => {
   it('restores full session from valid storage', () => {
     const user = makeUser();
-    const restaurants = [makeRestaurant()];
+    const merchants = [makeRestaurant()];
     const storage: Record<string, string> = {
       auth_token: 'stored-token',
       auth_user: JSON.stringify(user),
-      auth_restaurants: JSON.stringify(restaurants),
-      selected_restaurant_id: 'r-1',
-      selected_restaurant_name: 'Taipa Kitchen',
-      selected_restaurant_logo: 'logo.png',
+      auth_merchants: JSON.stringify(merchants),
+      selected_merchant_id: 'r-1',
+      selected_merchant_name: 'Taipa Kitchen',
+      selected_merchant_logo: 'logo.png',
     };
 
     const state = loadFromStorage(storage);
     expect(state.token).toBe('stored-token');
     expect(state.user).toEqual(user);
-    expect(state.restaurants).toEqual(restaurants);
-    expect(state.selectedRestaurantId).toBe('r-1');
-    expect(state.selectedRestaurantName).toBe('Taipa Kitchen');
-    expect(state.selectedRestaurantLogo).toBe('logo.png');
+    expect(state.merchants).toEqual(merchants);
+    expect(state.selectedMerchantId).toBe('r-1');
+    expect(state.selectedMerchantName).toBe('Taipa Kitchen');
+    expect(state.selectedMerchantLogo).toBe('logo.png');
   });
 
   it('returns nulls when token is missing', () => {
@@ -244,7 +244,7 @@ describe('AuthService — loadFromStorage', () => {
     const state = loadFromStorage(storage);
     expect(state.token).toBeNull();
     expect(state.user).toBeNull();
-    expect(state.restaurants).toEqual([]);
+    expect(state.merchants).toEqual([]);
   });
 
   it('handles missing restaurants gracefully', () => {
@@ -253,43 +253,43 @@ describe('AuthService — loadFromStorage', () => {
       auth_user: JSON.stringify(makeUser()),
     };
     const state = loadFromStorage(storage);
-    expect(state.restaurants).toEqual([]);
+    expect(state.merchants).toEqual([]);
   });
 
   it('handles empty storage', () => {
     const state = loadFromStorage({});
     expect(state.token).toBeNull();
     expect(state.user).toBeNull();
-    expect(state.restaurants).toEqual([]);
-    expect(state.selectedRestaurantId).toBeNull();
+    expect(state.merchants).toEqual([]);
+    expect(state.selectedMerchantId).toBeNull();
   });
 
   it('restores selected restaurant from storage', () => {
     const storage: Record<string, string> = {
-      selected_restaurant_id: 'r-2',
-      selected_restaurant_name: 'Pizza Place',
+      selected_merchant_id: 'r-2',
+      selected_merchant_name: 'Pizza Place',
     };
     const state = loadFromStorage(storage);
-    expect(state.selectedRestaurantId).toBe('r-2');
-    expect(state.selectedRestaurantName).toBe('Pizza Place');
-    expect(state.selectedRestaurantLogo).toBeNull();
+    expect(state.selectedMerchantId).toBe('r-2');
+    expect(state.selectedMerchantName).toBe('Pizza Place');
+    expect(state.selectedMerchantLogo).toBeNull();
   });
 });
 
 describe('AuthService — saveToStorage', () => {
   it('serializes user and restaurants to JSON', () => {
     const user = makeUser();
-    const restaurants = [makeRestaurant()];
-    const result = saveToStorage('token-1', user, restaurants);
+    const merchants = [makeRestaurant()];
+    const result = saveToStorage('token-1', user, merchants);
 
     expect(result.auth_token).toBe('token-1');
     expect(JSON.parse(result.auth_user)).toEqual(user);
-    expect(JSON.parse(result.auth_restaurants)).toEqual(restaurants);
+    expect(JSON.parse(result.auth_merchants)).toEqual(merchants);
   });
 
   it('handles empty restaurants array', () => {
     const result = saveToStorage('tok', makeUser(), []);
-    expect(JSON.parse(result.auth_restaurants)).toEqual([]);
+    expect(JSON.parse(result.auth_merchants)).toEqual([]);
   });
 });
 
@@ -317,12 +317,12 @@ describe('AuthService — isAuthenticated', () => {
 
 describe('AuthService — userRestaurantIds', () => {
   it('extracts IDs from restaurant array', () => {
-    const restaurants = [
+    const merchants = [
       makeRestaurant({ id: 'r-1' }),
       makeRestaurant({ id: 'r-2' }),
       makeRestaurant({ id: 'r-3' }),
     ];
-    expect(userRestaurantIds(restaurants)).toEqual(['r-1', 'r-2', 'r-3']);
+    expect(userRestaurantIds(merchants)).toEqual(['r-1', 'r-2', 'r-3']);
   });
 
   it('returns empty array for empty input', () => {
@@ -336,19 +336,19 @@ describe('AuthService — applyLoginResponse', () => {
     const result = applyLoginResponse(response);
     expect(result.token).toBe('jwt-token-123');
     expect(result.user).toEqual(makeUser());
-    expect(result.restaurants).toEqual([makeRestaurant()]);
+    expect(result.merchants).toEqual([makeRestaurant()]);
   });
 
   it('defaults to empty restaurants when response has none', () => {
     const response = makeLoginResponse({ restaurants: undefined as any });
     const result = applyLoginResponse(response);
-    expect(result.restaurants).toEqual([]);
+    expect(result.merchants).toEqual([]);
   });
 
   it('preserves empty restaurants array', () => {
     const response = makeLoginResponse({ restaurants: [] });
     const result = applyLoginResponse(response);
-    expect(result.restaurants).toEqual([]);
+    expect(result.merchants).toEqual([]);
   });
 
   it('handles multiple restaurants', () => {
@@ -359,27 +359,27 @@ describe('AuthService — applyLoginResponse', () => {
       ],
     });
     const result = applyLoginResponse(response);
-    expect(result.restaurants).toHaveLength(2);
+    expect(result.merchants).toHaveLength(2);
   });
 });
 
-describe('AuthService — selectRestaurantStorage', () => {
+describe('AuthService — selectMerchantStorage', () => {
   it('stores restaurant ID, name, and logo', () => {
-    const result = selectRestaurantStorage('r-2', 'Pizza Place', 'https://logo.png');
+    const result = selectMerchantStorage('r-2', 'Pizza Place', 'https://logo.png');
     expect(result).toEqual({
-      selected_restaurant_id: 'r-2',
-      selected_restaurant_name: 'Pizza Place',
-      selected_restaurant_logo: 'https://logo.png',
+      selected_merchant_id: 'r-2',
+      selected_merchant_name: 'Pizza Place',
+      selected_merchant_logo: 'https://logo.png',
     });
   });
 
   it('sets logo to null when not provided', () => {
-    const result = selectRestaurantStorage('r-2', 'Pizza Place');
-    expect(result.selected_restaurant_logo).toBeNull();
+    const result = selectMerchantStorage('r-2', 'Pizza Place');
+    expect(result.selected_merchant_logo).toBeNull();
   });
 
   it('sets logo to null for empty string', () => {
-    const result = selectRestaurantStorage('r-2', 'Pizza Place', '');
-    expect(result.selected_restaurant_logo).toBeNull();
+    const result = selectMerchantStorage('r-2', 'Pizza Place', '');
+    expect(result.selected_merchant_logo).toBeNull();
   });
 });

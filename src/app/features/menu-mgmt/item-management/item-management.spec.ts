@@ -13,16 +13,16 @@ import type { MenuItem, MenuCategory, ModifierGroup, ReportingCategory } from '@
 function createMockAuthService() {
   return {
     isAuthenticated: computed(() => true),
-    selectedRestaurantId: signal<string | null>('r-1').asReadonly(),
-    selectedRestaurantName: signal<string | null>('Test').asReadonly(),
+    selectedMerchantId: signal<string | null>('r-1').asReadonly(),
+    selectedMerchantName: signal<string | null>('Test').asReadonly(),
   };
 }
 
 function createTestItems(): MenuItem[] {
   return [
-    { id: 'i-1', name: 'Burger', price: 12, categoryId: 'cat-1', restaurantId: 'r-1', isActive: true, prepTimeMinutes: 15, description: 'Classic beef burger' } as MenuItem,
-    { id: 'i-2', name: 'Salad', price: 8, categoryId: 'cat-2', restaurantId: 'r-1', isActive: true, prepTimeMinutes: 5, sku: 'SAL-001' } as MenuItem,
-    { id: 'i-3', name: 'Pasta', price: 14, categoryId: 'cat-1', restaurantId: 'r-1', isActive: false, prepTimeMinutes: 20 } as MenuItem,
+    { id: 'i-1', name: 'Burger', price: 12, categoryId: 'cat-1', merchantId: 'r-1', isActive: true, prepTimeMinutes: 15, description: 'Classic beef burger' } as MenuItem,
+    { id: 'i-2', name: 'Salad', price: 8, categoryId: 'cat-2', merchantId: 'r-1', isActive: true, prepTimeMinutes: 5, sku: 'SAL-001' } as MenuItem,
+    { id: 'i-3', name: 'Pasta', price: 14, categoryId: 'cat-1', merchantId: 'r-1', isActive: false, prepTimeMinutes: 20 } as MenuItem,
   ];
 }
 
@@ -30,8 +30,8 @@ function createMockMenuService() {
   return {
     allItems: signal<MenuItem[]>(createTestItems()).asReadonly(),
     categories: signal<MenuCategory[]>([
-      { id: 'cat-1', name: 'Mains', restaurantId: 'r-1', isActive: true, displayOrder: 0 },
-      { id: 'cat-2', name: 'Sides', restaurantId: 'r-1', isActive: true, displayOrder: 1 },
+      { id: 'cat-1', name: 'Mains', merchantId: 'r-1', isActive: true, displayOrder: 0 },
+      { id: 'cat-2', name: 'Sides', merchantId: 'r-1', isActive: true, displayOrder: 1 },
     ]).asReadonly(),
     isLoading: signal(false).asReadonly(),
     error: signal<string | null>(null).asReadonly(),
@@ -54,7 +54,7 @@ function createMockMenuService() {
 function createMockModifierService() {
   return {
     groups: signal<ModifierGroup[]>([
-      { id: 'mg-1', name: 'Sizes', restaurantId: 'r-1', required: true, multiSelect: false, minSelections: 1, maxSelections: 1, modifiers: [] },
+      { id: 'mg-1', name: 'Sizes', merchantId: 'r-1', required: true, multiSelect: false, minSelections: 1, maxSelections: 1, modifiers: [] },
     ]).asReadonly(),
     isLoading: signal(false).asReadonly(),
     error: signal<string | null>(null).asReadonly(),

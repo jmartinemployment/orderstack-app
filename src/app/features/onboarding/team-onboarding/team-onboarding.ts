@@ -111,8 +111,8 @@ export class TeamOnboarding {
     this._isSaving.set(true);
     this._error.set(null);
 
-    const restaurantId = this.authService.selectedRestaurantId();
-    if (!restaurantId) {
+    const merchantId = this.authService.selectedMerchantId();
+    if (!merchantId) {
       this._error.set('No restaurant selected');
       this._isSaving.set(false);
       return;

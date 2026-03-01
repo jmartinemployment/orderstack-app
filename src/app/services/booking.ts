@@ -127,14 +127,14 @@ export class BookingService {
     return stats?.overall ?? 45;
   });
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   // ── Reservations ──
 
   async loadBookings(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -142,7 +142,7 @@ export class BookingService {
     try {
       const data = await firstValueFrom(
         this.http.get<Booking[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings`
+          `${this.apiUrl}/merchant/${this.merchantId}/bookings`
         )
       );
       this._reservations.set(data ?? []);
@@ -159,12 +159,12 @@ export class BookingService {
   }
 
   async createReservation(data: BookingFormData): Promise<Booking | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const reservation = await firstValueFrom(
         this.http.post<Booking>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings`,
+          `${this.apiUrl}/merchant/${this.merchantId}/bookings`,
           data
         )
       );
@@ -179,12 +179,12 @@ export class BookingService {
   }
 
   async updateStatus(bookingId: string, status: BookingStatus): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<Booking>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/${bookingId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/bookings/${bookingId}`,
           { status }
         )
       );
@@ -201,12 +201,12 @@ export class BookingService {
   }
 
   async assignTable(bookingId: string, tableNumber: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<Booking>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/${bookingId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/bookings/${bookingId}`,
           { tableNumber }
         )
       );
@@ -229,12 +229,12 @@ export class BookingService {
   // ── Waitlist ──
 
   async loadWaitlist(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<WaitlistEntry[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist`
+          `${this.apiUrl}/merchant/${this.merchantId}/waitlist`
         )
       );
       this._waitlist.set(data ?? []);
@@ -249,12 +249,12 @@ export class BookingService {
   }
 
   async addToWaitlist(data: WaitlistFormData): Promise<WaitlistEntry | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const entry = await firstValueFrom(
         this.http.post<WaitlistEntry>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist`,
+          `${this.apiUrl}/merchant/${this.merchantId}/waitlist`,
           data
         )
       );
@@ -268,12 +268,12 @@ export class BookingService {
   }
 
   async notifyWaitlistEntry(entryId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<WaitlistEntry>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/${entryId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/waitlist/${entryId}`,
           { status: 'notified' }
         )
       );
@@ -287,12 +287,12 @@ export class BookingService {
   }
 
   async seatWaitlistEntry(entryId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<WaitlistEntry>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/${entryId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/waitlist/${entryId}`,
           { status: 'seated' }
         )
       );
@@ -306,12 +306,12 @@ export class BookingService {
   }
 
   async removeFromWaitlist(entryId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<WaitlistEntry>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/${entryId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/waitlist/${entryId}`,
           { status: 'cancelled' }
         )
       );
@@ -325,12 +325,12 @@ export class BookingService {
   }
 
   async reorderWaitlist(entryId: string, newPosition: number): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.patch<WaitlistEntry>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/${entryId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/waitlist/${entryId}`,
           { position: newPosition }
         )
       );
@@ -349,7 +349,7 @@ export class BookingService {
     try {
       return await firstValueFrom(
         this.http.get<DayAvailability>(
-          `${this.apiUrl}/public/restaurant/${restaurantSlug}/availability`,
+          `${this.apiUrl}/public/merchant/${restaurantSlug}/availability`,
           { params: { date, partySize: String(partySize) } }
         )
       );
@@ -364,7 +364,7 @@ export class BookingService {
     try {
       return await firstValueFrom(
         this.http.post<Booking>(
-          `${this.apiUrl}/public/restaurant/${restaurantSlug}/bookings`,
+          `${this.apiUrl}/public/merchant/${restaurantSlug}/bookings`,
           data
         )
       );
@@ -376,12 +376,12 @@ export class BookingService {
   }
 
   async getCustomerBookings(customerId: string): Promise<Booking[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       const data = await firstValueFrom(
         this.http.get<Booking[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings?customerId=${encodeURIComponent(customerId)}`
+          `${this.apiUrl}/merchant/${this.merchantId}/bookings?customerId=${encodeURIComponent(customerId)}`
         )
       );
       return data ?? [];
@@ -393,14 +393,14 @@ export class BookingService {
   // ── Recurring Reservations (Phase 2) ──
 
   async loadRecurringReservations(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoadingRecurring.set(true);
     this._error.set(null);
 
     try {
       const data = await firstValueFrom(
         this.http.get<RecurringBooking[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/recurring`
+          `${this.apiUrl}/merchant/${this.merchantId}/bookings/recurring`
         )
       );
       this._recurringReservations.set(data ?? []);
@@ -417,12 +417,12 @@ export class BookingService {
   }
 
   async createRecurringBooking(data: BookingFormData): Promise<RecurringBooking | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const recurring = await firstValueFrom(
         this.http.post<RecurringBooking>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/recurring`,
+          `${this.apiUrl}/merchant/${this.merchantId}/bookings/recurring`,
           data
         )
       );
@@ -436,12 +436,12 @@ export class BookingService {
   }
 
   async cancelRecurringBooking(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/recurring/${id}`
+          `${this.apiUrl}/merchant/${this.merchantId}/bookings/recurring/${id}`
         )
       );
       this._recurringReservations.update(list => list.filter(r => r.id !== id));
@@ -454,12 +454,12 @@ export class BookingService {
   }
 
   async toggleRecurring(id: string, isActive: boolean): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<RecurringBooking>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/recurring/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/bookings/recurring/${id}`,
           { isActive }
         )
       );
@@ -477,14 +477,14 @@ export class BookingService {
   // ── Events & Classes (Phase 2) ──
 
   async loadEvents(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoadingEvents.set(true);
     this._error.set(null);
 
     try {
       const data = await firstValueFrom(
         this.http.get<EventBooking[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/events`
+          `${this.apiUrl}/merchant/${this.merchantId}/events`
         )
       );
       this._events.set(data ?? []);
@@ -501,12 +501,12 @@ export class BookingService {
   }
 
   async createEvent(data: EventFormData): Promise<EventBooking | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const event = await firstValueFrom(
         this.http.post<EventBooking>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/events`,
+          `${this.apiUrl}/merchant/${this.merchantId}/events`,
           data
         )
       );
@@ -520,12 +520,12 @@ export class BookingService {
   }
 
   async updateEvent(id: string, data: Partial<EventFormData>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<EventBooking>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/events/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/events/${id}`,
           data
         )
       );
@@ -539,11 +539,11 @@ export class BookingService {
   }
 
   async deleteEvent(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/events/${id}`)
+        this.http.delete(`${this.apiUrl}/merchant/${this.merchantId}/events/${id}`)
       );
       this._events.update(list => list.filter(e => e.id !== id));
       return true;
@@ -559,12 +559,12 @@ export class BookingService {
   }
 
   async checkInAttendee(eventId: string, attendeeId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<EventBooking>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/events/${eventId}/attendees/${attendeeId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/events/${eventId}/attendees/${attendeeId}`,
           { checkedIn: true }
         )
       );
@@ -578,12 +578,12 @@ export class BookingService {
   }
 
   async refundAttendee(eventId: string, attendeeId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.post<EventBooking>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/events/${eventId}/attendees/${attendeeId}/refund`,
+          `${this.apiUrl}/merchant/${this.merchantId}/events/${eventId}/attendees/${attendeeId}/refund`,
           {}
         )
       );
@@ -599,12 +599,12 @@ export class BookingService {
   // ── Dynamic Turn Times (Phase 2) ──
 
   async loadTurnTimeStats(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const stats = await firstValueFrom(
         this.http.get<TurnTimeStats>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/turn-time-stats`
+          `${this.apiUrl}/merchant/${this.merchantId}/bookings/turn-time-stats`
         )
       );
       this._turnTimeStats.set(stats);
@@ -616,12 +616,12 @@ export class BookingService {
   // ── Guest Preferences (Phase 2) ──
 
   async updateGuestPreferences(bookingId: string, preferences: GuestPreferences): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<Booking>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/bookings/${bookingId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/bookings/${bookingId}`,
           { preferences }
         )
       );
@@ -639,12 +639,12 @@ export class BookingService {
   // ── Google Calendar Sync (Phase 3) ──
 
   async loadCalendarConnection(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const connection = await firstValueFrom(
         this.http.get<CalendarConnection>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/calendar/connection`
+          `${this.apiUrl}/merchant/${this.merchantId}/calendar/connection`
         )
       );
       this._calendarConnection.set(connection);
@@ -654,12 +654,12 @@ export class BookingService {
   }
 
   async connectGoogleCalendar(): Promise<string | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const result = await firstValueFrom(
         this.http.post<{ authUrl: string }>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/calendar/connect`,
+          `${this.apiUrl}/merchant/${this.merchantId}/calendar/connect`,
           { provider: 'google' }
         )
       );
@@ -672,11 +672,11 @@ export class BookingService {
   }
 
   async disconnectCalendar(): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/calendar/connection`)
+        this.http.delete(`${this.apiUrl}/merchant/${this.merchantId}/calendar/connection`)
       );
       this._calendarConnection.set(null);
       this._calendarBlocks.set([]);
@@ -689,12 +689,12 @@ export class BookingService {
   }
 
   async updateCalendarSettings(settings: { pushReservations: boolean; pullBlocks: boolean }): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<CalendarConnection>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/calendar/connection`,
+          `${this.apiUrl}/merchant/${this.merchantId}/calendar/connection`,
           settings
         )
       );
@@ -708,14 +708,14 @@ export class BookingService {
   }
 
   async syncCalendar(): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._calendarConnection.update(c => c ? { ...c, status: 'syncing' } : null);
 
     try {
       const result = await firstValueFrom(
         this.http.post<{ blocks: CalendarBlock[] }>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/calendar/sync`,
+          `${this.apiUrl}/merchant/${this.merchantId}/calendar/sync`,
           {}
         )
       );
@@ -731,12 +731,12 @@ export class BookingService {
   }
 
   async loadCalendarBlocks(date: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const blocks = await firstValueFrom(
         this.http.get<CalendarBlock[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/calendar/blocks`,
+          `${this.apiUrl}/merchant/${this.merchantId}/calendar/blocks`,
           { params: { date } }
         )
       );
@@ -749,12 +749,12 @@ export class BookingService {
   // ── Waitlist SMS & Virtual (Phase 3) ──
 
   async loadWaitlistSmsConfig(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const config = await firstValueFrom(
         this.http.get<WaitlistSmsConfig>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/sms-config`
+          `${this.apiUrl}/merchant/${this.merchantId}/waitlist/sms-config`
         )
       );
       this._waitlistSmsConfig.set(config);
@@ -769,12 +769,12 @@ export class BookingService {
   }
 
   async saveWaitlistSmsConfig(config: WaitlistSmsConfig): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const saved = await firstValueFrom(
         this.http.put<WaitlistSmsConfig>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/sms-config`,
+          `${this.apiUrl}/merchant/${this.merchantId}/waitlist/sms-config`,
           config
         )
       );
@@ -788,12 +788,12 @@ export class BookingService {
   }
 
   async loadWaitlistAnalytics(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const analytics = await firstValueFrom(
         this.http.get<WaitlistAnalytics>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/analytics`
+          `${this.apiUrl}/merchant/${this.merchantId}/waitlist/analytics`
         )
       );
       this._waitlistAnalytics.set(analytics);
@@ -808,12 +808,12 @@ export class BookingService {
   }
 
   async loadVirtualWaitlistConfig(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const config = await firstValueFrom(
         this.http.get<VirtualWaitlistConfig>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/virtual-config`
+          `${this.apiUrl}/merchant/${this.merchantId}/waitlist/virtual-config`
         )
       );
       this._virtualWaitlistConfig.set(config);
@@ -828,12 +828,12 @@ export class BookingService {
   }
 
   async saveVirtualWaitlistConfig(config: Partial<VirtualWaitlistConfig>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const saved = await firstValueFrom(
         this.http.put<VirtualWaitlistConfig>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/virtual-config`,
+          `${this.apiUrl}/merchant/${this.merchantId}/waitlist/virtual-config`,
           config
         )
       );
@@ -847,12 +847,12 @@ export class BookingService {
   }
 
   async recalculateWaitTimes(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const updated = await firstValueFrom(
         this.http.post<WaitlistEntry[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/waitlist/recalculate`,
+          `${this.apiUrl}/merchant/${this.merchantId}/waitlist/recalculate`,
           {}
         )
       );

@@ -59,8 +59,8 @@ export class ReportService {
   private readonly platformService = inject(PlatformService);
   private readonly apiUrl = environment.apiUrl;
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   private readonly _savedReports = signal<SavedReport[]>([]);
@@ -96,13 +96,13 @@ export class ReportService {
   // --- Saved Reports ---
 
   async loadSavedReports(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
     try {
       const reports = await firstValueFrom(
         this.http.get<SavedReport[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/saved`
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/saved`
         )
       );
       this._savedReports.set(reports ?? []);
@@ -120,12 +120,12 @@ export class ReportService {
   }
 
   async createSavedReport(data: SavedReportFormData): Promise<SavedReport | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
     try {
       const report = await firstValueFrom(
         this.http.post<SavedReport>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/saved`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/saved`,
           data
         )
       );
@@ -139,12 +139,12 @@ export class ReportService {
   }
 
   async updateSavedReport(id: string, data: SavedReportFormData): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._error.set(null);
     try {
       const updated = await firstValueFrom(
         this.http.patch<SavedReport>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/saved/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/saved/${id}`,
           data
         )
       );
@@ -158,12 +158,12 @@ export class ReportService {
   }
 
   async deleteSavedReport(id: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._error.set(null);
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/saved/${id}`
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/saved/${id}`
         )
       );
       this._savedReports.update(list => list.filter(r => r.id !== id));
@@ -177,12 +177,12 @@ export class ReportService {
   // --- Report Execution ---
 
   async runReport(reportId: string, dateRange: ReportDateRange): Promise<Record<string, unknown> | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
     try {
       return await firstValueFrom(
         this.http.post<Record<string, unknown>>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/run`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/run`,
           { reportId, ...dateRange }
         )
       );
@@ -194,12 +194,12 @@ export class ReportService {
   }
 
   async exportReport(reportId: string, dateRange: ReportDateRange, format: ReportExportFormat): Promise<Blob | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
     try {
       return await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/export`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/export`,
           { reportId, format, ...dateRange },
           { responseType: 'blob' }
         )
@@ -214,12 +214,12 @@ export class ReportService {
   // --- Schedules ---
 
   async loadSchedules(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._error.set(null);
     try {
       const schedules = await firstValueFrom(
         this.http.get<ReportSchedule[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/schedules`
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/schedules`
         )
       );
       this._schedules.set(schedules ?? []);
@@ -235,12 +235,12 @@ export class ReportService {
   }
 
   async createSchedule(data: ReportScheduleFormData): Promise<ReportSchedule | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
     try {
       const schedule = await firstValueFrom(
         this.http.post<ReportSchedule>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/schedules`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/schedules`,
           data
         )
       );
@@ -254,12 +254,12 @@ export class ReportService {
   }
 
   async toggleSchedule(id: string, isActive: boolean): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._error.set(null);
     try {
       const updated = await firstValueFrom(
         this.http.patch<ReportSchedule>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/schedules/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/schedules/${id}`,
           { isActive }
         )
       );
@@ -273,12 +273,12 @@ export class ReportService {
   }
 
   async deleteSchedule(id: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._error.set(null);
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/schedules/${id}`
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/schedules/${id}`
         )
       );
       this._schedules.update(list => list.filter(s => s.id !== id));
@@ -291,12 +291,12 @@ export class ReportService {
   // --- Report Data Endpoints ---
 
   async getHourlySales(dateRange: ReportDateRange): Promise<HourlySalesRow[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
     this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<HourlySalesRow[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/hourly-sales`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/hourly-sales`,
           { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
         )
       );
@@ -309,12 +309,12 @@ export class ReportService {
   }
 
   async getSectionSales(dateRange: ReportDateRange): Promise<SectionSalesRow[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
     this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<SectionSalesRow[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/section-sales`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/section-sales`,
           { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
         )
       );
@@ -327,12 +327,12 @@ export class ReportService {
   }
 
   async getChannelBreakdown(dateRange: ReportDateRange): Promise<ChannelBreakdownRow[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
     this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<ChannelBreakdownRow[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/channel-breakdown`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/channel-breakdown`,
           { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
         )
       );
@@ -345,12 +345,12 @@ export class ReportService {
   }
 
   async getDiscountReport(dateRange: ReportDateRange): Promise<DiscountReportRow[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
     this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<DiscountReportRow[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/discounts`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/discounts`,
           { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
         )
       );
@@ -363,12 +363,12 @@ export class ReportService {
   }
 
   async getRefundReport(dateRange: ReportDateRange): Promise<RefundReportRow[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
     this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<RefundReportRow[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/refunds`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/refunds`,
           { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
         )
       );
@@ -383,12 +383,12 @@ export class ReportService {
   // --- Phase 3: Team Member Sales ---
 
   async getTeamMemberSales(dateRange: ReportDateRange): Promise<TeamMemberSalesRow[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
     this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<TeamMemberSalesRow[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/team-member-sales`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/team-member-sales`,
           { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
         )
       );
@@ -403,12 +403,12 @@ export class ReportService {
   // --- Phase 3: Tax & Service Charge Report ---
 
   async getTaxServiceChargeReport(dateRange: ReportDateRange): Promise<TaxServiceChargeReport | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
     try {
       return await firstValueFrom(
         this.http.get<TaxServiceChargeReport>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/tax-service-charges`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/tax-service-charges`,
           { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
         )
       );
@@ -422,11 +422,11 @@ export class ReportService {
   // --- Phase 3: Real-Time KPI ---
 
   async getRealTimeKpis(): Promise<RealTimeKpi | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     try {
       return await firstValueFrom(
         this.http.get<RealTimeKpi>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reports/realtime-kpis`
+          `${this.apiUrl}/merchant/${this.merchantId}/reports/realtime-kpis`
         )
       );
     } catch (err: unknown) {
@@ -440,7 +440,7 @@ export class ReportService {
   // --- Retail Sales Reports (SPEC-23) ---
 
   async getRetailSalesReport(dateRange: ReportDateRange, locationId?: string): Promise<RetailSalesReport | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isLoading.set(true);
     this._error.set(null);
     try {
@@ -454,7 +454,7 @@ export class ReportService {
       if (locationId) params['locationId'] = locationId;
       return await firstValueFrom(
         this.http.get<RetailSalesReport>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/sales`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/reports/sales`,
           { params }
         )
       );
@@ -470,7 +470,7 @@ export class ReportService {
   }
 
   async getRetailItemSales(dateRange: ReportDateRange, categoryId?: string, vendorId?: string): Promise<RetailItemSalesRow[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
     this._error.set(null);
     try {
       const params: Record<string, string> = {
@@ -481,7 +481,7 @@ export class ReportService {
       if (vendorId) params['vendorId'] = vendorId;
       const rows = await firstValueFrom(
         this.http.get<RetailItemSalesRow[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/item-sales`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/reports/item-sales`,
           { params }
         )
       );
@@ -494,12 +494,12 @@ export class ReportService {
   }
 
   async getRetailCategorySales(dateRange: ReportDateRange): Promise<RetailCategorySalesRow[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
     this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<RetailCategorySalesRow[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/category-sales`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/reports/category-sales`,
           { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
         )
       );
@@ -512,12 +512,12 @@ export class ReportService {
   }
 
   async getRetailEmployeeSales(dateRange: ReportDateRange): Promise<RetailEmployeeSalesRow[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
     this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<RetailEmployeeSalesRow[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/employee-sales`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/reports/employee-sales`,
           { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
         )
       );
@@ -530,12 +530,12 @@ export class ReportService {
   }
 
   async getRetailDiscountReport(dateRange: ReportDateRange): Promise<RetailDiscountReport[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
     this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<RetailDiscountReport[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/discounts`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/reports/discounts`,
           { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
         )
       );
@@ -550,13 +550,13 @@ export class ReportService {
   // --- Retail Inventory Reports (SPEC-23 Phase 2) ---
 
   async getRetailCogsReport(dateRange: ReportDateRange): Promise<RetailCogsReport | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isLoading.set(true);
     this._error.set(null);
     try {
       return await firstValueFrom(
         this.http.get<RetailCogsReport>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/cogs`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/reports/cogs`,
           { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
         )
       );
@@ -570,12 +570,12 @@ export class ReportService {
   }
 
   async getRetailVendorSales(dateRange: ReportDateRange): Promise<RetailVendorSalesRow[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
     this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<RetailVendorSalesRow[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/vendor-sales`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/reports/vendor-sales`,
           { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
         )
       );
@@ -588,13 +588,13 @@ export class ReportService {
   }
 
   async getRetailProjectedProfit(): Promise<RetailProjectedProfitReport | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isLoading.set(true);
     this._error.set(null);
     try {
       return await firstValueFrom(
         this.http.get<RetailProjectedProfitReport>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/projected-profit`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/reports/projected-profit`
         )
       );
     } catch (err: unknown) {
@@ -609,13 +609,13 @@ export class ReportService {
   // --- Retail Predictive & Comparison (SPEC-23 Phase 3) ---
 
   async getRetailSalesForecast(days: number): Promise<RetailSalesForecast | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isLoading.set(true);
     this._error.set(null);
     try {
       return await firstValueFrom(
         this.http.get<RetailSalesForecast>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/forecast`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/reports/forecast`,
           { params: { days: days.toString() } }
         )
       );
@@ -629,12 +629,12 @@ export class ReportService {
   }
 
   async getRetailDemandForecast(): Promise<RetailDemandForecastItem[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
     this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<RetailDemandForecastItem[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/demand-forecast`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/reports/demand-forecast`
         )
       );
       return rows ?? [];
@@ -646,13 +646,13 @@ export class ReportService {
   }
 
   async getRetailYoyReport(dateRange: ReportDateRange): Promise<RetailYoyReport | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isLoading.set(true);
     this._error.set(null);
     try {
       return await firstValueFrom(
         this.http.get<RetailYoyReport>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/yoy`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/reports/yoy`,
           { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
         )
       );
@@ -666,12 +666,12 @@ export class ReportService {
   }
 
   async getRetailTaxReport(dateRange: ReportDateRange): Promise<RetailTaxReport[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
     this._error.set(null);
     try {
       const rows = await firstValueFrom(
         this.http.get<RetailTaxReport[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/reports/tax`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/reports/tax`,
           { params: { startDate: dateRange.startDate, endDate: dateRange.endDate } }
         )
       );

@@ -112,16 +112,16 @@ export class MenuService {
     this.allItems().filter(item => item.popular || item.isPopular)
   );
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   async loadMenu(): Promise<void> {
-    return this.loadMenuForRestaurant(this.restaurantId);
+    return this.loadMenuForRestaurant(this.merchantId);
   }
 
-  async loadMenuForRestaurant(restaurantId: string | null): Promise<void> {
-    if (!restaurantId) {
+  async loadMenuForRestaurant(merchantId: string | null): Promise<void> {
+    if (!merchantId) {
       this._error.set('No restaurant selected');
       return;
     }
@@ -136,7 +136,7 @@ export class MenuService {
     try {
       const response = await firstValueFrom(
         this.http.get<MenuCategory[]>(
-          `${this.apiUrl}/restaurant/${restaurantId}/menu/grouped?lang=${this._currentLanguage()}`
+          `${this.apiUrl}/merchant/${merchantId}/menu/grouped?lang=${this._currentLanguage()}`
         )
       );
       this._categories.set(this.normalizeMenuData(response || []));
@@ -155,7 +155,7 @@ export class MenuService {
   }
 
   async createCategory(data: Partial<MenuCategory>): Promise<MenuCategory | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -163,7 +163,7 @@ export class MenuService {
     try {
       const category = await firstValueFrom(
         this.http.post<MenuCategory>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/categories`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/categories`,
           data
         )
       );
@@ -179,7 +179,7 @@ export class MenuService {
   }
 
   async updateCategory(categoryId: string, data: Partial<MenuCategory>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -187,7 +187,7 @@ export class MenuService {
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/categories/${categoryId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/categories/${categoryId}`,
           data
         )
       );
@@ -204,7 +204,7 @@ export class MenuService {
   }
 
   async deleteCategory(categoryId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -212,7 +212,7 @@ export class MenuService {
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/categories/${categoryId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/categories/${categoryId}`
         )
       );
       this._crudSupported.set(true);
@@ -228,7 +228,7 @@ export class MenuService {
   }
 
   async createItem(data: Partial<MenuItem>): Promise<MenuItem | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -236,7 +236,7 @@ export class MenuService {
     try {
       const item = await firstValueFrom(
         this.http.post<MenuItem>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/items`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/items`,
           data
         )
       );
@@ -252,7 +252,7 @@ export class MenuService {
   }
 
   async updateItem(itemId: string, data: Partial<MenuItem>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -260,7 +260,7 @@ export class MenuService {
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/items/${itemId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/items/${itemId}`,
           data
         )
       );
@@ -277,7 +277,7 @@ export class MenuService {
   }
 
   async deleteItem(itemId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -285,7 +285,7 @@ export class MenuService {
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/items/${itemId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/items/${itemId}`
         )
       );
       this._crudSupported.set(true);
@@ -301,14 +301,14 @@ export class MenuService {
   }
 
   async toggleEightySix(itemId: string, eightySixed: boolean, reason?: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/items/${itemId}/86`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/items/${itemId}/86`,
           { eightySixed, reason: eightySixed ? reason : undefined }
         )
       );
@@ -322,7 +322,7 @@ export class MenuService {
   }
 
   async estimateItemCost(itemId: string): Promise<AICostEstimationResponse | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -330,7 +330,7 @@ export class MenuService {
     try {
       const response = await firstValueFrom(
         this.http.post<AICostEstimationResponse>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/items/${itemId}/estimate-cost`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/items/${itemId}/estimate-cost`,
           {}
         )
       );
@@ -346,7 +346,7 @@ export class MenuService {
   }
 
   async generateItemDescription(itemId: string): Promise<MenuItem | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -354,7 +354,7 @@ export class MenuService {
     try {
       const item = await firstValueFrom(
         this.http.post<MenuItem>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/items/${itemId}/generate-description`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/items/${itemId}/generate-description`,
           {}
         )
       );
@@ -370,7 +370,7 @@ export class MenuService {
   }
 
   async estimateAllCosts(): Promise<AIBatchResponse | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -378,7 +378,7 @@ export class MenuService {
     try {
       const response = await firstValueFrom(
         this.http.post<AIBatchResponse>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/estimate-all-costs`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/estimate-all-costs`,
           {}
         )
       );
@@ -394,7 +394,7 @@ export class MenuService {
   }
 
   async generateAllDescriptions(): Promise<AIBatchResponse | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -402,7 +402,7 @@ export class MenuService {
     try {
       const response = await firstValueFrom(
         this.http.post<AIBatchResponse>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/generate-all-descriptions`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/generate-all-descriptions`,
           {}
         )
       );
@@ -420,14 +420,14 @@ export class MenuService {
   // --- Item Variations ---
 
   async createVariation(itemId: string, data: Partial<ItemVariation>): Promise<ItemVariation | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const variation = await firstValueFrom(
         this.http.post<ItemVariation>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/items/${itemId}/variations`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/items/${itemId}/variations`,
           data
         )
       );
@@ -441,14 +441,14 @@ export class MenuService {
   }
 
   async updateVariation(itemId: string, variationId: string, data: Partial<ItemVariation>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/items/${itemId}/variations/${variationId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/items/${itemId}/variations/${variationId}`,
           data
         )
       );
@@ -462,14 +462,14 @@ export class MenuService {
   }
 
   async deleteVariation(itemId: string, variationId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/items/${itemId}/variations/${variationId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/items/${itemId}/variations/${variationId}`
         )
       );
       await this.loadMenu();
@@ -484,12 +484,12 @@ export class MenuService {
   // --- Reporting Categories ---
 
   async loadReportingCategories(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<ReportingCategory[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reporting-categories`
+          `${this.apiUrl}/merchant/${this.merchantId}/reporting-categories`
         )
       );
       this._reportingCategories.set(data);
@@ -500,14 +500,14 @@ export class MenuService {
   }
 
   async createReportingCategory(data: Partial<ReportingCategory>): Promise<ReportingCategory | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const category = await firstValueFrom(
         this.http.post<ReportingCategory>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reporting-categories`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reporting-categories`,
           data
         )
       );
@@ -521,14 +521,14 @@ export class MenuService {
   }
 
   async updateReportingCategory(id: string, data: Partial<ReportingCategory>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reporting-categories/${id}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/reporting-categories/${id}`,
           data
         )
       );
@@ -542,14 +542,14 @@ export class MenuService {
   }
 
   async deleteReportingCategory(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/reporting-categories/${id}`
+          `${this.apiUrl}/merchant/${this.merchantId}/reporting-categories/${id}`
         )
       );
       await this.loadReportingCategories();
@@ -564,12 +564,12 @@ export class MenuService {
   // --- Option Sets ---
 
   async loadOptionSets(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<ItemOptionSet[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/option-sets`
+          `${this.apiUrl}/merchant/${this.merchantId}/option-sets`
         )
       );
       this._optionSets.set(data);
@@ -580,14 +580,14 @@ export class MenuService {
   }
 
   async createOptionSet(data: Partial<ItemOptionSet>): Promise<ItemOptionSet | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const optionSet = await firstValueFrom(
         this.http.post<ItemOptionSet>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/option-sets`,
+          `${this.apiUrl}/merchant/${this.merchantId}/option-sets`,
           data
         )
       );
@@ -603,7 +603,7 @@ export class MenuService {
   // --- CSV Import/Export ---
 
   async importMenuFromCsv(file: File): Promise<CsvImportResult | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -613,7 +613,7 @@ export class MenuService {
       formData.append('file', file);
       const result = await firstValueFrom(
         this.http.post<CsvImportResult>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/import`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/import`,
           formData
         )
       );
@@ -629,14 +629,14 @@ export class MenuService {
   }
 
   async exportMenuToCsv(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     this._error.set(null);
 
     try {
       const blob = await firstValueFrom(
         this.http.get(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/export`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/export`,
           { responseType: 'blob' }
         )
       );
@@ -655,14 +655,14 @@ export class MenuService {
   // --- SKU Generation ---
 
   async autoGenerateSku(itemId: string): Promise<string | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.post<{ sku: string }>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/items/${itemId}/generate-sku`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/items/${itemId}/generate-sku`,
           {}
         )
       );
@@ -682,11 +682,11 @@ export class MenuService {
   // --- Menu Schedule CRUD (GAP-R07) ---
 
   async loadMenuSchedules(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     try {
       const schedules = await firstValueFrom(
         this.http.get<MenuSchedule[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/schedules`
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/schedules`
         )
       );
       this._menuSchedules.set(schedules);
@@ -701,7 +701,7 @@ export class MenuService {
     const id = crypto.randomUUID();
     const schedule: MenuSchedule = {
       id,
-      restaurantId: this.restaurantId ?? '',
+      merchantId: this.merchantId ?? '',
       name: data.name,
       dayparts: data.dayparts.map(dp => ({ ...dp, id: crypto.randomUUID() })),
       isDefault: data.isDefault,
@@ -720,7 +720,7 @@ export class MenuService {
     try {
       await firstValueFrom(
         this.http.post<MenuSchedule>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/schedules`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/schedules`,
           data
         )
       );
@@ -758,7 +758,7 @@ export class MenuService {
     try {
       await firstValueFrom(
         this.http.put(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/schedules/${scheduleId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/schedules/${scheduleId}`,
           data
         )
       );
@@ -779,7 +779,7 @@ export class MenuService {
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/menu/schedules/${scheduleId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/menu/schedules/${scheduleId}`
         )
       );
     } catch {
@@ -944,7 +944,7 @@ export class MenuService {
   }
 
   private persistSchedules(): void {
-    const key = `menu-schedules-${this.restaurantId ?? 'unknown'}`;
+    const key = `menu-schedules-${this.merchantId ?? 'unknown'}`;
     const data = {
       schedules: this._menuSchedules(),
       activeId: this._activeScheduleId(),
@@ -954,7 +954,7 @@ export class MenuService {
   }
 
   private restoreSchedulesFromStorage(): void {
-    const key = `menu-schedules-${this.restaurantId ?? 'unknown'}`;
+    const key = `menu-schedules-${this.merchantId ?? 'unknown'}`;
     try {
       const stored = localStorage.getItem(key);
       if (stored) {
@@ -971,11 +971,11 @@ export class MenuService {
   // --- Menu Item Photos & AI Descriptions (GAP-R09) ---
 
   async uploadItemImage(itemId: string, file: File): Promise<{ imageUrl: string; thumbnailUrl: string }> {
-    const restaurantId = this.authService.selectedRestaurantId();
+    const merchantId = this.authService.selectedMerchantId();
     const formData = new FormData();
     formData.append('image', file);
     formData.append('itemId', itemId);
-    formData.append('restaurantId', restaurantId ?? '');
+    formData.append('merchantId', merchantId ?? '');
 
     const result = await firstValueFrom(
       this.http.post<{ imageUrl: string; thumbnailUrl: string }>(

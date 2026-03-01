@@ -10,7 +10,7 @@ export interface InvoiceLineItem {
 
 export interface Invoice {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   invoiceNumber: string;
   customerId: string | null;
   customerName: string;
@@ -55,7 +55,7 @@ export interface InvoiceFormData {
 
 export interface HouseAccount {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   companyName: string;
   contactName: string;
   contactEmail: string;

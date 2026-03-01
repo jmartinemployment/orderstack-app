@@ -35,7 +35,7 @@ export interface CashDenomination {
 
 export interface CashDrawerSession {
   id: string;
-  restaurantId?: string;
+  merchantId?: string;
   deviceId?: string;
   openedAt: Date;
   closedAt?: Date;

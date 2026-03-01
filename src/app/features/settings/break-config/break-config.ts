@@ -83,7 +83,7 @@ export class BreakConfig {
 
   constructor() {
     effect(() => {
-      if (this.authService.selectedRestaurantId() && !this._loaded()) {
+      if (this.authService.selectedMerchantId() && !this._loaded()) {
         this._loaded.set(true);
         this.laborService.loadBreakTypes();
         this.laborService.loadWorkweekConfig();

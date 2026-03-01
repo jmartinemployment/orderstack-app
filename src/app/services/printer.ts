@@ -21,19 +21,19 @@ export class PrinterService {
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
 
-  private get restaurantId(): string {
-    return this.authService.selectedRestaurantId() ?? '';
+  private get merchantId(): string {
+    return this.authService.selectedMerchantId() ?? '';
   }
 
   async loadPrinters(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
 
     try {
       const printers = await firstValueFrom(
         this.http.get<Printer[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/printers`
+          `${this.apiUrl}/merchant/${this.merchantId}/printers`
         )
       );
       this._printers.set(printers);
@@ -45,13 +45,13 @@ export class PrinterService {
   }
 
   async createPrinter(data: PrinterFormData): Promise<PrinterCreateResponse | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
 
     try {
       const response = await firstValueFrom(
         this.http.post<PrinterCreateResponse>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/printers`,
+          `${this.apiUrl}/merchant/${this.merchantId}/printers`,
           data
         )
       );
@@ -75,13 +75,13 @@ export class PrinterService {
     printerId: string,
     data: Partial<Printer>
   ): Promise<Printer | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<Printer>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/printers/${printerId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/printers/${printerId}`,
           data
         )
       );
@@ -102,13 +102,13 @@ export class PrinterService {
   }
 
   async deletePrinter(printerId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/printers/${printerId}`
+          `${this.apiUrl}/merchant/${this.merchantId}/printers/${printerId}`
         )
       );
       this._printers.update(printers =>
@@ -122,13 +122,13 @@ export class PrinterService {
   }
 
   async testPrint(printerId: string): Promise<TestPrintResponse | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
 
     try {
       return await firstValueFrom(
         this.http.post<TestPrintResponse>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/printers/${printerId}/test`,
+          `${this.apiUrl}/merchant/${this.merchantId}/printers/${printerId}/test`,
           {}
         )
       );

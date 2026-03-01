@@ -1,6 +1,6 @@
 export interface InventoryItem {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   nameEn: string | null;
   unit: string;
@@ -49,7 +49,7 @@ export interface InventoryReorderItem {
 }
 
 export interface InventoryReport {
-  restaurantId: string;
+  merchantId: string;
   reportDate: string;
   totalItems: number;
   totalValue: number;
@@ -68,7 +68,7 @@ export type CycleCountStatus = 'in_progress' | 'submitted';
 
 export interface CycleCount {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   status: CycleCountStatus;
   category: string | null;
   entries: CycleCountEntry[];
@@ -102,7 +102,7 @@ export interface ExpiringItem {
 
 export interface UnitConversion {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   fromUnit: string;
   toUnit: string;
   factor: number;

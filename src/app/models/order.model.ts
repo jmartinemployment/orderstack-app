@@ -257,7 +257,7 @@ export interface QueuedOrder {
   localId: string;
   orderData: Record<string, unknown>;
   queuedAt: number;
-  restaurantId: string;
+  merchantId: string;
   retryCount: number;
 }
 
@@ -265,7 +265,7 @@ export interface QueuedOrder {
 
 export interface Order {
   guid: string;
-  restaurantId: string;
+  merchantId: string;
   orderNumber: string;
   guestOrderStatus: GuestOrderStatus;
   orderSource?: OrderSource;
@@ -399,7 +399,7 @@ export interface OrderNote {
 
 export interface OrderTemplate {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   items: OrderTemplateItem[];
   createdBy: string;

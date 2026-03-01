@@ -56,18 +56,18 @@ export class MarketingService {
     this._automations().reduce((sum, a) => sum + a.sentCount, 0)
   );
 
-  private get restaurantId(): string {
-    return this.authService.selectedRestaurantId() ?? '';
+  private get merchantId(): string {
+    return this.authService.selectedMerchantId() ?? '';
   }
 
   private get baseUrl(): string {
-    return `${environment.apiUrl}/restaurant/${this.restaurantId}`;
+    return `${environment.apiUrl}/merchant/${this.merchantId}`;
   }
 
   // --- Campaigns ---
 
   async loadCampaigns(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
     try {
@@ -174,7 +174,7 @@ export class MarketingService {
   // --- Automations ---
 
   async loadAutomations(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
     try {

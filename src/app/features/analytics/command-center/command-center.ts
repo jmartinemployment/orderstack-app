@@ -242,7 +242,7 @@ export class CommandCenter {
 
   constructor() {
     effect(() => {
-      if (this.isAuthenticated() && this.authService.selectedRestaurantId()) {
+      if (this.isAuthenticated() && this.authService.selectedMerchantId()) {
         this.loadAllData();
       }
     });

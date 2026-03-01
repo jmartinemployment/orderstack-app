@@ -9,7 +9,7 @@ export function tierMeetsMinimum(customerTier: LoyaltyTier, minTier: LoyaltyTier
 
 export interface LoyaltyConfig {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   enabled: boolean;
   pointsPerDollar: number;
   pointsRedemptionRate: number;
@@ -36,7 +36,7 @@ export interface LoyaltyProfile {
 
 export interface LoyaltyTransaction {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   customerId: string;
   orderId: string | null;
   type: LoyaltyTransactionType;
@@ -48,7 +48,7 @@ export interface LoyaltyTransaction {
 
 export interface LoyaltyReward {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   description: string | null;
   pointsCost: number;
@@ -68,7 +68,7 @@ export interface LoyaltyRedemption {
 export function defaultLoyaltyConfig(): LoyaltyConfig {
   return {
     id: '',
-    restaurantId: '',
+    merchantId: '',
     enabled: false,
     pointsPerDollar: 1,
     pointsRedemptionRate: 0.01,

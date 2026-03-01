@@ -106,19 +106,19 @@ export class DeviceService {
     };
   });
 
-  private get restaurantId(): string {
-    return this.authService.selectedRestaurantId() ?? '';
+  private get merchantId(): string {
+    return this.authService.selectedMerchantId() ?? '';
   }
 
   private get baseUrl(): string {
-    return `${this.apiUrl}/restaurant/${this.restaurantId}`;
+    return `${this.apiUrl}/merchant/${this.merchantId}`;
   }
 
   // --- Device CRUD ---
 
   async loadDevices(): Promise<void> {
-    if (!this.restaurantId) {
-      console.warn('[DeviceService] loadDevices called with no restaurantId');
+    if (!this.merchantId) {
+      console.warn('[DeviceService] loadDevices called with no merchantId');
       return;
     }
     this._isLoading.set(true);
@@ -138,8 +138,8 @@ export class DeviceService {
   }
 
   async generateDeviceCode(data: DeviceFormData): Promise<Device | null> {
-    if (!this.restaurantId) {
-      console.warn('[DeviceService] generateDeviceCode called with no restaurantId');
+    if (!this.merchantId) {
+      console.warn('[DeviceService] generateDeviceCode called with no merchantId');
       return null;
     }
     this._isLoading.set(true);
@@ -184,7 +184,7 @@ export class DeviceService {
   }
 
   async updateDevice(id: string, data: Partial<DeviceFormData>): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -204,7 +204,7 @@ export class DeviceService {
   }
 
   async revokeDevice(id: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -247,7 +247,7 @@ export class DeviceService {
   }
 
   async registerBrowserDevice(posMode: DevicePosMode): Promise<Device | null> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return null;
     }
@@ -286,8 +286,8 @@ export class DeviceService {
   // --- Mode CRUD ---
 
   async loadModes(): Promise<void> {
-    if (!this.restaurantId) {
-      console.warn('[DeviceService] loadModes called with no restaurantId');
+    if (!this.merchantId) {
+      console.warn('[DeviceService] loadModes called with no merchantId');
       return;
     }
     this._isLoading.set(true);
@@ -307,7 +307,7 @@ export class DeviceService {
   }
 
   async createMode(data: DeviceModeFormData): Promise<DeviceMode | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -327,7 +327,7 @@ export class DeviceService {
   }
 
   async updateMode(id: string, data: Partial<DeviceModeFormData>): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -347,7 +347,7 @@ export class DeviceService {
   }
 
   async deleteMode(id: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -371,8 +371,8 @@ export class DeviceService {
   // --- Printer Profile CRUD ---
 
   async loadPrinterProfiles(): Promise<void> {
-    if (!this.restaurantId) {
-      console.warn('[DeviceService] loadPrinterProfiles called with no restaurantId');
+    if (!this.merchantId) {
+      console.warn('[DeviceService] loadPrinterProfiles called with no merchantId');
       return;
     }
     this._isLoading.set(true);
@@ -392,7 +392,7 @@ export class DeviceService {
   }
 
   async createPrinterProfile(data: PrinterProfileFormData): Promise<PrinterProfile | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -412,7 +412,7 @@ export class DeviceService {
   }
 
   async updatePrinterProfile(id: string, data: Partial<PrinterProfileFormData>): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -432,7 +432,7 @@ export class DeviceService {
   }
 
   async deletePrinterProfile(id: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -452,8 +452,8 @@ export class DeviceService {
   // --- Peripheral CRUD ---
 
   async loadPeripherals(): Promise<void> {
-    if (!this.restaurantId) {
-      console.warn('[DeviceService] loadPeripherals called with no restaurantId');
+    if (!this.merchantId) {
+      console.warn('[DeviceService] loadPeripherals called with no merchantId');
       return;
     }
     this._isLoading.set(true);
@@ -478,7 +478,7 @@ export class DeviceService {
     name: string;
     connectionType: PeripheralConnectionType;
   }): Promise<PeripheralDevice | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -498,7 +498,7 @@ export class DeviceService {
   }
 
   async removePeripheral(id: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -516,7 +516,7 @@ export class DeviceService {
   }
 
   async updatePeripheral(id: string, data: Partial<{ name: string; connectionType: PeripheralConnectionType }>): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -538,8 +538,8 @@ export class DeviceService {
   // --- Kiosk Profile CRUD ---
 
   async loadKioskProfiles(): Promise<void> {
-    if (!this.restaurantId) {
-      console.warn('[DeviceService] loadKioskProfiles called with no restaurantId');
+    if (!this.merchantId) {
+      console.warn('[DeviceService] loadKioskProfiles called with no merchantId');
       return;
     }
     this._isLoading.set(true);
@@ -559,7 +559,7 @@ export class DeviceService {
   }
 
   async createKioskProfile(data: KioskProfileFormData): Promise<KioskProfile | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -579,7 +579,7 @@ export class DeviceService {
   }
 
   async updateKioskProfile(id: string, data: Partial<KioskProfileFormData>): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -599,7 +599,7 @@ export class DeviceService {
   }
 
   async deleteKioskProfile(id: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -637,17 +637,17 @@ export class DeviceService {
   // --- Persistence helpers ---
 
   private persistData<T>(key: string, data: T): void {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     try {
-      localStorage.setItem(`${this.restaurantId}-${key}`, JSON.stringify(data));
+      localStorage.setItem(`${this.merchantId}-${key}`, JSON.stringify(data));
     } catch {
       // Storage full — silently ignore
     }
   }
 
   private loadFallback<T>(key: string, target: ReturnType<typeof signal<T[]>>): void {
-    if (!this.restaurantId) return;
-    const raw = localStorage.getItem(`${this.restaurantId}-${key}`);
+    if (!this.merchantId) return;
+    const raw = localStorage.getItem(`${this.merchantId}-${key}`);
     if (raw) {
       try {
         target.set(JSON.parse(raw) as T[]);

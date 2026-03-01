@@ -36,7 +36,7 @@ export class ZettleReaderProvider implements PaymentProvider {
     this.paymentCompleted = false;
 
     const response = await fetch(
-      `${context.apiUrl}/restaurant/${context.restaurantId}/orders/${orderId}/zettle-create`,
+      `${context.apiUrl}/merchant/${context.merchantId}/orders/${orderId}/zettle-create`,
       { method: 'POST', headers: this.buildHeaders(context), body: JSON.stringify({ amount: _amount }) }
     );
 
@@ -82,7 +82,7 @@ export class ZettleReaderProvider implements PaymentProvider {
     this.closeWebSocket();
 
     const response = await fetch(
-      `${context.apiUrl}/restaurant/${context.restaurantId}/orders/${orderId}/cancel-payment`,
+      `${context.apiUrl}/merchant/${context.merchantId}/orders/${orderId}/cancel-payment`,
       { method: 'POST', headers: this.buildHeaders(context), body: '{}' }
     );
 
@@ -92,7 +92,7 @@ export class ZettleReaderProvider implements PaymentProvider {
   async requestRefund(orderId: string, context: PaymentContext, amount?: number): Promise<RefundResponse | null> {
     const body = amount !== undefined ? JSON.stringify({ amount }) : '{}';
     const response = await fetch(
-      `${context.apiUrl}/restaurant/${context.restaurantId}/orders/${orderId}/refund`,
+      `${context.apiUrl}/merchant/${context.merchantId}/orders/${orderId}/refund`,
       { method: 'POST', headers: this.buildHeaders(context), body }
     );
 
@@ -118,7 +118,7 @@ export class ZettleReaderProvider implements PaymentProvider {
     if (!this.storedContext) throw new Error('No payment context');
 
     const response = await fetch(
-      `${this.storedContext.apiUrl}/restaurant/${this.storedContext.restaurantId}/zettle/reader-connect`,
+      `${this.storedContext.apiUrl}/merchant/${this.storedContext.merchantId}/zettle/reader-connect`,
       { method: 'GET', headers: this.buildHeaders(this.storedContext) }
     );
 

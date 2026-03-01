@@ -5,7 +5,7 @@ export interface User {
   lastName: string;
   role: UserRole;
   restaurantGroupId?: string | null;
-  restaurantIds?: string[];
+  merchantIds?: string[];
   onboardingStatus?: string;
 }
 

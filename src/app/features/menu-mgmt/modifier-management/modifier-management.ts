@@ -58,8 +58,8 @@ export class ModifierManagement {
 
   constructor() {
     effect(() => {
-      const restaurantId = this.authService.selectedRestaurantId();
-      if (this.authService.isAuthenticated() && restaurantId && !this._loaded()) {
+      const merchantId = this.authService.selectedMerchantId();
+      if (this.authService.isAuthenticated() && merchantId && !this._loaded()) {
         this._loaded.set(true);
         this.modifierService.loadGroups();
       }

@@ -77,12 +77,12 @@ export class CheckService {
   readonly isProcessing = this._isProcessing.asReadonly();
   readonly error = this._error.asReadonly();
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   private baseUrl(orderId: string): string {
-    return `${this.apiUrl}/restaurant/${this.restaurantId}/orders/${orderId}`;
+    return `${this.apiUrl}/merchant/${this.merchantId}/orders/${orderId}`;
   }
 
   clearError(): void {
@@ -90,7 +90,7 @@ export class CheckService {
   }
 
   async addCheck(orderId: string): Promise<Check | null> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return null;
     }
@@ -116,7 +116,7 @@ export class CheckService {
     checkGuid: string,
     item: AddItemRequest
   ): Promise<Selection | null> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return null;
     }
@@ -145,7 +145,7 @@ export class CheckService {
     sourceCheckGuid: string,
     request: SplitByItemRequest
   ): Promise<Order | null> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return null;
     }
@@ -173,7 +173,7 @@ export class CheckService {
     sourceCheckGuid: string,
     request: SplitByEqualRequest
   ): Promise<Order | null> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return null;
     }
@@ -200,7 +200,7 @@ export class CheckService {
     orderId: string,
     sourceCheckGuid: string
   ): Promise<Order | null> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return null;
     }
@@ -227,7 +227,7 @@ export class CheckService {
     orderId: string,
     checkGuids: string[]
   ): Promise<Order | null> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return null;
     }
@@ -255,7 +255,7 @@ export class CheckService {
     checkGuid: string,
     request: TransferCheckRequest
   ): Promise<Order | null> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return null;
     }
@@ -284,7 +284,7 @@ export class CheckService {
     selectionGuid: string,
     request: VoidItemRequest
   ): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return false;
     }
@@ -314,7 +314,7 @@ export class CheckService {
     selectionGuid: string,
     request: CompItemRequest
   ): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return false;
     }
@@ -343,7 +343,7 @@ export class CheckService {
     checkGuid: string,
     request: DiscountRequest
   ): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return false;
     }
@@ -372,7 +372,7 @@ export class CheckService {
     checkGuid: string,
     request: OpenTabRequest
   ): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return false;
     }
@@ -402,7 +402,7 @@ export class CheckService {
     selectionId: string,
     fractions: number
   ): Promise<Order | null> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return null;
     }
@@ -426,7 +426,7 @@ export class CheckService {
   }
 
   async closeTab(orderId: string, checkGuid: string): Promise<boolean> {
-    if (!this.restaurantId) {
+    if (!this.merchantId) {
       this._error.set('No restaurant selected');
       return false;
     }
@@ -451,12 +451,12 @@ export class CheckService {
   }
 
   async validateManagerPin(pin: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const result = await firstValueFrom(
         this.http.post<{ valid: boolean }>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/auth/validate-pin`,
+          `${this.apiUrl}/merchant/${this.merchantId}/auth/validate-pin`,
           { pin, requiredRole: 'manager' }
         )
       );

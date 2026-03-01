@@ -158,9 +158,9 @@ export class KdsDisplay implements OnInit, OnDestroy {
       this._targetCourseServeGapSeconds.set(this.normalizeTargetCourseServeGapSeconds(target));
     });
     effect(() => {
-      const restaurantId = this.authService.selectedRestaurantId();
+      const merchantId = this.authService.selectedMerchantId();
       const mode = this._coursePacingMode();
-      if (!restaurantId) return;
+      if (!merchantId) return;
       if (mode !== 'auto_fire_timed') return;
       void this.loadCoursePacingMetrics();
     });
@@ -264,7 +264,7 @@ export class KdsDisplay implements OnInit, OnDestroy {
   readonly isLoading = this.orderService.isLoading;
   readonly error = this.orderService.error;
   readonly isAuthenticated = this.authService.isAuthenticated;
-  readonly restaurantName = this.authService.selectedRestaurantName;
+  readonly restaurantName = this.authService.selectedMerchantName;
 
   // Prep time lookup map: menuItemId → prepTimeMinutes
   readonly prepTimeMap = computed(() => {
@@ -376,9 +376,9 @@ export class KdsDisplay implements OnInit, OnDestroy {
   }
 
   private connectSocket(): void {
-    const restaurantId = this.authService.selectedRestaurantId();
-    if (restaurantId) {
-      this.socketService.connect(restaurantId, 'kds');
+    const merchantId = this.authService.selectedMerchantId();
+    if (merchantId) {
+      this.socketService.connect(merchantId, 'kds');
     }
   }
 

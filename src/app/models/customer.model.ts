@@ -2,7 +2,7 @@ import { LoyaltyTier } from './loyalty.model';
 
 export interface Customer {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   firstName: string | null;
   lastName: string | null;
   email: string | null;
@@ -106,7 +106,7 @@ export interface GroupRule {
 
 export interface SmartGroup {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   rules: GroupRule[];
   rulesLogic: 'and' | 'or';

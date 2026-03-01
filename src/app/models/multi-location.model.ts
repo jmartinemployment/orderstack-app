@@ -10,7 +10,7 @@ export interface LocationGroup {
 export interface LocationGroupMember {
   id: string;
   locationGroupId: string;
-  restaurantId: string;
+  merchantId: string;
   restaurantName: string;
   restaurantSlug: string;
 }
@@ -18,11 +18,11 @@ export interface LocationGroupMember {
 export interface LocationGroupFormData {
   name: string;
   description?: string;
-  restaurantIds: string[];
+  merchantIds: string[];
 }
 
 export interface LocationKpi {
-  restaurantId: string;
+  merchantId: string;
   restaurantName: string;
   revenue: number;
   orderCount: number;
@@ -120,7 +120,7 @@ export interface FranchiseRoyaltyReport {
 }
 
 export interface FranchiseLocationRoyalty {
-  restaurantId: string;
+  merchantId: string;
   restaurantName: string;
   grossRevenue: number;
   netRevenue: number;
@@ -160,7 +160,7 @@ export interface CrossLocationInventoryItem {
   itemId: string;
   itemName: string;
   unit: string;
-  locationQuantities: { restaurantId: string; restaurantName: string; quantity: number; reorderPoint: number }[];
+  locationQuantities: { merchantId: string; restaurantName: string; quantity: number; reorderPoint: number }[];
   totalQuantity: number;
   isLowStockAnywhere: boolean;
 }
@@ -184,7 +184,7 @@ export interface InventoryTransferFormData {
 }
 
 export interface LocationHealth {
-  restaurantId: string;
+  merchantId: string;
   restaurantName: string;
   status: 'online' | 'degraded' | 'offline';
   lastHeartbeat: string;
@@ -206,7 +206,7 @@ export interface GroupCampaign {
 }
 
 export interface LocationBenchmark {
-  restaurantId: string;
+  merchantId: string;
   restaurantName: string;
   performanceScore: number;
   revenuePercentile: number;
@@ -232,7 +232,7 @@ export interface ComplianceCheckItem {
 }
 
 export interface LocationCompliance {
-  restaurantId: string;
+  merchantId: string;
   restaurantName: string;
   score: number;
   totalChecks: number;

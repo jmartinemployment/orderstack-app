@@ -79,13 +79,13 @@ export class DeliveryService {
     this.isProviderConfiguredFor(this._providerType())
   );
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   private get deliveryContext(): DeliveryContext | null {
-    if (!this.restaurantId) return null;
-    return { restaurantId: this.restaurantId, apiUrl: this.apiUrl };
+    if (!this.merchantId) return null;
+    return { merchantId: this.merchantId, apiUrl: this.apiUrl };
   }
 
   setProviderType(type: DeliveryProviderType): void {
@@ -121,11 +121,11 @@ export class DeliveryService {
   }
 
   async loadConfigStatus(): Promise<DeliveryConfigStatus | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/config-status`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/config-status`,
         { headers: this.buildAuthHeaders() },
       );
       if (response.ok) {
@@ -149,11 +149,11 @@ export class DeliveryService {
   }
 
   async loadCredentialSummary(): Promise<DeliveryCredentialSummary | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/credentials`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/credentials`,
         { headers: this.buildAuthHeaders() },
       );
       if (!response.ok) {
@@ -170,11 +170,11 @@ export class DeliveryService {
   }
 
   async loadCredentialSecurityProfile(): Promise<DeliveryCredentialSecurityProfile | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/credentials/security-profile`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/credentials/security-profile`,
         { headers: this.buildAuthHeaders() },
       );
       if (!response.ok) {
@@ -191,13 +191,13 @@ export class DeliveryService {
   }
 
   async saveCredentialSecurityProfile(mode: DeliveryCredentialSecurityMode): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/credentials/security-profile`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/credentials/security-profile`,
         {
           method: 'PUT',
           headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }),
@@ -220,13 +220,13 @@ export class DeliveryService {
   }
 
   async saveDoorDashCredentials(payload: DoorDashCredentialPayload): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/credentials/doordash`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/credentials/doordash`,
         {
           method: 'PUT',
           headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }),
@@ -249,13 +249,13 @@ export class DeliveryService {
   }
 
   async saveUberCredentials(payload: UberCredentialPayload): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/credentials/uber`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/credentials/uber`,
         {
           method: 'PUT',
           headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }),
@@ -278,13 +278,13 @@ export class DeliveryService {
   }
 
   async deleteDoorDashCredentials(): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/credentials/doordash`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/credentials/doordash`,
         {
           method: 'DELETE',
           headers: this.buildAuthHeaders(),
@@ -306,13 +306,13 @@ export class DeliveryService {
   }
 
   async deleteUberCredentials(): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/credentials/uber`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/credentials/uber`,
         {
           method: 'DELETE',
           headers: this.buildAuthHeaders(),
@@ -334,11 +334,11 @@ export class DeliveryService {
   }
 
   async loadMarketplaceIntegrations(): Promise<MarketplaceIntegrationSummary[] | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/marketplace/integrations`,
+        `${this.apiUrl}/merchant/${this.merchantId}/marketplace/integrations`,
         { headers: this.buildAuthHeaders() },
       );
       if (!response.ok) {
@@ -358,13 +358,13 @@ export class DeliveryService {
     provider: MarketplaceProviderType,
     payload: MarketplaceIntegrationUpdatePayload,
   ): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/marketplace/integrations/${provider}`,
+        `${this.apiUrl}/merchant/${this.merchantId}/marketplace/integrations/${provider}`,
         {
           method: 'PUT',
           headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }),
@@ -387,13 +387,13 @@ export class DeliveryService {
   }
 
   async clearMarketplaceIntegrationSecret(provider: MarketplaceProviderType): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/marketplace/integrations/${provider}/secret`,
+        `${this.apiUrl}/merchant/${this.merchantId}/marketplace/integrations/${provider}/secret`,
         {
           method: 'DELETE',
           headers: this.buildAuthHeaders(),
@@ -415,12 +415,12 @@ export class DeliveryService {
   }
 
   async loadMarketplaceMenuMappings(provider?: MarketplaceProviderType): Promise<MarketplaceMenuMapping[] | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const query = provider ? `?provider=${encodeURIComponent(provider)}` : '';
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/marketplace/menu-mappings${query}`,
+        `${this.apiUrl}/merchant/${this.merchantId}/marketplace/menu-mappings${query}`,
         { headers: this.buildAuthHeaders() },
       );
       if (!response.ok) {
@@ -437,13 +437,13 @@ export class DeliveryService {
   }
 
   async upsertMarketplaceMenuMapping(payload: MarketplaceMenuMappingUpsertPayload): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/marketplace/menu-mappings`,
+        `${this.apiUrl}/merchant/${this.merchantId}/marketplace/menu-mappings`,
         {
           method: 'POST',
           headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }),
@@ -466,13 +466,13 @@ export class DeliveryService {
   }
 
   async deleteMarketplaceMenuMapping(mappingId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/marketplace/menu-mappings/${mappingId}`,
+        `${this.apiUrl}/merchant/${this.merchantId}/marketplace/menu-mappings/${mappingId}`,
         {
           method: 'DELETE',
           headers: this.buildAuthHeaders(),
@@ -496,7 +496,7 @@ export class DeliveryService {
     status?: MarketplaceSyncJobState;
     limit?: number;
   }): Promise<MarketplaceStatusSyncJobSummary[] | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const params = new URLSearchParams();
@@ -505,7 +505,7 @@ export class DeliveryService {
       const query = params.toString();
 
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/marketplace/status-sync/jobs${query ? `?${query}` : ''}`,
+        `${this.apiUrl}/merchant/${this.merchantId}/marketplace/status-sync/jobs${query ? `?${query}` : ''}`,
         { headers: this.buildAuthHeaders() },
       );
       if (!response.ok) {
@@ -523,13 +523,13 @@ export class DeliveryService {
   }
 
   async retryMarketplaceStatusSyncJob(jobId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/marketplace/status-sync/jobs/${jobId}/retry`,
+        `${this.apiUrl}/merchant/${this.merchantId}/marketplace/status-sync/jobs/${jobId}/retry`,
         {
           method: 'POST',
           headers: this.buildAuthHeaders(),
@@ -552,13 +552,13 @@ export class DeliveryService {
   }
 
   async processMarketplaceStatusSyncJobs(limit = 20): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     this._isProcessing.set(true);
     this._error.set(null);
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/marketplace/status-sync/process`,
+        `${this.apiUrl}/merchant/${this.merchantId}/marketplace/status-sync/process`,
         {
           method: 'POST',
           headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }),
@@ -805,7 +805,7 @@ export class DeliveryService {
     this._isLoadingDrivers.set(true);
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/drivers`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/drivers`,
         { headers: this.buildAuthHeaders() }
       );
       if (response.ok) {
@@ -822,7 +822,7 @@ export class DeliveryService {
   async createDriver(data: DriverFormData): Promise<Driver | null> {
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/drivers`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/drivers`,
         { method: 'POST', headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify(data) }
       );
       if (response.ok) {
@@ -839,7 +839,7 @@ export class DeliveryService {
   async updateDriver(id: string, data: Partial<DriverFormData>): Promise<boolean> {
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/drivers/${id}`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/drivers/${id}`,
         { method: 'PATCH', headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify(data) }
       );
       if (response.ok) {
@@ -856,7 +856,7 @@ export class DeliveryService {
   async deleteDriver(id: string): Promise<boolean> {
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/drivers/${id}`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/drivers/${id}`,
         { method: 'DELETE', headers: this.buildAuthHeaders() }
       );
       if (response.ok) {
@@ -872,7 +872,7 @@ export class DeliveryService {
   async setDriverStatus(id: string, status: DriverStatus): Promise<void> {
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/drivers/${id}/status`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/drivers/${id}/status`,
         { method: 'PATCH', headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ status }) }
       );
       if (response.ok) {
@@ -886,7 +886,7 @@ export class DeliveryService {
   async assignOrderToDriver(orderId: string, driverId: string): Promise<DeliveryAssignment | null> {
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/assign`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/assign`,
         { method: 'POST', headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ orderId, driverId }) }
       );
       if (response.ok) {
@@ -906,7 +906,7 @@ export class DeliveryService {
   async updateAssignmentStatus(assignmentId: string, status: DeliveryAssignmentStatus): Promise<void> {
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/assignments/${assignmentId}/status`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/assignments/${assignmentId}/status`,
         { method: 'PATCH', headers: this.buildAuthHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ status }) }
       );
       if (response.ok) {
@@ -922,7 +922,7 @@ export class DeliveryService {
   async loadActiveAssignments(): Promise<void> {
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/assignments?active=true`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/assignments?active=true`,
         { headers: this.buildAuthHeaders() }
       );
       if (response.ok) {
@@ -1086,12 +1086,12 @@ export class DeliveryService {
   // ============ Delivery Analytics (GAP-R08 Phase 2) ============
 
   async loadDeliveryAnalytics(dateFrom: string, dateTo: string): Promise<DeliveryAnalyticsReport | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     this._isLoadingAnalytics.set(true);
     try {
       const response = await fetch(
-        `${this.apiUrl}/restaurant/${this.restaurantId}/delivery/analytics?from=${encodeURIComponent(dateFrom)}&to=${encodeURIComponent(dateTo)}`,
+        `${this.apiUrl}/merchant/${this.merchantId}/delivery/analytics?from=${encodeURIComponent(dateFrom)}&to=${encodeURIComponent(dateTo)}`,
         { headers: this.buildAuthHeaders() }
       );
       if (response.ok) {

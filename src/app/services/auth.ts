@@ -16,13 +16,13 @@ export class AuthService {
   // Private writable signals
   private readonly _user = signal<User | null>(null);
   private readonly _token = signal<string | null>(null);
-  private readonly _restaurants = signal<UserRestaurant[]>([]);
+  private readonly _merchants = signal<UserRestaurant[]>([]);
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
-  private readonly _selectedRestaurantId = signal<string | null>(null);
-  private readonly _selectedRestaurantName = signal<string | null>(null);
-  private readonly _selectedRestaurantLogo = signal<string | null>(null);
-  private readonly _selectedRestaurantAddress = signal<string | null>(null);
+  private readonly _selectedMerchantId = signal<string | null>(null);
+  private readonly _selectedMerchantName = signal<string | null>(null);
+  private readonly _selectedMerchantLogo = signal<string | null>(null);
+  private readonly _selectedMerchantAddress = signal<string | null>(null);
   private readonly _sessionExpiredMessage = signal<string | null>(null);
 
   // Public readonly signals
@@ -30,16 +30,16 @@ export class AuthService {
   readonly token = this._token.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
-  readonly selectedRestaurantId = this._selectedRestaurantId.asReadonly();
-  readonly selectedRestaurantName = this._selectedRestaurantName.asReadonly();
-  readonly selectedRestaurantLogo = this._selectedRestaurantLogo.asReadonly();
-  readonly selectedRestaurantAddress = this._selectedRestaurantAddress.asReadonly();
+  readonly selectedMerchantId = this._selectedMerchantId.asReadonly();
+  readonly selectedMerchantName = this._selectedMerchantName.asReadonly();
+  readonly selectedMerchantLogo = this._selectedMerchantLogo.asReadonly();
+  readonly selectedMerchantAddress = this._selectedMerchantAddress.asReadonly();
   readonly sessionExpiredMessage = this._sessionExpiredMessage.asReadonly();
 
   // Computed signals
   readonly isAuthenticated = computed(() => !!this._token() && !!this._user());
-  readonly userRestaurants = computed(() => this._restaurants().map(r => r.id));
-  readonly restaurants = this._restaurants.asReadonly();
+  readonly userMerchants = computed(() => this._merchants().map(r => r.id));
+  readonly merchants = this._merchants.asReadonly();
 
   constructor() {
     this.loadFromStorage();
@@ -48,11 +48,11 @@ export class AuthService {
   private loadFromStorage(): void {
     const token = localStorage.getItem('auth_token');
     const userJson = localStorage.getItem('auth_user');
-    const restaurantsJson = localStorage.getItem('auth_restaurants');
-    const restaurantId = localStorage.getItem('selected_restaurant_id');
-    const restaurantName = localStorage.getItem('selected_restaurant_name');
-    const restaurantLogo = localStorage.getItem('selected_restaurant_logo');
-    const restaurantAddress = localStorage.getItem('selected_restaurant_address');
+    const merchantsJson = localStorage.getItem('auth_merchants');
+    const merchantId = localStorage.getItem('selected_merchant_id');
+    const merchantName = localStorage.getItem('selected_merchant_name');
+    const merchantLogo = localStorage.getItem('selected_merchant_logo');
+    const merchantAddress = localStorage.getItem('selected_merchant_address');
 
     if (token && userJson) {
       try {
@@ -60,37 +60,37 @@ export class AuthService {
         this._token.set(token);
         this._user.set(user);
 
-        if (restaurantsJson) {
-          const restaurants = JSON.parse(restaurantsJson) as UserRestaurant[];
-          this._restaurants.set(restaurants);
+        if (merchantsJson) {
+          const merchants = JSON.parse(merchantsJson) as UserRestaurant[];
+          this._merchants.set(merchants);
         }
       } catch {
         this.clearStorage();
       }
     }
 
-    if (restaurantId) {
-      this._selectedRestaurantId.set(restaurantId);
-      this._selectedRestaurantName.set(restaurantName);
-      this._selectedRestaurantLogo.set(restaurantLogo);
-      this._selectedRestaurantAddress.set(restaurantAddress);
+    if (merchantId) {
+      this._selectedMerchantId.set(merchantId);
+      this._selectedMerchantName.set(merchantName);
+      this._selectedMerchantLogo.set(merchantLogo);
+      this._selectedMerchantAddress.set(merchantAddress);
     }
   }
 
-  private saveToStorage(token: string, user: User, restaurants: UserRestaurant[]): void {
+  private saveToStorage(token: string, user: User, merchants: UserRestaurant[]): void {
     localStorage.setItem('auth_token', token);
     localStorage.setItem('auth_user', JSON.stringify(user));
-    localStorage.setItem('auth_restaurants', JSON.stringify(restaurants));
+    localStorage.setItem('auth_merchants', JSON.stringify(merchants));
   }
 
   private clearStorage(): void {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
-    localStorage.removeItem('auth_restaurants');
-    localStorage.removeItem('selected_restaurant_id');
-    localStorage.removeItem('selected_restaurant_name');
-    localStorage.removeItem('selected_restaurant_logo');
-    localStorage.removeItem('selected_restaurant_address');
+    localStorage.removeItem('auth_merchants');
+    localStorage.removeItem('selected_merchant_id');
+    localStorage.removeItem('selected_merchant_name');
+    localStorage.removeItem('selected_merchant_logo');
+    localStorage.removeItem('selected_merchant_address');
   }
 
   async login(credentials: LoginRequest): Promise<boolean> {
@@ -105,7 +105,7 @@ export class AuthService {
 
       this._token.set(response.token);
       this._user.set(response.user);
-      this._restaurants.set(response.restaurants || []);
+      this._merchants.set(response.restaurants || []);
       this.saveToStorage(response.token, response.user, response.restaurants || []);
 
       return true;
@@ -134,7 +134,7 @@ export class AuthService {
 
       this._token.set(response.token);
       this._user.set(response.user);
-      this._restaurants.set(response.restaurants || []);
+      this._merchants.set(response.restaurants || []);
       this.saveToStorage(response.token, response.user, response.restaurants || []);
 
       return true;
@@ -164,11 +164,11 @@ export class AuthService {
     } finally {
       this._token.set(null);
       this._user.set(null);
-      this._restaurants.set([]);
-      this._selectedRestaurantId.set(null);
-      this._selectedRestaurantName.set(null);
-      this._selectedRestaurantLogo.set(null);
-      this._selectedRestaurantAddress.set(null);
+      this._merchants.set([]);
+      this._selectedMerchantId.set(null);
+      this._selectedMerchantName.set(null);
+      this._selectedMerchantLogo.set(null);
+      this._selectedMerchantAddress.set(null);
       this.clearStorage();
       this._isLoading.set(false);
     }
@@ -201,11 +201,11 @@ export class AuthService {
   handleSessionExpired(): void {
     this._token.set(null);
     this._user.set(null);
-    this._restaurants.set([]);
-    this._selectedRestaurantId.set(null);
-    this._selectedRestaurantName.set(null);
-    this._selectedRestaurantLogo.set(null);
-    this._selectedRestaurantAddress.set(null);
+    this._merchants.set([]);
+    this._selectedMerchantId.set(null);
+    this._selectedMerchantName.set(null);
+    this._selectedMerchantLogo.set(null);
+    this._selectedMerchantAddress.set(null);
     this.clearStorage();
     this._sessionExpiredMessage.set('Your session has expired. Please sign in again.');
     this.router.navigate(['/login']);
@@ -215,22 +215,22 @@ export class AuthService {
     this._sessionExpiredMessage.set(null);
   }
 
-  selectRestaurant(restaurantId: string, restaurantName: string, restaurantLogo?: string, restaurantAddress?: string): void {
-    this._selectedRestaurantId.set(restaurantId);
-    this._selectedRestaurantName.set(restaurantName);
-    this._selectedRestaurantLogo.set(restaurantLogo ?? null);
-    this._selectedRestaurantAddress.set(restaurantAddress ?? null);
-    localStorage.setItem('selected_restaurant_id', restaurantId);
-    localStorage.setItem('selected_restaurant_name', restaurantName);
-    if (restaurantLogo) {
-      localStorage.setItem('selected_restaurant_logo', restaurantLogo);
+  selectMerchant(merchantId: string, merchantName: string, merchantLogo?: string, merchantAddress?: string): void {
+    this._selectedMerchantId.set(merchantId);
+    this._selectedMerchantName.set(merchantName);
+    this._selectedMerchantLogo.set(merchantLogo ?? null);
+    this._selectedMerchantAddress.set(merchantAddress ?? null);
+    localStorage.setItem('selected_merchant_id', merchantId);
+    localStorage.setItem('selected_merchant_name', merchantName);
+    if (merchantLogo) {
+      localStorage.setItem('selected_merchant_logo', merchantLogo);
     } else {
-      localStorage.removeItem('selected_restaurant_logo');
+      localStorage.removeItem('selected_merchant_logo');
     }
-    if (restaurantAddress) {
-      localStorage.setItem('selected_restaurant_address', restaurantAddress);
+    if (merchantAddress) {
+      localStorage.setItem('selected_merchant_address', merchantAddress);
     } else {
-      localStorage.removeItem('selected_restaurant_address');
+      localStorage.removeItem('selected_merchant_address');
     }
   }
 
@@ -256,14 +256,14 @@ export class AuthService {
   setSession(data: { token: string; user: User; restaurants?: UserRestaurant[] }): void {
     this._token.set(data.token);
     this._user.set(data.user);
-    this._restaurants.set(data.restaurants || []);
+    this._merchants.set(data.restaurants || []);
     this.saveToStorage(data.token, data.user, data.restaurants || []);
   }
 
-  async resolveRestaurantBySlug(slug: string): Promise<Restaurant | null> {
+  async resolveMerchantBySlug(slug: string): Promise<Restaurant | null> {
     try {
       return await firstValueFrom(
-        this.http.get<Restaurant>(`${this.apiUrl}/restaurant/slug/${slug}`)
+        this.http.get<Restaurant>(`${this.apiUrl}/merchant/slug/${slug}`)
       );
     } catch {
       return null;

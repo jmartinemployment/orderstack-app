@@ -37,12 +37,12 @@ export class GiftCardService {
     this.activeCards().reduce((sum, c) => sum + c.currentBalance, 0)
   );
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   async loadGiftCards(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     this._isLoading.set(true);
     this._error.set(null);
@@ -50,7 +50,7 @@ export class GiftCardService {
     try {
       const data = await firstValueFrom(
         this.http.get<GiftCard[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/gift-cards`
+          `${this.apiUrl}/merchant/${this.merchantId}/gift-cards`
         )
       );
       this._giftCards.set(data ?? []);
@@ -63,12 +63,12 @@ export class GiftCardService {
   }
 
   async createGiftCard(data: GiftCardFormData): Promise<GiftCard | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const card = await firstValueFrom(
         this.http.post<GiftCard>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/gift-cards`,
+          `${this.apiUrl}/merchant/${this.merchantId}/gift-cards`,
           data
         )
       );
@@ -82,12 +82,12 @@ export class GiftCardService {
   }
 
   async checkBalance(code: string): Promise<GiftCardBalanceCheck | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<GiftCardBalanceCheck>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/gift-cards/balance/${encodeURIComponent(code)}`
+          `${this.apiUrl}/merchant/${this.merchantId}/gift-cards/balance/${encodeURIComponent(code)}`
         )
       );
     } catch (err: unknown) {
@@ -98,12 +98,12 @@ export class GiftCardService {
   }
 
   async redeemGiftCard(code: string, amount: number, orderId: string): Promise<GiftCardRedemption | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const redemption = await firstValueFrom(
         this.http.post<GiftCardRedemption>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/gift-cards/redeem`,
+          `${this.apiUrl}/merchant/${this.merchantId}/gift-cards/redeem`,
           { code, amount, orderId }
         )
       );
@@ -117,12 +117,12 @@ export class GiftCardService {
   }
 
   async disableGiftCard(cardId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<GiftCard>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/gift-cards/${cardId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}/gift-cards/${cardId}`,
           { status: 'disabled' }
         )
       );
@@ -136,12 +136,12 @@ export class GiftCardService {
   }
 
   async getRedemptionHistory(cardId: string): Promise<GiftCardRedemption[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       return await firstValueFrom(
         this.http.get<GiftCardRedemption[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/gift-cards/${cardId}/redemptions`
+          `${this.apiUrl}/merchant/${this.merchantId}/gift-cards/${cardId}/redemptions`
         )
       );
     } catch {
@@ -152,12 +152,12 @@ export class GiftCardService {
   // --- Physical Card Activation ---
 
   async activatePhysicalCard(activation: GiftCardActivation): Promise<GiftCard | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const card = await firstValueFrom(
         this.http.post<GiftCard>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/gift-cards/activate`,
+          `${this.apiUrl}/merchant/${this.merchantId}/gift-cards/activate`,
           activation
         )
       );
@@ -171,12 +171,12 @@ export class GiftCardService {
   }
 
   async lookupByCardNumber(cardNumber: string): Promise<GiftCardBalanceCheck | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       return await firstValueFrom(
         this.http.get<GiftCardBalanceCheck>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/gift-cards/lookup?cardNumber=${encodeURIComponent(cardNumber)}`
+          `${this.apiUrl}/merchant/${this.merchantId}/gift-cards/lookup?cardNumber=${encodeURIComponent(cardNumber)}`
         )
       );
     } catch (err: unknown) {

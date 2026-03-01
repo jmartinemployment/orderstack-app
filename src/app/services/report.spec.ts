@@ -14,7 +14,7 @@ type ReportHarness = {
   httpGet: ReturnType<typeof vi.fn>;
 };
 
-function createHarness(restaurantId: string | null = 'r-1'): ReportHarness {
+function createHarness(merchantId: string | null = 'r-1'): ReportHarness {
   const httpGet = vi.fn();
   const httpMock = {
     get: httpGet,
@@ -24,7 +24,7 @@ function createHarness(restaurantId: string | null = 'r-1'): ReportHarness {
   };
 
   const authMock = {
-    selectedRestaurantId: vi.fn(() => restaurantId),
+    selectedMerchantId: vi.fn(() => merchantId),
     isAuthenticated: signal(true).asReadonly(),
   };
 
@@ -93,7 +93,7 @@ describe('ReportService — getRealTimeKpis', () => {
     spy.mockRestore();
   });
 
-  it('returns null when no restaurantId', async () => {
+  it('returns null when no merchantId', async () => {
     const { service, httpGet } = createHarness(null);
 
     const result = await service.getRealTimeKpis();

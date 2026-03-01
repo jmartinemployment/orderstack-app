@@ -100,7 +100,7 @@ export class FloorPlan implements OnInit {
   readonly qrTable = this._qrTable.asReadonly();
   readonly showBatchQr = this._showBatchQr.asReadonly();
 
-  readonly restaurantSlug = computed(() => this.authService.selectedRestaurantName()?.toLowerCase().replaceAll(/[^a-z0-9]+/g, '-').replaceAll(/(^-|-$)/g, '') ?? '');
+  readonly restaurantSlug = computed(() => this.authService.selectedMerchantName()?.toLowerCase().replaceAll(/[^a-z0-9]+/g, '-').replaceAll(/(^-|-$)/g, '') ?? '');
 
   readonly sections = computed(() => {
     const sectionSet = new Set<string>();

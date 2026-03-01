@@ -32,14 +32,14 @@ export class PaymentConnectService {
   readonly isConnecting = signal(false);
   readonly error = signal<string | null>(null);
 
-  private get restaurantId(): string {
-    return this.authService.selectedRestaurantId() ?? '';
+  private get merchantId(): string {
+    return this.authService.selectedMerchantId() ?? '';
   }
 
   // --- Stripe Connect ---
 
   async startStripeConnect(): Promise<string | null> {
-    const rid = this.restaurantId;
+    const rid = this.merchantId;
     if (!rid) return null;
 
     this.isConnecting.set(true);
@@ -48,12 +48,12 @@ export class PaymentConnectService {
     try {
       // Step 1: Create account
       const createRes = await firstValueFrom(
-        this.http.post<{ accountId: string }>(`${this.apiUrl}/restaurant/${rid}/connect/stripe/create-account`, {}),
+        this.http.post<{ accountId: string }>(`${this.apiUrl}/merchant/${rid}/connect/stripe/create-account`, {}),
       );
 
       // Step 2: Get account link URL
       const linkRes = await firstValueFrom(
-        this.http.post<{ url: string }>(`${this.apiUrl}/restaurant/${rid}/connect/stripe/account-link`, {
+        this.http.post<{ url: string }>(`${this.apiUrl}/merchant/${rid}/connect/stripe/account-link`, {
           returnUrl: `${window.location.origin}/setup?stripe=complete`,
           refreshUrl: `${window.location.origin}/setup?stripe=refresh`,
         }),
@@ -70,12 +70,12 @@ export class PaymentConnectService {
   }
 
   async checkStripeStatus(): Promise<ConnectStatus> {
-    const rid = this.restaurantId;
+    const rid = this.merchantId;
     if (!rid) return 'none';
 
     try {
       const res = await firstValueFrom(
-        this.http.get<StripeStatusResponse>(`${this.apiUrl}/restaurant/${rid}/connect/stripe/status`),
+        this.http.get<StripeStatusResponse>(`${this.apiUrl}/merchant/${rid}/connect/stripe/status`),
       );
       this.stripeStatus.set(res.status);
       return res.status;
@@ -96,7 +96,7 @@ export class PaymentConnectService {
   // --- PayPal Partner Referrals ---
 
   async startPayPalConnect(): Promise<string | null> {
-    const rid = this.restaurantId;
+    const rid = this.merchantId;
     if (!rid) return null;
 
     this.isConnecting.set(true);
@@ -105,7 +105,7 @@ export class PaymentConnectService {
     try {
       const res = await firstValueFrom(
         this.http.post<{ actionUrl?: string; merchantId?: string; status?: string }>(
-          `${this.apiUrl}/restaurant/${rid}/connect/paypal/create-referral`, {},
+          `${this.apiUrl}/merchant/${rid}/connect/paypal/create-referral`, {},
         ),
       );
 
@@ -125,12 +125,12 @@ export class PaymentConnectService {
   }
 
   async completePayPalConnect(merchantId: string): Promise<boolean> {
-    const rid = this.restaurantId;
+    const rid = this.merchantId;
     if (!rid) return false;
 
     try {
       await firstValueFrom(
-        this.http.post(`${this.apiUrl}/restaurant/${rid}/connect/paypal/complete`, { merchantId }),
+        this.http.post(`${this.apiUrl}/merchant/${rid}/connect/paypal/complete`, { merchantId }),
       );
       this.paypalStatus.set('connected');
       return true;
@@ -140,12 +140,12 @@ export class PaymentConnectService {
   }
 
   async checkPayPalStatus(): Promise<ConnectStatus> {
-    const rid = this.restaurantId;
+    const rid = this.merchantId;
     if (!rid) return 'none';
 
     try {
       const res = await firstValueFrom(
-        this.http.get<PayPalStatusResponse>(`${this.apiUrl}/restaurant/${rid}/connect/paypal/status`),
+        this.http.get<PayPalStatusResponse>(`${this.apiUrl}/merchant/${rid}/connect/paypal/status`),
       );
       this.paypalStatus.set(res.status);
       return res.status;

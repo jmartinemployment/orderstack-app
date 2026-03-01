@@ -13,9 +13,9 @@ export const onboardingGuard = async () => {
     return true;
   }
 
-  // Page refresh scenario: profile lost from memory but restaurantId restored from localStorage
-  const restaurantId = authService.selectedRestaurantId();
-  if (restaurantId) {
+  // Page refresh scenario: profile lost from memory but merchantId restored from localStorage
+  const merchantId = authService.selectedMerchantId();
+  if (merchantId) {
     await platform.loadMerchantProfile();
     const reloaded = platform.merchantProfile();
     if (reloaded && reloaded.businessName) {
@@ -24,7 +24,7 @@ export const onboardingGuard = async () => {
   }
 
   // Returning user: has restaurants from backend (login response) — skip onboarding
-  if (authService.restaurants().length > 0) {
+  if (authService.merchants().length > 0) {
     return true;
   }
 

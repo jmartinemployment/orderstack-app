@@ -22,7 +22,7 @@ export interface ProductImage {
 export interface ProductListing {
   id: string;
   retailItemId: string;
-  restaurantId: string;
+  merchantId: string;
   title: string;
   description: string;
   seoTitle: string;
@@ -50,7 +50,7 @@ export interface ProductListingFormData {
 
 export interface ShippingMethod {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   type: 'flat_rate' | 'by_weight' | 'by_order_total' | 'by_quantity' | 'carrier_api';
   rate: number;
@@ -96,7 +96,7 @@ export interface ShippingAddress {
 export interface EcommerceOrder {
   id: string;
   orderNumber: string;
-  restaurantId: string;
+  merchantId: string;
   customerId: string | null;
   customerEmail: string;
   customerName: string;
@@ -145,7 +145,7 @@ export type EcommerceCheckoutStep = 'cart' | 'shipping' | 'payment' | 'confirmat
 // --- Store Configuration ---
 
 export interface StoreConfig {
-  restaurantId: string;
+  merchantId: string;
   storeSlug: string;
   storeName: string;
   logoUrl: string | null;
@@ -210,7 +210,7 @@ export interface BopisConfig {
 export type SyncChannel = 'pos' | 'online' | 'kiosk';
 
 export interface ChannelSyncConfig {
-  restaurantId: string;
+  merchantId: string;
   enableRealTimeInventorySync: boolean;
   enablePriceSync: boolean;
   bufferStockPerChannel: number;

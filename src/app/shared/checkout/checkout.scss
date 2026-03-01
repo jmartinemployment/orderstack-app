@@ -16,6 +16,7 @@
 }
 
 .checkout-modal {
+  position: relative;
   background: #fff;
   border-radius: 16px;
   width: 90%;
@@ -24,6 +25,13 @@
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   animation: slideUp 0.25s ease;
+
+  > .btn-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 1;
+  }
 }
 
 .checkout-step {

@@ -3,7 +3,7 @@ export type GiftCardType = 'digital' | 'physical';
 
 export interface GiftCard {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   code: string;
   type: GiftCardType;
   originalBalance: number;

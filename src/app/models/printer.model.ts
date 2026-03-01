@@ -2,7 +2,7 @@ export type PrinterModel = 'Star mC-Print3' | 'Star mC-Print2' | 'Star TSP654II'
 
 export interface Printer {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   model: PrinterModel;
   macAddress: string;

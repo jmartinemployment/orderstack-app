@@ -238,7 +238,7 @@ export class PosLogin {
         if (payload.ownerPin) {
           const ownerMember: TeamMember = {
             id: 'owner-local',
-            restaurantId: this.authService.selectedRestaurantId() ?? '',
+            merchantId: this.authService.selectedMerchantId() ?? '',
             displayName: payload.ownerPin.displayName,
             email: payload.ownerEmail ?? null,
             phone: null,

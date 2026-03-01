@@ -100,7 +100,7 @@ export class SentimentDashboard {
 
   constructor() {
     effect(() => {
-      if (this.isAuthenticated() && this.authService.selectedRestaurantId()) {
+      if (this.isAuthenticated() && this.authService.selectedMerchantId()) {
         this.loadAndAnalyze();
       }
     });
@@ -115,15 +115,15 @@ export class SentimentDashboard {
   }
 
   async loadAndAnalyze(): Promise<void> {
-    const restaurantId = this.authService.selectedRestaurantId();
-    if (!restaurantId || this._isLoading()) return;
+    const merchantId = this.authService.selectedMerchantId();
+    if (!merchantId || this._isLoading()) return;
 
     this._isLoading.set(true);
     this._error.set(null);
 
     try {
       const orders = await firstValueFrom(
-        this.http.get<any[]>(`${environment.apiUrl}/restaurant/${restaurantId}/orders`)
+        this.http.get<any[]>(`${environment.apiUrl}/merchant/${merchantId}/orders`)
       );
 
       const entries: SentimentEntry[] = [];

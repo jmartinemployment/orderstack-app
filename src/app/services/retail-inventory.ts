@@ -76,21 +76,21 @@ export class RetailInventoryService {
     this._alerts().filter(a => !a.acknowledged)
   );
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   // --- Stock ---
 
   async loadStock(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
 
     try {
       const data = await firstValueFrom(
         this.http.get<RetailStockRecord[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/stock`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/stock`
         )
       );
       this._stock.set(data);
@@ -111,12 +111,12 @@ export class RetailInventoryService {
   }
 
   async adjustStock(formData: StockAdjustmentFormData): Promise<StockAdjustment | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const adj = await firstValueFrom(
         this.http.post<StockAdjustment>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/adjust`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/adjust`,
           formData
         )
       );
@@ -143,12 +143,12 @@ export class RetailInventoryService {
   }
 
   async loadAdjustmentHistory(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<StockAdjustment[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/adjustments`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/adjustments`
         )
       );
       this._adjustments.set(data);
@@ -161,12 +161,12 @@ export class RetailInventoryService {
   // --- Alerts ---
 
   async loadStockAlerts(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<StockAlert[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/alerts`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/alerts`
         )
       );
       this._alerts.set(data);
@@ -181,12 +181,12 @@ export class RetailInventoryService {
   }
 
   async acknowledgeAlert(alertId: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/alerts/${alertId}/acknowledge`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/alerts/${alertId}/acknowledge`,
           {}
         )
       );
@@ -202,12 +202,12 @@ export class RetailInventoryService {
   // --- Transfers ---
 
   async createTransfer(formData: StockTransferFormData): Promise<StockTransfer | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const transfer = await firstValueFrom(
         this.http.post<StockTransfer>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/transfers`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/transfers`,
           formData
         )
       );
@@ -221,12 +221,12 @@ export class RetailInventoryService {
   }
 
   async receiveTransfer(transferId: string, receivedItems: { itemId: string; variationId: string | null; receivedQuantity: number }[]): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.post<StockTransfer>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/transfers/${transferId}/receive`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/transfers/${transferId}/receive`,
           { items: receivedItems }
         )
       );
@@ -240,12 +240,12 @@ export class RetailInventoryService {
   }
 
   async cancelTransfer(transferId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/transfers/${transferId}/cancel`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/transfers/${transferId}/cancel`,
           {}
         )
       );
@@ -261,12 +261,12 @@ export class RetailInventoryService {
   }
 
   async loadTransfers(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<StockTransfer[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/transfers`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/transfers`
         )
       );
       this._transfers.set(data);
@@ -279,12 +279,12 @@ export class RetailInventoryService {
   // --- Cycle Counts ---
 
   async startFullCount(): Promise<RetailCycleCount | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const count = await firstValueFrom(
         this.http.post<RetailCycleCount>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/counts`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/counts`,
           { type: 'full' }
         )
       );
@@ -298,12 +298,12 @@ export class RetailInventoryService {
   }
 
   async startCycleCount(categoryId: string): Promise<RetailCycleCount | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const count = await firstValueFrom(
         this.http.post<RetailCycleCount>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/counts`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/counts`,
           { type: 'cycle', categoryId }
         )
       );
@@ -317,12 +317,12 @@ export class RetailInventoryService {
   }
 
   async submitCountEntry(countId: string, entry: { itemId: string; variationId: string | null; countedQuantity: number }): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/counts/${countId}/entries`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/counts/${countId}/entries`,
           entry
         )
       );
@@ -345,12 +345,12 @@ export class RetailInventoryService {
   }
 
   async completeCount(countId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.post<RetailCycleCount>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/counts/${countId}/complete`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/counts/${countId}/complete`,
           {}
         )
       );
@@ -364,12 +364,12 @@ export class RetailInventoryService {
   }
 
   async loadCountHistory(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<RetailCycleCount[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/counts`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/counts`
         )
       );
       this._activeCounts.set(data);
@@ -382,12 +382,12 @@ export class RetailInventoryService {
   // --- FIFO ---
 
   async loadCostLayers(itemId: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
     try {
       const data = await firstValueFrom(
         this.http.get<CostLayer[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/items/${itemId}/cost-layers`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/items/${itemId}/cost-layers`
         )
       );
       this._costLayers.set(data);
@@ -400,12 +400,12 @@ export class RetailInventoryService {
   // --- Label Printing ---
 
   async printLabels(job: LabelPrintJob): Promise<Blob | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
       const blob = await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/labels`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/labels`,
           job,
           { responseType: 'blob' }
         )
@@ -421,12 +421,12 @@ export class RetailInventoryService {
   // --- Reports ---
 
   async getAgingReport(): Promise<InventoryAgingBucket[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       return await firstValueFrom(
         this.http.get<InventoryAgingBucket[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/reports/aging`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/reports/aging`
         )
       );
     } catch (err: unknown) {
@@ -437,12 +437,12 @@ export class RetailInventoryService {
   }
 
   async getSellThroughReport(dateRange: { from: string; to: string }): Promise<SellThroughReport[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       return await firstValueFrom(
         this.http.get<SellThroughReport[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/reports/sell-through`,
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/reports/sell-through`,
           { params: dateRange }
         )
       );
@@ -454,12 +454,12 @@ export class RetailInventoryService {
   }
 
   async getShrinkageReport(): Promise<ShrinkageReport[]> {
-    if (!this.restaurantId) return [];
+    if (!this.merchantId) return [];
 
     try {
       return await firstValueFrom(
         this.http.get<ShrinkageReport[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/retail/inventory/reports/shrinkage`
+          `${this.apiUrl}/merchant/${this.merchantId}/retail/inventory/reports/shrinkage`
         )
       );
     } catch (err: unknown) {

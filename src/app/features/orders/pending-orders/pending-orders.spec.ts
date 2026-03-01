@@ -14,7 +14,7 @@ const NOW = new Date('2026-02-25T12:00:00Z');
 
 function makeOrder(overrides: Partial<Order> & { guid: string; guestOrderStatus: GuestOrderStatus }): Order {
   return {
-    restaurantId: 'r-1',
+    merchantId: 'r-1',
     orderNumber: '1001',
     server: { guid: 'srv-1', name: 'Server', entityType: 'RestaurantUser' },
     device: { guid: 'dev-1', name: 'POS' },
@@ -67,8 +67,8 @@ function createMockOrderService(orders: Order[] = []) {
 
 function createMockAuthService() {
   return {
-    selectedRestaurantName: signal('Taipa').asReadonly(),
-    selectedRestaurantId: signal('r-1').asReadonly(),
+    selectedMerchantName: signal('Taipa').asReadonly(),
+    selectedMerchantId: signal('r-1').asReadonly(),
   };
 }
 

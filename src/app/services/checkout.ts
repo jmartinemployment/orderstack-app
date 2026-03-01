@@ -21,12 +21,6 @@ export type CheckoutStep =
   | 'success'
   | 'failed';
 
-interface CustomerInfo {
-  name: string;
-  phone: string;
-  email: string;
-}
-
 @Injectable({
   providedIn: 'root',
 })
@@ -235,6 +229,8 @@ export class CheckoutService {
 
     if (option === 'dine_in' && this.availableTables().length > 0) {
       this._checkoutStep.set('table-select');
+    } else if (option === 'takeout') {
+      this._checkoutStep.set('customer-info');
     } else if (this._checkoutMode() === 'charge') {
       this._checkoutStep.set('customer-info');
     } else {
@@ -275,25 +271,43 @@ export class CheckoutService {
   }
 
   submitCustomerInfo(): void {
-    void this.createOrderAndPay();
+    if (this._checkoutMode() === 'send') {
+      void this.createOrder();
+    } else {
+      void this.createOrderAndPay();
+    }
   }
 
   skipCustomerInfo(): void {
     this._customerName.set('');
     this._customerPhone.set('');
     this._customerEmail.set('');
-    void this.createOrderAndPay();
+    if (this._checkoutMode() === 'send') {
+      void this.createOrder();
+    } else {
+      void this.createOrderAndPay();
+    }
   }
 
   // --- Order creation ---
 
-  private buildCustomerInfo(): CustomerInfo | undefined {
+  private buildCustomerInfo(): Record<string, string> | undefined {
     const name = this._customerName().trim();
     const phone = this._customerPhone().trim();
     const email = this._customerEmail().trim();
 
     if (!name && !phone && !email) return undefined;
-    return { name, phone, email };
+
+    const nameParts = name.split(' ');
+    const firstName = nameParts[0] ?? '';
+    const lastName = nameParts.slice(1).join(' ') ?? '';
+
+    return {
+      firstName,
+      lastName,
+      phone,
+      email,
+    };
   }
 
   private buildOrderData(): Record<string, unknown> {

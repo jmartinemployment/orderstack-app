@@ -297,7 +297,7 @@ export class BookingManager {
 
   constructor() {
     effect(() => {
-      if (this.isAuthenticated() && this.authService.selectedRestaurantId()) {
+      if (this.isAuthenticated() && this.authService.selectedMerchantId()) {
         this.bookingService.loadBookings();
         this.bookingService.loadWaitlist();
         this.bookingService.loadTurnTimeStats();

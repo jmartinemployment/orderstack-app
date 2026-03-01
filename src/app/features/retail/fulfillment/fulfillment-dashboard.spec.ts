@@ -11,7 +11,7 @@ function makeOrder(overrides: Partial<EcommerceOrder> = {}): EcommerceOrder {
   return {
     id: 'o-1',
     orderNumber: 'ORD-1001',
-    restaurantId: 'r-1',
+    merchantId: 'r-1',
     customerId: null,
     customerEmail: 'test@example.com',
     customerName: 'Test User',

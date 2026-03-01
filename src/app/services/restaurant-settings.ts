@@ -93,12 +93,12 @@ export class RestaurantSettingsService {
   private static readonly MIN_MAX_HOLD_MINUTES = 1;
   private static readonly MAX_MAX_HOLD_MINUTES = 180;
 
-  private get restaurantId(): string {
-    return this.authService.selectedRestaurantId() ?? '';
+  private get merchantId(): string {
+    return this.authService.selectedMerchantId() ?? '';
   }
 
   async loadSettings(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     // Prevent concurrent loads — skip if already in progress
     if (this._isLoading()) return;
     this._isLoading.set(true);
@@ -107,7 +107,7 @@ export class RestaurantSettingsService {
     try {
       const response = await firstValueFrom(
         this.http.get<Record<string, unknown>>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}`
+          `${this.apiUrl}/merchant/${this.merchantId}`
         )
       );
 
@@ -174,7 +174,7 @@ export class RestaurantSettingsService {
   }
 
   async saveAISettings(s: AISettings): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isSaving.set(true);
     this._error.set(null);
     const normalized = this.normalizeAISettings(s);
@@ -182,238 +182,238 @@ export class RestaurantSettingsService {
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}`,
           { aiSettings: normalized }
         )
       );
     } catch {
       this._error.set('Settings saved locally only — backend sync failed');
     } finally {
-      localStorage.setItem(`${this.restaurantId}-ai-settings`, JSON.stringify(normalized));
+      localStorage.setItem(`${this.merchantId}-ai-settings`, JSON.stringify(normalized));
       this._aiSettings.set(normalized);
       this._isSaving.set(false);
     }
   }
 
   async saveOnlinePricingSettings(s: OnlinePricingSettings): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isSaving.set(true);
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}`,
           { onlinePricingSettings: s }
         )
       );
     } catch {
       this._error.set('Settings saved locally only — backend sync failed');
     } finally {
-      localStorage.setItem(`${this.restaurantId}-online-pricing-settings`, JSON.stringify(s));
+      localStorage.setItem(`${this.merchantId}-online-pricing-settings`, JSON.stringify(s));
       this._onlinePricingSettings.set(s);
       this._isSaving.set(false);
     }
   }
 
   async saveCateringCapacitySettings(s: CateringCapacitySettings): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isSaving.set(true);
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}`,
           { cateringCapacitySettings: s }
         )
       );
     } catch {
       this._error.set('Settings saved locally only — backend sync failed');
     } finally {
-      localStorage.setItem(`${this.restaurantId}-catering-capacity-settings`, JSON.stringify(s));
+      localStorage.setItem(`${this.merchantId}-catering-capacity-settings`, JSON.stringify(s));
       this._cateringCapacitySettings.set(s);
       this._isSaving.set(false);
     }
   }
 
   async savePaymentSettings(s: PaymentSettings): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isSaving.set(true);
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}`,
           { paymentSettings: s }
         )
       );
     } catch {
       this._error.set('Settings saved locally only — backend sync failed');
     } finally {
-      localStorage.setItem(`${this.restaurantId}-payment-settings`, JSON.stringify(s));
+      localStorage.setItem(`${this.merchantId}-payment-settings`, JSON.stringify(s));
       this._paymentSettings.set(s);
       this._isSaving.set(false);
     }
   }
 
   async saveTipManagementSettings(s: TipManagementSettings): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isSaving.set(true);
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}`,
           { tipManagementSettings: s }
         )
       );
     } catch {
       this._error.set('Settings saved locally only — backend sync failed');
     } finally {
-      localStorage.setItem(`${this.restaurantId}-tip-management-settings`, JSON.stringify(s));
+      localStorage.setItem(`${this.merchantId}-tip-management-settings`, JSON.stringify(s));
       this._tipManagementSettings.set(s);
       this._isSaving.set(false);
     }
   }
 
   async saveDeliverySettings(s: DeliverySettings): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isSaving.set(true);
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}`,
           { deliverySettings: s }
         )
       );
     } catch {
       this._error.set('Settings saved locally only — backend sync failed');
     } finally {
-      localStorage.setItem(`${this.restaurantId}-delivery-settings`, JSON.stringify(s));
+      localStorage.setItem(`${this.merchantId}-delivery-settings`, JSON.stringify(s));
       this._deliverySettings.set(s);
       this._isSaving.set(false);
     }
   }
 
   async saveTimeclockSettings(s: TimeclockSettings): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isSaving.set(true);
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}`,
           { timeclockSettings: s }
         )
       );
     } catch {
       this._error.set('Settings saved locally only — backend sync failed');
     } finally {
-      localStorage.setItem(`${this.restaurantId}-timeclock-settings`, JSON.stringify(s));
+      localStorage.setItem(`${this.merchantId}-timeclock-settings`, JSON.stringify(s));
       this._timeclockSettings.set(s);
       this._isSaving.set(false);
     }
   }
 
   async saveAutoGratuitySettings(s: AutoGratuitySettings): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isSaving.set(true);
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}`,
           { autoGratuitySettings: s }
         )
       );
     } catch {
       this._error.set('Settings saved locally only — backend sync failed');
     } finally {
-      localStorage.setItem(`${this.restaurantId}-auto-gratuity-settings`, JSON.stringify(s));
+      localStorage.setItem(`${this.merchantId}-auto-gratuity-settings`, JSON.stringify(s));
       this._autoGratuitySettings.set(s);
       this._isSaving.set(false);
     }
   }
 
   async saveScanToPaySettings(s: ScanToPaySettings): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isSaving.set(true);
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}`,
           { scanToPaySettings: s }
         )
       );
     } catch {
       this._error.set('Settings saved locally only — backend sync failed');
     } finally {
-      localStorage.setItem(`${this.restaurantId}-scan-to-pay-settings`, JSON.stringify(s));
+      localStorage.setItem(`${this.merchantId}-scan-to-pay-settings`, JSON.stringify(s));
       this._scanToPaySettings.set(s);
       this._isSaving.set(false);
     }
   }
 
   async saveNotificationSettings(s: NotificationSettings): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isSaving.set(true);
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}`,
           { notificationSettings: s }
         )
       );
     } catch {
       this._error.set('Settings saved locally only — backend sync failed');
     } finally {
-      localStorage.setItem(`${this.restaurantId}-notification-settings`, JSON.stringify(s));
+      localStorage.setItem(`${this.merchantId}-notification-settings`, JSON.stringify(s));
       this._notificationSettings.set(s);
       this._isSaving.set(false);
     }
   }
 
   async saveBarSettings(s: BarSettings): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isSaving.set(true);
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${this.restaurantId}`,
+          `${this.apiUrl}/merchant/${this.merchantId}`,
           { barSettings: s }
         )
       );
     } catch {
       this._error.set('Settings saved locally only — backend sync failed');
     } finally {
-      localStorage.setItem(`${this.restaurantId}-bar-settings`, JSON.stringify(s));
+      localStorage.setItem(`${this.merchantId}-bar-settings`, JSON.stringify(s));
       this._barSettings.set(s);
       this._isSaving.set(false);
     }
   }
 
   async loadCateringOrders(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     if (this._isLoadingCatering()) return;
     this._isLoadingCatering.set(true);
 
     try {
       const orders = await firstValueFrom(
         this.http.get<Order[]>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/orders?orderType=catering&limit=200`
+          `${this.apiUrl}/merchant/${this.merchantId}/orders?orderType=catering&limit=200`
         )
       );
       this._cateringOrders.set(orders);
@@ -439,7 +439,7 @@ export class RestaurantSettingsService {
   }
 
   async loadAiAdminConfig(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     if (this._isLoadingAiAdmin()) return;
     this._isLoadingAiAdmin.set(true);
     this._error.set(null);
@@ -447,7 +447,7 @@ export class RestaurantSettingsService {
     try {
       const config = await firstValueFrom(
         this.http.get<AIAdminConfig>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/ai-admin/config`
+          `${this.apiUrl}/merchant/${this.merchantId}/ai-admin/config`
         )
       );
       this._aiAdminConfig.set(config);
@@ -459,14 +459,14 @@ export class RestaurantSettingsService {
   }
 
   async saveApiKey(apiKey: string): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isSaving.set(true);
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.put<{ configured: boolean; keyLastFour: string | null; isValid: boolean }>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/ai-admin/api-key`,
+          `${this.apiUrl}/merchant/${this.merchantId}/ai-admin/api-key`,
           { apiKey }
         )
       );
@@ -484,14 +484,14 @@ export class RestaurantSettingsService {
   }
 
   async deleteApiKey(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isSaving.set(true);
     this._error.set(null);
 
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/ai-admin/api-key`
+          `${this.apiUrl}/merchant/${this.merchantId}/ai-admin/api-key`
         )
       );
       this._aiAdminConfig.update(prev => prev ? {
@@ -508,14 +508,14 @@ export class RestaurantSettingsService {
   }
 
   async saveAiFeatures(features: Partial<Record<AIFeatureKey, boolean>>): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isSaving.set(true);
     this._error.set(null);
 
     try {
       const result = await firstValueFrom(
         this.http.patch<{ features: Record<AIFeatureKey, boolean> }>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/ai-admin/features`,
+          `${this.apiUrl}/merchant/${this.merchantId}/ai-admin/features`,
           features
         )
       );
@@ -531,10 +531,10 @@ export class RestaurantSettingsService {
   }
 
   async loadAiUsage(startDate?: string, endDate?: string): Promise<AIUsageSummary | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
 
     try {
-      let url = `${this.apiUrl}/restaurant/${this.restaurantId}/ai-admin/usage`;
+      let url = `${this.apiUrl}/merchant/${this.merchantId}/ai-admin/usage`;
       if (startDate && endDate) {
         url += `?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
       }
@@ -653,8 +653,8 @@ export class RestaurantSettingsService {
   }
 
   private readLocalStorage(key: string): Record<string, unknown> | undefined {
-    if (!this.restaurantId) return undefined;
-    const raw = localStorage.getItem(`${this.restaurantId}-${key}`);
+    if (!this.merchantId) return undefined;
+    const raw = localStorage.getItem(`${this.merchantId}-${key}`);
     if (!raw) return undefined;
     try {
       return JSON.parse(raw) as Record<string, unknown>;
@@ -664,8 +664,8 @@ export class RestaurantSettingsService {
   }
 
   private loadCapacityBlocks(): void {
-    if (!this.restaurantId) return;
-    const raw = localStorage.getItem(`${this.restaurantId}-capacity-blocks`);
+    if (!this.merchantId) return;
+    const raw = localStorage.getItem(`${this.merchantId}-capacity-blocks`);
     if (raw) {
       try {
         this._capacityBlocks.set(JSON.parse(raw) as CapacityBlock[]);
@@ -676,9 +676,9 @@ export class RestaurantSettingsService {
   }
 
   private persistCapacityBlocks(): void {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     localStorage.setItem(
-      `${this.restaurantId}-capacity-blocks`,
+      `${this.merchantId}-capacity-blocks`,
       JSON.stringify(this._capacityBlocks())
     );
   }
@@ -691,7 +691,7 @@ export class RestaurantSettingsService {
   readonly specialHours = this._specialHours.asReadonly();
   readonly businessHoursCheck = this._businessHoursCheck.asReadonly();
 
-  async checkBusinessHours(restaurantId: string): Promise<BusinessHoursCheck> {
+  async checkBusinessHours(merchantId: string): Promise<BusinessHoursCheck> {
     if (this._isCheckingBusinessHours()) {
       return this._businessHoursCheck() ?? {
         isOpen: true,
@@ -707,7 +707,7 @@ export class RestaurantSettingsService {
 
     try {
       const result = await firstValueFrom(
-        this.http.get<BusinessHoursCheck>(`${this.apiUrl}/restaurant/${restaurantId}/business-hours/check`)
+        this.http.get<BusinessHoursCheck>(`${this.apiUrl}/merchant/${merchantId}/business-hours/check`)
       );
       this._businessHoursCheck.set(result);
       return result;
@@ -728,13 +728,13 @@ export class RestaurantSettingsService {
     }
   }
 
-  async loadSpecialHours(restaurantId: string): Promise<void> {
+  async loadSpecialHours(merchantId: string): Promise<void> {
     if (this._isLoadingSpecialHours()) return;
     this._isLoadingSpecialHours.set(true);
 
     try {
       const result = await firstValueFrom(
-        this.http.get<SpecialHours[]>(`${this.apiUrl}/restaurant/${restaurantId}/special-hours`)
+        this.http.get<SpecialHours[]>(`${this.apiUrl}/merchant/${merchantId}/special-hours`)
       );
       this._specialHours.set(result);
     } catch {

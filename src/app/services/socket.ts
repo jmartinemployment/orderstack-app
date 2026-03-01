@@ -72,13 +72,13 @@ export class SocketService implements OnDestroy {
     return deviceId;
   }
 
-  connect(restaurantId: string, deviceType?: 'pos' | 'kds' | 'sos'): void {
+  connect(merchantId: string, deviceType?: 'pos' | 'kds' | 'sos'): void {
     if (deviceType) {
       this._deviceType = deviceType;
     }
 
     if (this.socket?.connected) {
-      this.joinRestaurant(restaurantId);
+      this.joinRestaurant(merchantId);
       return;
     }
 
@@ -96,7 +96,7 @@ export class SocketService implements OnDestroy {
     this.socket.on('connect', () => {
       this._connectionStatus.set('connected');
       this.reconnectAttempts = 0;
-      this.joinRestaurant(restaurantId);
+      this.joinRestaurant(merchantId);
       this.startHeartbeat();
       // Bind any custom event handlers registered before connect
       for (const handler of this.customEventHandlers) {
@@ -107,12 +107,12 @@ export class SocketService implements OnDestroy {
     this.socket.on('disconnect', () => {
       this._connectionStatus.set('disconnected');
       this.stopHeartbeat();
-      this.handleReconnect(restaurantId);
+      this.handleReconnect(merchantId);
     });
 
     this.socket.on('connect_error', () => {
       this._connectionStatus.set('disconnected');
-      this.handleReconnect(restaurantId);
+      this.handleReconnect(merchantId);
     });
 
     this.socket.on('order:new', (data: any) => {
@@ -170,13 +170,13 @@ export class SocketService implements OnDestroy {
     this._connectionStatus.set('disconnected');
   }
 
-  private joinRestaurant(restaurantId: string): void {
+  private joinRestaurant(merchantId: string): void {
     if (this.socket?.connected) {
-      this.socket.emit('join-restaurant', { restaurantId });
+      this.socket.emit('join-restaurant', { merchantId });
     }
   }
 
-  private handleReconnect(restaurantId: string): void {
+  private handleReconnect(merchantId: string): void {
     this.reconnectAttempts++;
 
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
@@ -188,7 +188,7 @@ export class SocketService implements OnDestroy {
 
     setTimeout(() => {
       if (this._connectionStatus() === 'disconnected') {
-        this.connect(restaurantId, this._deviceType);
+        this.connect(merchantId, this._deviceType);
       }
     }, delay);
   }

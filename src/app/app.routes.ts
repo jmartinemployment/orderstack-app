@@ -153,8 +153,7 @@ export const routes: Routes = [
     resolve: { deviceInit: deviceInitResolver },
     children: [
 
-      // Home / Administration
-      { path: 'home', loadComponent: () => import('./features/home/home-dashboard/home-dashboard').then(m => m.HomeDashboard) },
+      // Administration (dashboard)
       { path: 'administration', canActivate: [administrationGuard], loadComponent: () => import('./features/home/home-dashboard/home-dashboard').then(m => m.HomeDashboard) },
       { path: 'hardware-guide', loadComponent: () => import('./features/home/hardware-guide/hardware-guide').then(m => m.HardwareGuide) },
 
@@ -236,8 +235,8 @@ export const routes: Routes = [
       { path: 'multi-location', loadComponent: () => import('./features/multi-location/multi-location-dashboard/multi-location-dashboard').then(m => m.MultiLocationDashboard) },
       { path: 'settings', loadComponent: () => import('./features/settings/control-panel/control-panel').then(m => m.ControlPanel) },
 
-      // Default — redirect to home
-      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      // Default — redirect to administration
+      { path: '', redirectTo: 'administration', pathMatch: 'full' },
     ],
   },
 

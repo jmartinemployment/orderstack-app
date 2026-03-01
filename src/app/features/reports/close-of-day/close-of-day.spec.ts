@@ -16,7 +16,7 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
   const now = new Date();
   return {
     guid: overrides.guid ?? 'o-1',
-    restaurantId: 'r-1',
+    merchantId: 'r-1',
     orderNumber: 1,
     guestOrderStatus: 'CLOSED',
     totalAmount: 100,
@@ -84,7 +84,7 @@ function createHarness() {
   };
 
   const authMock = {
-    selectedRestaurantId: vi.fn(() => 'r-1'),
+    selectedMerchantId: vi.fn(() => 'r-1'),
     isAuthenticated: signal(true).asReadonly(),
   };
 

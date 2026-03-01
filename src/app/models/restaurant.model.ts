@@ -38,7 +38,7 @@ export interface RestaurantSettings {
 
 export interface LegacyDevice {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   deviceId: string;
   name: string;
   type: 'sos' | 'kds' | 'online';
@@ -51,7 +51,7 @@ export interface LegacyDevice {
 
 export interface SpecialHours {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   date: string;
   openTime: string | null;
   closeTime: string | null;

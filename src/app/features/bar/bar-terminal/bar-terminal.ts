@@ -282,9 +282,9 @@ export class BarTerminal implements OnInit, OnDestroy {
     void this.stationService.loadStations();
     void this.stationService.loadCategoryMappings();
 
-    const restaurantId = this.authService.selectedRestaurantId();
-    if (restaurantId) {
-      this.socketService.connect(restaurantId, 'kds');
+    const merchantId = this.authService.selectedMerchantId();
+    if (merchantId) {
+      this.socketService.connect(merchantId, 'kds');
     }
 
     this.orderService.loadOrders({ limit: 50 });

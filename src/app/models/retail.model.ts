@@ -14,7 +14,7 @@ export interface RetailChannelVisibility {
 
 export interface RetailCategory {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   parentId: string | null;
   depth: number;
@@ -35,7 +35,7 @@ export interface RetailCategoryFormData {
 
 export interface RetailOptionSet {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   values: string[];
 }
@@ -65,7 +65,7 @@ export interface RetailItemVariation {
 
 export interface RetailItem {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   sku: string | null;
   barcode: string | null;
@@ -139,7 +139,7 @@ export interface CollectionRule {
 
 export interface RetailCollection {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   type: CollectionType;
   rules: CollectionRule[];
@@ -184,7 +184,7 @@ export interface BundleComponent {
 
 export interface RetailBundle {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   name: string;
   sku: string | null;
   barcode: string | null;
@@ -241,7 +241,7 @@ export interface RetailTransactionItem {
 
 export interface RetailTransaction {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   type: RetailTransactionType;
   items: RetailTransactionItem[];
   subtotal: number;
@@ -320,7 +320,7 @@ export type LayawayStatus = 'active' | 'completed' | 'cancelled' | 'expired';
 
 export interface LayawayRecord {
   id: string;
-  restaurantId: string;
+  merchantId: string;
   customerId: string;
   items: RetailTransactionItem[];
   totalAmount: number;

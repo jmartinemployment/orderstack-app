@@ -38,7 +38,7 @@ export interface OnboardingPayload {
 }
 
 export interface OnboardingResult {
-  restaurantId: string;
+  merchantId: string;
   token: string | null;
   deviceId: string;
   restaurant: Record<string, unknown>;
@@ -111,13 +111,13 @@ export class PlatformService {
   readonly canUseOrderNumbers = computed(() => this.featureFlags().enableOrderNumberTracking);
   readonly showItemImages = computed(() => this.featureFlags().showItemImages);
 
-  private get restaurantId(): string {
-    return this.authService.selectedRestaurantId() ?? '';
+  private get merchantId(): string {
+    return this.authService.selectedMerchantId() ?? '';
   }
 
   async loadMerchantProfile(): Promise<void> {
-    if (!this.restaurantId) {
-      console.warn('[PlatformService] loadMerchantProfile called with no restaurantId');
+    if (!this.merchantId) {
+      console.warn('[PlatformService] loadMerchantProfile called with no merchantId');
       return;
     }
     // Skip if already loaded
@@ -129,7 +129,7 @@ export class PlatformService {
     try {
       const response = await firstValueFrom(
         this.http.get<MerchantProfile | null>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/merchant-profile`
+          `${this.apiUrl}/merchant/${this.merchantId}/merchant-profile`
         )
       );
 
@@ -150,8 +150,8 @@ export class PlatformService {
   }
 
   async saveMerchantProfile(profile: Partial<MerchantProfile>): Promise<void> {
-    if (!this.restaurantId) {
-      console.warn('[PlatformService] saveMerchantProfile called with no restaurantId');
+    if (!this.merchantId) {
+      console.warn('[PlatformService] saveMerchantProfile called with no merchantId');
       return;
     }
     this._isLoading.set(true);
@@ -160,7 +160,7 @@ export class PlatformService {
     try {
       const updated = await firstValueFrom(
         this.http.patch<MerchantProfile>(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/merchant-profile`,
+          `${this.apiUrl}/merchant/${this.merchantId}/merchant-profile`,
           profile
         )
       );
@@ -181,8 +181,8 @@ export class PlatformService {
 
   setDeviceMode(mode: DevicePosMode): void {
     this._currentDeviceMode.set(mode);
-    if (this.restaurantId) {
-      localStorage.setItem(`${this.restaurantId}-device-mode`, mode);
+    if (this.merchantId) {
+      localStorage.setItem(`${this.merchantId}-device-mode`, mode);
     }
   }
 
@@ -191,8 +191,8 @@ export class PlatformService {
     if (overrides) {
       this._featureFlagOverrides.set(overrides);
     }
-    if (this.restaurantId) {
-      localStorage.setItem(`${this.restaurantId}-device-mode`, posMode);
+    if (this.merchantId) {
+      localStorage.setItem(`${this.merchantId}-device-mode`, posMode);
     }
   }
 
@@ -238,8 +238,8 @@ export class PlatformService {
   }
 
   async applyMenuTemplate(templateId: string): Promise<void> {
-    if (!this.restaurantId) {
-      console.warn('[PlatformService] applyMenuTemplate called with no restaurantId');
+    if (!this.merchantId) {
+      console.warn('[PlatformService] applyMenuTemplate called with no merchantId');
       return;
     }
     this._isLoading.set(true);
@@ -248,7 +248,7 @@ export class PlatformService {
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant/${this.restaurantId}/apply-menu-template`,
+          `${this.apiUrl}/merchant/${this.merchantId}/apply-menu-template`,
           { templateId }
         )
       );
@@ -320,9 +320,9 @@ export class PlatformService {
   }
 
   private loadFallbackProfile(): void {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
 
-    const raw = localStorage.getItem(`${this.restaurantId}-merchant-profile`);
+    const raw = localStorage.getItem(`${this.merchantId}-merchant-profile`);
     if (raw) {
       try {
         const cached = JSON.parse(raw) as MerchantProfile;
@@ -337,7 +337,7 @@ export class PlatformService {
     }
 
     // No profile found — use backward-compatible default (food_and_drink + full_service)
-    const savedMode = localStorage.getItem(`${this.restaurantId}-device-mode`) as DevicePosMode | null;
+    const savedMode = localStorage.getItem(`${this.merchantId}-device-mode`) as DevicePosMode | null;
     if (savedMode) {
       this._currentDeviceMode.set(savedMode);
     }
@@ -345,9 +345,9 @@ export class PlatformService {
   }
 
   private persistProfile(profile: MerchantProfile): void {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     localStorage.setItem(
-      `${this.restaurantId}-merchant-profile`,
+      `${this.merchantId}-merchant-profile`,
       JSON.stringify(profile)
     );
   }

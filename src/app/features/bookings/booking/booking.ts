@@ -15,8 +15,8 @@ export class Booking {
   private readonly auth = inject(AuthService);
 
   readonly sidebarCollapsed = signal(false);
-  readonly restaurantName = this.auth.selectedRestaurantName;
-  readonly restaurantAddress = this.auth.selectedRestaurantAddress;
+  readonly restaurantName = this.auth.selectedMerchantName;
+  readonly restaurantAddress = this.auth.selectedMerchantAddress;
   readonly userName = computed(() => this.auth.user()?.firstName ?? null);
 
   readonly navItems = computed<NavItem[]>(() => [

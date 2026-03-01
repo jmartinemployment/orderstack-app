@@ -96,7 +96,7 @@
           }
         </div>
         <div class="health-grid">
-          @for (loc of locationHealth(); track loc.restaurantId) {
+          @for (loc of locationHealth(); track loc.merchantId) {
             <div class="health-card" [class.health-degraded]="loc.status === 'degraded'" [class.health-offline]="loc.status === 'offline'">
               <div class="health-card-header">
                 <span [class]="getHealthDotClass(loc.status)"></span>
@@ -147,7 +147,7 @@
         </div>
 
         <div class="benchmark-list">
-          @for (b of sortedBenchmarks(); track b.restaurantId; let i = $index) {
+          @for (b of sortedBenchmarks(); track b.merchantId; let i = $index) {
             <div class="benchmark-card" [class.benchmark-attention]="b.needsAttention">
               <div class="benchmark-rank">
                 <span class="rank-badge" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
@@ -299,11 +299,11 @@
               </tr>
             </thead>
             <tbody>
-              @for (loc of sortedLocations(); track loc.restaurantId) {
-                <tr [class.current]="loc.restaurantId === currentRestaurantId()">
+              @for (loc of sortedLocations(); track loc.merchantId) {
+                <tr [class.current]="loc.merchantId === currentRestaurantId()">
                   <td class="loc-name">
                     {{ loc.restaurantName }}
-                    @if (loc.restaurantId === currentRestaurantId()) {
+                    @if (loc.merchantId === currentRestaurantId()) {
                       <span class="current-badge">Current</span>
                     }
                   </td>
@@ -647,8 +647,8 @@
                     </td>
                     @for (r of restaurants(); track r.id) {
                       <td class="qty-cell">
-                        @for (lq of item.locationQuantities; track lq.restaurantId) {
-                          @if (lq.restaurantId === r.id) {
+                        @for (lq of item.locationQuantities; track lq.merchantId) {
+                          @if (lq.merchantId === r.id) {
                             <span [class.qty-low]="lq.quantity <= lq.reorderPoint">{{ lq.quantity }}</span>
                           }
                         }
@@ -744,9 +744,9 @@
 
         <!-- Location compliance cards -->
         <div class="compliance-list">
-          @for (loc of filteredCompliance(); track loc.restaurantId) {
+          @for (loc of filteredCompliance(); track loc.merchantId) {
             <div class="compliance-card" [class.compliance-failing]="loc.failingChecks > 0">
-              <div class="compliance-card-header" (click)="toggleComplianceExpand(loc.restaurantId)">
+              <div class="compliance-card-header" (click)="toggleComplianceExpand(loc.merchantId)">
                 <div class="compliance-card-info">
                   <span class="compliance-card-name">{{ loc.restaurantName }}</span>
                   <div class="compliance-card-stats">
@@ -760,11 +760,11 @@
                   <div class="compliance-score-ring" [class]="getComplianceScoreClass(loc.score)">
                     {{ loc.score }}%
                   </div>
-                  <i class="bi chevron" [class.bi-chevron-down]="expandedComplianceId() !== loc.restaurantId" [class.bi-chevron-up]="expandedComplianceId() === loc.restaurantId"></i>
+                  <i class="bi chevron" [class.bi-chevron-down]="expandedComplianceId() !== loc.merchantId" [class.bi-chevron-up]="expandedComplianceId() === loc.merchantId"></i>
                 </div>
               </div>
 
-              @if (expandedComplianceId() === loc.restaurantId) {
+              @if (expandedComplianceId() === loc.merchantId) {
                 <div class="compliance-detail">
                   <div class="compliance-audit-date">
                     Last audit: {{ loc.lastAuditAt | date:'medium' }}
@@ -797,7 +797,7 @@
                           </div>
                         </div>
                         @if (!item.isPassing) {
-                          <button class="btn-resolve" (click)="resolveComplianceItem(loc.restaurantId, item.id); $event.stopPropagation()">
+                          <button class="btn-resolve" (click)="resolveComplianceItem(loc.merchantId, item.id); $event.stopPropagation()">
                             <i class="bi bi-check-lg"></i> Resolve
                           </button>
                         }

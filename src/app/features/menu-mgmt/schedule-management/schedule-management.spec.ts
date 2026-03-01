@@ -12,14 +12,14 @@ import type { MenuSchedule, ScheduleOverride } from '@models/index';
 function createMockAuthService() {
   return {
     isAuthenticated: computed(() => true),
-    selectedRestaurantId: signal<string | null>('r-1').asReadonly(),
+    selectedMerchantId: signal<string | null>('r-1').asReadonly(),
   };
 }
 
 function createTestSchedule(): MenuSchedule {
   return {
     id: 'sched-1',
-    restaurantId: 'r-1',
+    merchantId: 'r-1',
     name: 'Regular Hours',
     isDefault: true,
     dayparts: [

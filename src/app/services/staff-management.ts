@@ -47,8 +47,8 @@ export class StaffManagementService {
     return user?.role === 'super_admin' || user?.role === 'owner' || user?.role === 'manager';
   });
 
-  private get restaurantId(): string | null {
-    return this.authService.selectedRestaurantId();
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId();
   }
 
   async changePassword(data: ChangePasswordData): Promise<boolean> {
@@ -67,12 +67,12 @@ export class StaffManagementService {
   // ============ Staff PINs ============
 
   async loadPins(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
     try {
       const pins = await firstValueFrom(
-        this.http.get<StaffPinRecord[]>(`${this.apiUrl}/auth/${this.restaurantId}/pins`)
+        this.http.get<StaffPinRecord[]>(`${this.apiUrl}/auth/${this.merchantId}/pins`)
       );
       this._pins.set(pins);
     } catch (err: unknown) {
@@ -83,11 +83,11 @@ export class StaffManagementService {
   }
 
   async createPin(data: StaffPinFormData): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.post(`${this.apiUrl}/auth/${this.restaurantId}/pins`, data)
+        this.http.post(`${this.apiUrl}/auth/${this.merchantId}/pins`, data)
       );
       await this.loadPins();
       return true;
@@ -98,11 +98,11 @@ export class StaffManagementService {
   }
 
   async updatePin(pinId: string, data: Partial<{ name: string; role: string; isActive: boolean; newPin: string }>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.patch(`${this.apiUrl}/auth/${this.restaurantId}/pins/${pinId}`, data)
+        this.http.patch(`${this.apiUrl}/auth/${this.merchantId}/pins/${pinId}`, data)
       );
       await this.loadPins();
       return true;
@@ -113,11 +113,11 @@ export class StaffManagementService {
   }
 
   async deactivatePin(pinId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/auth/${this.restaurantId}/pins/${pinId}`)
+        this.http.delete(`${this.apiUrl}/auth/${this.merchantId}/pins/${pinId}`)
       );
       await this.loadPins();
       return true;
@@ -134,12 +134,12 @@ export class StaffManagementService {
   // ============ Team Members ============
 
   async loadTeamMembers(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
     try {
       const data = await firstValueFrom(
-        this.http.get<TeamMember[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/team-members`)
+        this.http.get<TeamMember[]>(`${this.apiUrl}/merchant/${this.merchantId}/team-members`)
       );
       this._teamMembers.set(data);
     } catch (err: unknown) {
@@ -154,11 +154,11 @@ export class StaffManagementService {
   }
 
   async createTeamMember(data: TeamMemberFormData): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.post(`${this.apiUrl}/restaurant/${this.restaurantId}/team-members`, data)
+        this.http.post(`${this.apiUrl}/merchant/${this.merchantId}/team-members`, data)
       );
       await this.loadTeamMembers();
       return true;
@@ -169,11 +169,11 @@ export class StaffManagementService {
   }
 
   async updateTeamMember(id: string, data: Partial<TeamMemberFormData>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.patch(`${this.apiUrl}/restaurant/${this.restaurantId}/team-members/${id}`, data)
+        this.http.patch(`${this.apiUrl}/merchant/${this.merchantId}/team-members/${id}`, data)
       );
       await this.loadTeamMembers();
       return true;
@@ -184,11 +184,11 @@ export class StaffManagementService {
   }
 
   async deactivateTeamMember(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/team-members/${id}`)
+        this.http.delete(`${this.apiUrl}/merchant/${this.merchantId}/team-members/${id}`)
       );
       await this.loadTeamMembers();
       return true;
@@ -199,11 +199,11 @@ export class StaffManagementService {
   }
 
   async addJob(memberId: string, job: TeamMemberJobFormData): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.post(`${this.apiUrl}/restaurant/${this.restaurantId}/team-members/${memberId}/jobs`, job)
+        this.http.post(`${this.apiUrl}/merchant/${this.merchantId}/team-members/${memberId}/jobs`, job)
       );
       await this.loadTeamMembers();
       return true;
@@ -214,11 +214,11 @@ export class StaffManagementService {
   }
 
   async updateJob(memberId: string, jobId: string, data: Partial<TeamMemberJobFormData>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.patch(`${this.apiUrl}/restaurant/${this.restaurantId}/team-members/${memberId}/jobs/${jobId}`, data)
+        this.http.patch(`${this.apiUrl}/merchant/${this.merchantId}/team-members/${memberId}/jobs/${jobId}`, data)
       );
       await this.loadTeamMembers();
       return true;
@@ -231,12 +231,12 @@ export class StaffManagementService {
   // ============ Permission Sets ============
 
   async loadPermissionSets(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
     try {
       const data = await firstValueFrom(
-        this.http.get<PermissionSet[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/permission-sets`)
+        this.http.get<PermissionSet[]>(`${this.apiUrl}/merchant/${this.merchantId}/permission-sets`)
       );
       this._permissionSets.set(data);
     } catch (err: unknown) {
@@ -251,11 +251,11 @@ export class StaffManagementService {
   }
 
   async createPermissionSet(data: PermissionSetFormData): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.post(`${this.apiUrl}/restaurant/${this.restaurantId}/permission-sets`, data)
+        this.http.post(`${this.apiUrl}/merchant/${this.merchantId}/permission-sets`, data)
       );
       await this.loadPermissionSets();
       return true;
@@ -266,11 +266,11 @@ export class StaffManagementService {
   }
 
   async updatePermissionSet(id: string, data: Partial<PermissionSetFormData>): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.patch(`${this.apiUrl}/restaurant/${this.restaurantId}/permission-sets/${id}`, data)
+        this.http.patch(`${this.apiUrl}/merchant/${this.merchantId}/permission-sets/${id}`, data)
       );
       await this.loadPermissionSets();
       return true;
@@ -281,11 +281,11 @@ export class StaffManagementService {
   }
 
   async seedDefaultPermissionSets(): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.post(`${this.apiUrl}/restaurant/${this.restaurantId}/permission-sets/seed-defaults`, {})
+        this.http.post(`${this.apiUrl}/merchant/${this.merchantId}/permission-sets/seed-defaults`, {})
       );
       await this.loadPermissionSets();
       return true;
@@ -296,11 +296,11 @@ export class StaffManagementService {
   }
 
   async deletePermissionSet(id: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/permission-sets/${id}`)
+        this.http.delete(`${this.apiUrl}/merchant/${this.merchantId}/permission-sets/${id}`)
       );
       await this.loadPermissionSets();
       return true;
@@ -313,12 +313,12 @@ export class StaffManagementService {
   // ============ Device Registration ============
 
   async loadDevices(): Promise<void> {
-    if (!this.restaurantId) return;
+    if (!this.merchantId) return;
     this._isLoading.set(true);
     this._error.set(null);
     try {
       const data = await firstValueFrom(
-        this.http.get<DeviceRegistration[]>(`${this.apiUrl}/restaurant/${this.restaurantId}/devices`)
+        this.http.get<DeviceRegistration[]>(`${this.apiUrl}/merchant/${this.merchantId}/devices`)
       );
       this._devices.set(data);
     } catch (err: unknown) {
@@ -329,11 +329,11 @@ export class StaffManagementService {
   }
 
   async generateDeviceCode(data: DeviceRegistrationFormData): Promise<DeviceRegistration | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
     try {
       const result = await firstValueFrom(
-        this.http.post<DeviceRegistration>(`${this.apiUrl}/restaurant/${this.restaurantId}/devices`, data)
+        this.http.post<DeviceRegistration>(`${this.apiUrl}/merchant/${this.merchantId}/devices`, data)
       );
       this._devices.update(d => [...d, result]);
       return result;
@@ -344,11 +344,11 @@ export class StaffManagementService {
   }
 
   async pairDevice(deviceCode: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.post(`${this.apiUrl}/restaurant/${this.restaurantId}/devices/pair`, { deviceCode })
+        this.http.post(`${this.apiUrl}/merchant/${this.merchantId}/devices/pair`, { deviceCode })
       );
       await this.loadDevices();
       return true;
@@ -359,11 +359,11 @@ export class StaffManagementService {
   }
 
   async revokeDevice(deviceId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.delete(`${this.apiUrl}/restaurant/${this.restaurantId}/devices/${deviceId}`)
+        this.http.delete(`${this.apiUrl}/merchant/${this.merchantId}/devices/${deviceId}`)
       );
       this._devices.update(d => d.filter(dev => dev.id !== deviceId));
       return true;
@@ -376,11 +376,11 @@ export class StaffManagementService {
   // ============ Onboarding ============
 
   async loadOnboardingChecklist(teamMemberId: string): Promise<OnboardingChecklist | null> {
-    if (!this.restaurantId) return null;
+    if (!this.merchantId) return null;
     this._error.set(null);
     try {
       const checklist = await firstValueFrom(
-        this.http.get<OnboardingChecklist>(`${this.apiUrl}/restaurant/${this.restaurantId}/team-members/${teamMemberId}/onboarding`)
+        this.http.get<OnboardingChecklist>(`${this.apiUrl}/merchant/${this.merchantId}/team-members/${teamMemberId}/onboarding`)
       );
       this._onboardingChecklists.update(m => {
         const updated = new Map(m);
@@ -395,11 +395,11 @@ export class StaffManagementService {
   }
 
   async updateOnboardingStep(teamMemberId: string, step: OnboardingStep, isComplete: boolean, notes?: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.patch(`${this.apiUrl}/restaurant/${this.restaurantId}/team-members/${teamMemberId}/onboarding/${step}`, {
+        this.http.patch(`${this.apiUrl}/merchant/${this.merchantId}/team-members/${teamMemberId}/onboarding/${step}`, {
           isComplete,
           notes,
         })
@@ -413,11 +413,11 @@ export class StaffManagementService {
   }
 
   async sendOnboardingLink(teamMemberId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.post(`${this.apiUrl}/restaurant/${this.restaurantId}/team-members/${teamMemberId}/onboarding/send-link`, {})
+        this.http.post(`${this.apiUrl}/merchant/${this.merchantId}/team-members/${teamMemberId}/onboarding/send-link`, {})
       );
       return true;
     } catch (err: unknown) {
@@ -431,11 +431,11 @@ export class StaffManagementService {
   }
 
   async completeOnboarding(teamMemberId: string): Promise<boolean> {
-    if (!this.restaurantId) return false;
+    if (!this.merchantId) return false;
     this._error.set(null);
     try {
       await firstValueFrom(
-        this.http.post(`${this.apiUrl}/restaurant/${this.restaurantId}/team-members/${teamMemberId}/onboarding/complete`, {})
+        this.http.post(`${this.apiUrl}/merchant/${this.merchantId}/team-members/${teamMemberId}/onboarding/complete`, {})
       );
       return true;
     } catch (err: unknown) {

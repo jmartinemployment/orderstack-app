@@ -23,21 +23,21 @@ function extractPaymentError(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
-function buildPaymentContext(restaurantId: string | null, apiUrl: string): PaymentContext | null {
-  if (!restaurantId) return null;
-  return { restaurantId, apiUrl };
+function buildPaymentContext(merchantId: string | null, apiUrl: string): PaymentContext | null {
+  if (!merchantId) return null;
+  return { merchantId, apiUrl };
 }
 
-function buildPreauthUrl(apiUrl: string, restaurantId: string, orderId: string): string {
-  return `${apiUrl}/restaurant/${restaurantId}/orders/${orderId}/preauth`;
+function buildPreauthUrl(apiUrl: string, merchantId: string, orderId: string): string {
+  return `${apiUrl}/merchant/${merchantId}/orders/${orderId}/preauth`;
 }
 
-function buildCloseTabUrl(apiUrl: string, restaurantId: string, orderId: string): string {
-  return `${apiUrl}/restaurant/${restaurantId}/orders/${orderId}/close-tab`;
+function buildCloseTabUrl(apiUrl: string, merchantId: string, orderId: string): string {
+  return `${apiUrl}/merchant/${merchantId}/orders/${orderId}/close-tab`;
 }
 
-function buildPaymentStatusUrl(apiUrl: string, restaurantId: string, orderId: string): string {
-  return `${apiUrl}/restaurant/${restaurantId}/orders/${orderId}/payment-status`;
+function buildPaymentStatusUrl(apiUrl: string, merchantId: string, orderId: string): string {
+  return `${apiUrl}/merchant/${merchantId}/orders/${orderId}/payment-status`;
 }
 
 function buildCaptureBody(captureAmount?: number): Record<string, unknown> {
@@ -120,7 +120,7 @@ describe('PaymentService — extractPaymentError', () => {
 describe('PaymentService — buildPaymentContext', () => {
   it('returns context when restaurant ID exists', () => {
     const ctx = buildPaymentContext('r-1', 'https://api.example.com');
-    expect(ctx).toEqual({ restaurantId: 'r-1', apiUrl: 'https://api.example.com' });
+    expect(ctx).toEqual({ merchantId: 'r-1', apiUrl: 'https://api.example.com' });
   });
 
   it('returns null when restaurant ID is null', () => {
@@ -133,17 +133,17 @@ describe('PaymentService — URL builders', () => {
 
   it('builds preauth URL', () => {
     expect(buildPreauthUrl(apiUrl, 'r-1', 'ord-1'))
-      .toBe('https://api.example.com/api/restaurant/r-1/orders/ord-1/preauth');
+      .toBe('https://api.example.com/api/merchant/r-1/orders/ord-1/preauth');
   });
 
   it('builds close-tab URL', () => {
     expect(buildCloseTabUrl(apiUrl, 'r-1', 'ord-1'))
-      .toBe('https://api.example.com/api/restaurant/r-1/orders/ord-1/close-tab');
+      .toBe('https://api.example.com/api/merchant/r-1/orders/ord-1/close-tab');
   });
 
   it('builds payment-status URL', () => {
     expect(buildPaymentStatusUrl(apiUrl, 'r-1', 'ord-1'))
-      .toBe('https://api.example.com/api/restaurant/r-1/orders/ord-1/payment-status');
+      .toBe('https://api.example.com/api/merchant/r-1/orders/ord-1/payment-status');
   });
 });
 
@@ -273,7 +273,7 @@ describe('PaymentService — guard logic', () => {
   });
 
   it('no restaurant blocks preauth', () => {
-    const restaurantId: string | null = null;
-    expect(restaurantId).toBeNull();
+    const merchantId: string | null = null;
+    expect(merchantId).toBeNull();
   });
 });
