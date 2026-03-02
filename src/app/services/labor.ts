@@ -555,21 +555,44 @@ export class LaborService {
     }
   }
 
-  async clockInWithJob(teamMemberId: string, jobTitle?: string): Promise<Timecard | null> {
+  async clockInWithJob(staffPinId: string, jobTitle?: string): Promise<Timecard | null> {
     if (!this.merchantId) return null;
 
     this._error.set(null);
 
     try {
-      const body: Record<string, string> = { teamMemberId };
+      const body: Record<string, string> = { staffPinId };
       if (jobTitle) body['jobTitle'] = jobTitle;
 
-      const result = await firstValueFrom(
-        this.http.post<Timecard>(
-          `${this.apiUrl}/merchant/${this.merchantId}/timecards`,
+      const raw = await firstValueFrom(
+        this.http.post<Record<string, unknown>>(
+          `${this.apiUrl}/merchant/${this.merchantId}/staff/clock-in`,
           body
         )
       );
+      const result: Timecard = {
+        id: raw['id'] as string,
+        merchantId: this.merchantId,
+        locationId: null,
+        teamMemberId: raw['staffPinId'] as string,
+        teamMemberName: raw['staffName'] as string ?? '',
+        clockInAt: raw['clockIn'] as string,
+        clockOutAt: null,
+        status: 'OPEN',
+        jobTitle: jobTitle ?? '',
+        hourlyRate: 0,
+        isTipEligible: false,
+        declaredCashTips: null,
+        regularHours: 0,
+        overtimeHours: 0,
+        totalPaidHours: 0,
+        totalBreakMinutes: 0,
+        breaks: [],
+        deviceId: null,
+        createdBy: null,
+        modifiedBy: null,
+        modificationReason: null,
+      };
       this._timecards.update(tc => [...tc, result]);
       return result;
     } catch (err: unknown) {

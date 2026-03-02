@@ -145,6 +145,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/pos/server-pos-terminal/server-pos-terminal').then(m => m.ServerPosTerminal),
   },
 
+  // Floor Plan — full-screen, no sidebar (servers land here after POS login)
+  {
+    path: 'floor-plan',
+    canActivate: [authGuard, onboardingGuard],
+    resolve: { deviceInit: deviceInitResolver },
+    loadComponent: () => import('./features/table-mgmt/floor-plan/floor-plan').then(m => m.FloorPlan),
+  },
+
   // Quick Service — full-screen, no sidebar
   {
     path: 'quick-service',
@@ -174,8 +182,7 @@ export const routes: Routes = [
       { path: 'sos', redirectTo: '/kiosk', pathMatch: 'full' },
 
       // Front of House
-      { path: 'floor-plan', loadComponent: () => import('./features/table-mgmt/floor-plan/floor-plan').then(m => m.FloorPlan) },
-      { path: 'tables', redirectTo: 'floor-plan', pathMatch: 'full' },
+      { path: 'tables', redirectTo: '/floor-plan', pathMatch: 'full' },
       { path: 'bookings', loadComponent: () => import('./features/bookings/booking-manager').then(m => m.BookingManager) },
 
       // Menu

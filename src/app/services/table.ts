@@ -14,6 +14,7 @@ function toModel(row: Record<string, unknown>): RestaurantTable {
     capacity: row['capacity'] as number,
     section: (row['section'] as string) ?? null,
     status: row['status'] as string,
+    serverName: (row['server_name'] as string) ?? null,
     posX: (row['pos_x'] as number) ?? null,
     posY: (row['pos_y'] as number) ?? null,
     active: row['active'] as boolean,
@@ -30,6 +31,7 @@ function toRow(data: Partial<RestaurantTable>): Record<string, unknown> {
   if (data.capacity !== undefined) map['capacity'] = data.capacity;
   if (data.section !== undefined) map['section'] = data.section;
   if (data.status !== undefined) map['status'] = data.status;
+  if (data.serverName !== undefined) map['server_name'] = data.serverName;
   if (data.posX !== undefined) map['pos_x'] = data.posX;
   if (data.posY !== undefined) map['pos_y'] = data.posY;
   if (data.active !== undefined) map['active'] = data.active;

@@ -8,6 +8,7 @@ export interface RestaurantTable {
   capacity: number;
   section: string | null;
   status: string;
+  serverName: string | null;
   posX: number | null;
   posY: number | null;
   active: boolean;
@@ -58,7 +59,7 @@ export function getTableDisplayName(
   table: RestaurantTable,
   serviceArea?: ServiceArea
 ): string {
-  const label = table.tableName ?? `Table ${table.id.slice(-4)}`;
+  const label = table.tableName ?? `Area ${table.id.slice(-4)}`;
   return serviceArea ? `${serviceArea.name} - ${label}` : label;
 }
 

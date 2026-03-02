@@ -17,6 +17,7 @@ import { TopNavigation, TopNavigationTab } from '@shared/top-navigation';
 import { WeightScale } from '@shared/weight-scale';
 import { Checkout } from '@shared/checkout/checkout';
 import { BottomNavigation } from '@shared/bottom-navigation/bottom-navigation';
+import { ItemGrid } from '@shared/item-grid';
 import {
   MenuCategory,
   MenuItem,
@@ -39,7 +40,7 @@ const QSR_PALETTE = [
 
 @Component({
   selector: 'os-quick-service-terminal',
-  imports: [CurrencyPipe, FormsModule, TopNavigation, WeightScale, BottomNavigation, Checkout],
+  imports: [CurrencyPipe, FormsModule, TopNavigation, WeightScale, BottomNavigation, Checkout, ItemGrid],
   templateUrl: './quick-service-terminal.html',
   styleUrl: './quick-service-terminal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -99,6 +100,13 @@ export class QuickServiceTerminal implements OnInit {
 
     return map;
   });
+
+  // Bound function reference for the item-grid component
+  readonly getCategoryColorFn = (item: MenuItem): string => {
+    const catId = item.categoryId;
+    if (!catId) return QSR_PALETTE[0];
+    return this.categoryColorMap().get(catId) ?? QSR_PALETTE[0];
+  };
 
   // Collect all items from a category tree (handles nested subcategories)
   private collectItems(cats: MenuCategory[]): MenuItem[] {
@@ -196,12 +204,6 @@ export class QuickServiceTerminal implements OnInit {
     } else {
       this._keypadValue.update(v => v + key);
     }
-  }
-
-  getCategoryColor(item: MenuItem): string {
-    const catId = item.categoryId;
-    if (!catId) return QSR_PALETTE[0];
-    return this.categoryColorMap().get(catId) ?? QSR_PALETTE[0];
   }
 
   formatPrice(price: number | string): number {

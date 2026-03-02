@@ -21,9 +21,11 @@ import { PaymentService } from '@services/payment';
 import { AuthService } from '@services/auth';
 import { CheckoutService } from '@services/checkout';
 import { PaymentTerminal } from '@shared/payment-terminal/payment-terminal';
+import { TopNavigation, TopNavigationTab } from '@shared/top-navigation';
 import { WeightScale } from '@shared/weight-scale';
 import { Checkout } from '@shared/checkout/checkout';
 import { BottomNavigation } from '@shared/bottom-navigation/bottom-navigation';
+import { ItemGrid } from '@shared/item-grid';
 import { OrderCard } from '../../kds/order-card/order-card';
 import { ConnectionStatus } from '@shared/connection-status/connection-status';
 import {
@@ -37,9 +39,20 @@ import {
 type TopTab = 'keypad' | 'library' | 'favorites' | 'menu';
 type BarMode = 'create' | 'incoming';
 
+const QSR_PALETTE = [
+  '#dc3545', // red
+  '#0d6efd', // blue
+  '#198754', // green
+  '#fd7e14', // orange
+  '#6f42c1', // purple
+  '#20c997', // teal
+  '#795548', // brown
+  '#e91e8f', // pink
+];
+
 @Component({
   selector: 'os-bar-terminal',
-  imports: [CurrencyPipe, FormsModule, PaymentTerminal, WeightScale, OrderCard, ConnectionStatus, BottomNavigation, Checkout],
+  imports: [CurrencyPipe, FormsModule, PaymentTerminal, TopNavigation, WeightScale, OrderCard, ConnectionStatus, BottomNavigation, Checkout, ItemGrid],
   templateUrl: './bar-terminal.html',
   styleUrl: './bar-terminal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,11 +69,17 @@ export class BarTerminal implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   readonly checkout = inject(CheckoutService);
 
-  // --- Bar Mode Toggle ---
-  private readonly _barMode = signal<BarMode>('create');
+  // --- Bar Mode Toggle (default: incoming) ---
+  private readonly _barMode = signal<BarMode>('incoming');
   readonly barMode = this._barMode.asReadonly();
 
   // Top tab state — default to Menu so beverage category is visible
+  readonly topTabs: TopNavigationTab[] = [
+    { key: 'keypad', label: 'Keypad' },
+    { key: 'library', label: 'Library' },
+    { key: 'favorites', label: 'Favorites' },
+    { key: 'menu', label: 'Items' },
+  ];
   private readonly _activeTopTab = signal<TopTab>('menu');
   readonly activeTopTab = this._activeTopTab.asReadonly();
 
@@ -79,6 +98,38 @@ export class BarTerminal implements OnInit, OnDestroy {
 
   // Beverage category keywords — bar defaults to drinks if a matching category exists
   private static readonly BEVERAGE_KEYWORDS = /beer|cocktail|drink|beverage|wine|spirit|bar/i;
+
+  // Category color map — same pattern as Quick Service
+  readonly categoryColorMap = computed(() => {
+    const cats = this._categories();
+    const map = new Map<string, string>();
+
+    const mapSubcategories = (children: MenuCategory[], color: string): void => {
+      for (const child of children) {
+        map.set(child.id, child.color ?? color);
+        if (child.subcategories) {
+          mapSubcategories(child.subcategories, child.color ?? color);
+        }
+      }
+    };
+
+    cats.forEach((cat, index) => {
+      const color = cat.color ?? QSR_PALETTE[index % QSR_PALETTE.length];
+      map.set(cat.id, color);
+      if (cat.subcategories) {
+        mapSubcategories(cat.subcategories, color);
+      }
+    });
+
+    return map;
+  });
+
+  // Bound function reference for the item-grid component
+  readonly getCategoryColorFn = (item: MenuItem): string => {
+    const catId = item.categoryId;
+    if (!catId) return QSR_PALETTE[0];
+    return this.categoryColorMap().get(catId) ?? QSR_PALETTE[0];
+  };
 
   // --- Incoming Orders State ---
 
@@ -214,27 +265,29 @@ export class BarTerminal implements OnInit, OnDestroy {
     return this.barFilter(this.collectItems(this._categories()));
   });
 
+  // Filter items by selected category (applied across all tabs)
+  private filterByCategory(items: MenuItem[]): MenuItem[] {
+    const catId = this._selectedCategoryId();
+    if (!catId) return items;
+    const cat = this._categories().find(c => c.id === catId);
+    if (!cat) return items;
+    const catItems = this.barFilter(this.collectItems([cat]));
+    const catItemIds = new Set(catItems.map(i => i.id));
+    return items.filter(i => catItemIds.has(i.id));
+  }
+
   readonly gridItems = computed(() => {
     const tab = this._activeTopTab();
-    const cats = this._categories();
     const allItems = this.allBarItems();
 
     if (tab === 'favorites') {
       const popular = allItems.filter(i => i.popular || i.isPopular);
-      return popular.length > 0 ? popular : allItems;
+      const base = popular.length > 0 ? popular : allItems;
+      return this.filterByCategory(base);
     }
 
-    if (tab === 'menu') {
-      const catId = this._selectedCategoryId();
-      if (catId) {
-        const cat = cats.find(c => c.id === catId);
-        return cat ? this.barFilter(this.collectItems([cat])) : [];
-      }
-      return allItems;
-    }
-
-    if (tab === 'library') {
-      return allItems;
+    if (tab === 'menu' || tab === 'library') {
+      return this.filterByCategory(allItems);
     }
 
     return [];
@@ -277,7 +330,9 @@ export class BarTerminal implements OnInit, OnDestroy {
     this.loyaltyService.loadConfig();
 
     const barSettings = this.settingsService.barSettings();
-    this._barMode.set(barSettings.defaultMode);
+    if (barSettings.defaultMode) {
+      this._barMode.set(barSettings.defaultMode);
+    }
 
     void this.stationService.loadStations();
     void this.stationService.loadCategoryMappings();
@@ -302,12 +357,16 @@ export class BarTerminal implements OnInit, OnDestroy {
 
   // --- Tab navigation ---
 
-  selectTopTab(tab: TopTab): void {
-    this._activeTopTab.set(tab);
+  selectTopTab(tab: TopTab | string): void {
+    this._activeTopTab.set(tab as TopTab);
+  }
+
+  onMoreClick(): void {
+    // Placeholder for more menu
   }
 
   selectCategory(categoryId: string): void {
-    this._selectedCategoryId.set(categoryId);
+    this._selectedCategoryId.set(categoryId || null);
   }
 
   // --- Keypad ---
@@ -371,19 +430,6 @@ export class BarTerminal implements OnInit, OnDestroy {
   }
 
   // --- Helpers ---
-
-  getItemImage(item: MenuItem): string | null {
-    return item.imageUrl ?? item.thumbnailUrl ?? item.image ?? null;
-  }
-
-  onImageError(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    img.style.display = 'none';
-    const container = img.parentElement;
-    if (container) {
-      container.classList.add('item-image-placeholder');
-    }
-  }
 
   formatPrice(price: number | string): number {
     return typeof price === 'string' ? Number.parseFloat(price) : price;

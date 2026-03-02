@@ -10,10 +10,12 @@ import {
   output,
 } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { TableService } from '@services/table';
 import { OrderService } from '@services/order';
 import { AuthService } from '@services/auth';
 import { BookingService } from '@services/booking';
+import { CheckoutService } from '@services/checkout';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
 import { RestaurantTable, TableFormData, TableStatus, Booking } from '@models/index';
@@ -33,10 +35,12 @@ export interface TableSelectedEvent {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FloorPlan implements OnInit {
+  private readonly router = inject(Router);
   private readonly tableService = inject(TableService);
   private readonly orderService = inject(OrderService);
   private readonly authService = inject(AuthService);
   private readonly bookingService = inject(BookingService);
+  private readonly checkout = inject(CheckoutService);
   private readonly canvasRef = viewChild<ElementRef<HTMLDivElement>>('floorCanvas');
 
   readonly tableSelected = output<TableSelectedEvent>();
@@ -222,7 +226,7 @@ export class FloorPlan implements OnInit {
   async submitForm(): Promise<void> {
     const number = this._formNumber().trim();
     if (!number) {
-      this._actionError.set('Table number is required');
+      this._actionError.set('Area number is required');
       return;
     }
 
@@ -425,22 +429,26 @@ export class FloorPlan implements OnInit {
     }, 0);
   }
 
-  getTableServerName(tableId: string): string {
-    const orders = this.getTableOrders(tableId);
-    if (orders.length === 0) return '';
-    return orders[0].server?.name ?? '';
+  getTableServerName(table: RestaurantTable): string {
+    const orders = this.getTableOrders(table.id);
+    if (orders.length > 0) return orders[0].server?.name ?? '';
+    return table.serverName ?? '';
   }
 
   onTableTap(table: RestaurantTable, event: Event): void {
     event.stopPropagation();
     const orders = this.getTableOrders(table.id);
     this.tableSelected.emit({ table, orders, action: 'open-pos' });
+    this.checkout.setTableContext(table);
+    void this.router.navigate(['/pos']);
   }
 
   onNewOrder(table: RestaurantTable, event: Event): void {
     event.stopPropagation();
     const orders = this.getTableOrders(table.id);
     this.tableSelected.emit({ table, orders, action: 'new-order' });
+    this.checkout.setTableContext(table);
+    void this.router.navigate(['/pos']);
   }
 
   async onBusTable(table: RestaurantTable, event: Event): Promise<void> {
@@ -494,7 +502,7 @@ export class FloorPlan implements OnInit {
 
     const html = tables.map(t => `
       <div style="page-break-inside: avoid; display: inline-block; width: 45%; margin: 2%; text-align: center; padding: 20px; border: 2px solid #333; border-radius: 12px;">
-        <h2 style="margin: 0 0 8px; font-family: sans-serif;">Table ${t.tableNumber}</h2>
+        <h2 style="margin: 0 0 8px; font-family: sans-serif;">Area ${t.tableNumber}</h2>
         <img src="${this.getQrImageUrl(t.tableNumber)}" alt="QR Code" style="width: 180px; height: 180px;" />
         <p style="margin: 8px 0 0; font-family: sans-serif; font-size: 12px; color: #666;">Scan to order from your phone</p>
       </div>
@@ -505,7 +513,7 @@ export class FloorPlan implements OnInit {
 
     printWindow.document.write(`
       <!DOCTYPE html>
-      <html><head><title>QR Codes — All Tables</title>
+      <html><head><title>QR Codes — All Areas</title>
       <style>
         body { font-family: sans-serif; padding: 20px; }
         @media print { body { padding: 0; } }

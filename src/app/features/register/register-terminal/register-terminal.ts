@@ -18,6 +18,7 @@ import { TopNavigation, TopNavigationTab } from '@shared/top-navigation';
 import { WeightScale } from '@shared/weight-scale';
 import { Checkout } from '@shared/checkout/checkout';
 import { BottomNavigation } from '@shared/bottom-navigation/bottom-navigation';
+import { ItemGrid } from '@shared/item-grid';
 import {
   MenuCategory,
   MenuItem,
@@ -29,7 +30,7 @@ type TopTab = 'keypad' | 'library' | 'favorites' | 'menu';
 
 @Component({
   selector: 'os-register-terminal',
-  imports: [CurrencyPipe, FormsModule, TopNavigation, WeightScale, BottomNavigation, Checkout],
+  imports: [CurrencyPipe, FormsModule, TopNavigation, WeightScale, BottomNavigation, Checkout, ItemGrid],
   templateUrl: './register-terminal.html',
   styleUrl: './register-terminal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,6 +65,11 @@ export class RegisterTerminal implements OnInit {
   // Helper for weight unit labels in template
   readonly weightUnitLabels = WEIGHT_UNIT_LABELS;
 
+  // Bound function reference for the item-grid component
+  readonly getItemImageFn = (item: MenuItem): string | null => {
+    return item.imageUrl ?? item.thumbnailUrl ?? item.image ?? null;
+  };
+
   // Collect all items from a category tree (handles nested subcategories)
   private collectItems(cats: MenuCategory[]): MenuItem[] {
     const items: MenuItem[] = [];
@@ -97,7 +103,6 @@ export class RegisterTerminal implements OnInit {
 
     if (tab === 'favorites') {
       const popular = allItems.filter(i => i.popular || i.isPopular);
-      // Fallback: if no items are marked popular, show all items
       return popular.length > 0 ? popular : allItems;
     }
 
@@ -163,21 +168,6 @@ export class RegisterTerminal implements OnInit {
       this._keypadValue.update(v => v.slice(0, -1));
     } else {
       this._keypadValue.update(v => v + key);
-    }
-  }
-
-  // --- Helpers ---
-
-  getItemImage(item: MenuItem): string | null {
-    return item.imageUrl ?? item.thumbnailUrl ?? item.image ?? null;
-  }
-
-  onImageError(event: Event): void {
-    const img = event.target as HTMLImageElement;
-    img.style.display = 'none';
-    const container = img.parentElement;
-    if (container) {
-      container.classList.add('item-image-placeholder');
     }
   }
 

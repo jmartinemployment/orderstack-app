@@ -172,6 +172,7 @@ export interface WorkweekConfig {
 
 export interface PosSession {
   token: string;
+  staffPinId: string;
   teamMemberId: string;
   teamMemberName: string;
   role: string;

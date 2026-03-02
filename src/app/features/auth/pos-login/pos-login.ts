@@ -121,7 +121,7 @@ export class PosLogin {
   });
 
   readonly activeTeamMembers = computed(() =>
-    this._teamMembers().filter(m => m.status === 'active')
+    this._teamMembers().filter(m => m.status === 'active' && m.role !== 'owner')
   );
 
   readonly memberJobs = computed(() => {
@@ -401,7 +401,7 @@ export class PosLogin {
     this._error.set(null);
 
     const jobTitle = this._selectedJobTitle() ?? this.memberJobs()[0]?.jobTitle;
-    const timecard = await this.laborService.clockInWithJob(session.teamMemberId, jobTitle);
+    const timecard = await this.laborService.clockInWithJob(session.staffPinId, jobTitle);
 
     if (timecard) {
       this._activeTimecard.set(timecard);
@@ -455,6 +455,14 @@ export class PosLogin {
       }
     }
 
+    // Job title overrides posMode when the role maps to a specific terminal
+    const jobTitle = (this._selectedJobTitle() ?? this.memberJobs()[0]?.jobTitle ?? '').toLowerCase();
+    const jobRoute = this.routeForJob(jobTitle);
+    if (jobRoute) {
+      this.router.navigate([jobRoute]);
+      return;
+    }
+
     // Fall back to posMode-based routing
     const posMode = this.platformService.currentDeviceMode();
 
@@ -466,7 +474,7 @@ export class PosLogin {
         this.router.navigate(['/pos']);
         break;
       case 'bar':
-        this.router.navigate(['/pos']);
+        this.router.navigate(['/bar']);
         break;
       case 'bookings':
         this.router.navigate(['/bookings-terminal']);
@@ -478,6 +486,14 @@ export class PosLogin {
         this.router.navigate(['/orders']);
         break;
     }
+  }
+
+  private routeForJob(jobTitle: string): string | null {
+    if (jobTitle.includes('bartender') || jobTitle.includes('barback')) return '/bar';
+    if (jobTitle.includes('server') || jobTitle.includes('waiter') || jobTitle.includes('waitress')) return '/floor-plan';
+    if (jobTitle.includes('cashier')) return '/pos';
+    if (jobTitle.includes('host')) return '/floor-plan';
+    return null;
   }
 
   // === Schedule Enforcement ===

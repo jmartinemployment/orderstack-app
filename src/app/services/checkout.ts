@@ -253,6 +253,11 @@ export class CheckoutService {
     }
   }
 
+  setTableContext(table: RestaurantTable): void {
+    this._selectedTable.set(table);
+    this._diningOption.set('dine_in');
+  }
+
   selectTable(table: RestaurantTable): void {
     this._selectedTable.set(table);
     if (this._checkoutMode() === 'charge') {

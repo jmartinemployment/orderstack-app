@@ -1,7 +1,7 @@
 <div class="floor-plan px-2">
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="h4 mb-0">Table Management</h2>
+    <h2 class="h4 mb-0">Floor Plan</h2>
     <div class="d-flex gap-2">
       <div class="btn-group btn-group-sm">
         <button type="button" class="btn" [class.btn-primary]="activeView() === 'floor'" [class.btn-outline-light]="activeView() !== 'floor'" (click)="setView('floor')">
@@ -11,10 +11,10 @@
           List View
         </button>
       </div>
-      <button type="button" class="btn btn-sm btn-outline-info" (click)="printQrCodes()" title="Print QR codes for all tables">
+      <button type="button" class="btn btn-sm btn-outline-info" (click)="printQrCodes()" title="Print QR codes for all areas">
         <i class="bi bi-qr-code me-1"></i>QR Codes
       </button>
-      <button type="button" class="btn btn-sm btn-primary" (click)="openAddForm()">+ Add Table</button>
+      <button type="button" class="btn btn-sm btn-primary" (click)="openAddForm()">+ Add Area</button>
     </div>
   </div>
 
@@ -22,7 +22,7 @@
   <div class="kpi-strip mb-3">
     <div class="kpi-card">
       <span class="kpi-value">{{ tables().length }}</span>
-      <span class="kpi-label">Tables</span>
+      <span class="kpi-label">Areas</span>
     </div>
     <div class="kpi-card">
       <span class="kpi-value">{{ totalCapacity() }}</span>
@@ -64,7 +64,7 @@
 
   @if (isLoading()) {
     <div class="d-flex justify-content-center p-5">
-      <os-loading-spinner message="Loading tables..." />
+      <os-loading-spinner message="Loading areas..." />
     </div>
   } @else {
     <!-- Floor Plan View -->
@@ -117,15 +117,15 @@
               @if (getTableOrders(table.id).length > 0) {
                 <span class="table-order-badge">{{ getTableOrders(table.id).length }}</span>
               }
-              @if (getTableServerName(table.id); as serverName) {
+              @if (getTableServerName(table); as serverName) {
                 <span class="table-server-badge">{{ serverName.charAt(0) }}</span>
               }
             </div>
           } @empty {
             @if (unplacedTables().length === 0) {
               <div class="canvas-empty">
-                <p class="text-muted mb-1">No tables yet</p>
-                <button type="button" class="btn btn-sm btn-primary" (click)="openAddForm()">Add your first table</button>
+                <p class="text-muted mb-1">No areas yet</p>
+                <button type="button" class="btn btn-sm btn-primary" (click)="openAddForm()">Add your first area</button>
               </div>
             }
           }
@@ -134,7 +134,7 @@
         <!-- Unplaced Tables -->
         @if (unplacedTables().length > 0) {
           <div class="unplaced-panel mt-3">
-            <h6 class="panel-title">Unplaced Tables <span class="badge bg-secondary ms-1">{{ unplacedTables().length }}</span></h6>
+            <h6 class="panel-title">Unplaced Areas <span class="badge bg-secondary ms-1">{{ unplacedTables().length }}</span></h6>
             <div class="d-flex flex-wrap gap-2">
               @for (table of unplacedTables(); track table.id) {
                 <button
@@ -147,7 +147,7 @@
                 </button>
               }
             </div>
-            <p class="small text-muted mt-1 mb-0">Click a table to place it on the floor plan. Drag to reposition.</p>
+            <p class="small text-muted mt-1 mb-0">Click an area to place it on the floor plan. Drag to reposition.</p>
           </div>
         }
       </div>
@@ -214,7 +214,7 @@
           </div>
         } @empty {
           <div class="empty-state text-center p-4">
-            <p class="text-muted mb-0">No tables found</p>
+            <p class="text-muted mb-0">No areas found</p>
           </div>
         }
       </div>
@@ -225,7 +225,7 @@
   @if (selectedTable(); as table) {
     <div class="detail-panel">
       <div class="detail-header">
-        <h5 class="mb-0">Table #{{ table.tableNumber }}</h5>
+        <h5 class="mb-0">Area #{{ table.tableNumber }}</h5>
         <button type="button" class="btn-close btn-close" (click)="deselectTable()"></button>
       </div>
       <div class="detail-body">
@@ -322,13 +322,13 @@
           }
           @if (table.status === 'dirty') {
             <button type="button" class="btn btn-sm btn-info w-100 mb-2" (click)="onBusTable(table, $event)">
-              <i class="bi bi-check2-circle me-1"></i> Bus Table (Mark Available)
+              <i class="bi bi-check2-circle me-1"></i> Bus Area (Mark Available)
             </button>
           }
         </div>
 
         <div class="detail-actions mt-2 d-flex gap-2 flex-wrap">
-          <button type="button" class="btn btn-sm btn-outline-light" (click)="openEditForm(table)">Edit Table</button>
+          <button type="button" class="btn btn-sm btn-outline-light" (click)="openEditForm(table)">Edit Area</button>
           <button type="button" class="btn btn-sm btn-outline-info" (click)="showTableQr(table)">
             <i class="bi bi-qr-code me-1"></i>QR Code
           </button>
@@ -345,12 +345,12 @@
     <div class="modal-overlay" (click)="closeQrModal()">
       <div class="modal-content card qr-modal" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">QR Code — Table #{{ qrT.tableNumber }}</h5>
+          <h5 class="mb-0">QR Code — Area #{{ qrT.tableNumber }}</h5>
           <button type="button" class="btn-close btn-close" (click)="closeQrModal()"></button>
         </div>
         <div class="card-body text-center">
-          <img [src]="getQrImageUrl(qrT.tableNumber)" alt="QR Code for Table" class="qr-image mb-3" />
-          <p class="small text-muted mb-2">Scan to order from this table</p>
+          <img [src]="getQrImageUrl(qrT.tableNumber)" alt="QR Code for Area" class="qr-image mb-3" />
+          <p class="small text-muted mb-2">Scan to order from this area</p>
           <p class="qr-url small">{{ getQrUrl(qrT.tableNumber) }}</p>
           <button type="button" class="btn btn-sm btn-primary" (click)="printQrCodes()">
             <i class="bi bi-printer me-1"></i>Print All QR Codes
@@ -365,7 +365,7 @@
     <div class="modal-overlay" (click)="closeForm()">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">{{ editingTable() ? 'Edit Table' : 'Add Table' }}</h5>
+          <h5 class="mb-0">{{ editingTable() ? 'Edit Area' : 'Add Area' }}</h5>
           <button type="button" class="btn-close btn-close" (click)="closeForm()"></button>
         </div>
         <div class="card-body">
@@ -374,7 +374,7 @@
           }
 
           <div class="mb-3">
-            <label class="form-label small">Table Number <span class="text-danger">*</span></label>
+            <label class="form-label small">Area Number <span class="text-danger">*</span></label>
             <input
               type="text"
               class="form-control form-control-sm"
