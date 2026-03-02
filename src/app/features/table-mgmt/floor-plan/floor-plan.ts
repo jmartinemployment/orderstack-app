@@ -16,6 +16,8 @@ import { OrderService } from '@services/order';
 import { AuthService } from '@services/auth';
 import { BookingService } from '@services/booking';
 import { CheckoutService } from '@services/checkout';
+import { TopNavigation, TopNavigationTab } from '@shared/top-navigation';
+import { BottomNavigation } from '@shared/bottom-navigation/bottom-navigation';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
 import { RestaurantTable, TableFormData, TableStatus, Booking } from '@models/index';
@@ -29,7 +31,7 @@ export interface TableSelectedEvent {
 
 @Component({
   selector: 'os-floor-plan',
-  imports: [CurrencyPipe, DatePipe, LoadingSpinner, ErrorDisplay],
+  imports: [CurrencyPipe, DatePipe, TopNavigation, BottomNavigation, LoadingSpinner, ErrorDisplay],
   templateUrl: './floor-plan.html',
   styleUrl: './floor-plan.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -44,6 +46,11 @@ export class FloorPlan implements OnInit {
   private readonly canvasRef = viewChild<ElementRef<HTMLDivElement>>('floorCanvas');
 
   readonly tableSelected = output<TableSelectedEvent>();
+
+  readonly topTabs: TopNavigationTab[] = [
+    { key: 'floor', label: 'Floor Plan' },
+    { key: 'list', label: 'List View' },
+  ];
 
   readonly tables = this.tableService.tables;
   readonly isLoading = this.tableService.isLoading;

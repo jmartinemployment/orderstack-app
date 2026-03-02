@@ -12,7 +12,15 @@ $warning: #f59e0b;
 $info: #3b82f6;
 $muted: #9ca3af;
 
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .floor-plan {
+  flex: 1;
+  overflow-y: auto;
   h2 { color: $text-primary; }
 }
 

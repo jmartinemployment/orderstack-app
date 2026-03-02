@@ -1,3 +1,9 @@
+<os-top-navigation
+  [tabs]="topTabs"
+  [activeTab]="activeView()"
+  (tabChange)="setView($any($event))"
+  (moreClick)="openAddForm()" />
+
 <div class="floor-plan px-2">
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -443,3 +449,5 @@
     </div>
   }
 </div>
+
+<os-bottom-navigation />
