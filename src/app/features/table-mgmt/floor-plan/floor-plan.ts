@@ -18,8 +18,10 @@ import { BookingService } from '@services/booking';
 import { CheckoutService } from '@services/checkout';
 import { TopNavigation, TopNavigationTab } from '@shared/top-navigation';
 import { BottomNavigation } from '@shared/bottom-navigation/bottom-navigation';
+import { FloorPlanNavigation } from './floor-plan-navigation/floor-plan-navigation';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
+import { ClockOut } from '@shared/clock-out';
 import { RestaurantTable, TableFormData, TableStatus, Booking } from '@models/index';
 import { Order, getOrderIdentifier } from '@models/index';
 
@@ -31,7 +33,7 @@ export interface TableSelectedEvent {
 
 @Component({
   selector: 'os-floor-plan',
-  imports: [CurrencyPipe, DatePipe, TopNavigation, BottomNavigation, LoadingSpinner, ErrorDisplay],
+  imports: [CurrencyPipe, DatePipe, TopNavigation, BottomNavigation, FloorPlanNavigation, LoadingSpinner, ErrorDisplay, ClockOut],
   templateUrl: './floor-plan.html',
   styleUrl: './floor-plan.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,8 +50,10 @@ export class FloorPlan implements OnInit {
   readonly tableSelected = output<TableSelectedEvent>();
 
   readonly topTabs: TopNavigationTab[] = [
-    { key: 'floor', label: 'Floor Plan' },
-    { key: 'list', label: 'List View' },
+    { key: 'keypad', label: 'Keypad' },
+    { key: 'library', label: 'Library' },
+    { key: 'favorites', label: 'Favorites' },
+    { key: 'menu', label: 'Items' },
   ];
 
   readonly tables = this.tableService.tables;
@@ -131,6 +135,20 @@ export class FloorPlan implements OnInit {
     this.filteredTables().filter(t => t.posX !== null && t.posY !== null)
   );
 
+  readonly canvasInnerStyle = computed(() => {
+    const tables = this.placedTables();
+    if (tables.length === 0) return '';
+    let maxX = 0;
+    let maxY = 0;
+    for (const t of tables) {
+      const right = (t.posX ?? 0) + 80;
+      const bottom = (t.posY ?? 0) + 60;
+      if (right > maxX) maxX = right;
+      if (bottom > maxY) maxY = bottom;
+    }
+    return `min-width:${maxX + 20}px;min-height:${maxY + 20}px`;
+  });
+
   readonly unplacedTables = computed(() =>
     this.filteredTables().filter(t => t.posX === null || t.posY === null)
   );
@@ -178,6 +196,10 @@ export class FloorPlan implements OnInit {
     this.tableService.loadTables();
     this.orderService.loadOrders();
     this.bookingService.loadBookings();
+  }
+
+  onTopTabChange(_tab: string): void {
+    void this.router.navigate(['/pos']);
   }
 
   setView(view: 'floor' | 'list'): void {
@@ -323,8 +345,8 @@ export class FloorPlan implements OnInit {
 
     this._dragTableId.set(table.id);
     this._isDragging.set(true);
-    this._dragOffsetX = event.clientX - rect.left - startX;
-    this._dragOffsetY = event.clientY - rect.top - startY;
+    this._dragOffsetX = event.clientX - rect.left + canvas.scrollLeft - startX;
+    this._dragOffsetY = event.clientY - rect.top + canvas.scrollTop - startY;
     this._dragX.set(startX);
     this._dragY.set(startY);
   }
@@ -337,8 +359,8 @@ export class FloorPlan implements OnInit {
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = Math.max(0, Math.min(rect.width - 80, event.clientX - rect.left - this._dragOffsetX));
-    const y = Math.max(0, Math.min(rect.height - 60, event.clientY - rect.top - this._dragOffsetY));
+    const x = Math.max(0, event.clientX - rect.left + canvas.scrollLeft - this._dragOffsetX);
+    const y = Math.max(0, event.clientY - rect.top + canvas.scrollTop - this._dragOffsetY);
 
     this._dragX.set(Math.round(x));
     this._dragY.set(Math.round(y));
@@ -501,6 +523,10 @@ export class FloorPlan implements OnInit {
 
   closeBatchQr(): void {
     this._showBatchQr.set(false);
+  }
+
+  onShiftEnd(): void {
+    void this.router.navigate(['/pos-login']);
   }
 
   printQrCodes(): void {

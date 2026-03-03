@@ -32,6 +32,7 @@ import {
   LaborForecast,
   ComplianceAlert,
   ComplianceSummary,
+  TeamMember,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -44,6 +45,29 @@ export class LaborService {
   private readonly authService = inject(AuthService);
   private readonly apiUrl = environment.apiUrl;
 
+  // --- SessionStorage persistence for active shift state ---
+  private static readonly SESSION_KEY_TIMECARD = 'os-active-timecard';
+  private static readonly SESSION_KEY_MEMBER = 'os-active-member';
+  private static readonly SESSION_KEY_POS_SESSION = 'os-pos-session';
+
+  private static rehydrate<T>(key: string): T | null {
+    try {
+      const raw = sessionStorage.getItem(key);
+      return raw ? JSON.parse(raw) as T : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private static persist(key: string, value: unknown): void {
+    if (value === null) {
+      sessionStorage.removeItem(key);
+    } else {
+      sessionStorage.setItem(key, JSON.stringify(value));
+    }
+  }
+
+  // --- Core signals ---
   private readonly _staffMembers = signal<StaffMember[]>([]);
   private readonly _shifts = signal<Shift[]>([]);
   private readonly _activeClocks = signal<TimeEntry[]>([]);
@@ -66,7 +90,9 @@ export class LaborService {
   private readonly _timecards = signal<Timecard[]>([]);
   private readonly _breakTypes = signal<BreakType[]>([]);
   private readonly _workweekConfig = signal<WorkweekConfig | null>(null);
-  private readonly _posSession = signal<PosSession | null>(null);
+  private readonly _posSession = signal<PosSession | null>(
+    LaborService.rehydrate<PosSession>(LaborService.SESSION_KEY_POS_SESSION)
+  );
   private readonly _timecardEdits = signal<TimecardEdit[]>([]);
 
   readonly timecards = this._timecards.asReadonly();
@@ -74,6 +100,33 @@ export class LaborService {
   readonly workweekConfig = this._workweekConfig.asReadonly();
   readonly posSession = this._posSession.asReadonly();
   readonly timecardEdits = this._timecardEdits.asReadonly();
+
+  // --- Active shift signals (shared by clock-out component) ---
+  // Rehydrated from sessionStorage so they survive page refreshes / full navigations
+  private readonly _activeTimecard = signal<Timecard | null>(
+    LaborService.rehydrate<Timecard>(LaborService.SESSION_KEY_TIMECARD)
+  );
+  private readonly _activeTeamMember = signal<TeamMember | null>(
+    LaborService.rehydrate<TeamMember>(LaborService.SESSION_KEY_MEMBER)
+  );
+
+  readonly activeTimecard = this._activeTimecard.asReadonly();
+  readonly activeTeamMember = this._activeTeamMember.asReadonly();
+
+  setActiveTimecard(tc: Timecard | null): void {
+    this._activeTimecard.set(tc);
+    LaborService.persist(LaborService.SESSION_KEY_TIMECARD, tc);
+  }
+
+  updateActiveTimecard(fn: (tc: Timecard | null) => Timecard | null): void {
+    this._activeTimecard.update(fn);
+    LaborService.persist(LaborService.SESSION_KEY_TIMECARD, this._activeTimecard());
+  }
+
+  setActiveTeamMember(member: TeamMember | null): void {
+    this._activeTeamMember.set(member);
+    LaborService.persist(LaborService.SESSION_KEY_MEMBER, member);
+  }
 
   // --- Schedule Template signals ---
   private readonly _scheduleTemplates = signal<ScheduleTemplate[]>([]);
@@ -837,7 +890,7 @@ export class LaborService {
 
   // ============ POS Login ============
 
-  async posLogin(passcode: string): Promise<PosSession | null> {
+  async posLogin(passcode: string, staffPinId: string): Promise<PosSession | null> {
     if (!this.merchantId) return null;
 
     this._error.set(null);
@@ -846,10 +899,11 @@ export class LaborService {
       const result = await firstValueFrom(
         this.http.post<PosSession>(
           `${this.apiUrl}/merchant/${this.merchantId}/pos/login`,
-          { passcode }
+          { passcode, staffPinId }
         )
       );
       this._posSession.set(result);
+      LaborService.persist(LaborService.SESSION_KEY_POS_SESSION, result);
       return result;
     } catch (err: unknown) {
       this._error.set(err instanceof Error ? err.message : 'Invalid passcode');
@@ -872,10 +926,16 @@ export class LaborService {
     }
 
     this._posSession.set(null);
+    LaborService.persist(LaborService.SESSION_KEY_POS_SESSION, null);
   }
 
   clearPosSession(): void {
     this._posSession.set(null);
+    this._activeTimecard.set(null);
+    this._activeTeamMember.set(null);
+    LaborService.persist(LaborService.SESSION_KEY_POS_SESSION, null);
+    LaborService.persist(LaborService.SESSION_KEY_TIMECARD, null);
+    LaborService.persist(LaborService.SESSION_KEY_MEMBER, null);
   }
 
   // ============ Schedule Templates ============

@@ -205,7 +205,7 @@ export interface TimeclockSettings {
 
 export function defaultTimeclockSettings(): TimeclockSettings {
   return {
-    scheduleEnforcementEnabled: false,
+    scheduleEnforcementEnabled: true,
     earlyClockInGraceMinutes: 15,
     lateClockInThresholdMinutes: 10,
     allowManagerOverride: true,

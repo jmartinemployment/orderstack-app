@@ -7,8 +7,49 @@ import { administrationGuard } from './guards/administration.guard';
 import { deviceInitResolver } from './resolvers/device-init.resolver';
 import { MainLayoutComponent } from './layouts/main-layout.component';
 import { AuthLayoutComponent } from './layouts/auth-layout.component';
+import { MarketingLayoutComponent } from './features/website/layout/marketing-layout.component';
 
 export const routes: Routes = [
+  // Public marketing pages (no auth required)
+  {
+    path: '',
+    component: MarketingLayoutComponent,
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./features/website/pages/landing/landing.component').then(m => m.LandingComponent),
+      },
+      {
+        path: 'pricing',
+        loadComponent: () =>
+          import('./features/website/pages/pricing/pricing.component').then(m => m.PricingPageComponent),
+      },
+      {
+        path: 'demo',
+        loadComponent: () =>
+          import('./features/website/pages/demo/demo.component').then(m => m.DemoPageComponent),
+      },
+      {
+        path: 'blog/:slug',
+        loadComponent: () =>
+          import('./features/website/pages/blog-post/blog-post.component').then(m => m.BlogPostComponent),
+      },
+      {
+        path: 'blog',
+        loadComponent: () =>
+          import('./features/website/pages/blog/blog.component').then(m => m.BlogPageComponent),
+      },
+      {
+        path: 'features',
+        loadComponent: () =>
+          import('./features/website/pages/landing/landing.component').then(m => m.LandingComponent),
+        // Temporary: shares landing page until a dedicated features page is built
+      },
+    ],
+  },
+
   // Public routes (redirect authenticated users away)
   {
     path: 'signup',

@@ -1,29 +1,15 @@
+<os-clock-out (clockedOut)="onShiftEnd()" (userSwitched)="onShiftEnd()" />
+
 <os-top-navigation
   [tabs]="topTabs"
-  [activeTab]="activeView()"
-  (tabChange)="setView($any($event))"
-  (moreClick)="openAddForm()" />
+  [activeTab]="'favorites'"
+  (tabChange)="onTopTabChange($event)" />
+
+<os-floor-plan-navigation
+  [activeView]="activeView()"
+  (viewChange)="setView($event)" />
 
 <div class="floor-plan px-2">
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="h4 mb-0">Floor Plan</h2>
-    <div class="d-flex gap-2">
-      <div class="btn-group btn-group-sm">
-        <button type="button" class="btn" [class.btn-primary]="activeView() === 'floor'" [class.btn-outline-light]="activeView() !== 'floor'" (click)="setView('floor')">
-          Floor Plan
-        </button>
-        <button type="button" class="btn" [class.btn-primary]="activeView() === 'list'" [class.btn-outline-light]="activeView() !== 'list'" (click)="setView('list')">
-          List View
-        </button>
-      </div>
-      <button type="button" class="btn btn-sm btn-outline-info" (click)="printQrCodes()" title="Print QR codes for all areas">
-        <i class="bi bi-qr-code me-1"></i>QR Codes
-      </button>
-      <button type="button" class="btn btn-sm btn-primary" (click)="openAddForm()">+ Add Area</button>
-    </div>
-  </div>
-
   <!-- KPI Strip -->
   <div class="kpi-strip mb-3">
     <div class="kpi-card">
@@ -51,7 +37,7 @@
   <!-- Section Filter -->
   @if (sections().length > 0) {
     <div class="section-filter mb-3">
-      <div class="d-flex flex-wrap gap-2">
+      <div class="d-flex flex-wrap gap-2 align-items-center">
         <button type="button" class="btn btn-sm" [class.btn-primary]="sectionFilter() === 'all'" [class.btn-outline-light]="sectionFilter() !== 'all'" (click)="setSectionFilter('all')">
           All Sections
         </button>
@@ -60,6 +46,7 @@
             {{ section }}
           </button>
         }
+        <button type="button" class="btn btn-sm btn-primary ms-auto" (click)="openAddForm()">+ Add Area</button>
       </div>
     </div>
   }
@@ -93,6 +80,7 @@
           (pointerup)="onDragEnd()"
           (pointerleave)="onDragEnd()"
         >
+          <div class="canvas-inner" [style]="canvasInnerStyle()">
           <div class="canvas-grid"></div>
 
           @for (table of placedTables(); track table.id) {
@@ -135,6 +123,7 @@
               </div>
             }
           }
+          </div>
         </div>
 
         <!-- Unplaced Tables -->

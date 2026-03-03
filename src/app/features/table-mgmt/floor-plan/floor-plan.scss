@@ -115,10 +115,16 @@ $muted: #9ca3af;
   background: #f0f2f5;
   border: 1px solid $border;
   border-radius: 10px;
-  min-height: 450px;
-  overflow: hidden;
+  height: 450px;
+  overflow: auto;
   touch-action: none;
   user-select: none;
+}
+
+.canvas-inner {
+  position: relative;
+  min-width: 100%;
+  min-height: 450px;
 }
 
 .canvas-grid {
