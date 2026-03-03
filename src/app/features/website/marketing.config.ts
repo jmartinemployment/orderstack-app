@@ -823,3 +823,97 @@ export const BLOG_HERO = {
   title: 'The OrderStack Blog',
   subtitle: 'Practical insights for restaurant owners who want to run smarter, leaner operations.',
 };
+
+// ============================================================================
+// SAVINGS CALCULATOR
+// ============================================================================
+
+export interface CompetitorFees {
+  name: string;
+  monthlyBase: number;
+  inPersonRate: number;
+  inPersonFixed: number;
+  onlineRate: number;
+  onlineFixed: number;
+  deliveryCommission: number;
+  daaSFeePerDelivery: number;
+  kdsAddon: number;
+  schedulingAddon: number;
+  loyaltyAddon: number;
+}
+
+export const COMPETITOR_FEE_MODELS: CompetitorFees[] = [
+  {
+    name: 'OrderStack',
+    monthlyBase: 29,
+    inPersonRate: 0.0329,
+    inPersonFixed: 0.49,
+    onlineRate: 0.0379,
+    onlineFixed: 0.49,
+    deliveryCommission: 0,
+    daaSFeePerDelivery: 6.5,
+    kdsAddon: 0,
+    schedulingAddon: 0,
+    loyaltyAddon: 0,
+  },
+  {
+    name: 'Toast',
+    monthlyBase: 50,
+    inPersonRate: 0.0249,
+    inPersonFixed: 0.15,
+    onlineRate: 0.035,
+    onlineFixed: 0.15,
+    deliveryCommission: 0.15,
+    daaSFeePerDelivery: 0,
+    kdsAddon: 25,
+    schedulingAddon: 35,
+    loyaltyAddon: 25,
+  },
+  {
+    name: 'Square',
+    monthlyBase: 60,
+    inPersonRate: 0.026,
+    inPersonFixed: 0.1,
+    onlineRate: 0.029,
+    onlineFixed: 0.3,
+    deliveryCommission: 0,
+    daaSFeePerDelivery: 0,
+    kdsAddon: 20,
+    schedulingAddon: 35,
+    loyaltyAddon: 45,
+  },
+];
+
+export const SAVINGS_CALC_HEADER = {
+  tag: 'Calculate Your Savings',
+  title: 'See How Much You\'d Save With OrderStack',
+  subtitle: 'Enter your restaurant\'s numbers. The math speaks for itself.',
+};
+
+export const SAVINGS_CALC_ASSUMPTIONS =
+  'Estimates based on published rates as of March 2026. Toast estimate includes $50/mo hardware amortization ' +
+  'and standard add-on pricing. Actual costs may vary. OrderStack delivery estimate uses $6.50 avg DaaS fee ' +
+  'via DoorDash Drive.';
+
+export const SAVINGS_CALC_DEFAULTS = {
+  monthlyOrders: 1500,
+  avgTicket: 35,
+  deliveryPct: 25,
+};
+
+export interface SavingsCalcInput {
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  prefix?: string;
+  suffix?: string;
+}
+
+export const SAVINGS_CALC_INPUTS: Record<string, SavingsCalcInput> = {
+  monthlyOrders: { label: 'Orders per month', min: 100, max: 10000, step: 50 },
+  avgTicket: { label: 'Average order value', min: 5, max: 200, step: 1, prefix: '$' },
+  deliveryPct: { label: 'Delivery orders', min: 0, max: 100, step: 1, suffix: '%' },
+};
+
+export const SAVINGS_CALC_SUMMARY_TEMPLATE = 'Based on {orders} orders/mo at ${ticket} avg, you\'d save {savings} per year vs Toast.';

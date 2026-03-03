@@ -97,5 +97,16 @@ is registered BEFORE the blog list route (`blog`) so parameterized URLs match fi
 2. Add a corresponding entry to `BLOG_POSTS_RAW` in `services/blog-registry.ts`
 3. The BlogService picks it up automatically (sorted by date descending)
 
+### C-06 — Savings Calculator & Structured Data
+- SavingsCalculatorComponent: interactive 3-input calculator comparing OrderStack vs Toast vs Square
+  - Signal-based sliders + number inputs (monthlyOrders, avgTicket, deliveryPct)
+  - Real-time cost computation with animated count-up results (requestAnimationFrame, ease-out cubic)
+  - Fee models from published competitor rates (March 2026) in COMPETITOR_FEE_MODELS
+  - Assumptions disclosure below results
+  - 150ms input debounce prevents animation spam during slider drag
+- Schema.org structured data on pricing page (FAQPage + Product/Offer JSON-LD)
+  - Injected via Renderer2 in ngOnInit, removed in ngOnDestroy
+- Calculator placed on dark background section between competitor comparison and FAQ
+
 ## Future Prompts
-- C-06+: TBD
+- C-07+: TBD
