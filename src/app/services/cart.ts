@@ -3,13 +3,23 @@ import { Cart, CartItem } from '../models/cart.model';
 import { MenuItem, Modifier } from '../models/menu.model';
 import { OrderType, CustomerInfo } from '../models/order.model';
 import { SocketService } from './socket';
+import { RestaurantSettingsService } from './restaurant-settings';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CartService {
   private readonly socketService = inject(SocketService);
-  private readonly _taxRate = signal(0.0825);
+  private readonly settingsService = inject(RestaurantSettingsService);
+
+  // Tax rate: reads from merchant payment settings by default.
+  // setTaxRate() overrides for public ordering (slug-based, no auth).
+  private readonly _taxRateOverride = signal<number | null>(null);
+  private readonly _taxRate = computed(() => {
+    const override = this._taxRateOverride();
+    if (override !== null) return override;
+    return this.settingsService.paymentSettings().taxRate ?? 0;
+  });
 
   // Private writable signals
   private readonly _items = signal<CartItem[]>([]);
@@ -53,7 +63,7 @@ export class CartService {
     this._items().reduce((sum, item) => sum + item.totalPrice, 0)
   );
 
-  readonly taxRate: Signal<number> = this._taxRate.asReadonly();
+  readonly taxRate: Signal<number> = this._taxRate;
 
   readonly tax = computed(() =>
     Math.round(this.subtotal() * this._taxRate() * 100) / 100
@@ -188,7 +198,7 @@ export class CartService {
   }
 
   setTaxRate(rate: number): void {
-    this._taxRate.set(Math.max(0, rate));
+    this._taxRateOverride.set(Math.max(0, rate));
   }
 
   setTipPercentage(percentage: number): void {
@@ -228,6 +238,7 @@ export class CartService {
     this._estimatedPointsEarned.set(0);
     this._surchargeEnabled.set(false);
     this._surchargePercent.set(3.5);
+    this._taxRateOverride.set(null);
   }
 
   getOrderData(): Partial<any> {
