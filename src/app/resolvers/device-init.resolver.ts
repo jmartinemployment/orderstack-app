@@ -10,6 +10,17 @@ export const deviceInitResolver: ResolveFn<boolean> = async (_route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
+  // On cold page load (direct URL to /app/*), zoneless change detection may not
+  // have flushed computed signals yet even though AuthService.loadFromStorage()
+  // ran synchronously in the constructor. Yield one microtask so the signal
+  // graph settles before we read isAuthenticated / selectedMerchantId.
+  await Promise.resolve();
+
+  // If auth state still isn't available after yielding, the user isn't logged in
+  if (!authService.isAuthenticated()) {
+    return false;
+  }
+
   // Ensure merchantId is set before loading anything
   if (!authService.selectedMerchantId()) {
     const restaurants = authService.merchants();
