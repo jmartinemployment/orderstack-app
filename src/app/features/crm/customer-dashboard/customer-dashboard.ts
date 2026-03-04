@@ -188,9 +188,13 @@ export class CustomerDashboard {
     Math.max(1, ...this.ratingDistribution())
   );
 
+  private readonly _dataLoaded = signal(false);
+
   constructor() {
     effect(() => {
-      if (this.isAuthenticated() && this.authService.selectedMerchantId()) {
+      const id = this.authService.selectedMerchantId();
+      if (id && !this._dataLoaded()) {
+        this._dataLoaded.set(true);
         this.customerService.loadCustomers();
         this.loyaltyService.loadConfig();
       }
