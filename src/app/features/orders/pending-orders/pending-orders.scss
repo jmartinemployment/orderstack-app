@@ -84,6 +84,14 @@
   color: var(--os-text-primary);
   transition: border-color 0.2s;
 
+  .card-body {
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--os-bg);
+    }
+  }
+
   &.status-RECEIVED { border-color: var(--os-warning); }
   &.status-IN_PREPARATION { border-color: #fd7e14; }
   &.status-READY_FOR_PICKUP { border-color: var(--os-success); }
@@ -583,4 +591,52 @@
     background-color: var(--os-bg-card);
     border-top: 1px solid var(--os-border);
   }
+}
+
+// Order Detail Modal
+.order-detail-modal {
+  background-color: var(--os-bg-card);
+  border: 1px solid var(--os-border);
+  color: var(--os-text-primary);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: var(--os-radius-lg);
+  box-shadow: var(--os-shadow-lg);
+
+  .card-header {
+    background-color: var(--os-bg-card);
+    border-bottom: 1px solid var(--os-border);
+
+    h4 {
+      color: var(--os-text-primary);
+      font-weight: 600;
+    }
+  }
+}
+
+.section {
+  h6 {
+    color: var(--os-text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  hr {
+    border-color: var(--os-border);
+  }
+
+  .total {
+    color: var(--os-text-primary);
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+}
+
+.dining-details {
+  background-color: var(--os-bg);
+  border-radius: 0.25rem;
+  padding: 0.75rem;
 }

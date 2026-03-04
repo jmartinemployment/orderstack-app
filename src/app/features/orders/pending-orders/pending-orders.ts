@@ -1,5 +1,5 @@
 import { Component, inject, computed, signal, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { OrderService } from '@services/order';
 import { AuthService } from '@services/auth';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
@@ -40,7 +40,7 @@ interface PendingCourseGroup {
 
 @Component({
   selector: 'os-pending-orders',
-  imports: [CurrencyPipe, LoadingSpinner, ErrorDisplay, StatusBadge],
+  imports: [CurrencyPipe, DatePipe, LoadingSpinner, ErrorDisplay, StatusBadge],
   templateUrl: './pending-orders.html',
   styleUrl: './pending-orders.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -83,6 +83,9 @@ export class PendingOrders implements OnInit, OnDestroy {
     { value: 'marketplace', label: 'Marketplace' },
     { value: 'native', label: 'Direct' },
   ];
+
+  private readonly _selectedOrder = signal<Order | null>(null);
+  readonly selectedOrder = this._selectedOrder.asReadonly();
 
   private readonly _channelFilter = signal<'all' | OrderSource>('all');
   readonly channelFilter = this._channelFilter.asReadonly();
@@ -194,6 +197,14 @@ export class PendingOrders implements OnInit, OnDestroy {
 
   setSearchQuery(query: string): void {
     this._searchQuery.set(query);
+  }
+
+  selectOrder(order: Order): void {
+    this._selectedOrder.set(order);
+  }
+
+  closeOrderDetail(): void {
+    this._selectedOrder.set(null);
   }
 
   private matchesSearch(order: Order, query: string): boolean {
