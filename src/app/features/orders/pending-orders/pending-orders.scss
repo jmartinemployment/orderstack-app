@@ -93,6 +93,34 @@
     &:hover {
       background-color: var(--os-bg);
     }
+
+    // Pass clicks through non-interactive children directly to card-body
+    // so the (click) handler fires as the direct target, not via bubbling
+    .order-meta,
+    .order-items,
+    .order-item,
+    .order-total,
+    .customer-name,
+    .special-instructions,
+    .delivery-detail,
+    .curbside-detail,
+    .catering-detail,
+    .approval-section,
+    .marketplace-sync-alert,
+    .course-group,
+    .driver-assignment-info,
+    .driver-assign-dropdown,
+    .delivery-tracking-card {
+      pointer-events: none;
+    }
+
+    // Keep interactive elements clickable
+    button,
+    a,
+    select,
+    input {
+      pointer-events: auto;
+    }
   }
 
   &.status-RECEIVED { border-color: var(--os-warning); }
