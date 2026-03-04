@@ -364,6 +364,9 @@ export const routes: Routes = [
       { path: 'multi-location', loadComponent: () => import('./features/multi-location/multi-location-dashboard/multi-location-dashboard').then(m => m.MultiLocationDashboard) },
       { path: 'settings', loadComponent: () => import('./features/settings/control-panel/control-panel').then(m => m.ControlPanel) },
 
+      // Online ordering moved to top-level full-screen route
+      { path: 'online-ordering', redirectTo: '/online-ordering', pathMatch: 'full' },
+
       // Default — redirect to administration
       { path: '', redirectTo: 'administration', pathMatch: 'full' },
     ],

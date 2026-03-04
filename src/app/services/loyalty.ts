@@ -27,6 +27,10 @@ export class LoyaltyService {
   private readonly _isLoadingRewards = signal(false);
   private readonly _error = signal<string | null>(null);
 
+  // Per-merchant loaded cache — prevents repeated fetches for the same merchant
+  private _configLoadedForMerchant = '';
+  private _rewardsLoadedForMerchant = '';
+
   readonly config = this._config.asReadonly();
   readonly rewards = this._rewards.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
@@ -41,6 +45,7 @@ export class LoyaltyService {
   async loadConfig(): Promise<void> {
     if (!this.merchantId) return;
     if (this._isLoadingConfig()) return;
+    if (this._configLoadedForMerchant === this.merchantId) return;
     this._isLoadingConfig.set(true);
     this._error.set(null);
 
@@ -51,8 +56,10 @@ export class LoyaltyService {
         )
       );
       this._config.set(config);
+      this._configLoadedForMerchant = this.merchantId;
     } catch {
       this._error.set('Failed to load loyalty config');
+      this._configLoadedForMerchant = this.merchantId;
     } finally {
       this._isLoadingConfig.set(false);
     }
@@ -82,6 +89,7 @@ export class LoyaltyService {
   async loadRewards(): Promise<void> {
     if (!this.merchantId) return;
     if (this._isLoadingRewards()) return;
+    if (this._rewardsLoadedForMerchant === this.merchantId) return;
     this._isLoadingRewards.set(true);
     this._error.set(null);
 
@@ -92,8 +100,10 @@ export class LoyaltyService {
         )
       );
       this._rewards.set(rewards);
+      this._rewardsLoadedForMerchant = this.merchantId;
     } catch {
       this._error.set('Failed to load loyalty rewards');
+      this._rewardsLoadedForMerchant = this.merchantId;
     } finally {
       this._isLoadingRewards.set(false);
     }
