@@ -1,4 +1,4 @@
-import { Component, inject, computed, signal, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, computed, signal, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { OrderService } from '@services/order';
 import { AuthService } from '@services/auth';
@@ -50,6 +50,7 @@ export class PendingOrders implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly settingsService = inject(RestaurantSettingsService);
   private readonly deliveryService = inject(DeliveryService);
+  private readonly _cdr = inject(ChangeDetectorRef);
 
   readonly orders = this.orderService.orders;
   readonly isLoading = this.orderService.isLoading;
@@ -201,10 +202,12 @@ export class PendingOrders implements OnInit, OnDestroy {
   selectOrder(order: Order, event: Event): void {
     event.stopPropagation();
     this._selectedOrder.set(order);
+    this._cdr.markForCheck();
   }
 
   closeOrderDetail(): void {
     this._selectedOrder.set(null);
+    this._cdr.markForCheck();
   }
 
   private matchesSearch(order: Order, query: string): boolean {

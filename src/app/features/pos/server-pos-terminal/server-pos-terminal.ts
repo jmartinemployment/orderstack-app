@@ -1,6 +1,7 @@
 import {
   Component,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   OnInit,
   inject,
   signal,
@@ -39,6 +40,7 @@ export class ServerPosTerminal implements OnInit {
   private readonly settingsService = inject(RestaurantSettingsService);
   private readonly tableService = inject(TableService);
   readonly checkout = inject(CheckoutService);
+  private readonly _cdr = inject(ChangeDetectorRef);
 
   // Top tab state — default to Favorites
   readonly topTabs: TopNavigationTab[] = [
@@ -204,6 +206,7 @@ export class ServerPosTerminal implements OnInit {
       this.customerEmail.set('');
     }
     this.showCustomerForm.update(v => !v);
+    this._cdr.markForCheck();
   }
 
   saveCustomer(): void {
