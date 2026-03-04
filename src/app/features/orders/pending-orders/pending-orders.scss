@@ -86,6 +86,9 @@
 
   .card-body {
     cursor: pointer;
+    pointer-events: auto;
+    position: relative;
+    z-index: 1;
 
     &:hover {
       background-color: var(--os-bg);
