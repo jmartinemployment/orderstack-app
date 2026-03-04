@@ -92,7 +92,7 @@
         <div class="checkout-step">
           @if (mode() === 'send') {
             <h2 class="checkout-title">Who is this order for?</h2>
-            <p class="checkout-subtitle">Name is required so we can call the customer when the order is ready.</p>
+            <p class="checkout-subtitle">Add a name to identify this order. Optional for table orders.</p>
           } @else {
             <h2 class="checkout-title">Get notified when it's ready</h2>
             <p class="checkout-subtitle">We'll text or email you when your order is ready for pickup. All fields are optional.</p>
@@ -138,7 +138,6 @@
             <button
               type="button"
               class="checkout-continue-btn"
-              [disabled]="mode() === 'send' && !checkout.hasCustomerContact()"
               (click)="checkout.submitCustomerInfo()">
               @if (mode() === 'send') {
                 Send to kitchen
@@ -148,6 +147,11 @@
                 Continue without info
               }
             </button>
+            @if (mode() === 'send' && checkout.diningOption() === 'dine_in') {
+              <button type="button" class="checkout-skip-btn" (click)="checkout.skipCustomerInfo()">
+                Skip — table order
+              </button>
+            }
             @if (mode() === 'charge') {
               <button type="button" class="checkout-skip-btn" (click)="checkout.skipCustomerInfo()">
                 Skip — just give me an order number

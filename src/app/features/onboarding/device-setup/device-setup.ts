@@ -216,10 +216,10 @@ export class DeviceSetup implements OnInit {
         this.router.navigate(['/bookings-terminal']);
         break;
       case 'services':
-        this.router.navigate(['/invoicing']);
+        this.router.navigate(['/app/invoicing']);
         break;
       default:
-        this.router.navigate(['/orders']);
+        this.router.navigate(['/app/orders']);
         break;
     }
   }

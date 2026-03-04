@@ -178,7 +178,7 @@ export class Login {
         this.router.navigate(['/setup']);
       } else if (restaurants.length === 1) {
         this.authService.selectMerchant(restaurants[0].id, restaurants[0].name);
-        this.router.navigate(['/']);
+        this.router.navigate(['/app/administration']);
       } else {
         this.router.navigate(['/select-restaurant']);
       }

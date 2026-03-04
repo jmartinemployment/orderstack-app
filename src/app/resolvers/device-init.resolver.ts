@@ -29,7 +29,8 @@ export const deviceInitResolver: ResolveFn<boolean> = async (_route, state) => {
   }
 
   // Load merchant profile and device list in parallel
-  await Promise.all([
+  // Use allSettled so a cold-start timeout on either service does not cancel navigation
+  await Promise.allSettled([
     platformService.loadMerchantProfile(),
     deviceService.loadDevices(),
   ]);
@@ -46,7 +47,7 @@ export const deviceInitResolver: ResolveFn<boolean> = async (_route, state) => {
   // default route (e.g. after pairing → login → / → administration)
   const device = deviceService.currentDevice();
   const targetPath = state.url.replace(/^\//, '').split('?')[0];
-  const isDefaultRoute = targetPath === '' || targetPath === 'administration';
+  const isDefaultRoute = targetPath === '' || targetPath === 'administration' || targetPath === 'app' || targetPath === 'app/administration';
 
   if (device && isDefaultRoute) {
     switch (device.deviceType) {

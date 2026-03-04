@@ -403,7 +403,7 @@ export class PosLogin {
           this.router.navigate(['/kiosk']);
           return;
         case 'printer':
-          this.router.navigate(['/administration']);
+          this.router.navigate(['/app/administration']);
           return;
         case 'register':
         case 'terminal':
@@ -436,10 +436,10 @@ export class PosLogin {
         this.router.navigate(['/bookings-terminal']);
         break;
       case 'services':
-        this.router.navigate(['/invoicing']);
+        this.router.navigate(['/app/invoicing']);
         break;
       default:
-        this.router.navigate(['/orders']);
+        this.router.navigate(['/app/orders']);
         break;
     }
   }

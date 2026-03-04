@@ -42,11 +42,47 @@ export const routes: Routes = [
           import('./features/website/pages/blog/blog.component').then(m => m.BlogPageComponent),
       },
       {
+        path: 'contact',
+        loadComponent: () =>
+          import('./features/website/pages/contact/contact.component').then(m => m.ContactPageComponent),
+      },
+      {
+        path: 'integrations',
+        loadComponent: () =>
+          import('./features/website/pages/integrations/integrations.component').then(m => m.IntegrationsPageComponent),
+      },
+      {
+        path: 'privacy',
+        loadComponent: () =>
+          import('./features/website/pages/privacy/privacy.component').then(m => m.PrivacyPageComponent),
+      },
+      {
+        path: 'terms',
+        loadComponent: () =>
+          import('./features/website/pages/terms/terms.component').then(m => m.TermsPageComponent),
+      },
+      {
+        path: 'about',
+        loadComponent: () =>
+          import('./features/website/pages/about/about.component').then(m => m.AboutPageComponent),
+      },
+      {
+        path: 'careers',
+        loadComponent: () =>
+          import('./features/website/pages/careers/careers.component').then(m => m.CareersPageComponent),
+      },
+      {
         path: 'features',
         loadComponent: () =>
           import('./features/website/pages/landing/landing.component').then(m => m.LandingComponent),
         // Temporary: shares landing page until a dedicated features page is built
       },
+      // Redirects for dead/legacy routes
+      { path: 'solutions/full-service', redirectTo: '/features', pathMatch: 'full' },
+      { path: 'solutions/quick-service', redirectTo: '/features', pathMatch: 'full' },
+      { path: 'solutions/retail', redirectTo: '/features', pathMatch: 'full' },
+      { path: 'solutions/services', redirectTo: '/features', pathMatch: 'full' },
+      { path: 'help', redirectTo: '/contact', pathMatch: 'full' },
     ],
   },
 
@@ -202,9 +238,41 @@ export const routes: Routes = [
     loadComponent: () => import('./features/quick-service/quick-service-terminal/quick-service-terminal').then(m => m.QuickServiceTerminal),
   },
 
+  // Legacy redirects — catch old bookmarked URLs and redirect to /app/*
+  { path: 'administration', redirectTo: '/app/administration', pathMatch: 'full' },
+  { path: 'orders', redirectTo: '/app/orders', pathMatch: 'full' },
+  { path: 'order-history', redirectTo: '/app/order-history', pathMatch: 'full' },
+  { path: 'menu', redirectTo: '/app/menu', pathMatch: 'full' },
+  { path: 'combos', redirectTo: '/app/combos', pathMatch: 'full' },
+  { path: 'inventory', redirectTo: '/app/inventory', pathMatch: 'full' },
+  { path: 'suppliers', redirectTo: '/app/suppliers', pathMatch: 'full' },
+  { path: 'customers', redirectTo: '/app/customers', pathMatch: 'full' },
+  { path: 'reports', redirectTo: '/app/reports', pathMatch: 'full' },
+  { path: 'scheduling', redirectTo: '/app/scheduling', pathMatch: 'full' },
+  { path: 'settings', redirectTo: '/app/settings', pathMatch: 'full' },
+  { path: 'sales', redirectTo: '/app/sales', pathMatch: 'full' },
+  { path: 'command-center', redirectTo: '/app/command-center', pathMatch: 'full' },
+  { path: 'close-of-day', redirectTo: '/app/close-of-day', pathMatch: 'full' },
+  { path: 'invoicing', redirectTo: '/app/invoicing', pathMatch: 'full' },
+  { path: 'marketing', redirectTo: '/app/marketing', pathMatch: 'full' },
+  { path: 'food-cost', redirectTo: '/app/food-cost', pathMatch: 'full' },
+  { path: 'cash-drawer', redirectTo: '/app/cash-drawer', pathMatch: 'full' },
+  { path: 'monitoring', redirectTo: '/app/monitoring', pathMatch: 'full' },
+  { path: 'ai-chat', redirectTo: '/app/ai-chat', pathMatch: 'full' },
+  { path: 'voice-order', redirectTo: '/app/voice-order', pathMatch: 'full' },
+  { path: 'dynamic-pricing', redirectTo: '/app/dynamic-pricing', pathMatch: 'full' },
+  { path: 'waste-tracker', redirectTo: '/app/waste-tracker', pathMatch: 'full' },
+  { path: 'sentiment', redirectTo: '/app/sentiment', pathMatch: 'full' },
+  { path: 'menu-engineering', redirectTo: '/app/menu-engineering', pathMatch: 'full' },
+  { path: 'multi-location', redirectTo: '/app/multi-location', pathMatch: 'full' },
+  { path: 'tip-management', redirectTo: '/app/tip-management', pathMatch: 'full' },
+  { path: 'report-builder', redirectTo: '/app/report-builder', pathMatch: 'full' },
+  { path: 'online-ordering', redirectTo: '/app/online-ordering', pathMatch: 'full' },
+  { path: 'hardware-guide', redirectTo: '/app/hardware-guide', pathMatch: 'full' },
+
   // Authenticated routes
   {
-    path: '',
+    path: 'app',
     component: MainLayoutComponent,
     canActivate: [authGuard, onboardingGuard],
     resolve: { deviceInit: deviceInitResolver },

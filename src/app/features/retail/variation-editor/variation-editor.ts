@@ -184,6 +184,6 @@ export class VariationEditor implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/retail/catalog']);
+    this.router.navigate(['/app/retail/catalog']);
   }
 }

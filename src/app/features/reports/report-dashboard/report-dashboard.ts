@@ -118,15 +118,15 @@ export class ReportDashboard implements OnInit {
   // --- Built-in reports ---
 
   goToCloseOfDay(): void {
-    this.router.navigate(['/close-of-day']);
+    this.router.navigate(['/app/close-of-day']);
   }
 
   goToSalesDashboard(): void {
-    this.router.navigate(['/sales']);
+    this.router.navigate(['/app/sales']);
   }
 
   goToLaborReport(): void {
-    this.router.navigate(['/scheduling']);
+    this.router.navigate(['/app/scheduling']);
   }
 
   // --- Report actions ---

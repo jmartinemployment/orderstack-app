@@ -335,7 +335,7 @@ export class SupplierManagement implements OnInit {
   }
 
   goToSupplierSettings(): void {
-    this.router.navigate(['/settings'], { queryParams: { tab: 'suppliers' } });
+    this.router.navigate(['/app/settings'], { queryParams: { tab: 'suppliers' } });
   }
 
   dismissRestockBanner(): void {

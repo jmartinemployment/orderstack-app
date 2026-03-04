@@ -117,8 +117,16 @@
       @if (checkout.cartItems().length > 0) {
         <div class="sale-totals">
           <div class="total-row">
+            <span>Subtotal</span>
+            <span>{{ checkout.subtotal() | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="total-row">
             <span>Tax</span>
             <span>{{ checkout.tax() | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="total-row total-row-grand">
+            <span>Total</span>
+            <span>{{ checkout.total() | currency:'USD':'symbol':'1.2-2' }}</span>
           </div>
           <div class="total-divider"></div>
           <button type="button" class="add-discount-btn">Add discount</button>
@@ -127,14 +135,17 @@
 
       <button
         type="button"
-        class="send-btn"
+        class="charge-btn"
+        [disabled]="checkout.cartItems().length === 0"
+        (click)="checkout.startCheckout('charge', 'terminal')">
+        Charge {{ checkout.cartItems().length > 0 ? (checkout.total() | currency:'USD':'symbol':'1.2-2') : '' }}
+      </button>
+      <button
+        type="button"
+        class="send-btn-outline"
         [disabled]="checkout.cartItems().length === 0"
         (click)="checkout.startCheckout('send', 'terminal')">
-        @if (checkout.cartItems().length > 0) {
-          <i class="bi bi-send-fill"></i> Send to Kitchen
-        } @else {
-          Send to Kitchen
-        }
+        <i class="bi bi-send-fill"></i> Send to Kitchen
       </button>
     </div>
   </aside>

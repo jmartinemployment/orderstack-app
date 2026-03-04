@@ -1,0 +1,40 @@
+<div class="mkt-testimonials">
+  <div class="container">
+    <!-- Header -->
+    <div class="mkt-testimonials__header">
+      <span class="mkt-testimonials__tag">{{ header.tag }}</span>
+      <h2 class="mkt-testimonials__title">{{ header.title }}</h2>
+      <p class="mkt-testimonials__subtitle">{{ header.subtitle }}</p>
+    </div>
+
+    <!-- Carousel -->
+    <div
+      class="mkt-testimonials__carousel"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerUp($event)"
+      (mouseenter)="onMouseEnter()"
+      (mouseleave)="onMouseLeave()">
+      <div class="mkt-testimonials__track" [style.transform]="trackOffset()">
+        @for (t of testimonials; track t.id) {
+          <div class="mkt-testimonials__slide">
+            <os-testimonial-card [testimonial]="t" />
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Navigation dots -->
+    <div class="mkt-testimonials__dots">
+      @for (t of testimonials; track t.id; let i = $index) {
+        <button
+          class="mkt-testimonials__dot"
+          [class.mkt-testimonials__dot--active]="i === activeIndex()"
+          (click)="goTo(i)"
+          [attr.aria-label]="'Go to testimonial ' + (i + 1)">
+        </button>
+      }
+    </div>
+  </div>
+</div>

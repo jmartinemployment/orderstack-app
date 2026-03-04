@@ -3,7 +3,7 @@ import { DeliveryProviderType } from './delivery.model';
 import { PaymentProcessorType } from './payment.model';
 import { TipPoolRule, TipOutRule } from './tip.model';
 
-export type ControlPanelTab = 'hardware' | 'ai-settings' | 'kitchen-orders' | 'bar' | 'online-pricing' | 'catering-calendar' | 'payments' | 'tip-management' | 'loyalty' | 'delivery' | 'gift-cards' | 'suppliers' | 'staff' | 'time-clock-config' | 'notifications' | 'account-billing';
+export type ControlPanelTab = 'general' | 'hardware' | 'ai-settings' | 'kitchen-orders' | 'bar' | 'online-pricing' | 'catering-calendar' | 'payments' | 'tip-management' | 'loyalty' | 'delivery' | 'gift-cards' | 'suppliers' | 'staff' | 'time-clock-config' | 'notifications' | 'account-billing';
 
 /**
  * AI Settings — Control Panel > AI Settings tab
@@ -156,10 +156,11 @@ export interface PaymentSettings {
   requirePaymentBeforeKitchen: boolean;
   surchargeEnabled: boolean;
   surchargePercent: number;
+  taxRate: number;
 }
 
 export function defaultPaymentSettings(): PaymentSettings {
-  return { processor: 'none', requirePaymentBeforeKitchen: false, surchargeEnabled: false, surchargePercent: 3.5 };
+  return { processor: 'none', requirePaymentBeforeKitchen: false, surchargeEnabled: false, surchargePercent: 3.5, taxRate: 0.08 };
 }
 
 export interface TipManagementSettings {

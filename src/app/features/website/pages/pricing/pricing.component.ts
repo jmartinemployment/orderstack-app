@@ -13,8 +13,10 @@ import { PlanCardsComponent } from '../../shared/plan-cards.component';
 import { ProcessingRatesComponent } from '../../shared/processing-rates.component';
 import { CompetitorComparisonComponent } from '../../shared/competitor-comparison.component';
 import { SavingsCalculatorComponent } from '../../shared/savings-calculator.component';
+import { TestimonialSectionComponent } from '../../shared/testimonial-section.component';
 import { PricingFaqComponent } from '../../shared/pricing-faq.component';
 import { FinalCtaComponent } from '../../shared/final-cta.component';
+import { SeoMetaService } from '../../services/seo-meta.service';
 import { PRICING_HERO, PRICING_FAQS, PRICING_PLANS } from '../../marketing.config';
 
 @Component({
@@ -27,6 +29,7 @@ import { PRICING_HERO, PRICING_FAQS, PRICING_PLANS } from '../../marketing.confi
     ProcessingRatesComponent,
     CompetitorComparisonComponent,
     SavingsCalculatorComponent,
+    TestimonialSectionComponent,
     PricingFaqComponent,
     FinalCtaComponent,
   ],
@@ -39,9 +42,11 @@ export class PricingPageComponent implements OnInit, OnDestroy {
 
   private readonly document = inject(DOCUMENT);
   private readonly renderer = inject(Renderer2);
+  private readonly seo = inject(SeoMetaService);
   private jsonLdElements: HTMLScriptElement[] = [];
 
   ngOnInit(): void {
+    this.seo.apply('pricing');
     this.injectJsonLd(this.buildFaqSchema());
     this.injectJsonLd(this.buildProductSchema());
   }

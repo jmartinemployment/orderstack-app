@@ -246,7 +246,7 @@ describe('Login', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/setup']);
   });
 
-  it('selects restaurant and navigates to / when exactly 1 restaurant', async () => {
+  it('selects restaurant and navigates to /app/administration when exactly 1 restaurant', async () => {
     const mockAuth = createMockAuthService();
     mockAuth._merchants.set([{ id: 'r-1', name: 'Test' }]);
     TestBed.resetTestingModule();
@@ -264,7 +264,7 @@ describe('Login', () => {
     c.loginForm.setValue({ email: 'user@test.com', password: 'pass123' });
     await c.onSignIn();
     expect(mockAuth.selectMerchant).toHaveBeenCalledWith('r-1', 'Test');
-    expect(router.navigate).toHaveBeenCalledWith(['/']);
+    expect(router.navigate).toHaveBeenCalledWith(['/app/administration']);
   });
 
   it('navigates to /select-restaurant when multiple restaurants', async () => {

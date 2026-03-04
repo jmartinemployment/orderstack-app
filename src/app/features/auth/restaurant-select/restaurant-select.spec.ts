@@ -110,7 +110,7 @@ describe('RestaurantSelect', () => {
     const items = fixture.nativeElement.querySelectorAll('.restaurant-item');
     items[0].click();
     expect(authService.selectMerchant).toHaveBeenCalledWith('r-1', 'Taipa', null, '123 Main');
-    expect(router.navigate).toHaveBeenCalledWith(['/']);
+    expect(router.navigate).toHaveBeenCalledWith(['/app/administration']);
   });
 
   it('calls logout on sign out click', async () => {

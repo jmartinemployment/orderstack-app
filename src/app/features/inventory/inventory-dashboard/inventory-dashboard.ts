@@ -282,11 +282,11 @@ export class InventoryDashboard implements OnInit {
 
   orderMore(item: InventoryItem): void {
     this.closeStockModal();
-    this.router.navigate(['/suppliers'], { queryParams: { item: item.name } });
+    this.router.navigate(['/app/suppliers'], { queryParams: { item: item.name } });
   }
 
   orderMoreByName(itemName: string): void {
-    this.router.navigate(['/suppliers'], { queryParams: { item: itemName } });
+    this.router.navigate(['/app/suppliers'], { queryParams: { item: itemName } });
   }
 
   setStockQuantity(qty: number): void {

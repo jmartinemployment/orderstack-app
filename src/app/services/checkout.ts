@@ -43,10 +43,12 @@ export class CheckoutService {
     this._cartItems().reduce((sum, item) => sum + item.totalPrice, 0)
   );
 
-  readonly taxRate = 0.087;
+  readonly taxRate = computed(() =>
+    this.settingsService.paymentSettings().taxRate ?? 0.08
+  );
 
   readonly tax = computed(() =>
-    Math.round(this.subtotal() * this.taxRate * 100) / 100
+    Math.round(this.subtotal() * this.taxRate() * 100) / 100
   );
 
   readonly total = computed(() =>

@@ -74,7 +74,7 @@ export class TeamOnboarding {
 
     // Redirect if onboarding is already complete
     if (user?.onboardingStatus === 'complete') {
-      this.router.navigate(['/administration']);
+      this.router.navigate(['/app/administration']);
     }
   }
 

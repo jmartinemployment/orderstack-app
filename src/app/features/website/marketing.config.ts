@@ -9,6 +9,7 @@ export interface NavLink {
 }
 
 export const NAV_LINKS: NavLink[] = [
+  { label: 'Home', route: '/' },
   { label: 'Features', route: '/features' },
   { label: 'Pricing', route: '/pricing' },
   { label: 'Demo', route: '/demo' },
@@ -917,3 +918,819 @@ export const SAVINGS_CALC_INPUTS: Record<string, SavingsCalcInput> = {
 };
 
 export const SAVINGS_CALC_SUMMARY_TEMPLATE = 'Based on {orders} orders/mo at ${ticket} avg, you\'d save {savings} per year vs Toast.';
+
+// ============================================================================
+// TESTIMONIALS
+// ============================================================================
+
+export interface Testimonial {
+  id: string;
+  quote: string;
+  authorName: string;
+  authorPhoto: string | null;
+  restaurantName: string;
+  location: string;
+  rating: number;
+}
+
+export const TESTIMONIALS_HEADER = {
+  tag: 'What Restaurants Are Saying',
+  title: 'Trusted by Restaurant Owners Like You',
+  subtitle: 'Hear from operators who switched to OrderStack and never looked back.',
+};
+
+export const TESTIMONIALS: Testimonial[] = [
+  {
+    id: 'marias',
+    quote: 'We were losing almost $4,000 a month to DoorDash and Uber Eats commissions. OrderStack let us keep taking delivery orders through our own site. Three months in, we\'ve saved over $12,000.',
+    authorName: 'Maria Gonzalez',
+    authorPhoto: null,
+    restaurantName: 'Maria\'s Kitchen',
+    location: 'Delray Beach, FL',
+    rating: 5,
+  },
+  {
+    id: 'bourbon',
+    quote: 'Setting up was shockingly easy. We used our existing iPads, connected our Star printer, and were taking orders the same afternoon. No hardware guy, no $1,200 terminal.',
+    authorName: 'David Chen',
+    authorPhoto: null,
+    restaurantName: 'Bourbon & Brisket BBQ',
+    location: 'Fort Lauderdale, FL',
+    rating: 5,
+  },
+  {
+    id: 'coastal',
+    quote: 'The KDS alone was worth the switch. Our ticket times dropped from 22 minutes to 14 minutes in the first week. The kitchen just runs smoother now.',
+    authorName: 'James Walker',
+    authorPhoto: null,
+    restaurantName: 'Coastal Catch Seafood',
+    location: 'Boca Raton, FL',
+    rating: 5,
+  },
+  {
+    id: 'verde',
+    quote: 'I was paying Toast $165 a month in add-ons for stuff that OrderStack includes for free. KDS, loyalty, scheduling \u2014 it\'s all just there.',
+    authorName: 'Sofia Ramirez',
+    authorPhoto: null,
+    restaurantName: 'Verde Taqueria',
+    location: 'Boynton Beach, FL',
+    rating: 4,
+  },
+  {
+    id: 'noodle',
+    quote: 'The online ordering QR codes at each table changed everything for us. Customers order and pay from their phones, and our servers handle 30% more tables.',
+    authorName: 'Kevin Pham',
+    authorPhoto: null,
+    restaurantName: 'Noodle House Express',
+    location: 'West Palm Beach, FL',
+    rating: 5,
+  },
+];
+
+// ============================================================================
+// ANIMATED METRICS
+// ============================================================================
+
+export interface MetricHighlight {
+  id: string;
+  value: number;
+  prefix: string;
+  suffix: string;
+  label: string;
+  icon: string;
+}
+
+export const METRIC_HIGHLIGHTS: MetricHighlight[] = [
+  { id: 'commissions', value: 0, prefix: '', suffix: '%', label: 'Marketplace Commissions', icon: 'bi-cash-stack' },
+  { id: 'platform', value: 1, prefix: '', suffix: '', label: 'Platform for Everything', icon: 'bi-layers' },
+  { id: 'setup', value: 5, prefix: '', suffix: ' min', label: 'Setup Time', icon: 'bi-lightning' },
+  { id: 'data', value: 100, prefix: '', suffix: '%', label: 'Your Customer Data', icon: 'bi-shield-check' },
+];
+
+// ============================================================================
+// PARTNER LOGOS
+// ============================================================================
+
+export interface PartnerLogo {
+  name: string;
+  imageUrl: string;
+  url: string | null;
+}
+
+export const PARTNER_LOGOS: PartnerLogo[] = [
+  { name: 'Stripe', imageUrl: 'assets/logos/stripe.svg', url: null },
+  { name: 'DoorDash Drive', imageUrl: 'assets/logos/doordash.svg', url: null },
+  { name: 'Uber Direct', imageUrl: 'assets/logos/uber.svg', url: null },
+  { name: 'Star Micronics', imageUrl: 'assets/logos/star.svg', url: null },
+  { name: 'PayPal Zettle', imageUrl: 'assets/logos/paypal.svg', url: null },
+  { name: 'Google Business', imageUrl: 'assets/logos/google.svg', url: null },
+  { name: 'QuickBooks', imageUrl: 'assets/logos/quickbooks.svg', url: null },
+  { name: 'Xero', imageUrl: 'assets/logos/xero.svg', url: null },
+];
+
+// ============================================================================
+// CASE STUDIES
+// ============================================================================
+
+export interface CaseStudyPreview {
+  id: string;
+  restaurantName: string;
+  location: string;
+  businessType: string;
+  headline: string;
+  metrics: { label: string; value: string }[];
+  imageUrl: string | null;
+  slug: string;
+}
+
+export const CASE_STUDIES_HEADER = {
+  tag: 'Real Results',
+  title: 'See How Restaurants Are Winning With OrderStack',
+};
+
+// ============================================================================
+// INTEGRATIONS
+// ============================================================================
+
+export type IntegrationStatus = 'available' | 'coming_soon' | 'beta';
+
+export type IntegrationCategory =
+  | 'all'
+  | 'payments'
+  | 'delivery'
+  | 'hardware'
+  | 'accounting'
+  | 'marketing'
+  | 'operations';
+
+export interface IntegrationCategoryOption {
+  id: IntegrationCategory;
+  label: string;
+  icon: string;
+}
+
+export interface Integration {
+  id: string;
+  name: string;
+  description: string;
+  category: IntegrationCategory;
+  status: IntegrationStatus;
+  logoUrl: string;
+  learnMoreUrl: string | null;
+  featured: boolean;
+}
+
+export const INTEGRATION_CATEGORIES: IntegrationCategoryOption[] = [
+  { id: 'all', label: 'All Integrations', icon: 'bi-grid' },
+  { id: 'payments', label: 'Payments', icon: 'bi-credit-card' },
+  { id: 'delivery', label: 'Delivery', icon: 'bi-truck' },
+  { id: 'hardware', label: 'Hardware', icon: 'bi-printer' },
+  { id: 'accounting', label: 'Accounting', icon: 'bi-calculator' },
+  { id: 'marketing', label: 'Marketing', icon: 'bi-megaphone' },
+  { id: 'operations', label: 'Operations', icon: 'bi-gear' },
+];
+
+export const INTEGRATIONS: Integration[] = [
+  // Payments
+  {
+    id: 'stripe',
+    name: 'Stripe',
+    description: 'Accept credit cards, Apple Pay, Google Pay with industry-leading uptime.',
+    category: 'payments',
+    status: 'available',
+    logoUrl: 'assets/logos/stripe.svg',
+    learnMoreUrl: 'https://stripe.com',
+    featured: true,
+  },
+  {
+    id: 'paypal-zettle',
+    name: 'PayPal Zettle',
+    description: 'Tap-to-pay card readers and in-person payment processing.',
+    category: 'payments',
+    status: 'available',
+    logoUrl: 'assets/logos/paypal.svg',
+    learnMoreUrl: 'https://www.paypal.com/us/business/accept-payments/zettle',
+    featured: true,
+  },
+  {
+    id: 'square-reader',
+    name: 'Square Reader',
+    description: 'Use existing Square readers as BYOD payment terminals with OrderStack.',
+    category: 'payments',
+    status: 'coming_soon',
+    logoUrl: 'assets/logos/square-reader.svg',
+    learnMoreUrl: null,
+    featured: false,
+  },
+  // Delivery
+  {
+    id: 'doordash-drive',
+    name: 'DoorDash Drive',
+    description: 'Dispatch DoorDash drivers on demand for a flat per-delivery fee, no marketplace commission.',
+    category: 'delivery',
+    status: 'available',
+    logoUrl: 'assets/logos/doordash.svg',
+    learnMoreUrl: 'https://www.doordash.com/business/drive',
+    featured: true,
+  },
+  {
+    id: 'uber-direct',
+    name: 'Uber Direct',
+    description: 'On-demand delivery through Uber\'s driver network at a flat per-trip rate.',
+    category: 'delivery',
+    status: 'available',
+    logoUrl: 'assets/logos/uber.svg',
+    learnMoreUrl: 'https://www.uber.com/us/en/business/uber-direct/',
+    featured: true,
+  },
+  {
+    id: 'nash',
+    name: 'Nash',
+    description: 'Multi-carrier delivery orchestration, automatically routes to the cheapest available driver.',
+    category: 'delivery',
+    status: 'coming_soon',
+    logoUrl: 'assets/logos/nash.svg',
+    learnMoreUrl: null,
+    featured: false,
+  },
+  // Hardware
+  {
+    id: 'star-cloudprnt',
+    name: 'Star CloudPRNT',
+    description: 'Cloud-connected receipt and kitchen printers, no local drivers or wires needed.',
+    category: 'hardware',
+    status: 'available',
+    logoUrl: 'assets/logos/star.svg',
+    learnMoreUrl: 'https://www.starmicronics.com/cloudprnt/',
+    featured: true,
+  },
+  {
+    id: 'epson-smart-connect',
+    name: 'Epson Smart Connect',
+    description: 'Cloud printing for Epson TM-series receipt printers with remote management.',
+    category: 'hardware',
+    status: 'coming_soon',
+    logoUrl: 'assets/logos/epson.svg',
+    learnMoreUrl: null,
+    featured: false,
+  },
+  {
+    id: 'socket-mobile',
+    name: 'Socket Mobile',
+    description: 'Bluetooth barcode scanners for retail inventory management and quick item lookup.',
+    category: 'hardware',
+    status: 'available',
+    logoUrl: 'assets/logos/socket-mobile.svg',
+    learnMoreUrl: 'https://www.socketmobile.com',
+    featured: false,
+  },
+  // Accounting
+  {
+    id: 'quickbooks',
+    name: 'QuickBooks Online',
+    description: 'Auto-sync daily sales summaries, tax collected, and tips to your QuickBooks account.',
+    category: 'accounting',
+    status: 'available',
+    logoUrl: 'assets/logos/quickbooks.svg',
+    learnMoreUrl: 'https://quickbooks.intuit.com',
+    featured: true,
+  },
+  {
+    id: 'xero',
+    name: 'Xero',
+    description: 'Cloud accounting integration with daily revenue sync and expense categorization.',
+    category: 'accounting',
+    status: 'available',
+    logoUrl: 'assets/logos/xero.svg',
+    learnMoreUrl: 'https://www.xero.com',
+    featured: false,
+  },
+  {
+    id: 'freshbooks',
+    name: 'FreshBooks',
+    description: 'Sync invoices and sales data for restaurants that bill catering and event clients.',
+    category: 'accounting',
+    status: 'coming_soon',
+    logoUrl: 'assets/logos/freshbooks.svg',
+    learnMoreUrl: null,
+    featured: false,
+  },
+  // Marketing
+  {
+    id: 'google-business',
+    name: 'Google Business Profile',
+    description: 'Sync your menu, hours, and online ordering link directly to your Google listing.',
+    category: 'marketing',
+    status: 'available',
+    logoUrl: 'assets/logos/google.svg',
+    learnMoreUrl: 'https://business.google.com',
+    featured: true,
+  },
+  {
+    id: 'mailchimp',
+    name: 'Mailchimp',
+    description: 'Export customer segments and order data to Mailchimp for targeted email campaigns.',
+    category: 'marketing',
+    status: 'coming_soon',
+    logoUrl: 'assets/logos/mailchimp.svg',
+    learnMoreUrl: null,
+    featured: false,
+  },
+  {
+    id: 'meta-pixel',
+    name: 'Meta Pixel',
+    description: 'Track online ordering conversions and build retargeting audiences on Facebook and Instagram.',
+    category: 'marketing',
+    status: 'beta',
+    logoUrl: 'assets/logos/meta.svg',
+    learnMoreUrl: 'https://developers.facebook.com/docs/meta-pixel',
+    featured: false,
+  },
+  // Operations
+  {
+    id: '7shifts',
+    name: '7shifts',
+    description: 'Restaurant-specific staff scheduling with labor cost forecasting and shift swapping.',
+    category: 'operations',
+    status: 'coming_soon',
+    logoUrl: 'assets/logos/7shifts.svg',
+    learnMoreUrl: null,
+    featured: false,
+  },
+  {
+    id: 'google-calendar',
+    name: 'Google Calendar',
+    description: 'Sync reservation and catering bookings to your team\'s Google Calendar automatically.',
+    category: 'operations',
+    status: 'available',
+    logoUrl: 'assets/logos/google-calendar.svg',
+    learnMoreUrl: 'https://calendar.google.com',
+    featured: false,
+  },
+  {
+    id: 'zapier',
+    name: 'Zapier',
+    description: 'Connect OrderStack to 5,000+ apps for automation workflows.',
+    category: 'operations',
+    status: 'coming_soon',
+    logoUrl: 'assets/logos/zapier.svg',
+    learnMoreUrl: null,
+    featured: false,
+  },
+];
+
+export const INTEGRATIONS_HERO = {
+  tag: 'Integrations',
+  title: 'Connects to the Tools You Already Use',
+  subtitle: 'OrderStack integrates with leading payment processors, delivery networks, printers, accounting software, and more.',
+};
+
+export const INTEGRATIONS_API_SECTION = {
+  tag: 'For Developers',
+  title: 'Build on the OrderStack API',
+  subtitle: 'RESTful API with webhooks, OAuth 2.0, and comprehensive documentation. Build custom integrations for your restaurant group or POS ecosystem.',
+  features: [
+    { icon: 'bi-braces', label: 'RESTful JSON API' },
+    { icon: 'bi-broadcast', label: 'Real-Time Webhooks' },
+    { icon: 'bi-shield-lock', label: 'OAuth 2.0 Auth' },
+    { icon: 'bi-book', label: 'Full API Docs' },
+  ],
+  ctaLabel: 'View API Documentation',
+  ctaRoute: '/docs',
+  ctaExternal: true,
+};
+
+export const INTEGRATIONS_CLOUDPRNT_FEATURE = {
+  title: 'Featured: Star CloudPRNT',
+  subtitle: 'The easiest way to print orders from any device.',
+  description: 'Star CloudPRNT lets your kitchen and receipt printers connect over the internet \u2014 no local drivers, no wired connections, no IT headaches. Orders placed from any device print automatically to the right station.',
+  steps: [
+    { icon: 'bi-wifi', label: 'Connect printer to WiFi' },
+    { icon: 'bi-link-45deg', label: 'Register in OrderStack settings' },
+    { icon: 'bi-printer', label: 'Orders print automatically' },
+  ],
+};
+
+export const INTEGRATIONS_STATUS_LABELS: Record<IntegrationStatus, string> = {
+  available: 'Available',
+  coming_soon: 'Coming Soon',
+  beta: 'Beta',
+};
+
+// ============================================================================
+// CONTACT PAGE
+// ============================================================================
+
+export const CONTACT_HERO = {
+  tag: 'Get in Touch',
+  title: 'Let\'s Talk About Your Restaurant',
+  subtitle: 'Whether you want a demo, have a pricing question, or just want to learn more \u2014 we\'re here to help.',
+};
+
+export interface InquiryTypeOption {
+  value: string;
+  label: string;
+}
+
+export const INQUIRY_TYPES: InquiryTypeOption[] = [
+  { value: '', label: 'Select a topic...' },
+  { value: 'demo_request', label: 'Request a Demo' },
+  { value: 'pricing_question', label: 'Pricing Question' },
+  { value: 'general', label: 'General Inquiry' },
+  { value: 'partnership', label: 'Partnership Opportunity' },
+  { value: 'support', label: 'Technical Support' },
+];
+
+export const CONTACT_INFO = {
+  email: 'hello@getorderstack.com',
+  phone: '(561) 555-0123',
+  location: 'Delray Beach, FL',
+  serviceArea: 'Serving Broward & Palm Beach County',
+};
+
+export const CONTACT_THANK_YOU = {
+  title: 'Thanks, {name}! We\'ll be in touch within 24 hours.',
+  steps: [
+    'Confirmation email sent to your inbox',
+    'Personalized demo walkthrough',
+    'Custom pricing based on your needs',
+  ],
+};
+
+export const CONTACT_FORM_LABELS = {
+  name: 'Your Name',
+  email: 'Email Address',
+  phone: 'Phone Number (optional)',
+  restaurantName: 'Restaurant Name (optional)',
+  inquiryType: 'What can we help with?',
+  message: 'Your Message',
+  submit: 'Send Message',
+  submitting: 'Sending...',
+};
+
+export const CONTACT_VALIDATION = {
+  nameMin: 'Name must be at least 2 characters',
+  emailInvalid: 'Please enter a valid email address',
+  inquiryRequired: 'Please select a topic',
+  messageMin: 'Message must be at least 10 characters',
+};
+
+// ============================================================================
+// EXIT INTENT POPUP
+// ============================================================================
+
+export const EXIT_INTENT_CONFIG = {
+  headline: 'Wait \u2014 before you go!',
+  subtext: 'Get a free savings report showing how much your restaurant could save by switching to OrderStack.',
+  buttonLabel: 'Get My Free Report',
+  disclaimer: 'No spam. Unsubscribe anytime.',
+  thankYou: 'Check your inbox! Your savings report is on the way.',
+  delaySeconds: 10,
+};
+
+export const CASE_STUDIES: CaseStudyPreview[] = [
+  {
+    id: 'marias-case',
+    restaurantName: 'Maria\'s Kitchen',
+    location: 'Delray Beach, FL',
+    businessType: 'Full-Service Restaurant',
+    headline: 'Cut delivery costs by 28% in 3 months',
+    metrics: [
+      { label: 'Monthly Savings', value: '$4,200' },
+      { label: 'Delivery Orders', value: '+15%' },
+    ],
+    imageUrl: null,
+    slug: 'marias-kitchen',
+  },
+  {
+    id: 'bourbon-case',
+    restaurantName: 'Bourbon & Brisket BBQ',
+    location: 'Fort Lauderdale, FL',
+    businessType: 'Quick-Service',
+    headline: 'BYOD setup saved $3,600 in hardware costs',
+    metrics: [
+      { label: 'Hardware Savings', value: '$3,600' },
+      { label: 'Setup Time', value: '2 hours' },
+    ],
+    imageUrl: null,
+    slug: 'bourbon-brisket',
+  },
+  {
+    id: 'coastal-case',
+    restaurantName: 'Coastal Catch Seafood',
+    location: 'Boca Raton, FL',
+    businessType: 'Full-Service Restaurant',
+    headline: 'Reduced ticket times by 36% with KDS',
+    metrics: [
+      { label: 'Avg Ticket Time', value: '14 min' },
+      { label: 'Time Saved', value: '36%' },
+    ],
+    imageUrl: null,
+    slug: 'coastal-catch',
+  },
+];
+
+// ============================================================================
+// SEO META
+// ============================================================================
+
+export interface PageSeoConfig {
+  title: string;
+  description: string;
+  path: string;
+  ogType?: string;
+  ogImage?: string;
+  canonical?: string;
+}
+
+export const SEO_CONFIGS: Record<string, PageSeoConfig> = {
+  landing: {
+    title: 'OrderStack \u2014 Restaurant Operating System',
+    description: 'All-in-one restaurant OS with POS, online ordering, KDS, and delivery management. Zero marketplace commissions. Free to start.',
+    path: '/',
+  },
+  pricing: {
+    title: 'Pricing',
+    description: 'Simple, transparent pricing for OrderStack. Free plan available. No long-term contracts, no hidden fees. Compare to Toast and Square.',
+    path: '/pricing',
+  },
+  demo: {
+    title: 'Interactive Demo',
+    description: 'Explore OrderStack features for restaurants, retail, and services. See POS, online ordering, KDS, delivery, and analytics in action.',
+    path: '/demo',
+  },
+  blog: {
+    title: 'Blog',
+    description: 'Practical insights for restaurant owners on cutting costs, improving operations, and growing without third-party marketplace fees.',
+    path: '/blog',
+  },
+  integrations: {
+    title: 'Integrations',
+    description: 'OrderStack connects with Stripe, DoorDash Drive, Uber Direct, Star CloudPRNT, QuickBooks, Xero, and more. See all integrations.',
+    path: '/integrations',
+  },
+  contact: {
+    title: 'Contact Us',
+    description: 'Get in touch with the OrderStack team. Request a demo, ask about pricing, or learn how we can help your restaurant.',
+    path: '/contact',
+  },
+  privacy: {
+    title: 'Privacy Policy',
+    description: 'OrderStack privacy policy. Learn how we collect, use, and protect your data. CCPA compliant. PCI DSS payment security.',
+    path: '/privacy',
+  },
+  terms: {
+    title: 'Terms of Service',
+    description: 'OrderStack terms of service. No long-term contracts, data export anytime, Florida governing law. Read before signing up.',
+    path: '/terms',
+  },
+  about: {
+    title: 'About Us',
+    description: 'OrderStack is built in South Florida for independent restaurants. Zero marketplace commissions, no hardware lock-in, restaurant-first.',
+    path: '/about',
+  },
+  careers: {
+    title: 'Careers',
+    description: 'Join the OrderStack team. We\'re building the restaurant operating system that puts operators in control. See open positions.',
+    path: '/careers',
+  },
+};
+
+// ============================================================================
+// LEGAL PAGES
+// ============================================================================
+
+export interface LegalSection {
+  heading: string;
+  paragraphs: string[];
+}
+
+export const PRIVACY_POLICY: { lastUpdated: string; sections: LegalSection[] } = {
+  lastUpdated: 'March 1, 2026',
+  sections: [
+    {
+      heading: 'Information We Collect',
+      paragraphs: [
+        'We collect information you provide directly: your name, email address, phone number, restaurant name, and billing information when you create an account or contact us.',
+        'We automatically collect usage data including device type, browser, IP address, pages visited, and features used within the OrderStack platform. We also collect order data, menu configurations, and staff activity logs necessary to operate the service.',
+        'When you connect third-party integrations (Stripe, DoorDash Drive, Uber Direct, Star CloudPRNT, QuickBooks, etc.), we receive limited data from those services as needed to provide the integration.',
+      ],
+    },
+    {
+      heading: 'How We Use Your Information',
+      paragraphs: [
+        'We use your information to operate and improve the OrderStack platform, process transactions, provide customer support, send service-related communications, and generate analytics reports for your restaurant.',
+        'We may use aggregated, anonymized data to improve our products and publish industry benchmarks. This data cannot be traced back to individual restaurants or users.',
+      ],
+    },
+    {
+      heading: 'Data Sharing',
+      paragraphs: [
+        'We share data with third-party service providers necessary to operate OrderStack: Stripe and PayPal for payment processing, DoorDash Drive and Uber Direct for delivery dispatch, Star Micronics for cloud printing, and cloud infrastructure providers for hosting.',
+        'We do not sell your personal information or restaurant data to advertisers, data brokers, or any third party. Your customer list, order history, and business data belong to you.',
+      ],
+    },
+    {
+      heading: 'Cookies & Tracking',
+      paragraphs: [
+        'We use essential cookies for authentication and session management. We use analytics cookies to understand how you use OrderStack and improve the product.',
+        'You can control cookie preferences through your browser settings. Disabling essential cookies may prevent you from using certain features of the platform.',
+      ],
+    },
+    {
+      heading: 'Data Security',
+      paragraphs: [
+        'We implement industry-standard security measures including TLS encryption in transit, AES-256 encryption at rest, and PCI DSS compliant payment processing through Stripe and PayPal. Delivery service credentials are encrypted with AES-256-GCM before storage.',
+        'We conduct regular security reviews and maintain access controls to protect your data. However, no method of transmission or storage is 100% secure, and we cannot guarantee absolute security.',
+      ],
+    },
+    {
+      heading: 'Data Retention',
+      paragraphs: [
+        'We retain your account data for as long as your account is active. Order history and transaction records are retained for 7 years for tax and compliance purposes.',
+        'When you delete your account, we remove your personal information within 30 days. Aggregated, anonymized data may be retained indefinitely for analytics purposes.',
+      ],
+    },
+    {
+      heading: 'Your Rights',
+      paragraphs: [
+        'You have the right to access, correct, or delete your personal information at any time. You can export all your restaurant data (menu, orders, customers, reports) from the Settings panel in OrderStack.',
+        'California residents have additional rights under the CCPA, including the right to know what personal information is collected, the right to delete it, and the right to opt out of its sale. We do not sell personal information.',
+      ],
+    },
+    {
+      heading: 'Children\'s Privacy',
+      paragraphs: [
+        'OrderStack is not intended for use by individuals under 16 years of age. We do not knowingly collect personal information from children. If you believe a child has provided us with personal information, please contact us immediately.',
+      ],
+    },
+    {
+      heading: 'Changes to This Policy',
+      paragraphs: [
+        'We may update this privacy policy from time to time. We will notify you of material changes by email or through a notice in the OrderStack dashboard at least 30 days before the changes take effect.',
+      ],
+    },
+    {
+      heading: 'Contact Us',
+      paragraphs: [
+        'If you have questions about this privacy policy or how we handle your data, contact us at privacy@getorderstack.com or write to us at OrderStack, Delray Beach, FL 33444.',
+      ],
+    },
+  ],
+};
+
+export const TERMS_OF_SERVICE: { lastUpdated: string; sections: LegalSection[] } = {
+  lastUpdated: 'March 1, 2026',
+  sections: [
+    {
+      heading: 'Acceptance of Terms',
+      paragraphs: [
+        'By creating an account or using the OrderStack platform, you agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree, do not use the service.',
+      ],
+    },
+    {
+      heading: 'Description of Service',
+      paragraphs: [
+        'OrderStack provides a cloud-based restaurant operating system including point of sale, online ordering, kitchen display system, delivery management, analytics, staff scheduling, and related tools. The service is accessible via web browsers on any device (BYOD).',
+      ],
+    },
+    {
+      heading: 'Account Registration',
+      paragraphs: [
+        'You must provide accurate and complete information when creating an account. You are responsible for maintaining the security of your account credentials and for all activity that occurs under your account.',
+        'You must be at least 18 years old and have the legal authority to bind your restaurant or business to these terms.',
+      ],
+    },
+    {
+      heading: 'Fees & Payment',
+      paragraphs: [
+        'OrderStack offers free and paid subscription plans. Paid plans are billed monthly or annually as selected at signup. All prices are in US dollars and exclude applicable taxes.',
+        'Payment processing fees (percentage + per-transaction) are charged on each transaction processed through the platform. Current rates are published on our pricing page and may be updated with 30 days\' notice.',
+        'You authorize us to charge your payment method for all fees incurred. Failed payments may result in service suspension after a 7-day grace period.',
+      ],
+    },
+    {
+      heading: 'Acceptable Use',
+      paragraphs: [
+        'You agree to use OrderStack only for lawful business purposes. You may not use the platform to process transactions for illegal goods or services, engage in fraud, or violate any applicable laws or regulations.',
+        'You are responsible for ensuring that your use of the platform complies with all food safety, labor, and business regulations applicable to your restaurant.',
+      ],
+    },
+    {
+      heading: 'Intellectual Property',
+      paragraphs: [
+        'OrderStack and its original content, features, and functionality are owned by OrderStack and are protected by copyright, trademark, and other intellectual property laws.',
+        'Your restaurant data (menus, orders, customer information, reports) remains your property. We claim no ownership over your business data.',
+      ],
+    },
+    {
+      heading: 'Data Ownership',
+      paragraphs: [
+        'You retain full ownership of all data you input into OrderStack, including menu items, customer records, order history, and business reports. You may export your data at any time through the Settings panel.',
+        'Upon account termination, we will make your data available for export for 30 days. After that period, your data will be permanently deleted from our systems.',
+      ],
+    },
+    {
+      heading: 'Service Availability',
+      paragraphs: [
+        'We strive to maintain 99.9% uptime but do not guarantee uninterrupted service. Scheduled maintenance windows will be communicated at least 48 hours in advance.',
+        'We are not liable for service interruptions caused by factors beyond our reasonable control, including internet outages, third-party service failures, or force majeure events.',
+      ],
+    },
+    {
+      heading: 'Limitation of Liability',
+      paragraphs: [
+        'To the maximum extent permitted by law, OrderStack shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of revenue, profits, or data.',
+        'Our total liability for any claim arising from or related to the service shall not exceed the amount you paid to OrderStack in the 12 months preceding the claim.',
+      ],
+    },
+    {
+      heading: 'Termination',
+      paragraphs: [
+        'You may cancel your subscription at any time from the Settings panel. Cancellation takes effect at the end of your current billing period. No refunds are provided for partial billing periods.',
+        'We may suspend or terminate your account for violation of these terms, non-payment, or if required by law. We will provide reasonable notice when possible.',
+      ],
+    },
+    {
+      heading: 'Governing Law',
+      paragraphs: [
+        'These terms shall be governed by and construed in accordance with the laws of the State of Florida, without regard to its conflict of law provisions. Any disputes shall be resolved in the courts of Palm Beach County, Florida.',
+      ],
+    },
+    {
+      heading: 'Changes to Terms',
+      paragraphs: [
+        'We may update these terms from time to time. Material changes will be communicated by email or through the OrderStack dashboard at least 30 days before taking effect. Continued use of the service after changes take effect constitutes acceptance of the revised terms.',
+      ],
+    },
+    {
+      heading: 'Contact',
+      paragraphs: [
+        'If you have questions about these terms, contact us at legal@getorderstack.com or write to OrderStack, Delray Beach, FL 33444.',
+      ],
+    },
+  ],
+};
+
+// ============================================================================
+// ABOUT PAGE
+// ============================================================================
+
+export const ABOUT_HERO = {
+  tag: 'About Us',
+  title: 'Built in South Florida for Independent Restaurants',
+  subtitle: 'We started OrderStack because too many restaurants were losing 30% to marketplace commissions and thousands to proprietary hardware. There had to be a better way.',
+};
+
+export const ABOUT_MISSION = {
+  pullQuote: 'Every dollar a restaurant sends to a marketplace middleman is a dollar that should stay in the kitchen.',
+  paragraphs: [
+    'OrderStack was born out of conversations with restaurant owners in Delray Beach and across South Florida. The same story came up again and again: operators were losing thousands each month to DoorDash and Uber Eats commissions, locked into multi-year hardware contracts, and juggling five different tools that didn\'t talk to each other.',
+    'We built OrderStack to solve all of that in one platform. POS, online ordering, KDS, delivery dispatch, analytics, and staff management \u2014 all running on the devices you already own. No marketplace commissions, no proprietary terminals, no long-term contracts. Just the tools restaurants need to run their business and keep their revenue.',
+  ],
+};
+
+export interface ValueCard {
+  icon: string;
+  title: string;
+  description: string;
+}
+
+export const ABOUT_VALUES: ValueCard[] = [
+  {
+    icon: 'bi-eye',
+    title: 'Transparency',
+    description: 'Published pricing, no hidden fees, no surprise rate increases. You always know exactly what you\'re paying and why.',
+  },
+  {
+    icon: 'bi-shop',
+    title: 'Restaurant-First',
+    description: 'Every feature is built for operators, not investors. We optimize for your margins, your workflow, and your customer relationships.',
+  },
+  {
+    icon: 'bi-unlock',
+    title: 'No Lock-In',
+    description: 'BYOD hardware, month-to-month billing, and full data export. Your business data belongs to you \u2014 always.',
+  },
+];
+
+export const ABOUT_LOCAL = {
+  title: 'Proudly Serving South Florida',
+  description: 'Based in Delray Beach, we serve restaurants across Broward and Palm Beach County with local support and in-person onboarding. We know the community because we\'re part of it.',
+};
+
+// ============================================================================
+// CAREERS PAGE
+// ============================================================================
+
+export const CAREERS_HERO = {
+  tag: 'Careers',
+  title: 'Join the OrderStack Team',
+  subtitle: 'We\'re building the restaurant operating system that puts operators in control. Interested in joining us?',
+};
+
+export const CAREERS_EMPTY = {
+  title: 'No open positions right now.',
+  description: 'We\'re a small team and not actively hiring, but we\'re always interested in hearing from talented people. If you\'re passionate about restaurant tech, send us a note.',
+  email: 'careers@getorderstack.com',
+};

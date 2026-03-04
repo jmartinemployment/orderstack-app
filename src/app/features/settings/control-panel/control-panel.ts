@@ -18,6 +18,7 @@ import { AccountBilling } from '../account-billing';
 import { SupplierSettings } from '../supplier-settings';
 import { NotificationSettingsComponent } from '../notification-settings';
 import { BarSettingsComponent } from '../bar-settings';
+import { GeneralSettings } from '../general-settings/general-settings';
 import { ControlPanelTab, PlatformModule } from '@models/index';
 import type { ModeFeatureFlags } from '@models/index';
 
@@ -30,7 +31,7 @@ interface TabConfig {
 
 @Component({
   selector: 'os-control-panel',
-  imports: [DeviceHub, AiSettings, KitchenOrders, BarSettingsComponent, OnlinePricing, CateringCalendar, PaymentSettingsComponent, TipManagement, LoyaltySettings, DeliverySettingsComponent, GiftCardManagement, SupplierSettings, StaffManagement, BreakConfig, AccountBilling, NotificationSettingsComponent],
+  imports: [GeneralSettings, DeviceHub, AiSettings, KitchenOrders, BarSettingsComponent, OnlinePricing, CateringCalendar, PaymentSettingsComponent, TipManagement, LoyaltySettings, DeliverySettingsComponent, GiftCardManagement, SupplierSettings, StaffManagement, BreakConfig, AccountBilling, NotificationSettingsComponent],
   templateUrl: './control-panel.html',
   styleUrl: './control-panel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,10 +43,11 @@ export class ControlPanel implements OnInit {
 
   readonly isAuthenticated = this.authService.isAuthenticated;
 
-  private readonly _activeTab = signal<ControlPanelTab>('hardware');
+  private readonly _activeTab = signal<ControlPanelTab>('general');
   readonly activeTab = this._activeTab.asReadonly();
 
   private readonly allTabs: TabConfig[] = [
+    { key: 'general', label: 'General' },
     { key: 'hardware', label: 'Hardware' },
     { key: 'ai-settings', label: 'AI Settings', requiredModule: 'menu_management' },
     { key: 'kitchen-orders', label: 'Kitchen & Orders' },

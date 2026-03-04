@@ -8,12 +8,24 @@ export const onboardingGuard = async () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
+  // Fast path: profile already in memory
   const profile = platform.merchantProfile();
   if (profile && profile.businessName) {
     return true;
   }
 
-  // Page refresh scenario: profile lost from memory but merchantId restored from localStorage
+  // Fast path: user has merchants from login — they completed onboarding
+  // Don't block navigation on a cold API call just to confirm this
+  if (authService.merchants().length > 0) {
+    // Kick off profile load in background — don't await it
+    const merchantId = authService.selectedMerchantId();
+    if (merchantId) {
+      platform.loadMerchantProfile(); // intentionally not awaited
+    }
+    return true;
+  }
+
+  // Page refresh scenario: no merchants in memory, but merchantId in localStorage
   const merchantId = authService.selectedMerchantId();
   if (merchantId) {
     await platform.loadMerchantProfile();
@@ -21,11 +33,6 @@ export const onboardingGuard = async () => {
     if (reloaded && reloaded.businessName) {
       return true;
     }
-  }
-
-  // Returning user: has restaurants from backend (login response) — skip onboarding
-  if (authService.merchants().length > 0) {
-    return true;
   }
 
   return router.createUrlTree(['/setup']);

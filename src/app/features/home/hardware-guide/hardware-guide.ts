@@ -510,6 +510,6 @@ export class HardwareGuide {
   }
 
   goBack(): void {
-    this.router.navigate(['/administration']);
+    this.router.navigate(['/app/administration']);
   }
 }

@@ -42,40 +42,40 @@ export class MainLayoutComponent {
     const invAlerts = this.inventoryService.alerts();
     if (invAlerts.length > 0) {
       const hasCritical = invAlerts.some(a => a.severity === 'critical' || a.type === 'out_of_stock');
-      alerts['/inventory'] = hasCritical ? 'critical' : 'warning';
-      alerts['/retail/inventory'] = alerts['/inventory'];
+      alerts['/app/inventory'] = hasCritical ? 'critical' : 'warning';
+      alerts['/app/retail/inventory'] = alerts['/app/inventory'];
     }
 
     // Orders — pending count drives severity
     const pending = this.orderService.pendingOrders().length;
     const ready = this.orderService.readyOrders().length;
     if (pending > 5 || ready > 3) {
-      alerts['/orders'] = 'critical';
+      alerts['/app/orders'] = 'critical';
     } else if (pending > 0 || ready > 0) {
-      alerts['/orders'] = 'warning';
+      alerts['/app/orders'] = 'warning';
     }
 
     // POS — active orders
     const active = this.orderService.activeOrderCount();
     if (active > 10) {
       alerts['/pos'] = 'critical';
-      alerts['/retail/pos'] = 'critical';
+      alerts['/app/retail/pos'] = 'critical';
     } else if (active > 0) {
       alerts['/pos'] = 'info';
-      alerts['/retail/pos'] = 'info';
+      alerts['/app/retail/pos'] = 'info';
     }
 
     // Staff — no team members is a warning
     const team = this.staffService.teamMembers();
     if (team.length === 0) {
-      alerts['/scheduling'] = 'warning';
+      alerts['/app/scheduling'] = 'warning';
     }
 
     // Items — empty menu is info-level
     const items = this.menuService.allItems();
     if (items.length === 0) {
-      alerts['/menu'] = 'info';
-      alerts['/retail/catalog'] = 'info';
+      alerts['/app/menu'] = 'info';
+      alerts['/app/retail/catalog'] = 'info';
     }
 
     // Floor Plan — no tables configured
@@ -97,45 +97,45 @@ export class MainLayoutComponent {
     const alerts = this.sidebarAlerts();
 
     const items: NavItem[] = [
-      { label: 'Administration', icon: 'bi-speedometer2', route: '/administration' },
+      { label: 'Administration', icon: 'bi-speedometer2', route: '/app/administration' },
     ];
 
     if (!service) {
-      items.push({ label: 'Orders', icon: 'bi-receipt', route: '/orders' });
+      items.push({ label: 'Orders', icon: 'bi-receipt', route: '/app/orders' });
     }
 
     if (retail) {
-      items.push({ label: 'POS', icon: 'bi-upc-scan', route: '/retail/pos' });
+      items.push({ label: 'POS', icon: 'bi-upc-scan', route: '/app/retail/pos' });
     } else if (!service) {
       items.push({ label: 'POS', icon: 'bi-tv', route: '/pos' });
     }
 
     if (retail) {
-      items.push({ label: 'Items', icon: 'bi-grid-3x3-gap', route: '/retail/catalog' });
+      items.push({ label: 'Items', icon: 'bi-grid-3x3-gap', route: '/app/retail/catalog' });
     } else if (service) {
-      items.push({ label: 'Items & Services', icon: 'bi-grid-3x3-gap', route: '/menu' });
+      items.push({ label: 'Items & Services', icon: 'bi-grid-3x3-gap', route: '/app/menu' });
     } else if (hasModule(modules, 'menu_management')) {
-      items.push({ label: 'Items', icon: 'bi-book', route: '/menu' });
+      items.push({ label: 'Items', icon: 'bi-book', route: '/app/menu' });
     }
 
     if (retail) {
-      items.push({ label: 'Online Store', icon: 'bi-globe', route: '/retail/ecommerce' });
+      items.push({ label: 'Online Store', icon: 'bi-globe', route: '/app/retail/ecommerce' });
     } else if (restaurant && hasModule(modules, 'online_ordering')) {
-      items.push({ label: 'Online', icon: 'bi-globe', route: '/settings', key: 'online-settings' });
+      items.push({ label: 'Online', icon: 'bi-globe', route: '/app/settings', key: 'online-settings' });
     }
 
-    items.push({ label: 'Customers', icon: 'bi-people', route: '/customers' });
-    items.push({ label: 'Reports', icon: 'bi-bar-chart-line', route: '/reports' });
-    items.push({ label: 'Staff', icon: 'bi-person-badge', route: '/scheduling' });
+    items.push({ label: 'Customers', icon: 'bi-people', route: '/app/customers' });
+    items.push({ label: 'Reports', icon: 'bi-bar-chart-line', route: '/app/reports' });
+    items.push({ label: 'Staff', icon: 'bi-person-badge', route: '/app/scheduling' });
 
     if (retail) {
-      items.push({ label: 'Inventory', icon: 'bi-box-seam', route: '/retail/inventory' });
+      items.push({ label: 'Inventory', icon: 'bi-box-seam', route: '/app/retail/inventory' });
     } else if (hasModule(modules, 'inventory')) {
-      items.push({ label: 'Inventory', icon: 'bi-box-seam', route: '/inventory' });
+      items.push({ label: 'Inventory', icon: 'bi-box-seam', route: '/app/inventory' });
     }
 
     if (!retail && !service && hasModule(modules, 'inventory')) {
-      items.push({ label: 'Suppliers', icon: 'bi-truck', route: '/suppliers' });
+      items.push({ label: 'Suppliers', icon: 'bi-truck', route: '/app/suppliers' });
     }
 
     if (mode === 'full_service' || mode === 'bar') {
@@ -143,24 +143,24 @@ export class MainLayoutComponent {
         items.push({ label: 'Floor Plan', icon: 'bi-columns-gap', route: '/floor-plan' });
       }
       if (hasModule(modules, 'bookings')) {
-        items.push({ label: 'Bookings', icon: 'bi-calendar-event', route: '/bookings' });
+        items.push({ label: 'Bookings', icon: 'bi-calendar-event', route: '/app/bookings' });
       }
     }
 
     if (retail) {
-      items.push({ label: 'Vendors', icon: 'bi-truck', route: '/retail/vendors' });
-      items.push({ label: 'Fulfillment', icon: 'bi-box2', route: '/retail/fulfillment' });
+      items.push({ label: 'Vendors', icon: 'bi-truck', route: '/app/retail/vendors' });
+      items.push({ label: 'Fulfillment', icon: 'bi-box2', route: '/app/retail/fulfillment' });
     }
 
     if (mode === 'bookings') {
-      items.push({ label: 'Bookings', icon: 'bi-calendar-check', route: '/bookings' });
+      items.push({ label: 'Bookings', icon: 'bi-calendar-check', route: '/app/bookings' });
     }
 
     if (mode === 'services' && hasModule(modules, 'invoicing')) {
-      items.push({ label: 'Invoices', icon: 'bi-file-earmark-text', route: '/invoicing' });
+      items.push({ label: 'Invoices', icon: 'bi-file-earmark-text', route: '/app/invoicing' });
     }
 
-    items.push({ label: 'Settings', icon: 'bi-gear', route: '/settings' });
+    items.push({ label: 'Settings', icon: 'bi-gear', route: '/app/settings' });
 
     // Apply alert severities from service signals
     for (const item of items) {

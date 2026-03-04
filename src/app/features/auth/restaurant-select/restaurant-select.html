@@ -28,6 +28,7 @@
               <button
                 type="button"
                 class="restaurant-item btn w-100 text-start mb-2"
+                [disabled]="isSelecting()"
                 (click)="selectMerchant(restaurant)"
               >
                 <div class="d-flex align-items-center gap-3">
@@ -42,6 +43,9 @@
                     <div class="restaurant-name fw-bold">{{ restaurant.name }}</div>
                     <small class="text-muted">{{ restaurant.address }}</small>
                   </div>
+                  @if (isSelecting()) {
+                    <span class="spinner-border spinner-border-sm ms-2"></span>
+                  }
                 </div>
               </button>
             } @empty {

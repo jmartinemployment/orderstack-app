@@ -28,11 +28,13 @@ export class RestaurantSelect {
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
   private readonly _restaurantsLoaded = signal(false);
+  private readonly _isSelecting = signal(false);
 
   readonly restaurants = this._restaurants.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
   readonly userName = this.authService.user;
+  readonly isSelecting = this._isSelecting.asReadonly();
 
   constructor() {
     effect(() => {
@@ -70,9 +72,23 @@ export class RestaurantSelect {
     }
   }
 
-  selectMerchant(restaurant: Restaurant): void {
-    this.authService.selectMerchant(restaurant.id, restaurant.name, restaurant.logo, restaurant.address);
-    this.router.navigate(['/']);
+  async selectMerchant(restaurant: Restaurant): Promise<void> {
+    if (this._isSelecting()) return; // prevent double-click
+    this._isSelecting.set(true);
+    this._error.set(null);
+    try {
+      this.authService.selectMerchant(
+        restaurant.id,
+        restaurant.name,
+        restaurant.logo,
+        restaurant.address
+      );
+      await this.router.navigateByUrl('/app/administration');
+    } catch {
+      this._error.set('Navigation failed — please try again');
+    } finally {
+      this._isSelecting.set(false);
+    }
   }
 
   async logout(): Promise<void> {

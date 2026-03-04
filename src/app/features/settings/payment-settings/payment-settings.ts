@@ -123,6 +123,7 @@ export class PaymentSettingsComponent implements OnInit {
       requirePaymentBeforeKitchen: this._requirePayment(),
       surchargeEnabled: this._surchargeEnabled(),
       surchargePercent: this._surchargePercent(),
+      taxRate: this.settingsService.paymentSettings().taxRate,
     };
     await this.settingsService.savePaymentSettings(settings);
     this._saved.set(true);

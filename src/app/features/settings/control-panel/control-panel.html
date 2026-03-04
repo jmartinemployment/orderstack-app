@@ -13,6 +13,9 @@
         </li>
       }
     </ul>
+    @if (activeTab() === 'general') {
+      <os-general-settings />
+    }
     @if (activeTab() === 'hardware') {
       <os-device-hub />
     }
