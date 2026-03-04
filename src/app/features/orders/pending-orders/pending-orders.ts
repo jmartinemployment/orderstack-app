@@ -84,8 +84,7 @@ export class PendingOrders implements OnInit, OnDestroy {
     { value: 'native', label: 'Direct' },
   ];
 
-  private readonly _selectedOrder = signal<Order | null>(null);
-  readonly selectedOrder = this._selectedOrder.asReadonly();
+  protected readonly _selectedOrder = signal<Order | null>(null);
 
   private readonly _channelFilter = signal<'all' | OrderSource>('all');
   readonly channelFilter = this._channelFilter.asReadonly();
@@ -199,7 +198,8 @@ export class PendingOrders implements OnInit, OnDestroy {
     this._searchQuery.set(query);
   }
 
-  selectOrder(order: Order): void {
+  selectOrder(order: Order, event: Event): void {
+    event.stopPropagation();
     this._selectedOrder.set(order);
   }
 

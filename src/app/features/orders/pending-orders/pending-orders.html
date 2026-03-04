@@ -171,7 +171,9 @@
             }
           </div>
 
-          <div class="card-body" (click)="selectOrder(order)" role="button">
+          <div class="card-body" role="button" tabindex="0"
+               (click)="selectOrder(order, $event)"
+               (keydown.enter)="selectOrder(order, $event)">
             <div class="order-meta mb-2">
               <span class="badge channel-badge me-2">
                 <i class="bi me-1" [class]="getChannelIcon(order)"></i>{{ getChannelLabel(order) }}
@@ -569,56 +571,56 @@
   }
 
   <!-- Order Detail Modal -->
-  @if (selectedOrder()) {
+  @if (_selectedOrder()) {
     <div class="modal-overlay" (click)="closeOrderDetail()">
       <div class="order-detail-modal card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <h4 class="mb-0">Order #{{ getOrderNumber(selectedOrder()!) }}</h4>
+          <h4 class="mb-0">Order #{{ getOrderNumber(_selectedOrder()!) }}</h4>
           <button type="button" class="btn-close" (click)="closeOrderDetail()"></button>
         </div>
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="d-flex align-items-center gap-2">
-              <os-status-badge [status]="selectedOrder()!.guestOrderStatus" />
+              <os-status-badge [status]="_selectedOrder()!.guestOrderStatus" />
               <span class="badge channel-badge">
-                <i class="bi me-1" [class]="getChannelIcon(selectedOrder()!)"></i>{{ getChannelLabel(selectedOrder()!) }}
+                <i class="bi me-1" [class]="getChannelIcon(_selectedOrder()!)"></i>{{ getChannelLabel(_selectedOrder()!) }}
               </span>
-              <span class="badge bg-secondary">{{ selectedOrder()!.diningOption.name }}</span>
+              <span class="badge bg-secondary">{{ _selectedOrder()!.diningOption.name }}</span>
             </div>
-            <span class="text-muted small">{{ selectedOrder()!.timestamps.createdDate | date:'medium' }}</span>
+            <span class="text-muted small">{{ _selectedOrder()!.timestamps.createdDate | date:'medium' }}</span>
           </div>
 
           <!-- Customer & Table -->
           <div class="section mb-3">
             <h6>Order Details</h6>
-            @if (selectedOrder()!.customer?.firstName || selectedOrder()!.customer?.lastName) {
-              <p class="mb-1"><strong>Customer:</strong> {{ selectedOrder()!.customer?.firstName }} {{ selectedOrder()!.customer?.lastName }}</p>
+            @if (_selectedOrder()!.customer?.firstName || _selectedOrder()!.customer?.lastName) {
+              <p class="mb-1"><strong>Customer:</strong> {{ _selectedOrder()!.customer?.firstName }} {{ _selectedOrder()!.customer?.lastName }}</p>
             }
-            @if (selectedOrder()!.customer?.phone) {
-              <p class="mb-1"><strong>Phone:</strong> {{ selectedOrder()!.customer?.phone }}</p>
+            @if (_selectedOrder()!.customer?.phone) {
+              <p class="mb-1"><strong>Phone:</strong> {{ _selectedOrder()!.customer?.phone }}</p>
             }
-            @if (selectedOrder()!.table) {
-              <p class="mb-1"><strong>Table:</strong> {{ selectedOrder()!.table!.name }}</p>
+            @if (_selectedOrder()!.table) {
+              <p class="mb-1"><strong>Table:</strong> {{ _selectedOrder()!.table!.name }}</p>
             }
-            @if (selectedOrder()!.server?.name) {
-              <p class="mb-1"><strong>Server:</strong> {{ selectedOrder()!.server.name }}</p>
+            @if (_selectedOrder()!.server?.name) {
+              <p class="mb-1"><strong>Server:</strong> {{ _selectedOrder()!.server.name }}</p>
             }
-            @if (isMarketplace(selectedOrder()!)) {
-              <p class="mb-1"><strong>Source:</strong> {{ marketplaceProviderLabel(selectedOrder()!) }}</p>
+            @if (isMarketplace(_selectedOrder()!)) {
+              <p class="mb-1"><strong>Source:</strong> {{ marketplaceProviderLabel(_selectedOrder()!) }}</p>
               <p class="mb-1">
                 <strong>Sync:</strong>
-                <span class="badge marketplace-sync ms-1" [class]="marketplaceSyncClass(selectedOrder()!)">
-                  {{ marketplaceSyncLabel(selectedOrder()!) }}
+                <span class="badge marketplace-sync ms-1" [class]="marketplaceSyncClass(_selectedOrder()!)">
+                  {{ marketplaceSyncLabel(_selectedOrder()!) }}
                 </span>
               </p>
             }
           </div>
 
           <!-- Delivery / Curbside / Catering Info -->
-          @if (selectedOrder()!.deliveryInfo || selectedOrder()!.curbsideInfo || selectedOrder()!.cateringInfo) {
+          @if (_selectedOrder()!.deliveryInfo || _selectedOrder()!.curbsideInfo || _selectedOrder()!.cateringInfo) {
             <div class="section dining-details mb-3">
               <h6>Dining Details</h6>
-              @if (selectedOrder()!.deliveryInfo; as di) {
+              @if (_selectedOrder()!.deliveryInfo; as di) {
                 <p class="mb-1"><strong>Delivery:</strong> {{ di.address }}@if (di.address2) {, {{ di.address2 }}}@if (di.city) {, {{ di.city }}, {{ di.state }} {{ di.zip }}}</p>
                 @if (di.deliveryNotes) {
                   <p class="mb-1 fst-italic text-warning small">{{ di.deliveryNotes }}</p>
@@ -629,13 +631,13 @@
                   </span>
                 </p>
               }
-              @if (selectedOrder()!.curbsideInfo; as ci) {
+              @if (_selectedOrder()!.curbsideInfo; as ci) {
                 <p class="mb-1"><strong>Vehicle:</strong> {{ ci.vehicleDescription }}</p>
                 @if (ci.arrivalNotified) {
                   <span class="badge bg-success">Customer Arrived</span>
                 }
               }
-              @if (selectedOrder()!.cateringInfo; as cat) {
+              @if (_selectedOrder()!.cateringInfo; as cat) {
                 <p class="mb-1"><strong>Event:</strong> {{ cat.eventType ?? 'Event' }} &mdash; {{ cat.headcount }} guests</p>
                 @if (cat.eventDate) {
                   <p class="mb-1"><strong>Date:</strong> {{ cat.eventDate | date:'mediumDate' }}@if (cat.eventTime) { at {{ cat.eventTime }}}</p>
@@ -653,7 +655,7 @@
           <!-- Line Items -->
           <div class="section mb-3">
             <h6>Items</h6>
-            @for (sel of selectedOrder()!.checks[0]?.selections ?? []; track sel.guid) {
+            @for (sel of _selectedOrder()!.checks[0]?.selections ?? []; track sel.guid) {
               <div class="order-item d-flex justify-content-between mb-2">
                 <div>
                   <span class="fw-bold">{{ sel.quantity }}x</span>
@@ -672,10 +674,10 @@
           </div>
 
           <!-- Special Instructions -->
-          @if (selectedOrder()!.specialInstructions) {
+          @if (_selectedOrder()!.specialInstructions) {
             <div class="section mb-3">
               <h6>Special Instructions</h6>
-              <p class="mb-0">{{ selectedOrder()!.specialInstructions }}</p>
+              <p class="mb-0">{{ _selectedOrder()!.specialInstructions }}</p>
             </div>
           }
 
@@ -684,22 +686,22 @@
             <hr />
             <div class="d-flex justify-content-between mb-1">
               <span>Subtotal</span>
-              <span>{{ selectedOrder()!.subtotal | currency }}</span>
+              <span>{{ _selectedOrder()!.subtotal | currency }}</span>
             </div>
             <div class="d-flex justify-content-between mb-1 text-muted small">
               <span>Tax</span>
-              <span>{{ selectedOrder()!.taxAmount | currency }}</span>
+              <span>{{ _selectedOrder()!.taxAmount | currency }}</span>
             </div>
-            @if (selectedOrder()!.tipAmount > 0) {
+            @if (_selectedOrder()!.tipAmount > 0) {
               <div class="d-flex justify-content-between mb-1 text-muted small">
                 <span>Tip</span>
-                <span>{{ selectedOrder()!.tipAmount | currency }}</span>
+                <span>{{ _selectedOrder()!.tipAmount | currency }}</span>
               </div>
             }
             <hr />
             <div class="d-flex justify-content-between fw-bold">
               <span>Total</span>
-              <span class="total">{{ selectedOrder()!.totalAmount | currency }}</span>
+              <span class="total">{{ _selectedOrder()!.totalAmount | currency }}</span>
             </div>
           </div>
 
@@ -707,8 +709,8 @@
           <div class="section mt-3">
             <div class="d-flex justify-content-between align-items-center">
               <h6 class="mb-0">Payment</h6>
-              <span class="badge" [class]="getPaymentBadgeClass(selectedOrder()!.checks[0]?.paymentStatus ?? 'OPEN')">
-                {{ getPaymentLabel(selectedOrder()!.checks[0]?.paymentStatus ?? 'OPEN') }}
+              <span class="badge" [class]="getPaymentBadgeClass(_selectedOrder()!.checks[0]?.paymentStatus ?? 'OPEN')">
+                {{ getPaymentLabel(_selectedOrder()!.checks[0]?.paymentStatus ?? 'OPEN') }}
               </span>
             </div>
           </div>
@@ -716,23 +718,23 @@
           <!-- Actions -->
           <div class="section mt-3 pt-3 border-top">
             <div class="d-flex gap-2">
-              @switch (selectedOrder()!.guestOrderStatus) {
+              @switch (_selectedOrder()!.guestOrderStatus) {
                 @case ('RECEIVED') {
-                  <button type="button" class="btn btn-success flex-fill" (click)="confirmOrder(selectedOrder()!); closeOrderDetail()">
+                  <button type="button" class="btn btn-success flex-fill" (click)="confirmOrder(_selectedOrder()!); closeOrderDetail()">
                     Start Cooking
                   </button>
-                  <button type="button" class="btn btn-outline-danger" (click)="confirmCancel(selectedOrder()!); closeOrderDetail()">
+                  <button type="button" class="btn btn-outline-danger" (click)="confirmCancel(_selectedOrder()!); closeOrderDetail()">
                     Cancel
                   </button>
                 }
                 @case ('IN_PREPARATION') {
-                  <button type="button" class="btn btn-success flex-fill" (click)="markReady(selectedOrder()!); closeOrderDetail()">
+                  <button type="button" class="btn btn-success flex-fill" (click)="markReady(_selectedOrder()!); closeOrderDetail()">
                     Mark Ready
                   </button>
                 }
                 @case ('READY_FOR_PICKUP') {
-                  <button type="button" class="btn btn-primary flex-fill" (click)="completeAndPrint(selectedOrder()!); closeOrderDetail()">
-                    {{ getActionLabel(selectedOrder()!) }}
+                  <button type="button" class="btn btn-primary flex-fill" (click)="completeAndPrint(_selectedOrder()!); closeOrderDetail()">
+                    {{ getActionLabel(_selectedOrder()!) }}
                   </button>
                 }
               }
