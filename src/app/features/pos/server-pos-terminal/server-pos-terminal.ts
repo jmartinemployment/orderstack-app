@@ -68,6 +68,24 @@ export class ServerPosTerminal implements OnInit {
     return item.imageUrl ?? item.thumbnailUrl ?? item.image ?? null;
   };
 
+  // --- Customer inline form state ---
+  readonly showCustomerForm = signal(false);
+  readonly customerName = signal('');
+  readonly customerPhone = signal('');
+  readonly customerEmail = signal('');
+  readonly hasCustomer = computed(() =>
+    this.checkout.customerName().trim().length > 0 ||
+    this.checkout.customerPhone().trim().length > 0 ||
+    this.checkout.customerEmail().trim().length > 0
+  );
+  readonly customerDisplayName = computed(() => {
+    const name = this.checkout.customerName().trim();
+    if (name) return name;
+    const phone = this.checkout.customerPhone().trim();
+    if (phone) return phone;
+    return this.checkout.customerEmail().trim();
+  });
+
   // Collect all items from a category tree (handles nested subcategories)
   private collectItems(cats: MenuCategory[]): MenuItem[] {
     const items: MenuItem[] = [];
@@ -170,5 +188,38 @@ export class ServerPosTerminal implements OnInit {
 
   formatPrice(price: number | string): number {
     return typeof price === 'string' ? Number.parseFloat(price) : price;
+  }
+
+  // --- Customer management ---
+
+  toggleCustomerForm(): void {
+    if (this.hasCustomer()) {
+      // If customer already set, clicking opens form to edit
+      this.customerName.set(this.checkout.customerName());
+      this.customerPhone.set(this.checkout.customerPhone());
+      this.customerEmail.set(this.checkout.customerEmail());
+    } else {
+      this.customerName.set('');
+      this.customerPhone.set('');
+      this.customerEmail.set('');
+    }
+    this.showCustomerForm.update(v => !v);
+  }
+
+  saveCustomer(): void {
+    this.checkout.onCustomerNameChange(this.customerName());
+    this.checkout.onCustomerPhoneChange(this.customerPhone());
+    this.checkout.onCustomerEmailChange(this.customerEmail());
+    this.showCustomerForm.set(false);
+  }
+
+  clearCustomer(): void {
+    this.customerName.set('');
+    this.customerPhone.set('');
+    this.customerEmail.set('');
+    this.checkout.onCustomerNameChange('');
+    this.checkout.onCustomerPhoneChange('');
+    this.checkout.onCustomerEmailChange('');
+    this.showCustomerForm.set(false);
   }
 }

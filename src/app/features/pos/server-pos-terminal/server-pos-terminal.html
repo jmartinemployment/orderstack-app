@@ -72,14 +72,71 @@
       </button>
     </div>
 
-    <!-- Customer row (placeholder) -->
-    <button type="button" class="customer-row">
-      <div class="customer-avatar">
-        <i class="bi bi-person-fill"></i>
+    <!-- Customer row -->
+    @if (hasCustomer() && !showCustomerForm()) {
+      <button type="button" class="customer-row customer-row-active" (click)="toggleCustomerForm()">
+        <div class="customer-avatar customer-avatar-active">
+          <i class="bi bi-person-fill"></i>
+        </div>
+        <span class="customer-name">{{ customerDisplayName() }}</span>
+        <button
+          type="button"
+          class="customer-clear-btn"
+          aria-label="Remove customer"
+          (click)="clearCustomer(); $event.stopPropagation()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </button>
+    } @else if (!showCustomerForm()) {
+      <button type="button" class="customer-row" (click)="toggleCustomerForm()">
+        <div class="customer-avatar">
+          <i class="bi bi-person-fill"></i>
+        </div>
+        <span class="customer-name">Add customer</span>
+        <i class="bi bi-chevron-right customer-chevron"></i>
+      </button>
+    }
+
+    <!-- Inline customer form -->
+    @if (showCustomerForm()) {
+      <div class="customer-form">
+        <div class="customer-form-header">
+          <span class="customer-form-title">Customer</span>
+          <button type="button" class="customer-form-close" aria-label="Close" (click)="showCustomerForm.set(false)">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="customer-form-fields">
+          <input
+            type="text"
+            class="customer-form-input"
+            placeholder="Name"
+            [ngModel]="customerName()"
+            (ngModelChange)="customerName.set($event)"
+            autocomplete="off">
+          <input
+            type="tel"
+            class="customer-form-input"
+            placeholder="Phone"
+            [ngModel]="customerPhone()"
+            (ngModelChange)="customerPhone.set($event)"
+            autocomplete="off">
+          <input
+            type="email"
+            class="customer-form-input"
+            placeholder="Email"
+            [ngModel]="customerEmail()"
+            (ngModelChange)="customerEmail.set($event)"
+            autocomplete="off">
+        </div>
+        <div class="customer-form-actions">
+          <button type="button" class="customer-form-save" (click)="saveCustomer()">Save</button>
+          @if (hasCustomer()) {
+            <button type="button" class="customer-form-remove" (click)="clearCustomer()">Remove</button>
+          }
+        </div>
       </div>
-      <span class="customer-name">Add customer</span>
-      <i class="bi bi-chevron-right customer-chevron"></i>
-    </button>
+    }
 
     <!-- Line items -->
     <div class="sale-items">

@@ -247,9 +247,19 @@ export class CheckoutService {
     if (option === 'dine_in' && this.availableTables().length > 0) {
       this._checkoutStep.set('table-select');
     } else if (option === 'takeout') {
-      this._checkoutStep.set('customer-info');
+      // Skip customer-info if already provided from sale panel
+      if (this.hasCustomerContact()) {
+        this._checkoutMode() === 'charge' ? void this.createOrderAndPay() : void this.createOrder();
+      } else {
+        this._checkoutStep.set('customer-info');
+      }
     } else if (this._checkoutMode() === 'charge') {
-      this._checkoutStep.set('customer-info');
+      // Skip customer-info if already provided from sale panel
+      if (this.hasCustomerContact()) {
+        void this.createOrderAndPay();
+      } else {
+        this._checkoutStep.set('customer-info');
+      }
     } else {
       void this.createOrder();
     }
@@ -263,7 +273,11 @@ export class CheckoutService {
   selectTable(table: RestaurantTable): void {
     this._selectedTable.set(table);
     if (this._checkoutMode() === 'charge') {
-      this._checkoutStep.set('customer-info');
+      if (this.hasCustomerContact()) {
+        void this.createOrderAndPay();
+      } else {
+        this._checkoutStep.set('customer-info');
+      }
     } else {
       void this.createOrder();
     }
@@ -272,7 +286,11 @@ export class CheckoutService {
   skipTableSelection(): void {
     this._selectedTable.set(null);
     if (this._checkoutMode() === 'charge') {
-      this._checkoutStep.set('customer-info');
+      if (this.hasCustomerContact()) {
+        void this.createOrderAndPay();
+      } else {
+        this._checkoutStep.set('customer-info');
+      }
     } else {
       void this.createOrder();
     }

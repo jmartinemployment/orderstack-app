@@ -210,6 +210,11 @@
   }
 }
 
+.customer-row-active {
+  background: #f0f5ff;
+  border-color: #d6e4ff;
+}
+
 .customer-avatar {
   width: 36px;
   height: 36px;
@@ -223,6 +228,14 @@
     font-size: 18px;
     color: #9ca3af;
   }
+
+  &.customer-avatar-active {
+    background: #006aff;
+
+    i {
+      color: #fff;
+    }
+  }
 }
 
 .customer-name {
@@ -235,6 +248,127 @@
 .customer-chevron {
   font-size: 14px;
   color: #9ca3af;
+}
+
+.customer-clear-btn {
+  padding: 4px 6px;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 12px;
+
+  &:hover {
+    background: #e8e8e8;
+    color: #1a1a1a;
+  }
+}
+
+// --- Inline Customer Form ---
+
+.customer-form {
+  padding: 12px 20px;
+  background: #f9f9f9;
+  border-top: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.customer-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.customer-form-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.customer-form-close {
+  padding: 4px 6px;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 12px;
+
+  &:hover {
+    background: #e8e8e8;
+    color: #1a1a1a;
+  }
+}
+
+.customer-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.customer-form-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d4d4d4;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #1a1a1a;
+  background: #fff;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+
+  &:focus {
+    border-color: #006aff;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 106, 255, 0.1);
+  }
+}
+
+.customer-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.customer-form-save {
+  flex: 1;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #006aff;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #0055cc;
+  }
+}
+
+.customer-form-remove {
+  padding: 8px 16px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  background: #fff;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: #ef4444;
+    background: #fef2f2;
+  }
 }
 
 // --- Line Items ---
