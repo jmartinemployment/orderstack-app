@@ -331,6 +331,8 @@ export class OnlineOrderPortal implements OnDestroy {
     return true;
   });
 
+  private readonly _dataLoaded = signal(false);
+
   constructor() {
     effect(() => {
       const provider = this.settingsService.deliverySettings().provider;
@@ -340,14 +342,18 @@ export class OnlineOrderPortal implements OnDestroy {
       }
     });
 
-    // Resolve restaurant from slug attribute or fall back to auth selection
+    // Resolve restaurant from slug attribute or fall back to auth selection (one-shot)
     effect(() => {
+      if (this._dataLoaded()) return;
+
       const slug = this.restaurantSlug();
       const authId = this.authService.selectedMerchantId();
 
       if (slug) {
+        this._dataLoaded.set(true);
         void this.resolveSlug(slug);
       } else if (authId) {
+        this._dataLoaded.set(true);
         this.menuService.loadMenuForRestaurant(authId);
         this.loyaltyService.loadConfig();
         this.loyaltyService.loadRewards();

@@ -238,6 +238,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/quick-service/quick-service-terminal/quick-service-terminal').then(m => m.QuickServiceTerminal),
   },
 
+  // Online Ordering — full-screen, no sidebar
+  {
+    path: 'online-ordering',
+    canActivate: [authGuard, onboardingGuard],
+    resolve: { deviceInit: deviceInitResolver },
+    loadComponent: () => import('./features/online-ordering/online-order-portal/online-order-portal').then(m => m.OnlineOrderPortal),
+  },
+
   // Legacy redirects — catch old bookmarked URLs and redirect to /app/*
   { path: 'administration', redirectTo: '/app/administration', pathMatch: 'full' },
   { path: 'orders', redirectTo: '/app/orders', pathMatch: 'full' },
@@ -267,7 +275,7 @@ export const routes: Routes = [
   { path: 'multi-location', redirectTo: '/app/multi-location', pathMatch: 'full' },
   { path: 'tip-management', redirectTo: '/app/tip-management', pathMatch: 'full' },
   { path: 'report-builder', redirectTo: '/app/report-builder', pathMatch: 'full' },
-  { path: 'online-ordering', redirectTo: '/app/online-ordering', pathMatch: 'full' },
+  // online-ordering is now a top-level full-screen route (no sidebar)
   { path: 'hardware-guide', redirectTo: '/app/hardware-guide', pathMatch: 'full' },
 
   // Authenticated routes
@@ -351,9 +359,6 @@ export const routes: Routes = [
 
       // Reports
       { path: 'report-builder', loadComponent: () => import('./features/reports/report-builder/report-builder').then(m => m.ReportBuilder) },
-
-      // Online Ordering (admin management — public portal is at /order/:slug)
-      { path: 'online-ordering', loadComponent: () => import('./features/online-ordering/online-order-portal/online-order-portal').then(m => m.OnlineOrderPortal) },
 
       // Admin
       { path: 'multi-location', loadComponent: () => import('./features/multi-location/multi-location-dashboard/multi-location-dashboard').then(m => m.MultiLocationDashboard) },

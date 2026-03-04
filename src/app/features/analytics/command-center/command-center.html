@@ -44,21 +44,23 @@
         (click)="setTab('overview')"
       >Overview</button>
     </li>
-    <li class="nav-item">
-      <button
-        type="button"
-        class="nav-link"
-        [class.active]="activeTab() === 'insights'"
-        (click)="setTab('insights')"
-      >
-        AI Insights
-        @if (proactiveInsightCount() > 0) {
-          <span class="badge bg-warning text-dark ms-1">{{ proactiveInsightCount() }}</span>
-        } @else if (unifiedInsights().length > 0) {
-          <span class="badge bg-info ms-1">{{ unifiedInsights().length }}</span>
-        }
-      </button>
-    </li>
+    @if (aiConfigured()) {
+      <li class="nav-item">
+        <button
+          type="button"
+          class="nav-link"
+          [class.active]="activeTab() === 'insights'"
+          (click)="setTab('insights')"
+        >
+          AI Insights
+          @if (proactiveInsightCount() > 0) {
+            <span class="badge bg-warning text-dark ms-1">{{ proactiveInsightCount() }}</span>
+          } @else if (unifiedInsights().length > 0) {
+            <span class="badge bg-info ms-1">{{ unifiedInsights().length }}</span>
+          }
+        </button>
+      </li>
+    }
     <li class="nav-item">
       <button
         type="button"
@@ -85,7 +87,7 @@
   </ul>
 
   <!-- Pinned Widgets (My Insights) -->
-  @if (pinnedWidgets().length > 0) {
+  @if (aiConfigured() && pinnedWidgets().length > 0) {
     <div class="pinned-section mb-4">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <h5 class="panel-title mb-0">
@@ -202,29 +204,31 @@
       </div>
 
       <div class="row g-3">
-        <!-- Top Insights (left column) -->
-        <div class="col-12 col-lg-7">
-          <div class="cc-panel">
-            <h5 class="panel-title">AI Recommendations</h5>
-            @if (unifiedInsights().length === 0) {
-              <p class="text-muted small">No insights available yet. Data is being analyzed.</p>
-            } @else {
-              @for (insight of unifiedInsights().slice(0, 6); track insight.id) {
-                <div class="insight-item" [class]="getInsightClass(insight.type)">
-                  <div class="d-flex align-items-start gap-2">
-                    <span class="insight-badge badge" [class]="'source-' + insight.source">
-                      {{ getSourceLabel(insight.source) }}
-                    </span>
-                    <span class="insight-text">{{ insight.text }}</span>
+        @if (aiConfigured()) {
+          <!-- Top Insights (left column) -->
+          <div class="col-12 col-lg-7">
+            <div class="cc-panel">
+              <h5 class="panel-title">AI Recommendations</h5>
+              @if (unifiedInsights().length === 0) {
+                <p class="text-muted small">No insights available yet. Data is being analyzed.</p>
+              } @else {
+                @for (insight of unifiedInsights().slice(0, 6); track insight.id) {
+                  <div class="insight-item" [class]="getInsightClass(insight.type)">
+                    <div class="d-flex align-items-start gap-2">
+                      <span class="insight-badge badge" [class]="'source-' + insight.source">
+                        {{ getSourceLabel(insight.source) }}
+                      </span>
+                      <span class="insight-text">{{ insight.text }}</span>
+                    </div>
+                    @if (insight.priority === 'high') {
+                      <span class="badge bg-danger mt-1">High Priority</span>
+                    }
                   </div>
-                  @if (insight.priority === 'high') {
-                    <span class="badge bg-danger mt-1">High Priority</span>
-                  }
-                </div>
+                }
               }
-            }
+            </div>
           </div>
-        </div>
+        }
 
         <!-- Right column -->
         <div class="col-12 col-lg-5">
@@ -279,7 +283,7 @@
     }
 
     <!-- INSIGHTS TAB -->
-    @if (activeTab() === 'insights') {
+    @if (activeTab() === 'insights' && aiConfigured()) {
       <!-- Proactive AI Insights (GAP-R02 Phase 2) -->
       @if (isLoadingProactiveInsights()) {
         <div class="d-flex justify-content-center p-4 mb-3">

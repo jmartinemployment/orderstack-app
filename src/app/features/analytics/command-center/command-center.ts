@@ -4,6 +4,7 @@ import { AnalyticsService } from '@services/analytics';
 import { InventoryService } from '@services/inventory';
 import { OrderService } from '@services/order';
 import { AuthService } from '@services/auth';
+import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
 import {
@@ -41,8 +42,10 @@ export class CommandCenter {
   private readonly inventoryService = inject(InventoryService);
   private readonly orderService = inject(OrderService);
   private readonly authService = inject(AuthService);
+  private readonly settingsService = inject(RestaurantSettingsService);
 
   readonly isAuthenticated = this.authService.isAuthenticated;
+  readonly aiConfigured = computed(() => this.settingsService.aiAdminConfig()?.apiKeyConfigured ?? false);
 
   private readonly _activeTab = signal<CommandTab>('overview');
   private readonly _isLoading = signal(false);
@@ -270,6 +273,7 @@ export class CommandCenter {
         this.inventoryService.loadPredictions(),
         this.orderService.loadOrders({ limit: 20 }),
         this.loadProfitSummary(),
+        this.settingsService.loadAiAdminConfig(),
         this.analyticsService.loadPinnedWidgets(),
         this.analyticsService.loadProactiveInsights(),
       ]);
