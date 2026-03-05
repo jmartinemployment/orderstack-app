@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { OrderService } from '@services/order';
+import { LaborService } from '@services/labor';
 import { BottomNavCheckout } from './checkout/checkout';
 import { Transactions } from '../transactions/transactions';
 import { DeviceService } from '@services/device';
@@ -27,11 +28,15 @@ const ROUTE_TO_MODE: Record<string, DevicePosMode> = Object.fromEntries(
 })
 export class BottomNavigation {
   readonly orderService = inject(OrderService);
+  private readonly laborService = inject(LaborService);
   private readonly deviceService = inject(DeviceService);
   private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   private readonly _activeModal = signal<BottomNavModal>(null);
   readonly activeModal = this._activeModal.asReadonly();
+
+  readonly clockOutToast = signal<string | null>(null);
 
   readonly availableModes = DEVICE_POS_MODE_CATALOG;
 
@@ -56,6 +61,27 @@ export class BottomNavigation {
     this.deviceService.registerBrowserDevice(mode);
     this._activeModal.set(null);
     this.router.navigate([DEVICE_POS_MODE_ROUTES[mode]]);
+  }
+
+  async clockOut(): Promise<void> {
+    const timecard = this.laborService.activeTimecard();
+    const member = this.laborService.activeTeamMember();
+    const name = member?.displayName ?? member?.firstName ?? 'Team Member';
+
+    if (timecard) {
+      await this.laborService.clockOutWithTips(timecard.id);
+    }
+
+    this.laborService.clearPosSession();
+
+    this.clockOutToast.set(`Clocked out, ${name}`);
+    this.cdr.markForCheck();
+
+    setTimeout(() => {
+      this.clockOutToast.set(null);
+      this.cdr.markForCheck();
+      this.router.navigate(['/pos-login']);
+    }, 1500);
   }
 
   dismissNotification(id: string): void {

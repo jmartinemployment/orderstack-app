@@ -28,11 +28,26 @@
   <button
     type="button"
     class="bottom-nav-item"
+    (click)="clockOut()">
+    <i class="bi bi-box-arrow-right"></i>
+    <span>Clock Out</span>
+  </button>
+  <button
+    type="button"
+    class="bottom-nav-item"
     (click)="openModal('more')">
     <i class="bi bi-list"></i>
-    <span>More</span>
+    <span>Modes</span>
   </button>
 </nav>
+
+<!-- Clock Out Toast -->
+@if (clockOutToast()) {
+  <div class="clock-out-toast">
+    <i class="bi bi-check-circle-fill"></i>
+    <span>{{ clockOutToast() }}</span>
+  </div>
+}
 
 <!-- Checkout Modal -->
 @if (activeModal() === 'checkout') {
@@ -126,7 +141,7 @@
   <div class="bottom-nav-overlay" (click)="closeModal()">
     <div class="bottom-nav-modal more-modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>More</h3>
+        <h3>Modes</h3>
         <button type="button" class="modal-close" (click)="closeModal()" aria-label="Close">
           <i class="bi bi-x-lg"></i>
         </button>
