@@ -1,5 +1,6 @@
 export * from './analytics.model';
 export * from './gift-card.model';
+export * from './catering.model';
 export * from './cash-drawer.model';
 export * from './combo.model';
 export * from './auth.model';

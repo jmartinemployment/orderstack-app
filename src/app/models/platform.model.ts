@@ -35,7 +35,7 @@ export const BUSINESS_VERTICAL_CATALOG: BusinessVerticalConfig[] = [
     availableModes: ['quick_service', 'full_service', 'bar', 'standard'],
     enabledModules: [
       'menu_management', 'table_management', 'kds', 'bookings',
-      'online_ordering', 'inventory', 'marketing', 'loyalty',
+      'catering', 'online_ordering', 'inventory', 'marketing', 'loyalty',
       'delivery', 'gift_cards', 'staff_scheduling', 'payroll',
       'reports', 'crm', 'multi_location',
     ],
@@ -130,6 +130,7 @@ export type PlatformModule =
   | 'table_management'
   | 'kds'
   | 'bookings'
+  | 'catering'
   | 'online_ordering'
   | 'inventory'
   | 'invoicing'
@@ -500,6 +501,7 @@ export interface MerchantProfile {
   businessHours: BusinessHoursDay[];
   onboardingComplete: boolean;
   createdAt: string;
+  businessCategory?: string | null;
 }
 
 export interface BusinessAddress {
@@ -874,6 +876,7 @@ export function defaultMerchantProfile(): MerchantProfile {
     businessHours: defaultBusinessHours(),
     onboardingComplete: true,
     createdAt: new Date().toISOString(),
+    businessCategory: null,
   };
 }
 

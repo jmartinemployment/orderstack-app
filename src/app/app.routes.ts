@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
-import { onboardingGuard } from './guards/onboarding.guard';
 import { deviceModeRedirectGuard } from './guards/device-mode.guard';
 import { administrationGuard } from './guards/administration.guard';
 import { roleGuard } from './guards/role.guard';
@@ -184,25 +183,25 @@ export const routes: Routes = [
   // Dedicated device routes — full-screen, no sidebar
   {
     path: 'kiosk',
-    canActivate: [authGuard, onboardingGuard],
+    canActivate: [authGuard],
     resolve: { deviceInit: deviceInitResolver },
     loadComponent: () => import('./features/kiosk/kiosk-terminal/kiosk-terminal').then(m => m.KioskTerminal),
   },
   {
     path: 'register',
-    canActivate: [authGuard, onboardingGuard],
+    canActivate: [authGuard],
     resolve: { deviceInit: deviceInitResolver },
     loadComponent: () => import('./features/register/register-terminal/register-terminal').then(m => m.RegisterTerminal),
   },
   {
     path: 'bar',
-    canActivate: [authGuard, onboardingGuard],
+    canActivate: [authGuard],
     resolve: { deviceInit: deviceInitResolver },
     loadComponent: () => import('./features/bar/bar-terminal/bar-terminal').then(m => m.BarTerminal),
   },
   {
     path: 'kds',
-    canActivate: [authGuard, onboardingGuard],
+    canActivate: [authGuard],
     resolve: { deviceInit: deviceInitResolver },
     loadComponent: () => import('./features/kds/kds-display/kds-display').then(m => m.KdsDisplay),
   },
@@ -210,7 +209,7 @@ export const routes: Routes = [
   // Bookings terminal — full-screen, no sidebar
   {
     path: 'bookings-terminal',
-    canActivate: [authGuard, onboardingGuard],
+    canActivate: [authGuard],
     resolve: { deviceInit: deviceInitResolver },
     loadComponent: () => import('./features/bookings/bookings-terminal/bookings-terminal').then(m => m.BookingsTerminal),
   },
@@ -218,7 +217,7 @@ export const routes: Routes = [
   // POS — full-screen, no sidebar
   {
     path: 'pos',
-    canActivate: [authGuard, onboardingGuard],
+    canActivate: [authGuard],
     resolve: { deviceInit: deviceInitResolver },
     loadComponent: () => import('./features/pos/server-pos-terminal/server-pos-terminal').then(m => m.ServerPosTerminal),
   },
@@ -226,7 +225,7 @@ export const routes: Routes = [
   // Floor Plan — full-screen, no sidebar (servers land here after POS login)
   {
     path: 'floor-plan',
-    canActivate: [authGuard, onboardingGuard],
+    canActivate: [authGuard],
     resolve: { deviceInit: deviceInitResolver },
     loadComponent: () => import('./features/table-mgmt/floor-plan/floor-plan').then(m => m.FloorPlan),
   },
@@ -234,7 +233,7 @@ export const routes: Routes = [
   // Quick Service — full-screen, no sidebar
   {
     path: 'quick-service',
-    canActivate: [authGuard, onboardingGuard],
+    canActivate: [authGuard],
     resolve: { deviceInit: deviceInitResolver },
     loadComponent: () => import('./features/quick-service/quick-service-terminal/quick-service-terminal').then(m => m.QuickServiceTerminal),
   },
@@ -242,7 +241,7 @@ export const routes: Routes = [
   // Online Ordering — full-screen, no sidebar
   {
     path: 'online-ordering',
-    canActivate: [authGuard, onboardingGuard],
+    canActivate: [authGuard],
     resolve: { deviceInit: deviceInitResolver },
     loadComponent: () => import('./features/online-ordering/online-order-portal/online-order-portal').then(m => m.OnlineOrderPortal),
   },
@@ -284,7 +283,7 @@ export const routes: Routes = [
   {
     path: 'app',
     component: MainLayoutComponent,
-    canActivate: [authGuard, onboardingGuard],
+    canActivate: [authGuard],
     resolve: { deviceInit: deviceInitResolver },
     children: [
 
@@ -304,6 +303,7 @@ export const routes: Routes = [
       { path: 'floor-plan', loadComponent: () => import('./features/table-mgmt/floor-plan/floor-plan').then(m => m.FloorPlan) },
       { path: 'tables', redirectTo: 'floor-plan', pathMatch: 'full' },
       { path: 'bookings', loadComponent: () => import('./features/bookings/booking-manager').then(m => m.BookingManager) },
+      { path: 'catering', loadComponent: () => import('./features/catering/catering-dashboard/catering-dashboard.component').then(m => m.CateringDashboardComponent) },
 
       // Menu
       { path: 'menu', loadComponent: () => import('./features/menu-mgmt/menu-management').then(m => m.MenuManagement) },

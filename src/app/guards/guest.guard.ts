@@ -4,7 +4,6 @@ import { AuthService } from '@services/auth';
 
 /**
  * Redirects already-authenticated users away from login/signup pages.
- * If they have restaurants → /administration, otherwise → /setup.
  */
 export const guestGuard = () => {
   const auth = inject(AuthService);
@@ -14,10 +13,5 @@ export const guestGuard = () => {
     return true; // Not logged in — allow access to login/signup
   }
 
-  // Authenticated — redirect based on whether they have a restaurant
-  if (auth.selectedMerchantId() || auth.merchants().length > 0) {
-    return router.createUrlTree(['/app/administration']);
-  }
-
-  return router.createUrlTree(['/setup']);
+  return router.createUrlTree(['/app/administration']);
 };

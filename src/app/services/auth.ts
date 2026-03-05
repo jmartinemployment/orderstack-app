@@ -232,6 +232,15 @@ export class AuthService {
     } else {
       localStorage.removeItem('selected_merchant_address');
     }
+
+    // Ensure the merchant exists in the merchants list (critical for onboarding
+    // flow where signup returns [] and the merchant is created after)
+    const existing = this._merchants().find(m => m.id === merchantId);
+    if (!existing) {
+      const updated = [...this._merchants(), { id: merchantId, name: merchantName, slug: '', role: 'owner' }];
+      this._merchants.set(updated);
+      localStorage.setItem('auth_merchants', JSON.stringify(updated));
+    }
   }
 
   async resetPassword(email: string, newPassword: string): Promise<{ success: boolean; error?: string }> {

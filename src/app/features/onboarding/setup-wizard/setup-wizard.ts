@@ -781,9 +781,10 @@ export class SetupWizard implements OnInit {
   readonly deliveryProviders = DELIVERY_PROVIDERS;
 
   // --- Step map ---
-  // Food & Drink (9 steps): address, biztype, cuisine, revenue, locations, delivery, plan, hardware, done
-  // Other (7 steps):        address, biztype, revenue, locations, plan, hardware, done
-  readonly totalSteps = computed(() => this.isFoodBusiness() ? 9 : 7);
+  // First-run flow (3 steps): address, biztype, done
+  // Hidden steps (cuisine, revenue, locations, delivery, plan, hardware) remain
+  // accessible from Settings after onboarding.
+  readonly totalSteps = computed(() => 3);
 
   // --- Wizard navigation ---
   readonly _currentStep = signal(1);
@@ -918,36 +919,15 @@ export class SetupWizard implements OnInit {
   });
 
   // --- Step identity computeds ---
-  // Food:  1=address, 2=biztype, 3=cuisine, 4=revenue, 5=locations, 6=delivery, 7=plan, 8=hardware, 9=done
-  // Other: 1=address, 2=biztype, 3=revenue, 4=locations, 5=plan, 6=hardware, 7=done
+  // First-run: 1=address, 2=biztype, 3=done
+  // Legacy step helpers kept so hidden step code still compiles.
 
-  readonly isCuisineStep = computed(() =>
-    this.isFoodBusiness() && this._currentStep() === 3
-  );
-
-  readonly isRevenueStep = computed(() => {
-    const step = this._currentStep();
-    return this.isFoodBusiness() ? step === 4 : step === 3;
-  });
-
-  readonly isLocationsStep = computed(() => {
-    const step = this._currentStep();
-    return this.isFoodBusiness() ? step === 5 : step === 4;
-  });
-
-  readonly isDeliveryStep = computed(() =>
-    this.isFoodBusiness() && this._currentStep() === 6
-  );
-
-  readonly isPlanStep = computed(() => {
-    const step = this._currentStep();
-    return this.isFoodBusiness() ? step === 7 : step === 5;
-  });
-
-  readonly isHardwareStep = computed(() => {
-    const step = this._currentStep();
-    return this.isFoodBusiness() ? step === 8 : step === 6;
-  });
+  readonly isCuisineStep = computed(() => false);
+  readonly isRevenueStep = computed(() => false);
+  readonly isLocationsStep = computed(() => false);
+  readonly isDeliveryStep = computed(() => false);
+  readonly isPlanStep = computed(() => false);
+  readonly isHardwareStep = computed(() => false);
 
   readonly isDoneStep = computed(() =>
     this._currentStep() === this.totalSteps()
@@ -955,10 +935,7 @@ export class SetupWizard implements OnInit {
 
   readonly stepLabel = computed(() => {
     const step = this._currentStep();
-    const isFood = this.isFoodBusiness();
-    const labels = isFood
-      ? ['Business Info', 'Business Type', 'Cuisine', 'Revenue', 'Locations', 'Delivery', 'Plan & Payment', 'Hardware', 'All Set']
-      : ['Business Info', 'Business Type', 'Revenue', 'Locations', 'Plan & Payment', 'Hardware', 'All Set'];
+    const labels = ['Business Info', 'Business Type', 'All Set'];
     return labels[step - 1] ?? '';
   });
 
@@ -1009,13 +986,6 @@ export class SetupWizard implements OnInit {
     if (step === 2) {
       return this._selectedBusinessType() !== null;
     }
-    if (this.isCuisineStep()) return true; // cuisine is optional
-    if (this.isRevenueStep()) return this._selectedRevenue() !== null;
-    if (this.isLocationsStep()) return true; // always valid
-    if (this.isDeliveryStep()) return true; // always valid (skip allowed)
-    // TODO: Change to `this.isProcessorConnected()` before production launch
-    if (this.isPlanStep()) return true;
-    if (this.isHardwareStep()) return true; // informational
     if (this.isDoneStep()) return !this._isSubmitting();
     return false;
   });
@@ -1031,7 +1001,16 @@ export class SetupWizard implements OnInit {
   };
 
   ngOnInit(): void {
-    history.pushState({ step: 1 }, '');
+    // Resume mid-wizard on reload
+    const saved = localStorage.getItem('wizard-step');
+    if (saved) {
+      const step = Number.parseInt(saved, 10);
+      if (step >= 1 && step <= this.totalSteps()) {
+        this._currentStep.set(step);
+      }
+    }
+
+    history.pushState({ step: this._currentStep() }, '');
     window.addEventListener('popstate', this.popstateHandler);
     this.destroyRef.onDestroy(() => {
       window.removeEventListener('popstate', this.popstateHandler);
@@ -1044,8 +1023,8 @@ export class SetupWizard implements OnInit {
     const current = this._currentStep();
     const total = this.totalSteps();
 
-    // Submit onboarding when leaving the revenue step
-    if (this.isRevenueStep() && !this._onboardingDone()) {
+    // Submit onboarding when leaving the business type step (step 2)
+    if (current === 2 && !this._onboardingDone()) {
       await this.submitOnboarding();
       if (!this._onboardingDone()) return; // submission failed
     }
@@ -1053,6 +1032,7 @@ export class SetupWizard implements OnInit {
     if (current < total) {
       const nextStep = current + 1;
       this._currentStep.set(nextStep);
+      localStorage.setItem('wizard-step', String(nextStep));
       history.pushState({ step: nextStep }, '');
     }
   }
@@ -1061,8 +1041,25 @@ export class SetupWizard implements OnInit {
     const current = this._currentStep();
     if (current > 1) {
       this._currentStep.set(current - 1);
+      localStorage.setItem('wizard-step', String(current - 1));
       history.pushState({ step: current - 1 }, '');
     }
+  }
+
+  async skipWizard(): Promise<void> {
+    // Ensure minimum data for onboarding submission
+    if (!this._businessName().trim()) {
+      this._businessName.set('My Business');
+    }
+    if (!this._bizNoPhysical() && !this._bizStreet().trim()) {
+      this._bizNoPhysical.set(true);
+    }
+
+    if (!this._onboardingDone()) {
+      await this.submitOnboarding();
+    }
+    localStorage.removeItem('wizard-step');
+    this.router.navigate(['/app/administration']);
   }
 
   // --- Step 1: Address helpers ---
@@ -1224,6 +1221,7 @@ export class SetupWizard implements OnInit {
       businessHours: defaultBusinessHours(),
       paymentProcessor: this.isProcessorConnected() ? this._selectedProcessor() : 'none',
       menuTemplateId: this._selectedMenuTemplateId(),
+      businessCategory: this._selectedBusinessType()?.name ?? null,
       ownerPin: {
         displayName: user ? `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() || 'Owner' : 'Owner',
         pin: '',
@@ -1239,6 +1237,10 @@ export class SetupWizard implements OnInit {
 
     if (result) {
       this.authService.selectMerchant(result.merchantId, payload.businessName);
+      // Re-persist the merchant profile now that selectedMerchantId is set
+      // (buildProfileFromPayload ran before selectMerchant, so persistProfile
+      // silently skipped due to empty merchantId)
+      this.platformService.persistCurrentProfile();
       this._onboardingDone.set(true);
 
       // Register device in background
@@ -1285,6 +1287,7 @@ export class SetupWizard implements OnInit {
   // --- Done screen ---
 
   goToDashboard(): void {
+    localStorage.removeItem('wizard-step');
     this.router.navigate(['/app/administration']);
   }
 

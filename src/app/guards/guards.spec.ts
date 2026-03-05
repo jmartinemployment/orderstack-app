@@ -8,32 +8,12 @@ function authGuardDecision(isAuthenticated: boolean): boolean | string {
 }
 
 // guestGuard: if not authenticated → true (allow login page)
-//             if authenticated with restaurant → redirect /administration
-//             if authenticated without restaurant → redirect /setup
+//             if authenticated → redirect /administration
 function guestGuardDecision(
   isAuthenticated: boolean,
-  selectedMerchantId: string | null,
-  restaurantCount: number,
 ): boolean | string {
   if (!isAuthenticated) return true;
-  if (selectedMerchantId || restaurantCount > 0) return '/administration';
-  return '/setup';
-}
-
-// onboardingGuard: profile loaded → true
-//                  no profile but merchantId → reload and check
-//                  has restaurants from login → true (returning user)
-//                  nothing → redirect /setup
-function onboardingGuardDecision(
-  hasProfile: boolean,
-  hasRestaurantId: boolean,
-  profileReloaded: boolean,
-  restaurantCount: number,
-): boolean | string {
-  if (hasProfile) return true;
-  if (hasRestaurantId && profileReloaded) return true;
-  if (restaurantCount > 0) return true;
-  return '/setup';
+  return '/administration';
 }
 
 // deviceModeRedirectGuard: always redirects to /administration
@@ -68,45 +48,11 @@ describe('authGuard — decision logic', () => {
 
 describe('guestGuard — decision logic', () => {
   it('allows access when not authenticated', () => {
-    expect(guestGuardDecision(false, null, 0)).toBe(true);
+    expect(guestGuardDecision(false)).toBe(true);
   });
 
-  it('redirects to /administration when authenticated with selected restaurant', () => {
-    expect(guestGuardDecision(true, 'r-1', 0)).toBe('/administration');
-  });
-
-  it('redirects to /administration when authenticated with restaurants list', () => {
-    expect(guestGuardDecision(true, null, 2)).toBe('/administration');
-  });
-
-  it('redirects to /setup when authenticated with no restaurants', () => {
-    expect(guestGuardDecision(true, null, 0)).toBe('/setup');
-  });
-
-  it('prefers selectedMerchantId over count', () => {
-    expect(guestGuardDecision(true, 'r-1', 0)).toBe('/administration');
-  });
-});
-
-describe('onboardingGuard — decision logic', () => {
-  it('passes when profile is loaded', () => {
-    expect(onboardingGuardDecision(true, false, false, 0)).toBe(true);
-  });
-
-  it('passes when profile reloads successfully', () => {
-    expect(onboardingGuardDecision(false, true, true, 0)).toBe(true);
-  });
-
-  it('passes for returning user with restaurants', () => {
-    expect(onboardingGuardDecision(false, false, false, 3)).toBe(true);
-  });
-
-  it('redirects to /setup when no profile and no restaurants', () => {
-    expect(onboardingGuardDecision(false, false, false, 0)).toBe('/setup');
-  });
-
-  it('redirects to /setup when reload fails and no restaurants', () => {
-    expect(onboardingGuardDecision(false, true, false, 0)).toBe('/setup');
+  it('redirects to /administration when authenticated', () => {
+    expect(guestGuardDecision(true)).toBe('/administration');
   });
 });
 

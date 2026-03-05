@@ -25,15 +25,10 @@ export const deviceInitResolver: ResolveFn<boolean> = async (_route, state) => {
   if (!authService.selectedMerchantId()) {
     const restaurants = authService.merchants();
 
-    if (restaurants.length === 0) {
-      router.navigate(['/setup']);
-      return false;
-    }
-
     if (restaurants.length === 1) {
       const r = restaurants[0];
       authService.selectMerchant(r.id, r.name);
-    } else {
+    } else if (restaurants.length > 1) {
       router.navigate(['/select-restaurant']);
       return false;
     }

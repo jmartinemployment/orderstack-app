@@ -167,6 +167,11 @@ export class MainLayoutComponent {
       items.push({ label: 'Invoices', icon: 'bi-file-earmark-text', route: '/app/invoicing' });
     }
 
+    const isCaterer = this.platform.businessCategory() === 'Caterer';
+    if (isCaterer || hasModule(modules, 'catering')) {
+      items.push({ label: 'Catering', icon: 'bi-calendar2-event', route: '/app/catering' });
+    }
+
     items.push({ label: 'Settings', icon: 'bi-gear', route: '/app/settings' });
 
     // Apply alert severities from service signals

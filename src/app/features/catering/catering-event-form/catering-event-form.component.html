@@ -1,0 +1,120 @@
+@if (visible) {
+  <div class="offcanvas-backdrop" (click)="close()"></div>
+  <div class="offcanvas-panel">
+    <div class="offcanvas-header d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
+      <h5 class="mb-0">{{ isEditMode ? 'Edit Event' : 'New Catering Event' }}</h5>
+      <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+    </div>
+
+    <div class="offcanvas-body px-3 py-3">
+      @if (validationErrors().length > 0) {
+        <div class="alert alert-danger py-2 mb-3">
+          @for (err of validationErrors(); track err) {
+            <div class="small">{{ err }}</div>
+          }
+        </div>
+      }
+
+      <div class="mb-3">
+        <label class="form-label">Event Title <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" [(ngModel)]="title" placeholder="e.g. Johnson Wedding Reception">
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-6">
+          <label class="form-label">Event Type <span class="text-danger">*</span></label>
+          <select class="form-select" [(ngModel)]="eventType">
+            @for (t of eventTypes; track t.value) {
+              <option [value]="t.value">{{ t.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-label">Status <span class="text-danger">*</span></label>
+          <select class="form-select" [(ngModel)]="status">
+            @for (s of statuses; track s.value) {
+              <option [value]="s.value">{{ s.label }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Event Date <span class="text-danger">*</span></label>
+        <input type="date" class="form-control" [(ngModel)]="eventDate">
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-6">
+          <label class="form-label">Start Time <span class="text-danger">*</span></label>
+          <input type="time" class="form-control" [(ngModel)]="startTime">
+        </div>
+        <div class="col-6">
+          <label class="form-label">End Time <span class="text-danger">*</span></label>
+          <input type="time" class="form-control" [(ngModel)]="endTime">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Headcount <span class="text-danger">*</span></label>
+        <input type="number" class="form-control" [(ngModel)]="headcount" min="1">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Location <span class="text-danger">*</span></label>
+        <div class="d-flex gap-3">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="locationType" id="locOnSite" value="on_site" [(ngModel)]="locationType">
+            <label class="form-check-label" for="locOnSite">On-Site</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="locationType" id="locOffSite" value="off_site" [(ngModel)]="locationType">
+            <label class="form-check-label" for="locOffSite">Off-Site</label>
+          </div>
+        </div>
+      </div>
+
+      @if (locationType === 'off_site') {
+        <div class="mb-3">
+          <label class="form-label">Location Address <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" [(ngModel)]="locationAddress" placeholder="123 Main St, City, State">
+        </div>
+      }
+
+      <hr>
+
+      <div class="mb-3">
+        <label class="form-label">Contact Name <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" [(ngModel)]="contactName">
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-6">
+          <label class="form-label">Contact Phone <span class="text-danger">*</span></label>
+          <input type="tel" class="form-control" [(ngModel)]="contactPhone">
+        </div>
+        <div class="col-6">
+          <label class="form-label">Contact Email <span class="text-danger">*</span></label>
+          <input type="email" class="form-control" [(ngModel)]="contactEmail">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Notes</label>
+        <textarea class="form-control" rows="3" [(ngModel)]="notes" placeholder="Special requests, dietary needs, setup instructions..."></textarea>
+      </div>
+    </div>
+
+    <div class="offcanvas-footer d-flex justify-content-end gap-2 px-3 py-3 border-top">
+      <button type="button" class="btn btn-outline-secondary" (click)="close()" [disabled]="isSaving()">
+        Cancel
+      </button>
+      <button type="button" class="btn btn-primary" (click)="save()" [disabled]="isSaving()">
+        @if (isSaving()) {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+        }
+        {{ isEditMode ? 'Save Changes' : 'Create Event' }}
+      </button>
+    </div>
+  </div>
+}

@@ -6,7 +6,6 @@ import { DeviceHub } from '../device-hub';
 import { AiSettings } from '../ai-settings';
 import { KitchenOrders } from '../kitchen-orders';
 import { OnlinePricing } from '../online-pricing';
-import { CateringCalendar } from '../catering-calendar';
 import { PaymentSettingsComponent } from '../payment-settings';
 import { TipManagement } from '../../tip-mgmt/tip-management';
 import { LoyaltySettings } from '../loyalty-settings';
@@ -31,7 +30,7 @@ interface TabConfig {
 
 @Component({
   selector: 'os-control-panel',
-  imports: [GeneralSettings, DeviceHub, AiSettings, KitchenOrders, BarSettingsComponent, OnlinePricing, CateringCalendar, PaymentSettingsComponent, TipManagement, LoyaltySettings, DeliverySettingsComponent, GiftCardManagement, SupplierSettings, StaffManagement, BreakConfig, AccountBilling, NotificationSettingsComponent],
+  imports: [GeneralSettings, DeviceHub, AiSettings, KitchenOrders, BarSettingsComponent, OnlinePricing, PaymentSettingsComponent, TipManagement, LoyaltySettings, DeliverySettingsComponent, GiftCardManagement, SupplierSettings, StaffManagement, BreakConfig, AccountBilling, NotificationSettingsComponent],
   templateUrl: './control-panel.html',
   styleUrl: './control-panel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,7 +52,6 @@ export class ControlPanel implements OnInit {
     { key: 'kitchen-orders', label: 'Kitchen & Orders' },
     { key: 'bar', label: 'Bar' },
     { key: 'online-pricing', label: 'Online Pricing', requiredModule: 'online_ordering' },
-    { key: 'catering-calendar', label: 'Catering Calendar', requiredModule: 'bookings' },
     { key: 'payments', label: 'Payments' },
     { key: 'tip-management', label: 'Tip Management', requiredFlag: 'enableTipping' },
     { key: 'loyalty', label: 'Loyalty', requiredModule: 'loyalty' },

@@ -19,7 +19,6 @@ import {
   defaultBarSettings,
   defaultAISettings,
   defaultOnlinePricingSettings,
-  defaultCateringCapacitySettings,
   defaultPaymentSettings,
   defaultTipManagementSettings,
   defaultDeliverySettings,
@@ -46,7 +45,7 @@ export class RestaurantSettingsService {
 
   private readonly _aiSettings = signal<AISettings>(defaultAISettings());
   private readonly _onlinePricingSettings = signal<OnlinePricingSettings>(defaultOnlinePricingSettings());
-  private readonly _cateringCapacitySettings = signal<CateringCapacitySettings>(defaultCateringCapacitySettings());
+  private readonly _cateringCapacitySettings = signal<CateringCapacitySettings>({ maxEventsPerDay: 3, maxHeadcountPerDay: 200, conflictAlertsEnabled: true });
   private readonly _paymentSettings = signal<PaymentSettings>(defaultPaymentSettings());
   private readonly _tipManagementSettings = signal<TipManagementSettings>(defaultTipManagementSettings());
   private readonly _deliverySettings = signal<DeliverySettings>(defaultDeliverySettings());
@@ -123,7 +122,7 @@ export class RestaurantSettingsService {
         ...this.migrateAISettings((aiFromServer ?? {}) as Record<string, unknown>),
       }));
       this._onlinePricingSettings.set({ ...defaultOnlinePricingSettings(), ...this.readLocalStorage('online-pricing-settings'), ...pricingFromServer });
-      this._cateringCapacitySettings.set({ ...defaultCateringCapacitySettings(), ...this.readLocalStorage('catering-capacity-settings'), ...cateringFromServer });
+      this._cateringCapacitySettings.set({ ...{ maxEventsPerDay: 3, maxHeadcountPerDay: 200, conflictAlertsEnabled: true }, ...this.readLocalStorage('catering-capacity-settings'), ...cateringFromServer });
       this._paymentSettings.set({
         ...defaultPaymentSettings(),
         ...this.readLocalStorage('payment-settings'),
@@ -158,7 +157,7 @@ export class RestaurantSettingsService {
         ...this.migrateAISettings(this.readLocalStorage('ai-settings') ?? {}),
       }));
       this._onlinePricingSettings.set({ ...defaultOnlinePricingSettings(), ...this.readLocalStorage('online-pricing-settings') });
-      this._cateringCapacitySettings.set({ ...defaultCateringCapacitySettings(), ...this.readLocalStorage('catering-capacity-settings') });
+      this._cateringCapacitySettings.set({ ...{ maxEventsPerDay: 3, maxHeadcountPerDay: 200, conflictAlertsEnabled: true }, ...this.readLocalStorage('catering-capacity-settings') });
       this._paymentSettings.set({ ...defaultPaymentSettings(), ...this.readLocalStorage('payment-settings') });
       this._tipManagementSettings.set({ ...defaultTipManagementSettings(), ...this.readLocalStorage('tip-management-settings') });
       this._deliverySettings.set({ ...defaultDeliverySettings(), ...this.readLocalStorage('delivery-settings') });

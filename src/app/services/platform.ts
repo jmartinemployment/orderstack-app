@@ -32,6 +32,7 @@ export interface OnboardingPayload {
   businessHours: BusinessHoursDay[];
   paymentProcessor: PaymentProcessorType;
   menuTemplateId: string | null;
+  businessCategory: string | null;
   ownerPin: OnboardingPinData;
   ownerEmail: string;
   ownerPassword: string;
@@ -91,6 +92,10 @@ export class PlatformService {
   });
 
   readonly isRetailMode = computed(() => this._currentDeviceMode() === 'retail');
+
+  readonly businessCategory = computed<string | null>(
+    () => this._merchantProfile()?.businessCategory ?? null
+  );
 
   readonly isServiceMode = computed(() => {
     const mode = this._currentDeviceMode();
@@ -296,6 +301,7 @@ export class PlatformService {
       taxLocale: payload.taxLocale,
       businessHours: payload.businessHours,
       enabledModules: getModulesForVerticals(payload.verticals),
+      businessCategory: payload.businessCategory ?? null,
     };
     this._merchantProfile.set(profile);
     this._currentDeviceMode.set(payload.defaultDeviceMode);
@@ -342,6 +348,15 @@ export class PlatformService {
       this._currentDeviceMode.set(savedMode);
     }
     this._merchantProfile.set(defaultMerchantProfile());
+  }
+
+  /** Re-persist the current in-memory profile to localStorage.
+   *  Called by the setup wizard after selectMerchant sets the merchantId. */
+  persistCurrentProfile(): void {
+    const profile = this._merchantProfile();
+    if (profile) {
+      this.persistProfile(profile);
+    }
   }
 
   private persistProfile(profile: MerchantProfile): void {

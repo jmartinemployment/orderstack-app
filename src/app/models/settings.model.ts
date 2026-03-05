@@ -3,7 +3,7 @@ import { DeliveryProviderType } from './delivery.model';
 import { PaymentProcessorType } from './payment.model';
 import { TipPoolRule, TipOutRule } from './tip.model';
 
-export type ControlPanelTab = 'general' | 'hardware' | 'ai-settings' | 'kitchen-orders' | 'bar' | 'online-pricing' | 'catering-calendar' | 'payments' | 'tip-management' | 'loyalty' | 'delivery' | 'gift-cards' | 'suppliers' | 'staff' | 'time-clock-config' | 'notifications' | 'account-billing';
+export type ControlPanelTab = 'general' | 'hardware' | 'ai-settings' | 'kitchen-orders' | 'bar' | 'online-pricing' | 'payments' | 'tip-management' | 'loyalty' | 'delivery' | 'gift-cards' | 'suppliers' | 'staff' | 'time-clock-config' | 'notifications' | 'account-billing';
 
 /**
  * AI Settings — Control Panel > AI Settings tab
@@ -52,50 +52,6 @@ export interface OnlinePricingSettings {
 }
 
 /**
- * Catering Capacity Settings — Control Panel > Catering Calendar tab
- * Source: Get-Order-Stack-Workflow.md lines 610-617
- */
-export interface CateringCapacitySettings {
-  maxEventsPerDay: number;
-  maxHeadcountPerDay: number;
-  conflictAlertsEnabled: boolean;
-}
-
-/**
- * Catering Event — flattened from Order with catering fields for calendar display.
- */
-export interface CateringEvent {
-  orderId: string;
-  orderNumber: string;
-  customerName: string;
-  eventDate: string;
-  eventTime: string;
-  headcount: number;
-  eventType: string;
-  setupRequired: boolean;
-  depositAmount: number;
-  depositPaid: boolean;
-  approvalStatus: 'NEEDS_APPROVAL' | 'APPROVED' | 'NOT_APPROVED';
-  totalAmount: number;
-  specialInstructions: string;
-}
-
-/**
- * Calendar Day — for building the month grid.
- */
-export interface CalendarDay {
-  date: string;
-  dayOfMonth: number;
-  events: CateringEvent[];
-  totalHeadcount: number;
-  isOverCapacityEvents: boolean;
-  isOverCapacityHeadcount: boolean;
-  isToday: boolean;
-  isPast: boolean;
-  isCurrentMonth: boolean;
-}
-
-/**
  * Capacity Block — blocked dates/times for private events.
  */
 export interface CapacityBlock {
@@ -137,14 +93,6 @@ export function defaultOnlinePricingSettings(): OnlinePricingSettings {
     adjustmentAmount: 0,
     deliveryFee: 0,
     showAdjustmentToCustomer: true,
-  };
-}
-
-export function defaultCateringCapacitySettings(): CateringCapacitySettings {
-  return {
-    maxEventsPerDay: 3,
-    maxHeadcountPerDay: 200,
-    conflictAlertsEnabled: true,
   };
 }
 
