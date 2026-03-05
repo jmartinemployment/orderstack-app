@@ -301,7 +301,8 @@ export const routes: Routes = [
       { path: 'sos', redirectTo: '/kiosk', pathMatch: 'full' },
 
       // Front of House
-      { path: 'tables', redirectTo: '/floor-plan', pathMatch: 'full' },
+      { path: 'floor-plan', loadComponent: () => import('./features/table-mgmt/floor-plan/floor-plan').then(m => m.FloorPlan) },
+      { path: 'tables', redirectTo: 'floor-plan', pathMatch: 'full' },
       { path: 'bookings', loadComponent: () => import('./features/bookings/booking-manager').then(m => m.BookingManager) },
 
       // Menu

@@ -81,7 +81,7 @@ export class MainLayoutComponent {
     // Floor Plan — no tables configured
     const tables = this.tableService.tables();
     if (tables.length === 0) {
-      alerts['/floor-plan'] = 'warning';
+      alerts['/app/floor-plan'] = 'warning';
     }
 
     return alerts;
@@ -147,7 +147,7 @@ export class MainLayoutComponent {
 
     if (mode === 'full_service' || mode === 'bar') {
       if (flags.enableFloorPlan) {
-        items.push({ label: 'Floor Plan', icon: 'bi-columns-gap', route: '/floor-plan' });
+        items.push({ label: 'Floor Plan', icon: 'bi-columns-gap', route: '/app/floor-plan' });
       }
       if (hasModule(modules, 'bookings')) {
         items.push({ label: 'Bookings', icon: 'bi-calendar-event', route: '/app/bookings' });
