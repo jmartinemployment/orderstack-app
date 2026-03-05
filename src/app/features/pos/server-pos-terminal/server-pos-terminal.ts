@@ -113,28 +113,29 @@ export class ServerPosTerminal implements OnInit {
     return this.terminalFilter(this.collectItems(this._categories()));
   });
 
-  // Filtered items for the grid based on active top tab
+  // Apply category filter to a list of items
+  private filterByCategory(items: MenuItem[]): MenuItem[] {
+    const catId = this._selectedCategoryId();
+    if (!catId) return items;
+    const cat = this._categories().find(c => c.id === catId);
+    if (!cat) return items;
+    const catItemIds = new Set(this.collectItems([cat]).map(i => i.id));
+    return items.filter(i => catItemIds.has(i.id));
+  }
+
+  // Filtered items for the grid based on active top tab + selected category
   readonly gridItems = computed(() => {
     const tab = this._activeTopTab();
-    const cats = this._categories();
     const items = this.allItems();
 
     if (tab === 'favorites') {
       const popular = items.filter(i => i.popular || i.isPopular);
-      return popular.length > 0 ? popular : items;
+      const base = popular.length > 0 ? popular : items;
+      return this.filterByCategory(base);
     }
 
-    if (tab === 'menu') {
-      const catId = this._selectedCategoryId();
-      if (catId) {
-        const cat = cats.find(c => c.id === catId);
-        return cat ? this.terminalFilter(this.collectItems([cat])) : [];
-      }
-      return items;
-    }
-
-    if (tab === 'library') {
-      return items;
+    if (tab === 'menu' || tab === 'library') {
+      return this.filterByCategory(items);
     }
 
     // Keypad tab shows nothing (keypad input mode)
@@ -150,9 +151,6 @@ export class ServerPosTerminal implements OnInit {
     const cats = this.menuService.categories();
     if (cats.length > 0) {
       this._categories.set(cats);
-      if (!this._selectedCategoryId() && cats[0]) {
-        this._selectedCategoryId.set(cats[0].id);
-      }
     }
   });
 
@@ -172,7 +170,7 @@ export class ServerPosTerminal implements OnInit {
     // Placeholder for more menu
   }
 
-  selectCategory(categoryId: string): void {
+  selectCategory(categoryId: string | null): void {
     this._selectedCategoryId.set(categoryId);
   }
 

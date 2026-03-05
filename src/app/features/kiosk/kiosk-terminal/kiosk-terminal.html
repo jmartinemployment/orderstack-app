@@ -2,16 +2,16 @@
   <!-- ==================== LEFT: Item Grid Area ==================== -->
   <main class="kiosk-main">
 
-    <!-- Top Tabs -->
-    <os-top-navigation
-      [tabs]="topTabs"
-      [activeTab]="activeTopTab()"
-      (tabChange)="selectTopTab($event)"
-      (moreClick)="onMoreClick()" />
-
-    <!-- Category pills (only visible on Menu tab) -->
-    @if (activeTopTab() === 'menu') {
+    <!-- Category pills (always visible) -->
+    @if (categories().length > 0) {
       <div class="category-pills">
+        <button
+          type="button"
+          class="category-pill"
+          [class.active]="selectedCategoryId() === null"
+          (click)="selectCategory(null)">
+          All
+        </button>
         @for (cat of categories(); track cat.id) {
           <button
             type="button"
@@ -24,61 +24,21 @@
       </div>
     }
 
-    <!-- Keypad View -->
-    @if (activeTopTab() === 'keypad') {
-      <div class="keypad-view">
-        <div class="keypad-display">
-          <span class="keypad-dollar">$</span>
-          <span class="keypad-amount">{{ keypadValue() || '0' }}</span>
-        </div>
-        <div class="keypad-grid">
-          @for (key of ['1','2','3','4','5','6','7','8','9','00','0','.']; track key) {
-            <button
-              type="button"
-              class="keypad-key"
-              (click)="onKeypadPress(key)">
-              {{ key }}
-            </button>
-          }
-        </div>
-        <div class="keypad-actions">
-          <button type="button" class="keypad-clear" (click)="onKeypadPress('clear')">Clear</button>
-          <button type="button" class="keypad-backspace" (click)="onKeypadPress('backspace')">
-            <i class="bi bi-backspace"></i>
-          </button>
-        </div>
-      </div>
-    }
-
     <!-- Item Grid -->
-    @if (activeTopTab() !== 'keypad') {
-      <os-item-grid
-        [items]="gridItems()"
-        [isLoading]="isLoading()"
-        tileMode="image"
-        [itemImageFn]="getItemImageFn"
-        (itemClick)="checkout.addItem($event)" />
-    }
+    <os-item-grid
+      [items]="gridItems()"
+      [isLoading]="isLoading()"
+      tileMode="image"
+      [itemImageFn]="getItemImageFn"
+      (itemClick)="checkout.addItem($event)" />
 
   </main>
 
   <!-- ==================== RIGHT: Current Sale Panel ==================== -->
   <aside class="sale-panel">
     <div class="sale-header">
-      <h2>Current sale{{ checkout.cartCount() > 0 ? ' (' + checkout.cartCount() + ')' : '' }}</h2>
-      <button type="button" class="sale-more-btn" aria-label="Sale options">
-        <i class="bi bi-three-dots"></i>
-      </button>
+      <h2>Your Order{{ checkout.cartCount() > 0 ? ' (' + checkout.cartCount() + ')' : '' }}</h2>
     </div>
-
-    <!-- Customer row (placeholder) -->
-    <button type="button" class="customer-row">
-      <div class="customer-avatar">
-        <i class="bi bi-person-fill"></i>
-      </div>
-      <span class="customer-name">Add customer</span>
-      <i class="bi bi-chevron-right customer-chevron"></i>
-    </button>
 
     <!-- Line items -->
     <div class="sale-items">

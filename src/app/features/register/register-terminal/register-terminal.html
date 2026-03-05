@@ -9,9 +9,16 @@
       (tabChange)="selectTopTab($event)"
       (moreClick)="onMoreClick()" />
 
-    <!-- Category pills (only visible on Menu tab) -->
-    @if (activeTopTab() === 'menu') {
+    <!-- Category pills (visible on all tabs except keypad) -->
+    @if (activeTopTab() !== 'keypad' && categories().length > 0) {
       <div class="category-pills">
+        <button
+          type="button"
+          class="category-pill"
+          [class.active]="selectedCategoryId() === null"
+          (click)="selectCategory(null)">
+          All
+        </button>
         @for (cat of categories(); track cat.id) {
           <button
             type="button"

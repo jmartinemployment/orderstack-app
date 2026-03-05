@@ -8,13 +8,11 @@ import {
   effect,
 } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { MenuService } from '@services/menu';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { TableService } from '@services/table';
 import { LoyaltyService } from '@services/loyalty';
 import { CheckoutService } from '@services/checkout';
-import { TopNavigation, TopNavigationTab } from '@shared/top-navigation';
 import { WeightScale } from '@shared/weight-scale';
 import { Checkout } from '@shared/checkout/checkout';
 import { ItemGrid } from '@shared/item-grid';
@@ -25,11 +23,9 @@ import {
   isItemAvailable,
 } from '@models/index';
 
-type TopTab = 'keypad' | 'library' | 'favorites' | 'menu';
-
 @Component({
   selector: 'os-kiosk-terminal',
-  imports: [CurrencyPipe, FormsModule, TopNavigation, WeightScale, Checkout, ItemGrid],
+  imports: [CurrencyPipe, WeightScale, Checkout, ItemGrid],
   templateUrl: './kiosk-terminal.html',
   styleUrl: './kiosk-terminal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,16 +36,6 @@ export class KioskTerminal implements OnInit {
   private readonly tableService = inject(TableService);
   private readonly loyaltyService = inject(LoyaltyService);
   readonly checkout = inject(CheckoutService);
-
-  // Top tab state — default to Favorites
-  readonly topTabs: TopNavigationTab[] = [
-    { key: 'keypad', label: 'Keypad' },
-    { key: 'library', label: 'Library' },
-    { key: 'favorites', label: 'Favorites' },
-    { key: 'menu', label: 'Items' },
-  ];
-  private readonly _activeTopTab = signal<TopTab>('favorites');
-  readonly activeTopTab = this._activeTopTab.asReadonly();
 
   // Menu state
   private readonly _categories = signal<MenuCategory[]>([]);
@@ -89,52 +75,27 @@ export class KioskTerminal implements OnInit {
     );
   }
 
-  // All available kiosk items (used for Favorites fallback)
+  // All available kiosk items
   private readonly allKioskItems = computed(() => {
     return this.kioskFilter(this.collectItems(this._categories()));
   });
 
-  // Filtered items for the grid based on active top tab
+  // Items filtered by selected category
   readonly gridItems = computed(() => {
-    const tab = this._activeTopTab();
-    const cats = this._categories();
-    const allItems = this.allKioskItems();
-
-    if (tab === 'favorites') {
-      const popular = allItems.filter(i => i.popular || i.isPopular);
-      // Fallback: if no items are marked popular, show all items
-      return popular.length > 0 ? popular : allItems;
-    }
-
-    if (tab === 'menu') {
-      const catId = this._selectedCategoryId();
-      if (catId) {
-        const cat = cats.find(c => c.id === catId);
-        return cat ? this.kioskFilter(this.collectItems([cat])) : [];
-      }
-      return allItems;
-    }
-
-    if (tab === 'library') {
-      return allItems;
-    }
-
-    // Keypad tab shows nothing (keypad input mode)
-    return [];
+    const items = this.allKioskItems();
+    const catId = this._selectedCategoryId();
+    if (!catId) return items;
+    const cat = this._categories().find(c => c.id === catId);
+    if (!cat) return items;
+    const catItemIds = new Set(this.collectItems([cat]).map(i => i.id));
+    return items.filter(i => catItemIds.has(i.id));
   });
 
-  // Keypad state
-  private readonly _keypadValue = signal('');
-  readonly keypadValue = this._keypadValue.asReadonly();
-
-  // React to categories loading — field initializer keeps injection context
+  // React to categories loading
   private readonly _categoryEffect = effect(() => {
     const cats = this.menuService.categories();
     if (cats.length > 0) {
       this._categories.set(cats);
-      if (!this._selectedCategoryId() && cats[0]) {
-        this._selectedCategoryId.set(cats[0].id);
-      }
     }
   });
 
@@ -145,30 +106,8 @@ export class KioskTerminal implements OnInit {
     this.loyaltyService.loadConfig();
   }
 
-  // --- Tab navigation ---
-
-  selectTopTab(tab: TopTab | string): void {
-    this._activeTopTab.set(tab as TopTab);
-  }
-
-  onMoreClick(): void {
-    // Placeholder for more menu
-  }
-
-  selectCategory(categoryId: string): void {
+  selectCategory(categoryId: string | null): void {
     this._selectedCategoryId.set(categoryId);
-  }
-
-  // --- Keypad ---
-
-  onKeypadPress(key: string): void {
-    if (key === 'clear') {
-      this._keypadValue.set('');
-    } else if (key === 'backspace') {
-      this._keypadValue.update(v => v.slice(0, -1));
-    } else {
-      this._keypadValue.update(v => v + key);
-    }
   }
 
   formatPrice(price: number | string): number {

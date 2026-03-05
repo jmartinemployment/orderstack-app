@@ -95,28 +95,29 @@ export class RegisterTerminal implements OnInit {
     return this.registerFilter(this.collectItems(this._categories()));
   });
 
-  // Filtered items for the grid based on active top tab
+  // Apply category filter to a list of items
+  private filterByCategory(items: MenuItem[]): MenuItem[] {
+    const catId = this._selectedCategoryId();
+    if (!catId) return items;
+    const cat = this._categories().find(c => c.id === catId);
+    if (!cat) return items;
+    const catItemIds = new Set(this.collectItems([cat]).map(i => i.id));
+    return items.filter(i => catItemIds.has(i.id));
+  }
+
+  // Filtered items for the grid based on active top tab + selected category
   readonly gridItems = computed(() => {
     const tab = this._activeTopTab();
-    const cats = this._categories();
     const allItems = this.allRegisterItems();
 
     if (tab === 'favorites') {
       const popular = allItems.filter(i => i.popular || i.isPopular);
-      return popular.length > 0 ? popular : allItems;
+      const base = popular.length > 0 ? popular : allItems;
+      return this.filterByCategory(base);
     }
 
-    if (tab === 'menu') {
-      const catId = this._selectedCategoryId();
-      if (catId) {
-        const cat = cats.find(c => c.id === catId);
-        return cat ? this.registerFilter(this.collectItems([cat])) : [];
-      }
-      return allItems;
-    }
-
-    if (tab === 'library') {
-      return allItems;
+    if (tab === 'menu' || tab === 'library') {
+      return this.filterByCategory(allItems);
     }
 
     // Keypad tab shows nothing (keypad input mode)
@@ -132,9 +133,6 @@ export class RegisterTerminal implements OnInit {
     const cats = this.menuService.categories();
     if (cats.length > 0) {
       this._categories.set(cats);
-      if (!this._selectedCategoryId() && cats[0]) {
-        this._selectedCategoryId.set(cats[0].id);
-      }
     }
   });
 
@@ -155,7 +153,7 @@ export class RegisterTerminal implements OnInit {
     // Placeholder for more menu
   }
 
-  selectCategory(categoryId: string): void {
+  selectCategory(categoryId: string | null): void {
     this._selectedCategoryId.set(categoryId);
   }
 
