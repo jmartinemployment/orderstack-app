@@ -15,8 +15,8 @@ export class CateringService {
   private readonly authService = inject(AuthService);
   private readonly apiUrl = environment.apiUrl;
 
-  private get restaurantId(): string {
-    return this.authService.selectedMerchantId() ?? '';
+  private get merchantId(): string | null {
+    return this.authService.selectedMerchantId() ?? null;
   }
 
   private readonly _events = signal<CateringEvent[]>([]);
@@ -65,11 +65,14 @@ export class CateringService {
   });
 
   async loadEvents(): Promise<void> {
+    const id = this.merchantId;
+    if (!id) return;
+
     this.isLoading.set(true);
     try {
       const events = await firstValueFrom(
         this.http.get<CateringEvent[]>(
-          `${this.apiUrl}/merchant/${this.restaurantId}/catering/events`
+          `${this.apiUrl}/merchant/${id}/catering/events`
         )
       );
       this._events.set(events);
@@ -81,10 +84,13 @@ export class CateringService {
   }
 
   async loadCapacitySettings(): Promise<void> {
+    const id = this.merchantId;
+    if (!id) return;
+
     try {
       const settings = await firstValueFrom(
         this.http.get<CateringCapacitySettings>(
-          `${this.apiUrl}/merchant/${this.restaurantId}/catering/capacity`
+          `${this.apiUrl}/merchant/${id}/catering/capacity`
         )
       );
       this._capacitySettings.set(settings);
@@ -96,10 +102,16 @@ export class CateringService {
   async createEvent(
     data: Omit<CateringEvent, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<CateringEvent | null> {
+    const id = this.merchantId;
+    if (!id) {
+      console.error('[CateringService] createEvent called with no merchantId');
+      return null;
+    }
+
     try {
       const event = await firstValueFrom(
         this.http.post<CateringEvent>(
-          `${this.apiUrl}/merchant/${this.restaurantId}/catering/events`,
+          `${this.apiUrl}/merchant/${id}/catering/events`,
           data
         )
       );
@@ -111,10 +123,13 @@ export class CateringService {
   }
 
   async updateEvent(id: string, data: Partial<CateringEvent>): Promise<void> {
+    const mid = this.merchantId;
+    if (!mid) return;
+
     try {
       const updated = await firstValueFrom(
         this.http.patch<CateringEvent>(
-          `${this.apiUrl}/merchant/${this.restaurantId}/catering/events/${id}`,
+          `${this.apiUrl}/merchant/${mid}/catering/events/${id}`,
           data
         )
       );
@@ -131,10 +146,13 @@ export class CateringService {
   }
 
   async deleteEvent(id: string): Promise<void> {
+    const mid = this.merchantId;
+    if (!mid) return;
+
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/merchant/${this.restaurantId}/catering/events/${id}`
+          `${this.apiUrl}/merchant/${mid}/catering/events/${id}`
         )
       );
       this._events.update(list => list.filter(e => e.id !== id));
@@ -144,10 +162,13 @@ export class CateringService {
   }
 
   async saveCapacitySettings(settings: CateringCapacitySettings): Promise<void> {
+    const id = this.merchantId;
+    if (!id) return;
+
     try {
       const saved = await firstValueFrom(
         this.http.put<CateringCapacitySettings>(
-          `${this.apiUrl}/merchant/${this.restaurantId}/catering/capacity`,
+          `${this.apiUrl}/merchant/${id}/catering/capacity`,
           settings
         )
       );
