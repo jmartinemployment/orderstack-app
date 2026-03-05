@@ -43,8 +43,7 @@ export class CateringDashboardComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    this.cateringService.loadEvents();
-    this.cateringService.loadCapacitySettings();
+    // Loading handled by CateringService effect when merchantId is ready
   }
 
   setTab(tab: CateringTab): void {

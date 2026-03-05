@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
@@ -17,6 +17,16 @@ export class CateringService {
 
   private get merchantId(): string | null {
     return this.authService.selectedMerchantId() ?? null;
+  }
+
+  constructor() {
+    effect(() => {
+      const mid = this.authService.selectedMerchantId();
+      if (mid) {
+        this.loadEvents();
+        this.loadCapacitySettings();
+      }
+    });
   }
 
   private readonly _events = signal<CateringEvent[]>([]);
