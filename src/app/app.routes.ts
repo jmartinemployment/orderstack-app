@@ -275,7 +275,7 @@ export const routes: Routes = [
   { path: 'multi-location', redirectTo: '/app/multi-location', pathMatch: 'full' },
   { path: 'tip-management', redirectTo: '/app/tip-management', pathMatch: 'full' },
   { path: 'report-builder', redirectTo: '/app/report-builder', pathMatch: 'full' },
-  // online-ordering is now a top-level full-screen route (no sidebar)
+  // /online-ordering (top-level) = customer portal; /app/online-ordering = admin
   { path: 'bookings', redirectTo: '/app/bookings', pathMatch: 'full' },
   { path: 'hardware-guide', redirectTo: '/app/hardware-guide', pathMatch: 'full' },
 
@@ -365,9 +365,9 @@ export const routes: Routes = [
       { path: 'multi-location', loadComponent: () => import('./features/multi-location/multi-location-dashboard/multi-location-dashboard').then(m => m.MultiLocationDashboard) },
       { path: 'settings', loadComponent: () => import('./features/settings/control-panel/control-panel').then(m => m.ControlPanel) },
 
-      // Online ordering moved to top-level full-screen route
-      { path: 'online-ordering', redirectTo: '/online-ordering', pathMatch: 'full' },
-      { path: 'online', redirectTo: '/online-ordering', pathMatch: 'full' },
+      // Online ordering admin (manages channel visibility, online hours)
+      { path: 'online-ordering', loadComponent: () => import('./features/online-ordering/online-ordering-admin/online-ordering-admin').then(m => m.OnlineOrderingAdmin) },
+      { path: 'online', redirectTo: 'online-ordering', pathMatch: 'full' },
 
       // Default — redirect to administration
       { path: '', redirectTo: 'administration', pathMatch: 'full' },
