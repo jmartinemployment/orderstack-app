@@ -6,8 +6,7 @@
     <os-top-navigation
       [tabs]="topTabs"
       [activeTab]="activeTopTab()"
-      (tabChange)="selectTopTab($event)"
-      (moreClick)="onMoreClick()" />
+      (tabChange)="selectTopTab($event)" />
 
     <!-- Category pills (visible on all tabs except keypad) -->
     @if (activeTopTab() !== 'keypad' && categories().length > 0) {

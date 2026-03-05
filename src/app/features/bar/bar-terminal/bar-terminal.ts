@@ -361,10 +361,6 @@ export class BarTerminal implements OnInit, OnDestroy {
     this._activeTopTab.set(tab as TopTab);
   }
 
-  onMoreClick(): void {
-    // Placeholder for more menu
-  }
-
   selectCategory(categoryId: string): void {
     this._selectedCategoryId.set(categoryId || null);
   }

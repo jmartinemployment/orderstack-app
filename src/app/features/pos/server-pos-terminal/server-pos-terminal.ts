@@ -166,10 +166,6 @@ export class ServerPosTerminal implements OnInit {
     this._activeTopTab.set(tab as TopTab);
   }
 
-  onMoreClick(): void {
-    // Placeholder for more menu
-  }
-
   selectCategory(categoryId: string | null): void {
     this._selectedCategoryId.set(categoryId);
   }

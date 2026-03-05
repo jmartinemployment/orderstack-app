@@ -20,5 +20,4 @@ export class TopNavigation {
   readonly tabs = input.required<TopNavigationTab[]>();
   readonly activeTab = input.required<string>();
   readonly tabChange = output<string>();
-  readonly moreClick = output<void>();
 }
