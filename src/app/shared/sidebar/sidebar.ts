@@ -9,6 +9,7 @@ export interface NavItem {
   route: string;
   key?: string;
   alertSeverity?: AlertSeverity;
+  children?: NavItem[];
 }
 
 @Component({

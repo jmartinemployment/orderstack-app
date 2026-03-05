@@ -68,7 +68,7 @@ export class MainLayoutComponent {
     // Staff — no team members is a warning
     const team = this.staffService.teamMembers();
     if (team.length === 0) {
-      alerts['/app/scheduling'] = 'warning';
+      alerts['/app/staff'] = 'warning';
     }
 
     // Items — empty menu is info-level
@@ -126,7 +126,14 @@ export class MainLayoutComponent {
 
     items.push({ label: 'Customers', icon: 'bi-people', route: '/app/customers' });
     items.push({ label: 'Reports', icon: 'bi-bar-chart-line', route: '/app/reports' });
-    items.push({ label: 'Staff', icon: 'bi-person-badge', route: '/app/scheduling' });
+    items.push({
+      label: 'Staff',
+      icon: 'bi-person-badge',
+      route: '/app/staff',
+      children: [
+        { label: 'Scheduling', icon: 'bi-calendar-week', route: '/app/staff/scheduling' },
+      ],
+    });
 
     if (retail) {
       items.push({ label: 'Inventory', icon: 'bi-box-seam', route: '/app/retail/inventory' });

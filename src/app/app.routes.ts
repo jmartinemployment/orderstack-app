@@ -257,7 +257,7 @@ export const routes: Routes = [
   { path: 'suppliers', redirectTo: '/app/suppliers', pathMatch: 'full' },
   { path: 'customers', redirectTo: '/app/customers', pathMatch: 'full' },
   { path: 'reports', redirectTo: '/app/reports', pathMatch: 'full' },
-  { path: 'scheduling', redirectTo: '/app/scheduling', pathMatch: 'full' },
+  { path: 'scheduling', redirectTo: '/app/staff/scheduling', pathMatch: 'full' },
   { path: 'settings', redirectTo: '/app/settings', pathMatch: 'full' },
   { path: 'sales', redirectTo: '/app/sales', pathMatch: 'full' },
   { path: 'command-center', redirectTo: '/app/command-center', pathMatch: 'full' },
@@ -327,8 +327,16 @@ export const routes: Routes = [
 
       // Operations
       { path: 'food-cost', loadComponent: () => import('./features/food-cost/food-cost-dashboard/food-cost-dashboard').then(m => m.FoodCostDashboard) },
-      { path: 'scheduling', loadComponent: () => import('./features/labor/staff-scheduling/staff-scheduling').then(m => m.StaffScheduling) },
-      { path: 'labor', redirectTo: 'scheduling', pathMatch: 'full' },
+      {
+        path: 'staff',
+        canActivate: [roleGuard('owner', 'manager', 'super_admin')],
+        children: [
+          { path: '', loadComponent: () => import('./features/staff/staff-directory/staff-directory').then(m => m.StaffDirectory) },
+          { path: 'scheduling', loadComponent: () => import('./features/labor/staff-scheduling/staff-scheduling').then(m => m.StaffScheduling) },
+        ],
+      },
+      { path: 'scheduling', redirectTo: 'staff/scheduling', pathMatch: 'full' },
+      { path: 'labor', redirectTo: 'staff/scheduling', pathMatch: 'full' },
       { path: 'invoicing', loadComponent: () => import('./features/invoicing/invoice-manager/invoice-manager').then(m => m.InvoiceManager) },
       { path: 'cash-drawer', loadComponent: () => import('./features/pos/cash-drawer/cash-drawer').then(m => m.CashDrawer) },
       { path: 'monitoring', loadComponent: () => import('./features/monitoring/monitoring-agent/monitoring-agent').then(m => m.MonitoringAgent) },

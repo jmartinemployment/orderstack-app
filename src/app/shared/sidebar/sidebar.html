@@ -18,6 +18,7 @@
       <a class="nav-item"
          [routerLink]="item.route"
          routerLinkActive="active"
+         [routerLinkActiveOptions]="item.children ? { exact: true } : { exact: false }"
          [class.nav-alert-critical]="item.alertSeverity === 'critical'"
          [class.nav-alert-warning]="item.alertSeverity === 'warning'"
          [class.nav-alert-info]="item.alertSeverity === 'info'"
@@ -28,6 +29,18 @@
           <span class="nav-label">{{ item.label }}</span>
         }
       </a>
+      @if (item.children && !collapsed()) {
+        @for (child of item.children; track child.route) {
+          <a class="nav-item nav-child"
+             [routerLink]="child.route"
+             routerLinkActive="active"
+             (click)="closeMobile.emit()"
+             [title]="collapsed() ? child.label : ''">
+            <i class="bi {{ child.icon }}"></i>
+            <span class="nav-label">{{ child.label }}</span>
+          </a>
+        }
+      }
     }
   </nav>
 

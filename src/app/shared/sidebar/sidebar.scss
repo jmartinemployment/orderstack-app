@@ -132,6 +132,15 @@ $bg-active: #eef2ff;
   }
 }
 
+.nav-child {
+  padding-left: 42px;
+  font-size: 0.8125rem;
+
+  i {
+    font-size: 0.9375rem;
+  }
+}
+
 :host(.sidebar-collapsed) .nav-item {
   justify-content: center;
   padding: 10px;
