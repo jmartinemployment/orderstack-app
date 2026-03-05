@@ -2,7 +2,7 @@
   <div class="staff-scheduling px-2">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-      <h4 class="mb-0 text-white">
+      <h4 class="mb-0">
         <i class="bi bi-calendar3"></i> Staff Scheduling
       </h4>
     </div>
@@ -107,7 +107,7 @@
         </button>
         <div class="text-center">
           <button class="btn btn-sm btn-outline-secondary me-2" (click)="thisWeek()">This Week</button>
-          <span class="text-white fw-bold">{{ weekStartStr() }} &mdash; {{ weekEndStr() }}</span>
+          <span class="fw-bold">{{ weekStartStr() }} &mdash; {{ weekEndStr() }}</span>
         </div>
         <button class="btn btn-sm btn-outline-light" (click)="nextWeek()">
           Next <i class="bi bi-chevron-right"></i>
@@ -160,7 +160,7 @@
       @if (showSaveTemplateForm()) {
         <div class="save-template-form mb-3">
           <div class="d-flex gap-2 align-items-center">
-            <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary"
+            <input type="text" class="form-control form-control-sm"
               placeholder="Template name (e.g. 'Standard Week')"
               [ngModel]="templateName()" (ngModelChange)="setTemplateName($event)"
               (keydown.enter)="saveCurrentWeekAsTemplate()">
@@ -264,7 +264,7 @@
               [ngModel]="clockInPin()" (ngModelChange)="setClockInPin($event)">
               <option value="">Select staff...</option>
               @for (member of staffRows(); track member.id) {
-                <option [value]="member.id">{{ member.name }} ({{ member.role }})</option>
+                <option [value]="member.id">{{ member.name }}</option>
               }
             </select>
             <button class="btn btn-sm btn-success" (click)="clockIn()" [disabled]="!clockInPin()">
@@ -284,7 +284,7 @@
             <div class="list-group-item border d-flex justify-content-between align-items-center">
               <div>
                 <strong>{{ entry.staffName }}</strong>
-                <span class="badge bg-info ms-2">{{ entry.staffRole }}</span>
+                <span class="badge bg-info ms-2">{{ getJobTitle(entry.staffPinId) }}</span>
                 <div class="text-muted small">
                   Clocked in: {{ entry.clockIn | date:'shortTime' }}
                   &middot; Elapsed: {{ getElapsedTime(entry.clockIn) }}
@@ -310,11 +310,11 @@
       <!-- Range selector -->
       <div class="btn-group mb-3">
         <button class="btn btn-sm" [class.btn-light]="reportRange() === 'week'"
-          [class.btn-outline-light]="reportRange() !== 'week'" (click)="setReportRange('week')">Week</button>
+          [class.btn-outline-secondary]="reportRange() !== 'week'" (click)="setReportRange('week')">Week</button>
         <button class="btn btn-sm" [class.btn-light]="reportRange() === 'biweek'"
-          [class.btn-outline-light]="reportRange() !== 'biweek'" (click)="setReportRange('biweek')">Bi-Weekly</button>
+          [class.btn-outline-secondary]="reportRange() !== 'biweek'" (click)="setReportRange('biweek')">Bi-Weekly</button>
         <button class="btn btn-sm" [class.btn-light]="reportRange() === 'month'"
-          [class.btn-outline-light]="reportRange() !== 'month'" (click)="setReportRange('month')">Month</button>
+          [class.btn-outline-secondary]="reportRange() !== 'month'" (click)="setReportRange('month')">Month</button>
       </div>
 
       <!-- Workweek Config Info -->
@@ -375,7 +375,7 @@
 
         <!-- Labor vs Sales Comparison -->
         @if (report.dailyBreakdown.length > 0) {
-          <h6 class="text-white mb-2"><i class="bi bi-bar-chart-line"></i> Labor vs Revenue</h6>
+          <h6 class="mb-2"><i class="bi bi-bar-chart-line"></i> Labor vs Revenue</h6>
           <div class="labor-vs-sales mb-3">
             @for (day of report.dailyBreakdown; track day.date) {
               <div class="lvs-row">
@@ -401,7 +401,7 @@
 
         <!-- Staff summary table -->
         <div class="table-responsive mb-3">
-          <table class="table table-dark table-sm table-hover">
+          <table class="table table-sm table-hover">
             <thead>
               <tr>
                 <th class="sortable" (click)="sortReport('name')">Name</th>
@@ -417,7 +417,7 @@
               @for (staff of sortedStaffSummaries(); track staff.staffPinId) {
                 <tr [class.overtime-row]="staff.overtimeHours > 0">
                   <td>{{ staff.staffName }}</td>
-                  <td><span class="badge bg-secondary">{{ staff.staffRole }}</span></td>
+                  <td><span class="badge bg-secondary">{{ getJobTitle(staff.staffPinId) }}</span></td>
                   <td>{{ staff.regularHours | number:'1.1-1' }}</td>
                   <td>
                     @if (staff.overtimeHours > 0) {
@@ -449,7 +449,7 @@
 
         <!-- Daily breakdown bars -->
         @if (report.dailyBreakdown.length > 0) {
-          <h6 class="text-white mb-2">Daily Breakdown</h6>
+          <h6 class="mb-2">Daily Breakdown</h6>
           @for (day of report.dailyBreakdown; track day.date) {
             <div class="daily-bar-row d-flex align-items-center mb-1">
               <div class="daily-bar-label">{{ formatDayLabel(day.date) }}</div>
@@ -466,7 +466,7 @@
 
         <!-- Export -->
         <div class="mt-3 text-end">
-          <button class="btn btn-sm btn-outline-light" (click)="exportCSV()">
+          <button class="btn btn-sm btn-outline-secondary" (click)="exportCSV()">
             <i class="bi bi-download"></i> Export CSV
           </button>
         </div>
@@ -481,22 +481,22 @@
     @if (activeTab() === 'edits') {
       <!-- Timecard Edits Section -->
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="text-white mb-0"><i class="bi bi-pencil-square"></i> Timecard Edit Requests</h6>
+        <h6 class="mb-0"><i class="bi bi-pencil-square"></i> Timecard Edit Requests</h6>
         <div class="btn-group btn-group-sm">
           <button class="btn" [class.btn-light]="editsFilter() === 'pending'"
-            [class.btn-outline-light]="editsFilter() !== 'pending'" (click)="setEditsFilter('pending')">
+            [class.btn-outline-secondary]="editsFilter() !== 'pending'" (click)="setEditsFilter('pending')">
             Pending
           </button>
           <button class="btn" [class.btn-light]="editsFilter() === 'approved'"
-            [class.btn-outline-light]="editsFilter() !== 'approved'" (click)="setEditsFilter('approved')">
+            [class.btn-outline-secondary]="editsFilter() !== 'approved'" (click)="setEditsFilter('approved')">
             Approved
           </button>
           <button class="btn" [class.btn-light]="editsFilter() === 'denied'"
-            [class.btn-outline-light]="editsFilter() !== 'denied'" (click)="setEditsFilter('denied')">
+            [class.btn-outline-secondary]="editsFilter() !== 'denied'" (click)="setEditsFilter('denied')">
             Denied
           </button>
           <button class="btn" [class.btn-light]="editsFilter() === 'all'"
-            [class.btn-outline-light]="editsFilter() !== 'all'" (click)="setEditsFilter('all')">
+            [class.btn-outline-secondary]="editsFilter() !== 'all'" (click)="setEditsFilter('all')">
             All
           </button>
         </div>
@@ -533,11 +533,11 @@
               <div class="edit-values d-flex gap-3 mb-1">
                 <div>
                   <span class="text-muted small">Original:</span>
-                  <span class="text-white small ms-1">{{ edit.originalValue }}</span>
+                  <span class="small ms-1">{{ edit.originalValue }}</span>
                 </div>
                 <div>
                   <span class="text-muted small">Requested:</span>
-                  <span class="text-white small ms-1 fw-bold">{{ edit.newValue }}</span>
+                  <span class="small ms-1 fw-bold">{{ edit.newValue }}</span>
                 </div>
               </div>
               <div class="text-muted small">
@@ -572,7 +572,7 @@
       <div class="section-divider my-4"></div>
 
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="text-white mb-0">
+        <h6 class="mb-0">
           <i class="bi bi-calendar-heart"></i> Time Off Requests
           @if (pendingPtoCount() > 0) {
             <span class="badge bg-warning text-dark ms-1">{{ pendingPtoCount() }}</span>
@@ -580,19 +580,19 @@
         </h6>
         <div class="btn-group btn-group-sm">
           <button class="btn" [class.btn-light]="ptoFilter() === 'pending'"
-            [class.btn-outline-light]="ptoFilter() !== 'pending'" (click)="setPtoFilter('pending')">
+            [class.btn-outline-secondary]="ptoFilter() !== 'pending'" (click)="setPtoFilter('pending')">
             Pending
           </button>
           <button class="btn" [class.btn-light]="ptoFilter() === 'approved'"
-            [class.btn-outline-light]="ptoFilter() !== 'approved'" (click)="setPtoFilter('approved')">
+            [class.btn-outline-secondary]="ptoFilter() !== 'approved'" (click)="setPtoFilter('approved')">
             Approved
           </button>
           <button class="btn" [class.btn-light]="ptoFilter() === 'denied'"
-            [class.btn-outline-light]="ptoFilter() !== 'denied'" (click)="setPtoFilter('denied')">
+            [class.btn-outline-secondary]="ptoFilter() !== 'denied'" (click)="setPtoFilter('denied')">
             Denied
           </button>
           <button class="btn" [class.btn-light]="ptoFilter() === 'all'"
-            [class.btn-outline-light]="ptoFilter() !== 'all'" (click)="setPtoFilter('all')">
+            [class.btn-outline-secondary]="ptoFilter() !== 'all'" (click)="setPtoFilter('all')">
             All
           </button>
         </div>
@@ -622,10 +622,10 @@
               </div>
               <div class="pto-dates d-flex align-items-center gap-2 mb-1">
                 <i class="bi bi-calendar-range text-muted"></i>
-                <span class="text-white small">{{ req.startDate | date:'mediumDate' }}</span>
+                <span class="small">{{ req.startDate | date:'mediumDate' }}</span>
                 <i class="bi bi-arrow-right text-muted" style="font-size: 0.7rem;"></i>
-                <span class="text-white small">{{ req.endDate | date:'mediumDate' }}</span>
-                <span class="badge bg-dark">{{ req.hoursRequested }}h</span>
+                <span class="small">{{ req.endDate | date:'mediumDate' }}</span>
+                <span class="badge bg-secondary">{{ req.hoursRequested }}h</span>
               </div>
               @if (req.reason) {
                 <div class="text-muted small">
@@ -662,7 +662,7 @@
     @if (activeTab() === 'payroll') {
       <!-- Payroll Header -->
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="text-white mb-0"><i class="bi bi-wallet2"></i> Payroll Periods</h6>
+        <h6 class="mb-0"><i class="bi bi-wallet2"></i> Payroll Periods</h6>
         <button class="btn btn-sm btn-primary" (click)="openGeneratePayroll()">
           <i class="bi bi-plus-lg"></i> Generate Period
         </button>
@@ -671,16 +671,16 @@
       <!-- Generate Payroll Form -->
       @if (showGeneratePayroll()) {
         <div class="generate-payroll-form mb-3">
-          <h6 class="text-white mb-2">Generate Payroll Period</h6>
+          <h6 class="mb-2">Generate Payroll Period</h6>
           <div class="row g-2 mb-2">
             <div class="col-md-5">
               <label class="form-label small text-muted">Start Date</label>
-              <input type="date" class="form-control form-control-sm bg-dark text-white border-secondary"
+              <input type="date" class="form-control form-control-sm"
                 [ngModel]="payrollStartDate()" (ngModelChange)="setPayrollStartDate($event)">
             </div>
             <div class="col-md-5">
               <label class="form-label small text-muted">End Date</label>
-              <input type="date" class="form-control form-control-sm bg-dark text-white border-secondary"
+              <input type="date" class="form-control form-control-sm"
                 [ngModel]="payrollEndDate()" (ngModelChange)="setPayrollEndDate($event)">
             </div>
             <div class="col-md-2 d-flex align-items-end gap-2">
@@ -718,7 +718,7 @@
             <div class="d-flex align-items-center gap-2">
               <i class="bi" [class.bi-chevron-right]="expandedPayrollId() !== period.id"
                 [class.bi-chevron-down]="expandedPayrollId() === period.id"></i>
-              <span class="text-white fw-bold">
+              <span class="fw-bold">
                 {{ period.periodStart | date:'mediumDate' }} &mdash; {{ period.periodEnd | date:'mediumDate' }}
               </span>
               <span [class]="getPayrollStatusClass(period.status)">{{ period.status }}</span>
@@ -726,7 +726,7 @@
             <div class="d-flex align-items-center gap-3">
               <span class="payroll-summary-stat">
                 <span class="text-muted small">Gross:</span>
-                <span class="text-white fw-bold ms-1">{{ period.totalGrossPay | currency }}</span>
+                <span class="fw-bold ms-1">{{ period.totalGrossPay | currency }}</span>
               </span>
               <span class="payroll-summary-stat">
                 <span class="text-muted small">OT:</span>
@@ -863,7 +863,7 @@
       <div class="section-divider my-4"></div>
 
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="text-white mb-0"><i class="bi bi-percent"></i> Commission Rules</h6>
+        <h6 class="mb-0"><i class="bi bi-percent"></i> Commission Rules</h6>
         <button class="btn btn-sm btn-outline-light" (click)="openNewCommission()">
           <i class="bi bi-plus-lg"></i> Add Rule
         </button>
@@ -872,7 +872,7 @@
       <!-- Commission Form -->
       @if (showCommissionForm()) {
         <div class="commission-form mb-3">
-          <h6 class="text-white mb-2">
+          <h6 class="mb-2">
             @if (editingCommission()) {
               Edit Commission Rule
             } @else {
@@ -882,19 +882,19 @@
           <div class="row g-2 mb-2">
             <div class="col-md-4">
               <label class="form-label small text-muted">Rule Name</label>
-              <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary"
+              <input type="text" class="form-control form-control-sm"
                 placeholder="e.g. Server Sales Bonus"
                 [ngModel]="commissionForm().name" (ngModelChange)="updateCommissionForm('name', $event)">
             </div>
             <div class="col-md-3">
               <label class="form-label small text-muted">Job Title</label>
-              <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary"
+              <input type="text" class="form-control form-control-sm"
                 placeholder="e.g. Server"
                 [ngModel]="commissionForm().jobTitle" (ngModelChange)="updateCommissionForm('jobTitle', $event)">
             </div>
             <div class="col-md-2">
               <label class="form-label small text-muted">Type</label>
-              <select class="form-select form-select-sm bg-dark text-white border-secondary"
+              <select class="form-select form-select-sm"
                 [ngModel]="commissionForm().type" (ngModelChange)="updateCommissionForm('type', $event)">
                 <option value="percentage">Percentage</option>
                 <option value="flat_per_order">Flat per Order</option>
@@ -902,13 +902,13 @@
             </div>
             <div class="col-md-1">
               <label class="form-label small text-muted">Rate</label>
-              <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary"
+              <input type="number" class="form-control form-control-sm"
                 [ngModel]="commissionForm().rate" (ngModelChange)="updateCommissionForm('rate', +$event)"
                 min="0" step="0.5">
             </div>
             <div class="col-md-2">
               <label class="form-label small text-muted">Min. Sales ($)</label>
-              <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary"
+              <input type="number" class="form-control form-control-sm"
                 [ngModel]="commissionForm().minimumSales" (ngModelChange)="updateCommissionForm('minimumSales', +$event)"
                 min="0" step="50">
             </div>
@@ -936,14 +936,14 @@
         <div class="commission-rule-card mb-2">
           <div class="d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center gap-2">
-              <span class="text-white fw-bold">{{ rule.name }}</span>
+              <span class="fw-bold">{{ rule.name }}</span>
               <span class="badge bg-secondary">{{ rule.jobTitle }}</span>
               @if (!rule.isActive) {
-                <span class="badge bg-dark">Inactive</span>
+                <span class="badge bg-secondary">Inactive</span>
               }
             </div>
             <div class="d-flex align-items-center gap-3">
-              <span class="text-white small">
+              <span class="small">
                 @if (rule.type === 'percentage') {
                   {{ rule.rate }}% of sales
                 } @else {
@@ -1013,7 +1013,7 @@
       <div class="d-flex justify-content-between align-items-center mb-3">
         <div class="btn-group btn-group-sm">
           <button class="btn" [class.btn-light]="complianceFilter() === 'all'"
-            [class.btn-outline-light]="complianceFilter() !== 'all'" (click)="setComplianceFilter('all')">
+            [class.btn-outline-secondary]="complianceFilter() !== 'all'" (click)="setComplianceFilter('all')">
             All
           </button>
           <button class="btn" [class.btn-danger]="complianceFilter() === 'critical'"
@@ -1083,7 +1083,7 @@
     @if (showShiftModal()) {
       <div class="modal-backdrop" (click)="closeShiftModal()"></div>
       <div class="modal-dialog">
-        <div class="modal-content bg-dark text-white border-secondary">
+        <div class="modal-content">
           <div class="modal-header border-secondary">
             <h5 class="modal-title">
               @if (editingShift()) {
@@ -1097,34 +1097,34 @@
           <div class="modal-body">
             <div class="mb-3">
               <label class="form-label">Staff</label>
-              <select class="form-select bg-dark text-white border-secondary"
+              <select class="form-select"
                 [ngModel]="shiftForm().staffPinId" (ngModelChange)="updateShiftForm('staffPinId', $event)">
                 <option value="">Select staff...</option>
                 @for (member of staffRows(); track member.id) {
-                  <option [value]="member.id">{{ member.name }} ({{ member.role }})</option>
+                  <option [value]="member.id">{{ member.name }}</option>
                 }
               </select>
             </div>
             <div class="mb-3">
               <label class="form-label">Date</label>
-              <input type="date" class="form-control bg-dark text-white border-secondary"
+              <input type="date" class="form-control"
                 [ngModel]="shiftForm().date" (ngModelChange)="updateShiftForm('date', $event)">
             </div>
             <div class="row mb-3">
               <div class="col-6">
                 <label class="form-label">Start Time</label>
-                <input type="time" class="form-control bg-dark text-white border-secondary"
+                <input type="time" class="form-control"
                   [ngModel]="shiftForm().startTime" (ngModelChange)="updateShiftForm('startTime', $event)">
               </div>
               <div class="col-6">
                 <label class="form-label">End Time</label>
-                <input type="time" class="form-control bg-dark text-white border-secondary"
+                <input type="time" class="form-control"
                   [ngModel]="shiftForm().endTime" (ngModelChange)="updateShiftForm('endTime', $event)">
               </div>
             </div>
             <div class="mb-3">
               <label class="form-label">Position</label>
-              <select class="form-select bg-dark text-white border-secondary"
+              <select class="form-select"
                 [ngModel]="shiftForm().position" (ngModelChange)="updateShiftForm('position', $event)">
                 <option value="server">Server</option>
                 <option value="cook">Cook</option>
@@ -1136,13 +1136,13 @@
             </div>
             <div class="mb-3">
               <label class="form-label">Break (minutes)</label>
-              <input type="number" class="form-control bg-dark text-white border-secondary"
+              <input type="number" class="form-control"
                 min="0" max="120"
                 [ngModel]="shiftForm().breakMinutes" (ngModelChange)="updateShiftForm('breakMinutes', +$event)">
             </div>
             <div class="mb-3">
               <label class="form-label">Notes</label>
-              <textarea class="form-control bg-dark text-white border-secondary" rows="2"
+              <textarea class="form-control" rows="2"
                 [ngModel]="shiftForm().notes" (ngModelChange)="updateShiftForm('notes', $event)"></textarea>
             </div>
           </div>

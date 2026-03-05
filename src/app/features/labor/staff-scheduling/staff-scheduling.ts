@@ -1015,6 +1015,11 @@ export class StaffScheduling implements OnDestroy {
     return `${days[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`;
   }
 
+  getJobTitle(staffPinId: string): string {
+    const member = this.staffRows().find(m => m.id === staffPinId);
+    return member?.role ?? '—';
+  }
+
   getElapsedTime(clockIn: string): string {
     const diff = Date.now() - new Date(clockIn).getTime();
     const hours = Math.floor(diff / 3600000);
