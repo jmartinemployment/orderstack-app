@@ -27,23 +27,6 @@
     </div>
   </header>
 
-  <!-- Portal Link -->
-  @if (portalUrl()) {
-    <div class="portal-link-card">
-      <div class="portal-info">
-        <i class="bi bi-globe"></i>
-        <div class="portal-text">
-          <span class="portal-label">Your online ordering link</span>
-          <a [href]="portalUrl()" target="_blank" class="portal-url">{{ portalUrl() }}</a>
-        </div>
-      </div>
-      <button type="button" class="copy-btn" (click)="copyPortalUrl()">
-        <i class="bi bi-clipboard"></i>
-        Copy
-      </button>
-    </div>
-  }
-
   <!-- Stats row -->
   <div class="stats-row">
     <div class="stat-card">

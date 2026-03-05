@@ -11,10 +11,8 @@ import { CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MenuService } from '@services/menu';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
-import { AuthService } from '@services/auth';
 import { MenuItem, MenuCategory } from '@models/index';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
-import { environment } from '@environments/environment';
 
 @Component({
   selector: 'os-online-ordering-admin',
@@ -26,7 +24,6 @@ import { environment } from '@environments/environment';
 export class OnlineOrderingAdmin implements OnInit {
   private readonly menuService = inject(MenuService);
   private readonly settingsService = inject(RestaurantSettingsService);
-  private readonly authService = inject(AuthService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   readonly isLoading = this.menuService.isLoading;
@@ -40,17 +37,6 @@ export class OnlineOrderingAdmin implements OnInit {
   readonly searchQuery = this._searchQuery.asReadonly();
 
   readonly saveMessage = signal<string | null>(null);
-
-  // Public portal URL
-  readonly portalUrl = computed(() => {
-    const merchantId = this.authService.selectedMerchantId();
-    const merchant = this.authService.merchants().find(m => m.id === merchantId);
-    if (!merchant) return null;
-    const base = environment.production
-      ? 'https://www.getorderstack.com'
-      : 'http://localhost:4200';
-    return `${base}/order/${merchant.slug}`;
-  });
 
   // Collect all items from category tree
   private collectItems(cats: MenuCategory[]): MenuItem[] {
@@ -117,14 +103,6 @@ export class OnlineOrderingAdmin implements OnInit {
       enabled: !current.enabled,
     });
     this.showSaveMessage(current.enabled ? 'Online ordering disabled' : 'Online ordering enabled');
-  }
-
-  copyPortalUrl(): void {
-    const url = this.portalUrl();
-    if (url) {
-      navigator.clipboard.writeText(url);
-      this.showSaveMessage('Link copied to clipboard');
-    }
   }
 
   private showSaveMessage(msg: string): void {
