@@ -80,7 +80,8 @@ export class StaffDirectory implements OnInit {
         m.displayName.toLowerCase().includes(q) ||
         (m.email?.toLowerCase().includes(q) ?? false) ||
         (m.phone?.includes(q) ?? false) ||
-        m.role.toLowerCase().includes(q)
+        m.role.toLowerCase().includes(q) ||
+        m.jobs.some(j => j.jobTitle.toLowerCase().includes(q))
       );
     }
     return members;
