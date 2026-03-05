@@ -367,6 +367,7 @@ export const routes: Routes = [
 
       // Online ordering moved to top-level full-screen route
       { path: 'online-ordering', redirectTo: '/online-ordering', pathMatch: 'full' },
+      { path: 'online', redirectTo: '/online-ordering', pathMatch: 'full' },
 
       // Default — redirect to administration
       { path: '', redirectTo: 'administration', pathMatch: 'full' },

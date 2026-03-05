@@ -121,7 +121,7 @@ export class MainLayoutComponent {
     if (retail) {
       items.push({ label: 'Online Store', icon: 'bi-globe', route: '/app/retail/ecommerce' });
     } else if (restaurant && hasModule(modules, 'online_ordering')) {
-      items.push({ label: 'Online', icon: 'bi-globe', route: '/app/settings', key: 'online-settings' });
+      items.push({ label: 'Online', icon: 'bi-globe', route: '/app/online-ordering' });
     }
 
     items.push({ label: 'Customers', icon: 'bi-people', route: '/app/customers' });

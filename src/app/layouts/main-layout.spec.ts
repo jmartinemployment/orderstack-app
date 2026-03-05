@@ -46,7 +46,7 @@ function buildNavItems(
   if (isRetail) {
     items.push({ label: 'Online Store', icon: 'bi-globe', route: '/retail/ecommerce' });
   } else if (isRestaurant && hasModule(modules, 'online_ordering')) {
-    items.push({ label: 'Online', icon: 'bi-globe', route: '/settings' });
+    items.push({ label: 'Online', icon: 'bi-globe', route: '/online-ordering' });
   }
 
   items.push({ label: 'Customers', icon: 'bi-people', route: '/customers' });
