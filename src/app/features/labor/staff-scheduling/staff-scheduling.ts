@@ -286,7 +286,7 @@ export class StaffScheduling implements OnDestroy {
         staffMap.set(tm.staffPinId, {
           id: tm.staffPinId,
           name: tm.displayName,
-          role: primaryJob?.jobTitle ?? 'staff',
+          role: primaryJob?.jobTitle ?? tm.jobs[0]?.jobTitle ?? '—',
           teamMemberId: tm.id,
         });
       }
