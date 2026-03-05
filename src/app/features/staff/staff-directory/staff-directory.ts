@@ -372,7 +372,7 @@ export class StaffDirectory implements OnInit {
 
   getPrimaryJobTitle(member: TeamMember): string {
     const primary = member.jobs.find(j => j.isPrimary);
-    return primary?.jobTitle ?? member.jobs[0]?.jobTitle ?? 'No job assigned';
+    return primary?.jobTitle ?? member.jobs[0]?.jobTitle ?? '—';
   }
 
   getPrimaryHourlyRate(member: TeamMember): number {
