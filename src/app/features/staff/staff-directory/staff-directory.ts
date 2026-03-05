@@ -77,11 +77,11 @@ export class StaffDirectory implements OnInit {
     const q = this._searchQuery().toLowerCase().trim();
     if (q) {
       members = members.filter(m =>
-        m.displayName.toLowerCase().includes(q) ||
-        (m.email?.toLowerCase().includes(q) ?? false) ||
-        (m.phone?.includes(q) ?? false) ||
-        m.role.toLowerCase().includes(q) ||
-        m.jobs.some(j => j.jobTitle.toLowerCase().includes(q))
+        (m.displayName ?? '').toLowerCase().includes(q) ||
+        (m.email ?? '').toLowerCase().includes(q) ||
+        (m.phone ?? '').toLowerCase().includes(q) ||
+        (m.role ?? '').toLowerCase().includes(q) ||
+        (m.jobs ?? []).some(j => (j.jobTitle ?? '').toLowerCase().includes(q))
       );
     }
     return members;
