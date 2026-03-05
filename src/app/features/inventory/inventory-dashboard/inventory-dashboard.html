@@ -72,8 +72,27 @@
           </div>
         </div>
 
+        <!-- Expired -->
+        @if (expiredItems().length > 0) {
+          <div class="panel mb-4">
+            <h5 class="panel-title mb-2">Expired</h5>
+            @for (exp of expiredItems(); track exp.inventoryItemId) {
+              <div class="alert-card alert-critical">
+                <span class="alert-icon">!!</span>
+                <div class="alert-body">
+                  <div class="alert-header">
+                    <strong>{{ exp.itemName }}</strong>
+                    <span class="badge bg-danger">Expired</span>
+                  </div>
+                  <small class="text-muted">{{ exp.currentStock }} {{ exp.unit }} — Expired {{ exp.expirationDate | date:'shortDate' }}</small>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
         <!-- Expiring Soon -->
-        @if (expiringItems().length > 0) {
+        @if (expiringSoonItems().length > 0) {
           <div class="panel mb-4">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <h5 class="panel-title mb-0">Expiring Soon</h5>
@@ -87,17 +106,14 @@
                 <option [value]="30">Next 30 days</option>
               </select>
             </div>
-            @for (exp of expiringItems(); track exp.inventoryItemId) {
+            @for (exp of expiringSoonItems(); track exp.inventoryItemId) {
               <div class="alert-card" [class]="getExpirationUrgencyClass(exp.daysUntilExpiration) === 'urgency-critical' ? 'alert-critical' : getExpirationUrgencyClass(exp.daysUntilExpiration) === 'urgency-warning' ? 'alert-warning-custom' : 'alert-info-custom'">
                 <span class="alert-icon">!</span>
                 <div class="alert-body">
                   <div class="alert-header">
                     <strong>{{ exp.itemName }}</strong>
-                    <span class="badge"
-                      [class.bg-danger]="exp.daysUntilExpiration <= 1"
-                      [class.bg-warning]="exp.daysUntilExpiration > 1 && exp.daysUntilExpiration <= 3"
-                      [class.bg-info]="exp.daysUntilExpiration > 3">
-                      {{ exp.daysUntilExpiration }} day{{ exp.daysUntilExpiration !== 1 ? 's' : '' }}
+                    <span class="badge" [class]="getExpirationBadgeClass(exp.daysUntilExpiration)">
+                      {{ getExpirationBadgeLabel(exp.daysUntilExpiration) }}
                     </span>
                   </div>
                   <small class="text-muted">{{ exp.currentStock }} {{ exp.unit }} — Expires {{ exp.expirationDate | date:'shortDate' }}</small>

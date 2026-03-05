@@ -78,6 +78,14 @@ export class InventoryDashboard implements OnInit {
   // Expiring items config
   private readonly _expirationDays = signal(7);
 
+  readonly expiredItems = computed(() =>
+    this.expiringItems().filter(e => e.daysUntilExpiration < 0)
+  );
+
+  readonly expiringSoonItems = computed(() =>
+    this.expiringItems().filter(e => e.daysUntilExpiration >= 0)
+  );
+
   readonly activeTab = this._activeTab.asReadonly();
   readonly searchTerm = this._searchTerm.asReadonly();
   readonly categoryFilter = this._categoryFilter.asReadonly();
@@ -438,9 +446,24 @@ export class InventoryDashboard implements OnInit {
   }
 
   getExpirationUrgencyClass(days: number): string {
-    if (days <= 1) return 'urgency-critical';
+    if (days < 0) return 'urgency-critical';
+    if (days === 0) return 'urgency-critical';
     if (days <= 3) return 'urgency-warning';
     return 'urgency-ok';
+  }
+
+  getExpirationBadgeLabel(days: number): string {
+    if (days < 0) return 'Expired';
+    if (days === 0) return 'Today';
+    if (days === 1) return '1 day';
+    return `${days} days`;
+  }
+
+  getExpirationBadgeClass(days: number): string {
+    if (days < 0) return 'bg-danger';
+    if (days === 0) return 'bg-danger';
+    if (days <= 3) return 'bg-danger';
+    return 'bg-warning';
   }
 
   // ── Unit Conversions ──
