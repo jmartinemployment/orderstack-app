@@ -2,9 +2,47 @@
   <header class="page-header">
     <div class="header-left">
       <h1>Online Ordering</h1>
-      <p class="header-subtitle">Manage which items appear on your online ordering menu</p>
+      <p class="header-subtitle">Manage your online ordering menu and settings</p>
+    </div>
+    <div class="header-actions">
+      <div class="toggle-row">
+        <span class="toggle-label">
+          @if (onlinePricingSettings().enabled) {
+            <i class="bi bi-check-circle-fill toggle-icon enabled"></i>
+            Online ordering is live
+          } @else {
+            <i class="bi bi-x-circle-fill toggle-icon disabled"></i>
+            Online ordering is off
+          }
+        </span>
+        <button
+          type="button"
+          class="toggle-btn"
+          [class.active]="onlinePricingSettings().enabled"
+          (click)="toggleOnlineOrdering()"
+          aria-label="Toggle online ordering">
+          <span class="toggle-thumb"></span>
+        </button>
+      </div>
     </div>
   </header>
+
+  <!-- Portal Link -->
+  @if (portalUrl()) {
+    <div class="portal-link-card">
+      <div class="portal-info">
+        <i class="bi bi-globe"></i>
+        <div class="portal-text">
+          <span class="portal-label">Your online ordering link</span>
+          <a [href]="portalUrl()" target="_blank" class="portal-url">{{ portalUrl() }}</a>
+        </div>
+      </div>
+      <button type="button" class="copy-btn" (click)="copyPortalUrl()">
+        <i class="bi bi-clipboard"></i>
+        Copy
+      </button>
+    </div>
+  }
 
   <!-- Stats row -->
   <div class="stats-row">
@@ -127,3 +165,11 @@
     </div>
   }
 </div>
+
+<!-- Save/action toast -->
+@if (saveMessage()) {
+  <div class="admin-toast">
+    <i class="bi bi-check-circle-fill"></i>
+    <span>{{ saveMessage() }}</span>
+  </div>
+}

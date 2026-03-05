@@ -4,6 +4,7 @@ import { guestGuard } from './guards/guest.guard';
 import { onboardingGuard } from './guards/onboarding.guard';
 import { deviceModeRedirectGuard } from './guards/device-mode.guard';
 import { administrationGuard } from './guards/administration.guard';
+import { roleGuard } from './guards/role.guard';
 import { deviceInitResolver } from './resolvers/device-init.resolver';
 import { MainLayoutComponent } from './layouts/main-layout.component';
 import { AuthLayoutComponent } from './layouts/auth-layout.component';
@@ -365,8 +366,8 @@ export const routes: Routes = [
       { path: 'multi-location', loadComponent: () => import('./features/multi-location/multi-location-dashboard/multi-location-dashboard').then(m => m.MultiLocationDashboard) },
       { path: 'settings', loadComponent: () => import('./features/settings/control-panel/control-panel').then(m => m.ControlPanel) },
 
-      // Online ordering admin (manages channel visibility, online hours)
-      { path: 'online-ordering', loadComponent: () => import('./features/online-ordering/online-ordering-admin/online-ordering-admin').then(m => m.OnlineOrderingAdmin) },
+      // Online ordering admin (manages channel visibility, online hours) — owner/manager only
+      { path: 'online-ordering', canActivate: [roleGuard('owner', 'manager', 'super_admin')], loadComponent: () => import('./features/online-ordering/online-ordering-admin/online-ordering-admin').then(m => m.OnlineOrderingAdmin) },
       { path: 'online', redirectTo: 'online-ordering', pathMatch: 'full' },
 
       // Default — redirect to administration
