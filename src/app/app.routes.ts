@@ -276,6 +276,7 @@ export const routes: Routes = [
   { path: 'tip-management', redirectTo: '/app/tip-management', pathMatch: 'full' },
   { path: 'report-builder', redirectTo: '/app/report-builder', pathMatch: 'full' },
   // online-ordering is now a top-level full-screen route (no sidebar)
+  { path: 'bookings', redirectTo: '/app/bookings', pathMatch: 'full' },
   { path: 'hardware-guide', redirectTo: '/app/hardware-guide', pathMatch: 'full' },
 
   // Authenticated routes
