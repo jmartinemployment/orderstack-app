@@ -67,6 +67,20 @@ export interface TeamMember {
   onboardingStatus: OnboardingStatus;
   createdAt: string;
   staffPinId: string | null;
+  taxInfo: StaffTaxInfo | null;
+}
+
+export type TaxFilingStatus = 'single' | 'married_jointly' | 'married_separately' | 'head_of_household' | 'qualifying_widow';
+
+export interface StaffTaxInfo {
+  filingStatus: TaxFilingStatus;
+  multipleJobs: boolean;
+  qualifyingChildrenAmount: number;
+  otherDependentsAmount: number;
+  otherIncome: number;
+  deductions: number;
+  extraWithholding: number;
+  state: string;
 }
 
 export interface TeamMemberFormData {
@@ -80,6 +94,7 @@ export interface TeamMemberFormData {
   assignedLocationIds?: string[];
   hireDate?: string;
   jobs: TeamMemberJobFormData[];
+  taxInfo?: StaffTaxInfo;
 }
 
 // --- Permission Sets ---

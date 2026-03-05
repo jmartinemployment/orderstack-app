@@ -16,6 +16,8 @@ import {
   TeamMemberJobFormData,
   OnboardingChecklist,
   OnboardingStep,
+  TaxFilingStatus,
+  StaffTaxInfo,
 } from '@models/index';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 
@@ -28,6 +30,15 @@ interface JobRow {
   isPrimary: boolean;
   overtimeEligible: boolean;
 }
+
+const US_STATES = [
+  'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
+  'KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
+  'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT',
+  'VA','WA','WV','WI','WY','DC',
+];
+
+const NO_INCOME_TAX_STATES = ['AK','FL','NV','NH','SD','TN','TX','WA','WY'];
 
 const EMPTY_JOB: JobRow = {
   jobTitle: '',
@@ -107,6 +118,16 @@ export class StaffDirectory implements OnInit {
   private readonly _isSaving = signal(false);
   private readonly _formError = signal<string | null>(null);
 
+  // Tax info form signals
+  private readonly _taxFilingStatus = signal<TaxFilingStatus>('single');
+  private readonly _taxMultipleJobs = signal(false);
+  private readonly _taxChildrenAmount = signal(0);
+  private readonly _taxOtherDependents = signal(0);
+  private readonly _taxOtherIncome = signal(0);
+  private readonly _taxDeductions = signal(0);
+  private readonly _taxExtraWithholding = signal(0);
+  private readonly _taxState = signal('FL');
+
   readonly formName = this._formName.asReadonly();
   readonly formEmail = this._formEmail.asReadonly();
   readonly formPhone = this._formPhone.asReadonly();
@@ -115,6 +136,17 @@ export class StaffDirectory implements OnInit {
   readonly formJobs = this._formJobs.asReadonly();
   readonly isSaving = this._isSaving.asReadonly();
   readonly formError = this._formError.asReadonly();
+
+  readonly taxFilingStatus = this._taxFilingStatus.asReadonly();
+  readonly taxMultipleJobs = this._taxMultipleJobs.asReadonly();
+  readonly taxChildrenAmount = this._taxChildrenAmount.asReadonly();
+  readonly taxOtherDependents = this._taxOtherDependents.asReadonly();
+  readonly taxOtherIncome = this._taxOtherIncome.asReadonly();
+  readonly taxDeductions = this._taxDeductions.asReadonly();
+  readonly taxExtraWithholding = this._taxExtraWithholding.asReadonly();
+  readonly taxState = this._taxState.asReadonly();
+  readonly usStates = US_STATES;
+  readonly noIncomeTaxStates = NO_INCOME_TAX_STATES;
 
   // Toast
   readonly toastMessage = signal<string | null>(null);
@@ -222,6 +254,7 @@ export class StaffDirectory implements OnInit {
     this._formPasscode.set('');
     this._formHireDate.set('');
     this._formJobs.set([{ ...EMPTY_JOB }]);
+    this.resetTaxFields(null);
     this._formError.set(null);
     this._viewMode.set('add');
   }
@@ -244,6 +277,7 @@ export class StaffDirectory implements OnInit {
           }))
         : [{ ...EMPTY_JOB }]
     );
+    this.resetTaxFields(member.taxInfo);
     this._formError.set(null);
     this._viewMode.set('edit');
   }
@@ -258,6 +292,26 @@ export class StaffDirectory implements OnInit {
   setFormPhone(v: string): void { this._formPhone.set(v); }
   setFormPasscode(v: string): void { this._formPasscode.set(v); }
   setFormHireDate(v: string): void { this._formHireDate.set(v); }
+
+  setTaxFilingStatus(v: TaxFilingStatus): void { this._taxFilingStatus.set(v); }
+  setTaxMultipleJobs(v: boolean): void { this._taxMultipleJobs.set(v); }
+  setTaxChildrenAmount(v: number): void { this._taxChildrenAmount.set(Math.max(0, v)); }
+  setTaxOtherDependents(v: number): void { this._taxOtherDependents.set(Math.max(0, v)); }
+  setTaxOtherIncome(v: number): void { this._taxOtherIncome.set(Math.max(0, v)); }
+  setTaxDeductions(v: number): void { this._taxDeductions.set(Math.max(0, v)); }
+  setTaxExtraWithholding(v: number): void { this._taxExtraWithholding.set(Math.max(0, v)); }
+  setTaxState(v: string): void { this._taxState.set(v); }
+
+  private resetTaxFields(taxInfo: StaffTaxInfo | null): void {
+    this._taxFilingStatus.set(taxInfo?.filingStatus ?? 'single');
+    this._taxMultipleJobs.set(taxInfo?.multipleJobs ?? false);
+    this._taxChildrenAmount.set(taxInfo?.qualifyingChildrenAmount ?? 0);
+    this._taxOtherDependents.set(taxInfo?.otherDependentsAmount ?? 0);
+    this._taxOtherIncome.set(taxInfo?.otherIncome ?? 0);
+    this._taxDeductions.set(taxInfo?.deductions ?? 0);
+    this._taxExtraWithholding.set(taxInfo?.extraWithholding ?? 0);
+    this._taxState.set(taxInfo?.state ?? 'FL');
+  }
 
   updateJobField(index: number, field: keyof JobRow, value: string | number | boolean): void {
     this._formJobs.update(jobs => {
@@ -310,6 +364,16 @@ export class StaffDirectory implements OnInit {
       passcode: this._formPasscode().trim() || undefined,
       hireDate: this._formHireDate() || undefined,
       jobs,
+      taxInfo: {
+        filingStatus: this._taxFilingStatus(),
+        multipleJobs: this._taxMultipleJobs(),
+        qualifyingChildrenAmount: this._taxChildrenAmount(),
+        otherDependentsAmount: this._taxOtherDependents(),
+        otherIncome: this._taxOtherIncome(),
+        deductions: this._taxDeductions(),
+        extraWithholding: this._taxExtraWithholding(),
+        state: this._taxState(),
+      },
     };
 
     let success: boolean;

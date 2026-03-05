@@ -316,6 +316,89 @@
         }
       </div>
 
+      <!-- W-4 Tax Information -->
+      <div class="tax-section">
+        <div class="tax-header">
+          <h3>W-4 Tax Information</h3>
+          <span class="tax-subtitle">Federal withholding elections</span>
+        </div>
+
+        <div class="form-grid">
+          <!-- Step 1: Filing Status -->
+          <div class="form-group form-group-wide">
+            <label for="taxFilingStatus">Filing Status</label>
+            <select id="taxFilingStatus" [ngModel]="taxFilingStatus()" (ngModelChange)="setTaxFilingStatus($event)">
+              <option value="single">Single or Married filing separately</option>
+              <option value="married_jointly">Married filing jointly</option>
+              <option value="married_separately">Married filing separately</option>
+              <option value="head_of_household">Head of household</option>
+              <option value="qualifying_widow">Qualifying surviving spouse</option>
+            </select>
+          </div>
+
+          <!-- Step 2: Multiple Jobs -->
+          <div class="form-group form-group-wide">
+            <label class="check-label">
+              <input type="checkbox" [ngModel]="taxMultipleJobs()" (ngModelChange)="setTaxMultipleJobs($event)" />
+              Multiple jobs or spouse works (Step 2)
+            </label>
+            <span class="form-hint">Check if this employee holds more than one job or is married filing jointly and their spouse also works</span>
+          </div>
+
+          <!-- Step 3: Dependents -->
+          <div class="form-group">
+            <label for="taxChildren">Qualifying Children ($2,000 each)</label>
+            <div class="input-with-prefix">
+              <span class="input-prefix">$</span>
+              <input id="taxChildren" type="number" [ngModel]="taxChildrenAmount()" (ngModelChange)="setTaxChildrenAmount($event)" step="2000" min="0" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="taxOtherDep">Other Dependents ($500 each)</label>
+            <div class="input-with-prefix">
+              <span class="input-prefix">$</span>
+              <input id="taxOtherDep" type="number" [ngModel]="taxOtherDependents()" (ngModelChange)="setTaxOtherDependents($event)" step="500" min="0" />
+            </div>
+          </div>
+
+          <!-- Step 4: Other Adjustments -->
+          <div class="form-group">
+            <label for="taxOtherIncome">Other Income (Step 4a)</label>
+            <div class="input-with-prefix">
+              <span class="input-prefix">$</span>
+              <input id="taxOtherIncome" type="number" [ngModel]="taxOtherIncome()" (ngModelChange)="setTaxOtherIncome($event)" min="0" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="taxDeductions">Deductions (Step 4b)</label>
+            <div class="input-with-prefix">
+              <span class="input-prefix">$</span>
+              <input id="taxDeductions" type="number" [ngModel]="taxDeductions()" (ngModelChange)="setTaxDeductions($event)" min="0" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="taxExtra">Extra Withholding (Step 4c)</label>
+            <div class="input-with-prefix">
+              <span class="input-prefix">$</span>
+              <input id="taxExtra" type="number" [ngModel]="taxExtraWithholding()" (ngModelChange)="setTaxExtraWithholding($event)" min="0" />
+            </div>
+          </div>
+
+          <!-- State -->
+          <div class="form-group">
+            <label for="taxState">State</label>
+            <select id="taxState" [ngModel]="taxState()" (ngModelChange)="setTaxState($event)">
+              @for (st of usStates; track st) {
+                <option [value]="st">{{ st }}</option>
+              }
+            </select>
+            @if (noIncomeTaxStates.includes(taxState())) {
+              <span class="form-hint state-no-tax">{{ taxState() }} has no state income tax</span>
+            }
+          </div>
+        </div>
+      </div>
+
       <div class="form-actions">
         <button type="button" class="btn-cancel" (click)="cancelForm()">Cancel</button>
         <button type="button" class="btn-save" (click)="submitForm()" [disabled]="isSaving()">

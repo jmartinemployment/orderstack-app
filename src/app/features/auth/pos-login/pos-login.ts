@@ -161,6 +161,7 @@ export class PosLogin {
             onboardingStatus: 'complete',
             createdAt: new Date().toISOString(),
             staffPinId: null,
+            taxInfo: null,
           };
           this._teamMembers.set([ownerMember]);
         }
