@@ -256,11 +256,11 @@
     <!-- ==================== TIME CLOCK TAB ==================== -->
     @if (activeTab() === 'time-clock') {
       <!-- Clock In -->
-      <div class="card bg-dark border-secondary mb-3">
+      <div class="card border mb-3">
         <div class="card-body">
-          <h6 class="text-white mb-3"><i class="bi bi-box-arrow-in-right"></i> Clock In</h6>
+          <h6 class="mb-3"><i class="bi bi-box-arrow-in-right"></i> Clock In</h6>
           <div class="d-flex gap-2">
-            <select class="form-select form-select-sm bg-dark text-white border-secondary"
+            <select class="form-select form-select-sm"
               [ngModel]="clockInPin()" (ngModelChange)="setClockInPin($event)">
               <option value="">Select staff...</option>
               @for (member of staffRows(); track member.id) {
@@ -275,15 +275,15 @@
       </div>
 
       <!-- Active Clocks -->
-      <h6 class="text-white mb-2"><i class="bi bi-clock"></i> Active Clocks ({{ activeClocks().length }})</h6>
+      <h6 class="mb-2"><i class="bi bi-clock"></i> Active Clocks ({{ activeClocks().length }})</h6>
       @if (activeClocks().length === 0) {
         <p class="text-muted">No one is currently clocked in.</p>
       } @else {
         <div class="list-group">
           @for (entry of activeClocks(); track entry.id) {
-            <div class="list-group-item bg-dark border-secondary d-flex justify-content-between align-items-center">
+            <div class="list-group-item border d-flex justify-content-between align-items-center">
               <div>
-                <strong class="text-white">{{ entry.staffName }}</strong>
+                <strong>{{ entry.staffName }}</strong>
                 <span class="badge bg-info ms-2">{{ entry.staffRole }}</span>
                 <div class="text-muted small">
                   Clocked in: {{ entry.clockIn | date:'shortTime' }}
@@ -291,7 +291,7 @@
                 </div>
               </div>
               <div class="d-flex align-items-center gap-2">
-                <input type="number" class="form-control form-control-sm bg-dark text-white border-secondary"
+                <input type="number" class="form-control form-control-sm"
                   style="width: 80px" placeholder="Break" min="0" max="120"
                   [ngModel]="clockOutBreak()" (ngModelChange)="setClockOutBreak($event)">
                 <span class="text-muted small">min</span>
