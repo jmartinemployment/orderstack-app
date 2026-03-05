@@ -398,12 +398,20 @@ export class StaffManagementService {
     if (!this.merchantId) return false;
     this._error.set(null);
     try {
-      await firstValueFrom(
-        this.http.patch(`${this.apiUrl}/merchant/${this.merchantId}/team-members/${teamMemberId}/onboarding/${step}`, {
+      const resp = await firstValueFrom(
+        this.http.patch<{ success: boolean; onboardingStatus: string }>(`${this.apiUrl}/merchant/${this.merchantId}/team-members/${teamMemberId}/onboarding/${step}`, {
           isComplete,
           notes,
         })
       );
+      // Update the team member's onboardingStatus in local state so the badge reacts
+      if (resp.onboardingStatus) {
+        this._teamMembers.update(members =>
+          members.map(m =>
+            m.id === teamMemberId ? { ...m, onboardingStatus: resp.onboardingStatus as TeamMember['onboardingStatus'] } : m
+          )
+        );
+      }
       await this.loadOnboardingChecklist(teamMemberId);
       return true;
     } catch (err: unknown) {
