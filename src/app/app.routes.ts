@@ -166,20 +166,6 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/auth/restaurant-select/restaurant-select').then(m => m.RestaurantSelect),
   },
-  {
-    path: 'onboarding-checklist',
-    canActivate: [authGuard],
-    component: AuthLayoutComponent,
-    children: [
-      { path: '', loadComponent: () => import('./features/onboarding/team-onboarding/team-onboarding').then(m => m.TeamOnboarding) },
-    ],
-  },
-  {
-    path: 'onboarding',
-    redirectTo: 'onboarding-checklist',
-    pathMatch: 'full',
-  },
-
   // Dedicated device routes — full-screen, no sidebar
   {
     path: 'kiosk',
