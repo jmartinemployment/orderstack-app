@@ -1,0 +1,155 @@
+<div class="bts-page">
+  <header class="bts-header">
+    <div class="bts-brand">
+      <i class="bi bi-stack"></i>
+      <span>OrderStack</span>
+    </div>
+    <button
+      class="bts-next-btn"
+      [disabled]="!canProceed()"
+      (click)="next()"
+    >
+      @if (isSubmitting()) {
+        <span class="bts-spinner"></span>
+      }
+      Next
+    </button>
+  </header>
+
+  <main class="bts-content">
+    @if (error()) {
+      <div class="bts-error">
+        <i class="bi bi-exclamation-circle"></i>
+        {{ error() }}
+      </div>
+    }
+
+    <h1 class="bts-heading">Tell us about your business</h1>
+    <p class="bts-subtitle">We'll personalize OrderStack to fit your needs.</p>
+
+    <div class="bts-form">
+      <div class="bts-field">
+        <label class="bts-label" for="bizName">Business name</label>
+        <input
+          type="text"
+          class="bts-input"
+          id="bizName"
+          placeholder="e.g. Bella's Kitchen"
+          [value]="businessName()"
+          (input)="businessName.set($any($event.target).value)"
+          autofocus
+        />
+      </div>
+
+      <div class="bts-field">
+        <label class="bts-label" for="bizStreet">Street address</label>
+        <input
+          type="text"
+          class="bts-input"
+          id="bizStreet"
+          placeholder="123 Main St"
+          [value]="street()"
+          (input)="street.set($any($event.target).value)"
+        />
+      </div>
+
+      <div class="bts-row">
+        <div class="bts-field bts-field--grow">
+          <label class="bts-label" for="bizCity">City</label>
+          <input
+            type="text"
+            class="bts-input"
+            id="bizCity"
+            placeholder="City"
+            [value]="city()"
+            (input)="city.set($any($event.target).value)"
+          />
+        </div>
+        <div class="bts-field bts-field--state">
+          <label class="bts-label" for="bizState">State</label>
+          <select
+            class="bts-input bts-select"
+            id="bizState"
+            [value]="state()"
+            (change)="state.set($any($event.target).value)"
+          >
+            <option value="" disabled selected>State</option>
+            @for (s of states; track s.code) {
+              <option [value]="s.code">{{ s.code }}</option>
+            }
+          </select>
+        </div>
+        <div class="bts-field bts-field--zip">
+          <label class="bts-label" for="bizZip">ZIP</label>
+          <input
+            type="text"
+            class="bts-input"
+            id="bizZip"
+            placeholder="12345"
+            maxlength="10"
+            [value]="zip()"
+            (input)="zip.set($any($event.target).value)"
+          />
+        </div>
+      </div>
+
+      <div class="bts-field">
+        <label class="bts-label" for="bizPhone">Phone <span class="bts-optional">(optional)</span></label>
+        <input
+          type="tel"
+          class="bts-input"
+          id="bizPhone"
+          placeholder="(555) 555-1234"
+          [value]="phone()"
+          (input)="phone.set($any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <h2 class="bts-heading bts-heading--sm">What kind of business?</h2>
+
+    <div class="bts-options">
+      <button
+        class="bts-card"
+        [class.bts-card--selected]="selected() === 'catering'"
+        (click)="select('catering')"
+      >
+        <div class="bts-card-icon">
+          <i class="bi bi-calendar-event"></i>
+        </div>
+        <div class="bts-card-body">
+          <h3 class="bts-card-title">Catering</h3>
+          <p class="bts-card-desc">Event-based food service, off-premise catering, and private dining</p>
+        </div>
+        <div class="bts-card-check">
+          @if (selected() === 'catering') {
+            <i class="bi bi-check-circle-fill"></i>
+          } @else {
+            <i class="bi bi-circle"></i>
+          }
+        </div>
+      </button>
+
+      <button
+        class="bts-card"
+        [class.bts-card--selected]="selected() === 'full_service'"
+        (click)="select('full_service')"
+      >
+        <div class="bts-card-icon">
+          <i class="bi bi-shop"></i>
+        </div>
+        <div class="bts-card-body">
+          <h3 class="bts-card-title">Full Restaurant Service</h3>
+          <p class="bts-card-desc">Dine-in, takeout, delivery, and everything in between</p>
+        </div>
+        <div class="bts-card-check">
+          @if (selected() === 'full_service') {
+            <i class="bi bi-check-circle-fill"></i>
+          } @else {
+            <i class="bi bi-circle"></i>
+          }
+        </div>
+      </button>
+    </div>
+  </main>
+</div>
