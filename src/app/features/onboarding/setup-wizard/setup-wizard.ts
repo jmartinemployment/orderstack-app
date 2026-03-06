@@ -1056,22 +1056,6 @@ export class SetupWizard implements OnInit {
     }
   }
 
-  async skipWizard(): Promise<void> {
-    // Ensure minimum data for onboarding submission
-    if (!this._businessName().trim()) {
-      this._businessName.set('My Business');
-    }
-    if (!this._bizNoPhysical() && !this._bizStreet().trim()) {
-      this._bizNoPhysical.set(true);
-    }
-
-    if (!this._onboardingDone()) {
-      await this.submitOnboarding();
-    }
-    localStorage.removeItem('wizard-step');
-    this.router.navigate(['/app/administration']);
-  }
-
   // --- Step 1: Address helpers ---
 
   toggleNoPhysical(): void {
