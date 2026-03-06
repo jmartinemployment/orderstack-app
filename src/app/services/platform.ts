@@ -336,6 +336,23 @@ export class PlatformService {
     }
   }
 
+  async updateMerchantName(name: string): Promise<void> {
+    const id = this.authService.selectedMerchantId();
+    if (!id) return;
+
+    try {
+      await firstValueFrom(
+        this.http.patch(
+          `${this.apiUrl}/restaurant/${id}/merchant-profile`,
+          { businessName: name }
+        )
+      );
+      this.authService.selectMerchant(id, name);
+    } catch {
+      // Non-critical — name will be saved on next full profile update
+    }
+  }
+
   private buildProfileFromPayload(payload: OnboardingPayload): void {
     const profile: MerchantProfile = {
       ...defaultMerchantProfile(),
