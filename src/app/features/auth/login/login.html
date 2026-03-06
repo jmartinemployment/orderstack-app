@@ -162,6 +162,9 @@
           <label for="terms" class="terms-label">
             I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
           </label>
+          @if (showTermsError()) {
+            <div class="invalid-feedback d-block">You must agree to the Terms of Service to create an account.</div>
+          }
         </div>
 
         <div class="button-row">

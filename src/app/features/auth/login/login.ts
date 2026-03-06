@@ -26,6 +26,9 @@ export class Login {
   private readonly _agreedToTerms = signal(false);
   readonly agreedToTerms = this._agreedToTerms.asReadonly();
 
+  private readonly _showTermsError = signal(false);
+  readonly showTermsError = this._showTermsError.asReadonly();
+
   private readonly _infoMessage = signal<string | null>(null);
   readonly infoMessage = this._infoMessage.asReadonly();
 
@@ -61,6 +64,9 @@ export class Login {
 
   toggleTerms(): void {
     this._agreedToTerms.update(v => !v);
+    if (this._agreedToTerms()) {
+      this._showTermsError.set(false);
+    }
   }
 
   // Forgot password modal
@@ -115,7 +121,10 @@ export class Login {
       return;
     }
 
-    if (!this._agreedToTerms()) return;
+    if (!this._agreedToTerms()) {
+      this._showTermsError.set(true);
+      return;
+    }
 
     const { firstName, lastName, email, password } = this.form.value;
     const success = await this.authService.signup({ firstName, lastName, email, password });

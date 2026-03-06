@@ -115,6 +115,38 @@ test.describe('Authentication', { tag: '@critical' }, () => {
     await context.close();
   });
 
+  test('Create Account - shows error when Terms checkbox is unchecked', async ({ page }) => {
+    await page.goto(ROUTES.login);
+
+    await page.locator('#firstName').fill('Jeff');
+    await page.locator('#lastName').fill('Doe');
+    await page.locator('#email').fill('test@example.com');
+    await page.locator('#password').fill('password123');
+    // Do NOT check the terms checkbox
+
+    await page.locator('.btn-create').click();
+    await page.waitForTimeout(500);
+
+    // Error message should be visible
+    await expect(page.locator('.terms-check .invalid-feedback')).toBeVisible();
+    await expect(page.locator('.terms-check .invalid-feedback')).toContainText('Terms of Service');
+
+    // Still on login page
+    await expect(page).toHaveURL(/\/login/);
+  });
+
+  test('Create Account - no terms error when checkbox is checked', async ({ page }) => {
+    await page.goto(ROUTES.login);
+
+    await page.locator('#firstName').fill('Jeff');
+    await page.locator('#email').fill('test@example.com');
+    await page.locator('#password').fill('password123');
+    await page.locator('#terms').check();
+
+    // Error should NOT appear
+    await expect(page.locator('.terms-check .invalid-feedback')).not.toBeVisible();
+  });
+
   test('should switch between sign-in and sign-up forms', async ({ page }) => {
     await page.goto(ROUTES.login);
     await expect(page.locator(SEL.loginHeading)).toBeVisible();

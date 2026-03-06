@@ -138,6 +138,46 @@ describe('Login', () => {
     expect(btn.disabled).toBe(false);
   });
 
+  // --- Terms of Service validation ---
+
+  it('shows terms error when checkbox unchecked and Create Account clicked', async () => {
+    component.form.setValue({
+      firstName: 'Jeff', lastName: 'Doe',
+      email: 'test@example.com', password: 'password123',
+    });
+    component.toggleTerms(); // agree
+    component.toggleTerms(); // un-agree (back to false)
+
+    await component.onCreateAccount();
+    fixture.detectChanges();
+
+    const errorEl = fixture.nativeElement.querySelector('.invalid-feedback');
+    expect(errorEl).toBeTruthy();
+    expect(errorEl.textContent).toContain('Terms of Service');
+  });
+
+  it('does not show terms error when checkbox is checked', () => {
+    component.toggleTerms(); // agree
+    fixture.detectChanges();
+
+    const errorEl = fixture.nativeElement.querySelector('.terms-check .invalid-feedback');
+    expect(errorEl).toBeFalsy();
+  });
+
+  it('clears terms error when checkbox is checked after failed submit', async () => {
+    component.form.setValue({
+      firstName: 'Jeff', lastName: 'Doe',
+      email: 'test@example.com', password: 'password123',
+    });
+    await component.onCreateAccount();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.terms-check .invalid-feedback')).toBeTruthy();
+
+    component.toggleTerms(); // now agree
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.terms-check .invalid-feedback')).toBeFalsy();
+  });
+
   // --- Create Account ---
 
   it('marks form touched on invalid Create Account', async () => {
