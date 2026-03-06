@@ -142,16 +142,6 @@
         <h2>What kind of business best describes <strong>{{ _businessName() || 'your business' }}</strong>?</h2>
         <p class="step-subtitle">This helps us set up the right features for you.</p>
 
-        <div class="business-type-search">
-          <i class="bi bi-search search-icon"></i>
-          <input
-            type="text"
-            class="form-control search-input"
-            placeholder="Search business types..."
-            [ngModel]="_businessTypeSearch()"
-            (ngModelChange)="_businessTypeSearch.set($event)" />
-        </div>
-
         <div class="business-type-list">
           @for (type of filteredBusinessTypes(); track type.name) {
             <button
@@ -161,17 +151,11 @@
               (click)="selectBusinessType(type)">
               <div class="bt-info">
                 <span class="bt-name">{{ type.name }}</span>
-                <span class="bt-vertical">{{ getVerticalLabel(type.vertical) }}</span>
               </div>
               @if (_selectedBusinessType()?.name === type.name) {
                 <i class="bi bi-check-circle-fill bt-check"></i>
               }
             </button>
-          }
-          @if (filteredBusinessTypes().length === 0) {
-            <div class="bt-empty">
-              <p>No results for "{{ _businessTypeSearch() }}"</p>
-            </div>
           }
         </div>
 

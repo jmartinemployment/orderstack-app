@@ -32,7 +32,7 @@ export const BUSINESS_VERTICAL_CATALOG: BusinessVerticalConfig[] = [
     label: 'Food & Drink',
     description: 'Restaurants, cafes, food trucks, bars, breweries',
     icon: 'bi-cup-hot',
-    availableModes: ['quick_service', 'full_service', 'bar', 'standard'],
+    availableModes: ['quick_service', 'full_service', 'bar', 'catering', 'standard'],
     enabledModules: [
       'menu_management', 'table_management', 'kds', 'bookings',
       'catering', 'online_ordering', 'inventory', 'marketing', 'loyalty',
@@ -151,6 +151,7 @@ export type DevicePosMode =
   | 'quick_service'
   | 'full_service'
   | 'bar'
+  | 'catering'
   | 'retail'
   | 'bookings'
   | 'services'
@@ -287,6 +288,32 @@ export const RESTAURANT_MODE_BAR: ModeFeatureFlags = {
   enableOrderNumberTracking: false,
 };
 
+export const CATERING_MODE: ModeFeatureFlags = {
+  enableOpenChecks: false,
+  enableCoursing: false,
+  enableSeatAssignment: false,
+  enableCheckSplitting: false,
+  enableCheckTransfer: false,
+  enablePreAuthTabs: false,
+  enableConversationalModifiers: false,
+  enableMultiChannelMenus: false,
+  enableFloorPlan: false,
+  enableTableManagement: false,
+  enableWaitlist: false,
+  enableKds: false,
+  enableExpoStation: false,
+  enableBarcodeScanning: false,
+  enableReturnsExchanges: false,
+  enableAppointmentBooking: false,
+  enableProjectTracking: true,
+  enableTipping: false,
+  enableSurcharging: false,
+  enableDarkModeDisplay: false,
+  showItemImages: true,
+  showCategoryNavigation: true,
+  enableOrderNumberTracking: false,
+};
+
 export const RETAIL_MODE: ModeFeatureFlags = {
   enableOpenChecks: false,
   enableCoursing: false,
@@ -397,6 +424,7 @@ const MODE_PRESET_MAP: Record<DevicePosMode, ModeFeatureFlags> = {
   quick_service: RESTAURANT_MODE_QUICK_SERVICE,
   full_service: RESTAURANT_MODE_FULL_SERVICE,
   bar: RESTAURANT_MODE_BAR,
+  catering: CATERING_MODE,
   retail: RETAIL_MODE,
   bookings: BOOKINGS_MODE,
   services: SERVICES_MODE,
@@ -430,6 +458,15 @@ export const DEVICE_POS_MODE_CATALOG: DevicePosModeConfig[] = [
     category: 'restaurant',
     highlights: ['Card pre-authorization', 'Tab management', 'Conversational modifiers', 'Quick reorder'],
     featureFlags: RESTAURANT_MODE_BAR,
+  },
+  {
+    mode: 'catering',
+    label: 'Catering',
+    description: 'Manage events, send proposals, collect milestone payments, and track your pipeline.',
+    icon: 'bi-truck',
+    category: 'restaurant',
+    highlights: ['Event pipeline', 'Proposals & invoicing', 'Milestone payments', 'Catering menu'],
+    featureFlags: CATERING_MODE,
   },
   {
     mode: 'retail',
@@ -474,6 +511,7 @@ export const DEVICE_POS_MODE_ROUTES: Record<DevicePosMode, string> = {
   quick_service: '/quick-service',
   full_service: '/pos',
   bar: '/bar',
+  catering: '/app/catering',
   bookings: '/bookings-terminal',
   retail: '/retail',
   services: '/invoicing',
@@ -895,7 +933,7 @@ export const BUSINESS_CATEGORIES: BusinessCategory[] = [
   { name: 'Bar', vertical: 'food_and_drink' },
   { name: 'Coffee / Tea Cafe', vertical: 'food_and_drink' },
   { name: 'Fine Dining', vertical: 'food_and_drink' },
-  { name: 'Casual Dining', vertical: 'food_and_drink' },
+  { name: 'Full Service Restaurant', vertical: 'food_and_drink' },
   { name: 'Fast Food Restaurant', vertical: 'food_and_drink' },
   { name: 'Counter Service Restaurant', vertical: 'food_and_drink' },
   { name: 'Ghost / Virtual Kitchen', vertical: 'food_and_drink' },

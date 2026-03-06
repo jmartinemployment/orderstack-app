@@ -53,7 +53,7 @@ const ZIP_REGEX = /^\d{5}(-\d{4})?$/;
 const BUSINESS_TYPE_MODE_MAP: Record<string, DevicePosMode> = {
   // Food & Drink
   'Fine Dining': 'full_service',
-  'Casual Dining': 'full_service',
+  'Full Service Restaurant': 'full_service',
   'Club / Lounge': 'full_service',
   'Fast Food Restaurant': 'quick_service',
   'Counter Service Restaurant': 'quick_service',
@@ -61,7 +61,7 @@ const BUSINESS_TYPE_MODE_MAP: Record<string, DevicePosMode> = {
   'Ghost / Virtual Kitchen': 'quick_service',
   'Bakery / Pastry Shop': 'quick_service',
   'Coffee / Tea Cafe': 'quick_service',
-  'Caterer': 'quick_service',
+  'Caterer': 'catering',
   'Bar': 'bar',
   'Brewery': 'bar',
   'Other Food & Drink': 'full_service',
@@ -201,7 +201,7 @@ const BUSINESS_TYPE_MODE_MAP: Record<string, DevicePosMode> = {
 // Search aliases so common keywords match business types that don't contain them literally
 const BUSINESS_TYPE_SEARCH_ALIASES: Record<string, string[]> = {
   'Fine Dining': ['restaurant', 'dining', 'sit down', 'dine in'],
-  'Casual Dining': ['restaurant', 'dining', 'sit down', 'dine in'],
+  'Full Service Restaurant': ['restaurant', 'dining', 'sit down', 'dine in', 'casual dining'],
   'Club / Lounge': ['restaurant', 'nightclub', 'bar'],
   'Bakery / Pastry Shop': ['restaurant', 'cafe', 'dessert'],
   'Coffee / Tea Cafe': ['restaurant', 'cafe', 'shop'],
@@ -817,17 +817,8 @@ export class SetupWizard implements OnInit {
   readonly _selectedBusinessType = signal<BusinessCategory | null>(null);
 
   readonly filteredBusinessTypes = computed(() => {
-    const search = this._businessTypeSearch().toLowerCase().trim();
-    if (!search) return BUSINESS_CATEGORIES;
-    return BUSINESS_CATEGORIES.filter(c => {
-      const name = c.name.toLowerCase();
-      const verticalLabel = this.getVerticalLabel(c.vertical).toLowerCase();
-      if (name.includes(search)) return true;
-      if (verticalLabel.includes(search)) return true;
-      const aliases = BUSINESS_TYPE_SEARCH_ALIASES[c.name];
-      if (aliases?.some(a => a.includes(search))) return true;
-      return false;
-    });
+    const allowed = new Set(['Caterer', 'Full Service Restaurant']);
+    return BUSINESS_CATEGORIES.filter(c => allowed.has(c.name));
   });
 
   // Derive vertical from business type selection
@@ -1001,6 +992,30 @@ export class SetupWizard implements OnInit {
   };
 
   ngOnInit(): void {
+    // Apply pre-selected business type from /business-type screen
+    const pendingType = localStorage.getItem('pending_business_type');
+    if (pendingType) {
+      localStorage.removeItem('pending_business_type');
+      if (pendingType === 'catering') {
+        const caterer = BUSINESS_CATEGORIES.find(c => c.name === 'Caterer');
+        if (caterer) this._selectedBusinessType.set(caterer);
+      } else if (pendingType === 'full_service') {
+        const casual = BUSINESS_CATEGORIES.find(c => c.name === 'Full Service Restaurant');
+        if (casual) this._selectedBusinessType.set(casual);
+      }
+    }
+
+    // If merchant was already created on the /business-type screen, mark onboarding done
+    // so submitOnboarding doesn't try to create a duplicate.
+    // Pre-fill business name from the selected merchant.
+    if (this.authService.selectedMerchantId()) {
+      this._onboardingDone.set(true);
+      const merchantName = this.authService.selectedMerchantName();
+      if (merchantName) {
+        this._businessName.set(merchantName);
+      }
+    }
+
     // Resume mid-wizard on reload
     const saved = localStorage.getItem('wizard-step');
     if (saved) {
