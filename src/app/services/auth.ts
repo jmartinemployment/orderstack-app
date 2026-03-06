@@ -56,6 +56,11 @@ export class AuthService {
 
     if (token && userJson) {
       try {
+        if (this.isTokenExpired(token)) {
+          this.clearStorage();
+          return;
+        }
+
         const user = JSON.parse(userJson) as User;
         this._token.set(token);
         this._user.set(user);
@@ -255,6 +260,17 @@ export class AuthService {
         return { success: false, error: httpErr.error?.message };
       }
       return { success: false, error: 'Unable to reset password. Please try again.' };
+    }
+  }
+
+  isTokenExpired(token?: string): boolean {
+    try {
+      const t = token ?? this._token();
+      if (!t) return true;
+      const payload = JSON.parse(atob(t.split('.')[1])) as { exp: number };
+      return Math.floor(Date.now() / 1000) >= payload.exp;
+    } catch {
+      return true;
     }
   }
 

@@ -7,6 +7,10 @@ export const authGuard = () => {
   const router = inject(Router);
 
   if (auth.isAuthenticated()) {
+    if (auth.isTokenExpired()) {
+      auth.handleSessionExpired();
+      return false;
+    }
     return true;
   }
 
