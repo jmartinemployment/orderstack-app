@@ -26,6 +26,9 @@ export class Login {
   private readonly _agreedToTerms = signal(false);
   readonly agreedToTerms = this._agreedToTerms.asReadonly();
 
+  private readonly _infoMessage = signal<string | null>(null);
+  readonly infoMessage = this._infoMessage.asReadonly();
+
   // Forgot password modal state
   private readonly _showForgotModal = signal(false);
   readonly showForgotModal = this._showForgotModal.asReadonly();
@@ -140,7 +143,12 @@ export class Login {
     if (success) {
       const restaurants = this.authService.merchants();
 
-      if (restaurants.length === 0) {
+      if (restaurants.length === 0 && !this.authService.selectedMerchantId()) {
+        this._infoMessage.set('No restaurant found for this account. Please create your account below.');
+        this.form.patchValue({ email, password });
+        document.querySelector('.form-panel')?.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      } else if (restaurants.length === 0) {
         this.router.navigate(['/setup']);
       } else if (restaurants.length === 1) {
         this.authService.selectMerchant(restaurants[0].id, restaurants[0].name);

@@ -370,6 +370,12 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
   gap: 0.5rem;
 }
 
+.alert-info {
+  background: #cff4fc;
+  color: #055160;
+  border: 1px solid #b6effb;
+}
+
 .alert-warning {
   background: #fef3cd;
   color: #856404;

@@ -61,6 +61,13 @@
         />
       }
 
+      @if (infoMessage()) {
+        <div class="alert alert-info" role="alert">
+          <i class="bi bi-info-circle"></i>
+          {{ infoMessage() }}
+        </div>
+      }
+
       <form [formGroup]="form">
         <div class="name-row">
           <div class="form-group">
