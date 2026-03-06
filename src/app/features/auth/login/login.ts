@@ -121,7 +121,7 @@ export class Login {
     const success = await this.authService.signup({ firstName, lastName, email, password });
 
     if (success) {
-      this.router.navigate(['/setup']);
+      this.router.navigate(['/business-type']);
     }
   }
 
@@ -144,12 +144,10 @@ export class Login {
       const restaurants = this.authService.merchants();
 
       if (restaurants.length === 0 && !this.authService.selectedMerchantId()) {
-        this._infoMessage.set('No restaurant found for this account. Please create your account below.');
-        this.form.patchValue({ email, password });
-        document.querySelector('.form-panel')?.scrollTo({ top: 0, behavior: 'smooth' });
+        this.router.navigate(['/business-type']);
         return;
       } else if (restaurants.length === 0) {
-        this.router.navigate(['/setup']);
+        this.router.navigate(['/business-type']);
       } else if (restaurants.length === 1) {
         this.authService.selectMerchant(restaurants[0].id, restaurants[0].name);
         this.router.navigate(['/app/administration']);

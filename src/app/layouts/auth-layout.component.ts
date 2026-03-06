@@ -32,7 +32,7 @@ import { RouterOutlet, ActivatedRoute } from '@angular/router';
 
     .auth-layout--full {
       padding: 0;
-      background: #fff;
+      background: #1a1a2e;
     }
 
     .auth-brand {
@@ -57,6 +57,7 @@ import { RouterOutlet, ActivatedRoute } from '@angular/router';
 
     .auth-content--full {
       max-width: none;
+      align-self: stretch;
     }
   `],
 })

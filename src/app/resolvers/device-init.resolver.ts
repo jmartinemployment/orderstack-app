@@ -31,6 +31,10 @@ export const deviceInitResolver: ResolveFn<boolean> = async (_route, state) => {
     } else if (restaurants.length > 1) {
       router.navigate(['/select-restaurant']);
       return false;
+    } else {
+      // No merchants at all — send to business type selection
+      router.navigate(['/business-type']);
+      return false;
     }
   }
 

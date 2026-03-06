@@ -735,37 +735,47 @@ OrderStack matches or exceeds all six competitors. Unique advantages: calendar w
 
 ## Summary: 32 Items, Dependency Order
 
-| # | What | Backend | Frontend | Blocked By |
-|---|---|---|---|---|
-| 1 | ~~Fix BUG-35 (merchantId undefined)~~ DONE | - | catering.service.ts, auth.ts | Nothing |
-| 2 | Fix field name mismatch | Prisma migration, routes | - | Nothing |
-| 3 | Add financial columns to schema | Prisma migration | - | #2 |
-| 4 | Update routes for all fields | catering.routes.ts | - | #3 |
-| 5 | Pipeline dashboard + KPIs | - | Dashboard component | #1, #4 |
-| 6 | Job detail view | - | New component + route | #4 |
-| 7 | Package builder | - | In job detail | #6 |
-| 8 | Milestone editor | New endpoint | In job detail | #6, #7 |
-| 9 | Proposals (public page) | 3 new endpoints | New component + route | #7 |
-| 10 | Invoicing from jobs | 2 new endpoints | New component + route | #8, #9 |
-| 11 | Contract upload | 1 new endpoint | In job detail + proposal | #9 |
-| 12 | BEO generation | - | New component + route | #7, #28 |
-| 13 | Catering menu pricing | Prisma + routes | Menu component | #4 |
-| 14 | Invoice branding | Prisma + routes | Settings + all docs | #10 |
-| 15 | Deferred revenue report | 1 new endpoint | New component | #4 |
-| 16 | Lead capture form | 1 new endpoint | New public component | #4 |
-| 17 | Sidebar nav (FEATURE-04) | - | main-layout | #6 |
-| 18 | Prep list (daily aggregate) | 1 new endpoint | New component + route | #7, #13, #28 |
-| 19 | Activity timeline | Prisma + auto-logging | In job detail | #6 |
-| 20 | Clone/repeat job | 1 new endpoint | In job detail | #6 |
-| 21 | Calendar improvements | - | Calendar component | #5, #6 |
-| 22 | Dashboard empty state | - | Dashboard component | #5 |
-| 23 | Transactional email (Resend) | Email service | - | #9, #10 |
-| 24 | Payment reminder cron | Cron job | - | #8, #23 |
-| 25 | Client history view | 1 new endpoint | Customers component | #4 |
-| 26 | Search + bulk actions | - | Dashboard component | #5 |
-| 27 | PDF export for invoices | - | Invoice + BEO components | #10, #12 |
-| 28 | Dietary / allergen tracking | Prisma + routes | Event form + job detail + BEO | #4 |
-| 29 | Service charges, gratuity, tax | Prisma + routes | Job detail + invoice + proposal | #10 |
-| 30 | Guest portal | 1 new endpoint | New public component | #9, #10, #11, #19 |
-| 31 | Tasting session scheduling | Prisma + routes | Job detail + calendar | #6 |
-| 32 | Delivery logistics | Prisma + routes | Job detail + BEO | #6, #12 |
+**Implemented: March 6, 2026 (Session 1)**
+- Backend commit: `8d46fc2` — Prisma schema + 22 endpoints
+- Frontend commit: `79464bb` — 10 new components, 40 files changed, 5856 insertions
+
+| # | What | Status | Notes |
+|---|---|---|---|
+| 1 | Fix BUG-35 (merchantId undefined) | DONE | Fixed in prior session |
+| 2 | Fix field name mismatch | DONE | Prisma `@map()` renames + raw SQL migration |
+| 3 | Add financial columns to schema | DONE | All fields on CateringEvent + CateringProposalToken + CateringActivity tables |
+| 4 | Update routes for all fields | DONE | 22 endpoints with Zod validation, `calculateFees()`, `logActivity()` |
+| 5 | Pipeline dashboard + KPIs | DONE | 4 KPI cards, next event banner, search, status filter, bulk actions |
+| 6 | Job detail view | DONE | 7 sections: overview, packages, milestones, dietary, delivery, tastings, activity |
+| 7 | Package builder | DONE | Add/edit/remove packages with tier, pricing model, per-unit price |
+| 8 | Milestone editor | DONE | Mark-paid endpoint, paidCents recalculation |
+| 9 | Proposals (public page) | DONE | Token-based public page, package comparison cards, contract acknowledgment |
+| 10 | Invoicing from jobs | DONE | Reuses proposal infrastructure (milestone-based payments) |
+| 11 | Contract upload | DONE | Upload handler in job detail, acknowledgment on proposal page |
+| 12 | BEO generation | DONE | Print-optimized component with `@media print` styles |
+| 13 | Catering menu pricing | PARTIAL | Frontend component exists. **Prisma schema change to MenuItem model not made** — needs `menuType` and `cateringPricingModel` columns |
+| 14 | Invoice branding | PARTIAL | Frontend branding fields on job detail work. **Prisma schema change to Restaurant model not made** — needs `defaultBrandingLogoUrl`, `defaultBrandingColor`, `defaultInvoiceNotes` columns |
+| 15 | Deferred revenue report | DONE | Backend endpoint + frontend report with table |
+| 16 | Lead capture form | DONE | Public form by merchant slug, creates inquiry |
+| 17 | Sidebar nav (FEATURE-04) | DONE | Badge counts on Jobs (pending) and Invoices (milestones due) |
+| 18 | Prep list (daily aggregate) | DONE | Date picker, per-job breakdown, print button |
+| 19 | Activity timeline | DONE | CateringActivity model, auto-logged on every mutating endpoint |
+| 20 | Clone/repeat job | DONE | Server-side clone with reset fields |
+| 21 | Calendar improvements | DONE | Mini job chips with status colors, click-to-navigate |
+| 22 | Dashboard empty state | DONE | 3-step onboarding guide when zero jobs |
+| 23 | Transactional email (Resend) | NOT DONE | No backend email service created. Proposals use `mailto:` links. |
+| 24 | Payment reminder cron | NOT DONE | Depends on #23. No cron job created. |
+| 25 | Client history view | DONE | Backend aggregation endpoint + frontend integration |
+| 26 | Search + bulk actions | DONE | Search bar, checkboxes, bulk complete/cancel/CSV export |
+| 27 | PDF export for invoices | DONE | `window.print()` with `@media print` on BEO and invoice views |
+| 28 | Dietary / allergen tracking | DONE | Structured JSON field, event form section, job detail card, BEO section |
+| 29 | Service charges, gratuity, tax | DONE | `calculateFees()` helper, fee editor in job detail, breakdown in proposals |
+| 30 | Guest portal | DONE | Unified client portal: event, packages, payments, contract, dietary |
+| 31 | Tasting session scheduling | DONE | Add/edit/complete tastings in job detail |
+| 32 | Delivery logistics | DONE | Driver, times, equipment checklist, route notes — only for off-site |
+
+**Remaining work:**
+- #13: Add `menuType` and `cateringPricingModel` to Prisma MenuItem model + backend menu routes filter
+- #14: Add `defaultBrandingLogoUrl`, `defaultBrandingColor`, `defaultInvoiceNotes` to Prisma Restaurant model
+- #23: Create `src/services/email.service.ts` with Resend integration (`RESEND_API_KEY` env var)
+- #24: Create `src/cron/milestone-reminders.ts` daily cron job (depends on #23)

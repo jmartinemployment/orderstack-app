@@ -93,6 +93,8 @@ export class PlatformService {
 
   readonly isRetailMode = computed(() => this._currentDeviceMode() === 'retail');
 
+  readonly isCateringMode = computed(() => this._currentDeviceMode() === 'catering');
+
   readonly businessCategory = computed<string | null>(
     () => this._merchantProfile()?.businessCategory ?? null
   );
@@ -283,6 +285,51 @@ export class PlatformService {
       return result;
     } catch {
       this._error.set('Failed to complete onboarding. Please check your connection and try again.');
+      return null;
+    } finally {
+      this._isLoading.set(false);
+    }
+  }
+
+  async createMerchantEarly(
+    businessName: string,
+    businessCategory: string,
+    primaryVertical: BusinessVertical,
+    defaultDeviceMode: DevicePosMode,
+    address?: { street: string; city: string; state: string; zip: string; phone: string | null },
+  ): Promise<OnboardingResult | null> {
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    try {
+      const result = await firstValueFrom(
+        this.http.post<OnboardingResult>(
+          `${this.apiUrl}/onboarding/create`,
+          {
+            businessName,
+            businessCategory,
+            primaryVertical,
+            verticals: [primaryVertical],
+            defaultDeviceMode,
+            complexity: 'full',
+            address: address ? {
+              street: address.street,
+              street2: null,
+              city: address.city,
+              state: address.state,
+              zip: address.zip,
+              country: 'US',
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              phone: address.phone,
+              lat: null,
+              lng: null,
+            } : undefined,
+          }
+        )
+      );
+      return result;
+    } catch {
+      this._error.set('Failed to create your business. Please try again.');
       return null;
     } finally {
       this._isLoading.set(false);
