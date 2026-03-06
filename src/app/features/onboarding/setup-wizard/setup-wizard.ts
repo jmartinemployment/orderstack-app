@@ -1007,13 +1007,8 @@ export class SetupWizard implements OnInit {
 
     // If merchant was already created on the /business-type screen, mark onboarding done
     // so submitOnboarding doesn't try to create a duplicate.
-    // Pre-fill business name from the selected merchant.
     if (this.authService.selectedMerchantId()) {
       this._onboardingDone.set(true);
-      const merchantName = this.authService.selectedMerchantName();
-      if (merchantName) {
-        this._businessName.set(merchantName);
-      }
     }
 
     // Resume mid-wizard on reload

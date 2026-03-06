@@ -62,7 +62,7 @@ export class BusinessTypeSelect {
       return;
     }
 
-    this.authService.selectMerchant(merchantId, businessCategory);
+    this.authService.selectMerchant(merchantId, '');
     localStorage.setItem('pending_business_type', type);
     this.router.navigate(['/setup']);
   }
