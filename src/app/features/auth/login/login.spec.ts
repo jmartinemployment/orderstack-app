@@ -1,7 +1,7 @@
 import '../../../../test-setup';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { signal } from '@angular/core';
 import { Login } from './login';
@@ -13,19 +13,15 @@ function createMockAuthService() {
   const _sessionExpiredMessage = signal<string | null>(null);
   const _merchants = signal<{ id: string; name: string }[]>([]);
 
-  const _user = signal<{ onboardingStatus?: string } | null>(null);
-
   return {
     _isLoading,
     _error,
     _sessionExpiredMessage,
     _merchants,
-    _user,
     isLoading: _isLoading.asReadonly(),
     error: _error.asReadonly(),
     sessionExpiredMessage: _sessionExpiredMessage.asReadonly(),
     merchants: _merchants.asReadonly(),
-    user: _user.asReadonly(),
     login: vi.fn().mockResolvedValue(true),
     signup: vi.fn().mockResolvedValue(true),
     clearError: vi.fn(),
@@ -36,12 +32,6 @@ function createMockAuthService() {
 
 function createMockRouter() {
   return { navigate: vi.fn() };
-}
-
-function createMockActivatedRoute() {
-  return {
-    snapshot: { parent: { routeConfig: { path: 'signup' } } },
-  };
 }
 
 describe('Login', () => {
@@ -59,7 +49,6 @@ describe('Login', () => {
       providers: [
         { provide: AuthService, useValue: authService },
         { provide: Router, useValue: router },
-        { provide: ActivatedRoute, useValue: createMockActivatedRoute() },
       ],
     });
     fixture = TestBed.createComponent(Login);
@@ -73,53 +62,25 @@ describe('Login', () => {
     expect(component).toBeTruthy();
   });
 
-  it('defaults to sign-up view', () => {
-    expect(component.isSignUp()).toBe(true);
+  it('renders the two-panel layout', () => {
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.signup-layout')).toBeTruthy();
+    expect(el.querySelector('.auth-layout')).toBeTruthy();
+    expect(el.querySelector('.promo-panel')).toBeTruthy();
+    expect(el.querySelector('.form-panel')).toBeTruthy();
   });
 
-  it('switches to sign-in view', () => {
-    component.switchToSignIn();
-    fixture.detectChanges();
+  it('shows all form fields', () => {
     const el: HTMLElement = fixture.nativeElement;
-    expect(el.querySelector('.login-card')).toBeTruthy();
-    expect(el.querySelector('.signup-layout')).toBeNull();
+    expect(el.querySelector('#firstName')).toBeTruthy();
+    expect(el.querySelector('#lastName')).toBeTruthy();
+    expect(el.querySelector('#email')).toBeTruthy();
+    expect(el.querySelector('#password')).toBeTruthy();
   });
 
-  it('switches back to sign-up view', () => {
-    component.switchToSignIn();
-    component.switchToSignUp();
-    fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.signup-layout')).toBeTruthy();
-  });
-
-  it('clears error when switching views', () => {
-    component.switchToSignIn();
-    expect(authService.clearError).toHaveBeenCalled();
-
-    authService.clearError.mockClear();
-    component.switchToSignUp();
-    expect(authService.clearError).toHaveBeenCalled();
-  });
-
-  // --- Sign-in view when route is /login ---
-
-  it('defaults to sign-in when parent route is login', () => {
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      imports: [Login],
-      providers: [
-        { provide: AuthService, useValue: createMockAuthService() },
-        { provide: Router, useValue: createMockRouter() },
-        { provide: ActivatedRoute, useValue: {
-          snapshot: { parent: { routeConfig: { path: 'login' } } },
-        }},
-      ],
-    });
-    const f = TestBed.createComponent(Login);
-    f.detectChanges();
-    expect(f.componentInstance.isSignUp()).toBe(false);
+  it('shows both Create Account and Sign In buttons', () => {
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('.btn-create')).toBeTruthy();
+    expect(el.querySelector('.btn-signin')).toBeTruthy();
   });
 
   // --- Password visibility ---
@@ -133,14 +94,14 @@ describe('Login', () => {
   });
 
   it('renders password field as password type by default', () => {
-    const input = fixture.nativeElement.querySelector('#signupPassword');
+    const input = fixture.nativeElement.querySelector('#password');
     expect(input.type).toBe('password');
   });
 
   it('renders password field as text when visibility toggled', () => {
     component.togglePasswordVisibility();
     fixture.detectChanges();
-    const input = fixture.nativeElement.querySelector('#signupPassword');
+    const input = fixture.nativeElement.querySelector('#password');
     expect(input.type).toBe('text');
   });
 
@@ -152,44 +113,44 @@ describe('Login', () => {
     expect(component.agreedToTerms()).toBe(true);
   });
 
-  it('disables submit when terms not agreed', () => {
+  it('disables Create Account when terms not agreed', () => {
     const btn: HTMLButtonElement = fixture.nativeElement.querySelector('.btn-create');
     expect(btn.disabled).toBe(true);
   });
 
-  it('enables submit when terms agreed', () => {
+  it('enables Create Account when terms agreed', () => {
     component.toggleTerms();
     fixture.detectChanges();
     const btn: HTMLButtonElement = fixture.nativeElement.querySelector('.btn-create');
     expect(btn.disabled).toBe(false);
   });
 
-  // --- Sign-up form validation ---
+  // --- Create Account ---
 
-  it('marks signup form touched on invalid submit', async () => {
+  it('marks form touched on invalid Create Account', async () => {
     component.toggleTerms();
-    await component.onSignUp();
-    expect(component.signupForm.touched).toBe(true);
+    await component.onCreateAccount();
+    expect(component.form.touched).toBe(true);
     expect(authService.signup).not.toHaveBeenCalled();
   });
 
   it('does not signup when terms not agreed', async () => {
-    component.signupForm.setValue({
+    component.form.setValue({
       firstName: 'John', lastName: 'Doe',
       email: 'john@test.com', password: 'pass123',
     });
-    await component.onSignUp();
+    await component.onCreateAccount();
     expect(authService.signup).not.toHaveBeenCalled();
   });
 
   it('calls signup with valid form and terms agreed', async () => {
-    component.signupForm.setValue({
+    component.form.setValue({
       firstName: 'John', lastName: 'Doe',
       email: 'john@test.com', password: 'pass123',
     });
     component.toggleTerms();
 
-    await component.onSignUp();
+    await component.onCreateAccount();
 
     expect(authService.signup).toHaveBeenCalledWith({
       firstName: 'John', lastName: 'Doe',
@@ -198,38 +159,40 @@ describe('Login', () => {
   });
 
   it('navigates to /setup on successful signup', async () => {
-    component.signupForm.setValue({
+    component.form.setValue({
       firstName: 'John', lastName: 'Doe',
       email: 'john@test.com', password: 'pass123',
     });
     component.toggleTerms();
-    await component.onSignUp();
+    await component.onCreateAccount();
     expect(router.navigate).toHaveBeenCalledWith(['/setup']);
   });
 
   it('does not navigate on failed signup', async () => {
     authService.signup.mockResolvedValue(false);
-    component.signupForm.setValue({
+    component.form.setValue({
       firstName: 'John', lastName: 'Doe',
       email: 'john@test.com', password: 'pass123',
     });
     component.toggleTerms();
-    await component.onSignUp();
+    await component.onCreateAccount();
     expect(router.navigate).not.toHaveBeenCalled();
   });
 
-  // --- Sign-in form validation ---
+  // --- Sign In ---
 
-  it('marks login form touched on invalid submit', async () => {
-    component.switchToSignIn();
+  it('marks email and password touched on invalid Sign In', async () => {
     await component.onSignIn();
-    expect(component.loginForm.touched).toBe(true);
+    expect(component.emailControl?.touched).toBe(true);
+    expect(component.passwordControl?.touched).toBe(true);
     expect(authService.login).not.toHaveBeenCalled();
   });
 
-  it('calls login with valid credentials', async () => {
-    component.switchToSignIn();
-    component.loginForm.setValue({ email: 'user@test.com', password: 'pass123' });
+  it('calls login with email and password only', async () => {
+    component.form.setValue({
+      firstName: 'John', lastName: 'Doe',
+      email: 'user@test.com', password: 'pass123',
+    });
     await component.onSignIn();
     expect(authService.login).toHaveBeenCalledWith({
       email: 'user@test.com', password: 'pass123',
@@ -240,109 +203,32 @@ describe('Login', () => {
   // --- Post-login routing ---
 
   it('navigates to /setup when no restaurants', async () => {
-    component.switchToSignIn();
-    component.loginForm.setValue({ email: 'user@test.com', password: 'pass123' });
+    component.form.patchValue({ email: 'user@test.com', password: 'pass123' });
     await component.onSignIn();
     expect(router.navigate).toHaveBeenCalledWith(['/setup']);
   });
 
   it('selects restaurant and navigates to /app/administration when exactly 1 restaurant', async () => {
-    const mockAuth = createMockAuthService();
-    mockAuth._merchants.set([{ id: 'r-1', name: 'Test' }]);
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      imports: [Login],
-      providers: [
-        { provide: AuthService, useValue: mockAuth },
-        { provide: Router, useValue: router },
-        { provide: ActivatedRoute, useValue: createMockActivatedRoute() },
-      ],
-    });
-    const f = TestBed.createComponent(Login);
-    const c = f.componentInstance;
-    c.switchToSignIn();
-    c.loginForm.setValue({ email: 'user@test.com', password: 'pass123' });
-    await c.onSignIn();
-    expect(mockAuth.selectMerchant).toHaveBeenCalledWith('r-1', 'Test');
+    authService._merchants.set([{ id: 'r-1', name: 'Test' }]);
+    component.form.patchValue({ email: 'user@test.com', password: 'pass123' });
+    await component.onSignIn();
+    expect(authService.selectMerchant).toHaveBeenCalledWith('r-1', 'Test');
     expect(router.navigate).toHaveBeenCalledWith(['/app/administration']);
   });
 
   it('navigates to /select-restaurant when multiple restaurants', async () => {
-    const mockAuth = createMockAuthService();
-    mockAuth._merchants.set([
+    authService._merchants.set([
       { id: 'r-1', name: 'A' },
       { id: 'r-2', name: 'B' },
     ]);
-    TestBed.resetTestingModule();
-    TestBed.configureTestingModule({
-      imports: [Login],
-      providers: [
-        { provide: AuthService, useValue: mockAuth },
-        { provide: Router, useValue: router },
-        { provide: ActivatedRoute, useValue: createMockActivatedRoute() },
-      ],
-    });
-    const f = TestBed.createComponent(Login);
-    const c = f.componentInstance;
-    c.switchToSignIn();
-    c.loginForm.setValue({ email: 'user@test.com', password: 'pass123' });
-    await c.onSignIn();
+    component.form.patchValue({ email: 'user@test.com', password: 'pass123' });
+    await component.onSignIn();
     expect(router.navigate).toHaveBeenCalledWith(['/select-restaurant']);
-  });
-
-  // --- Form validation feedback in DOM ---
-
-  it('shows email required error when touched and empty', () => {
-    component.switchToSignIn();
-    fixture.detectChanges();
-    component.emailControl?.markAsTouched();
-    fixture.detectChanges();
-    const feedback = fixture.nativeElement.querySelector('.invalid-feedback');
-    expect(feedback?.textContent).toContain('Email is required');
-  });
-
-  it('shows email format error when touched and invalid', () => {
-    component.switchToSignIn();
-    fixture.detectChanges();
-    component.loginForm.get('email')?.setValue('notanemail');
-    component.emailControl?.markAsTouched();
-    fixture.detectChanges();
-    const feedbacks = fixture.nativeElement.querySelectorAll('.invalid-feedback');
-    const emailFeedback = Array.from(feedbacks).find(
-      (f: Element) => f.textContent?.includes('valid email')
-    );
-    expect(emailFeedback).toBeTruthy();
-  });
-
-  it('shows password min length error', () => {
-    component.switchToSignIn();
-    fixture.detectChanges();
-    component.loginForm.get('password')?.setValue('abc');
-    component.passwordControl?.markAsTouched();
-    fixture.detectChanges();
-    const feedbacks = fixture.nativeElement.querySelectorAll('.invalid-feedback');
-    const pwFeedback = Array.from(feedbacks).find(
-      (f: Element) => f.textContent?.includes('6 characters')
-    );
-    expect(pwFeedback).toBeTruthy();
-  });
-
-  // --- Loading state ---
-
-  it('shows loading spinner when isLoading is true', () => {
-    component.switchToSignIn();
-    authService._isLoading.set(true);
-    fixture.detectChanges();
-    const spinner = fixture.nativeElement.querySelector('.spinner-border');
-    expect(spinner).toBeTruthy();
-    const btn: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="submit"]');
-    expect(btn.disabled).toBe(true);
   });
 
   // --- Error display ---
 
-  it('shows error alert when error signal has value', () => {
-    component.switchToSignIn();
+  it('shows error when error signal has value', () => {
     authService._error.set('Invalid credentials');
     fixture.detectChanges();
     const errorDisplay = fixture.nativeElement.querySelector('os-error-display');
@@ -352,7 +238,6 @@ describe('Login', () => {
   // --- Session expired ---
 
   it('shows session expired warning', () => {
-    component.switchToSignIn();
     authService._sessionExpiredMessage.set('Session expired');
     fixture.detectChanges();
     const alert = fixture.nativeElement.querySelector('.alert-warning');
@@ -366,19 +251,12 @@ describe('Login', () => {
     expect(authService.clearError).toHaveBeenCalled();
   });
 
-  // --- Signup form accessors ---
+  // --- Form accessors ---
 
-  it('exposes signup form control accessors', () => {
-    expect(component.signupFirstName).toBe(component.signupForm.get('firstName'));
-    expect(component.signupLastName).toBe(component.signupForm.get('lastName'));
-    expect(component.signupEmail).toBe(component.signupForm.get('email'));
-    expect(component.signupPassword).toBe(component.signupForm.get('password'));
-  });
-
-  // --- Login form accessors ---
-
-  it('exposes login form control accessors', () => {
-    expect(component.emailControl).toBe(component.loginForm.get('email'));
-    expect(component.passwordControl).toBe(component.loginForm.get('password'));
+  it('exposes form control accessors', () => {
+    expect(component.firstNameControl).toBe(component.form.get('firstName'));
+    expect(component.lastNameControl).toBe(component.form.get('lastName'));
+    expect(component.emailControl).toBe(component.form.get('email'));
+    expect(component.passwordControl).toBe(component.form.get('password'));
   });
 });

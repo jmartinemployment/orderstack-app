@@ -89,11 +89,8 @@ export const routes: Routes = [
   // Public routes (redirect authenticated users away)
   {
     path: 'signup',
-    canActivate: [guestGuard],
-    component: AuthLayoutComponent,
-    children: [
-      { path: '', loadComponent: () => import('./features/auth/login/login').then(m => m.Login) },
-    ],
+    redirectTo: 'login',
+    pathMatch: 'full',
   },
   {
     path: 'login',

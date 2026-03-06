@@ -1,333 +1,252 @@
-@if (isSignUp()) {
-  <!-- ============ SIGN UP VIEW ============ -->
-  <div class="signup-layout">
-    <div class="signup-promo-panel">
-      <div class="promo-inner">
-        <div class="promo-brand">
-          <i class="bi bi-stack"></i> OrderStack
-        </div>
-        <h2 class="promo-heading">Everything you need to run your business</h2>
-        <div class="promo-features">
-          <div class="promo-feature">
-            <div class="promo-feature-icon"><i class="bi bi-tv"></i></div>
-            <div>
-              <strong>Point of Sale</strong>
-              <span>Fast checkout with mode-aware POS terminals</span>
-            </div>
-          </div>
-          <div class="promo-feature">
-            <div class="promo-feature-icon"><i class="bi bi-display"></i></div>
-            <div>
-              <strong>Order Display</strong>
-              <span>Real-time order routing to prep stations</span>
-            </div>
-          </div>
-          <div class="promo-feature">
-            <div class="promo-feature-icon"><i class="bi bi-globe"></i></div>
-            <div>
-              <strong>Online Ordering</strong>
-              <span>Your own branded ordering page, no commissions</span>
-            </div>
-          </div>
-          <div class="promo-feature">
-            <div class="promo-feature-icon"><i class="bi bi-graph-up"></i></div>
-            <div>
-              <strong>Analytics</strong>
-              <span>Sales, labor, and operations — all in one place</span>
-            </div>
-          </div>
-        </div>
-        <p class="promo-tagline">Trusted by businesses of all sizes.</p>
+<div class="auth-layout">
+  <div class="promo-panel">
+    <div class="promo-inner">
+      <div class="promo-brand">
+        <i class="bi bi-stack"></i> OrderStack
       </div>
+      <h2 class="promo-heading">Everything you need to run your business</h2>
+      <div class="promo-features">
+        <div class="promo-feature">
+          <div class="promo-feature-icon"><i class="bi bi-tv"></i></div>
+          <div>
+            <strong>Point of Sale</strong>
+            <span>Fast checkout with mode-aware POS terminals</span>
+          </div>
+        </div>
+        <div class="promo-feature">
+          <div class="promo-feature-icon"><i class="bi bi-display"></i></div>
+          <div>
+            <strong>Order Display</strong>
+            <span>Real-time order routing to prep stations</span>
+          </div>
+        </div>
+        <div class="promo-feature">
+          <div class="promo-feature-icon"><i class="bi bi-globe"></i></div>
+          <div>
+            <strong>Online Ordering</strong>
+            <span>Your own branded ordering page, no commissions</span>
+          </div>
+        </div>
+        <div class="promo-feature">
+          <div class="promo-feature-icon"><i class="bi bi-graph-up"></i></div>
+          <div>
+            <strong>Analytics</strong>
+            <span>Sales, labor, and operations — all in one place</span>
+          </div>
+        </div>
+      </div>
+      <p class="promo-tagline">Trusted by businesses of all sizes.</p>
     </div>
+  </div>
 
-    <div class="signup-form-panel">
-      <div class="signup-form-inner">
-        <h1 class="signup-heading">
-          <span class="highlight">Let's</span> create your account
-        </h1>
-        <p class="signup-subtitle">Start accepting orders in minutes — no commitments or long-term contracts.</p>
+  <div class="form-panel">
+    <div class="form-inner">
+      <h1 class="form-heading">
+        <span class="highlight">Get started</span> with OrderStack
+      </h1>
+      <p class="form-subtitle">Start accepting orders in minutes — no commitments or long-term contracts.</p>
 
-        @if (error()) {
-          <os-error-display
-            [message]="error()!"
-            title="Signup Failed"
-            (dismissed)="clearError()"
-          />
-        }
+      @if (sessionExpiredMessage()) {
+        <div class="alert alert-warning" role="alert">
+          <i class="bi bi-clock-history"></i>
+          {{ sessionExpiredMessage() }}
+        </div>
+      }
 
-        <form [formGroup]="signupForm" (ngSubmit)="onSignUp()">
-          <div class="name-row">
-            <div class="form-group">
-              <label for="firstName">First name</label>
-              <input
-                type="text"
-                class="form-control"
-                id="firstName"
-                formControlName="firstName"
-                placeholder="First name"
-                [class.is-invalid]="signupFirstName?.touched && signupFirstName?.invalid"
-              />
-              @if (signupFirstName?.touched && signupFirstName?.errors?.['required']) {
-                <div class="invalid-feedback d-block">Required</div>
-              }
-            </div>
-            <div class="form-group">
-              <label for="lastName">Last name</label>
-              <input
-                type="text"
-                class="form-control"
-                id="lastName"
-                formControlName="lastName"
-                placeholder="Last name"
-                [class.is-invalid]="signupLastName?.touched && signupLastName?.invalid"
-              />
-              @if (signupLastName?.touched && signupLastName?.errors?.['required']) {
-                <div class="invalid-feedback d-block">Required</div>
-              }
-            </div>
-          </div>
+      @if (error()) {
+        <os-error-display
+          [message]="error()!"
+          title="Error"
+          (dismissed)="clearError()"
+        />
+      }
 
+      <form [formGroup]="form">
+        <div class="name-row">
           <div class="form-group">
-            <label for="signupEmail">Email address</label>
+            <label for="firstName">First name</label>
             <input
-              type="email"
+              type="text"
               class="form-control"
-              id="signupEmail"
-              formControlName="email"
-              placeholder="name@example.com"
-              [class.is-invalid]="signupEmail?.touched && signupEmail?.invalid"
+              id="firstName"
+              formControlName="firstName"
+              placeholder="First name"
+              [class.is-invalid]="firstNameControl?.touched && firstNameControl?.invalid"
             />
-            @if (signupEmail?.touched && signupEmail?.errors?.['required']) {
-              <div class="invalid-feedback d-block">Email is required</div>
-            }
-            @if (signupEmail?.touched && signupEmail?.errors?.['email']) {
-              <div class="invalid-feedback d-block">Please enter a valid email</div>
+            @if (firstNameControl?.touched && firstNameControl?.errors?.['required']) {
+              <div class="invalid-feedback d-block">Required</div>
             }
           </div>
-
           <div class="form-group">
-            <label for="signupPassword">Password</label>
+            <label for="lastName">Last name</label>
+            <input
+              type="text"
+              class="form-control"
+              id="lastName"
+              formControlName="lastName"
+              placeholder="Last name"
+              [class.is-invalid]="lastNameControl?.touched && lastNameControl?.invalid"
+            />
+            @if (lastNameControl?.touched && lastNameControl?.errors?.['required']) {
+              <div class="invalid-feedback d-block">Required</div>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            formControlName="email"
+            placeholder="name@example.com"
+            [class.is-invalid]="emailControl?.touched && emailControl?.invalid"
+          />
+          @if (emailControl?.touched && emailControl?.errors?.['required']) {
+            <div class="invalid-feedback d-block">Email is required</div>
+          }
+          @if (emailControl?.touched && emailControl?.errors?.['email']) {
+            <div class="invalid-feedback d-block">Please enter a valid email</div>
+          }
+        </div>
+
+        <div class="form-group">
+          <div class="password-header">
+            <label for="password">Password</label>
+            <button type="button" class="forgot-link" (click)="openForgotPassword()">Forgot password?</button>
+          </div>
+          <div class="input-group">
+            <input
+              [type]="showPassword() ? 'text' : 'password'"
+              class="form-control"
+              id="password"
+              formControlName="password"
+              placeholder="Min 6 characters"
+              [class.is-invalid]="passwordControl?.touched && passwordControl?.invalid"
+            />
+            <button
+              type="button"
+              class="btn-toggle-pw"
+              (click)="togglePasswordVisibility()"
+              aria-label="Toggle password visibility"
+            >
+              <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
+            </button>
+          </div>
+          @if (passwordControl?.touched && passwordControl?.errors?.['required']) {
+            <div class="invalid-feedback d-block">Password is required</div>
+          }
+          @if (passwordControl?.touched && passwordControl?.errors?.['minlength']) {
+            <div class="invalid-feedback d-block">Min 6 characters</div>
+          }
+        </div>
+
+        <div class="terms-check">
+          <input
+            type="checkbox"
+            id="terms"
+            class="form-check-input"
+            [checked]="agreedToTerms()"
+            (change)="toggleTerms()"
+          />
+          <label for="terms" class="terms-label">
+            I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+          </label>
+        </div>
+
+        <div class="button-row">
+          <button
+            type="button"
+            class="btn btn-primary btn-create"
+            [disabled]="isLoading() || !agreedToTerms()"
+            (click)="onCreateAccount()"
+          >
+            @if (isLoading()) {
+              <span class="spinner-border spinner-border-sm" role="status"></span>
+            }
+            Create Account
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary btn-signin"
+            [disabled]="isLoading()"
+            (click)="onSignIn()"
+          >
+            Sign In
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Forgot Password Modal -->
+@if (showForgotModal()) {
+  <div class="modal-backdrop" (click)="closeForgotPassword()"></div>
+  <div class="modal-dialog" role="dialog" aria-labelledby="forgotModalTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="forgotModalTitle" class="modal-title">Reset your password</h3>
+        <button type="button" class="modal-close" (click)="closeForgotPassword()" aria-label="Close">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      @if (forgotSuccess()) {
+        <div class="modal-body">
+          <div class="success-message">
+            <i class="bi bi-check-circle"></i>
+            <p>Your password has been reset successfully.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary w-100" (click)="closeForgotPassword()">Back to sign in</button>
+        </div>
+      } @else {
+        <div class="modal-body">
+          <p class="modal-description">Enter a new password for your account.</p>
+          @if (forgotError()) {
+            <div class="alert alert-danger">{{ forgotError() }}</div>
+          }
+          <div class="form-group mb-0">
+            <label for="newPassword">New password</label>
             <div class="input-group">
               <input
-                [type]="showPassword() ? 'text' : 'password'"
+                [type]="showNewPassword() ? 'text' : 'password'"
                 class="form-control"
-                id="signupPassword"
-                formControlName="password"
+                id="newPassword"
                 placeholder="Min 6 characters"
-                [class.is-invalid]="signupPassword?.touched && signupPassword?.invalid"
+                [value]="newPassword()"
+                (input)="onNewPasswordInput($event)"
+                (keydown.enter)="submitForgotPassword()"
               />
               <button
                 type="button"
                 class="btn-toggle-pw"
-                (click)="togglePasswordVisibility()"
+                (click)="toggleNewPasswordVisibility()"
                 aria-label="Toggle password visibility"
               >
-                <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
+                <i class="bi" [class.bi-eye]="!showNewPassword()" [class.bi-eye-slash]="showNewPassword()"></i>
               </button>
             </div>
-            @if (signupPassword?.touched && signupPassword?.errors?.['required']) {
-              <div class="invalid-feedback d-block">Password is required</div>
-            }
-            @if (signupPassword?.touched && signupPassword?.errors?.['minlength']) {
-              <div class="invalid-feedback d-block">Min 6 characters</div>
-            }
           </div>
-
-          <div class="terms-check">
-            <input
-              type="checkbox"
-              id="terms"
-              class="form-check-input"
-              [checked]="agreedToTerms()"
-              (change)="toggleTerms()"
-            />
-            <label for="terms" class="terms-label">
-              I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
-            </label>
-          </div>
-
-          <button
-            type="submit"
-            class="btn btn-primary btn-create"
-            [disabled]="isLoading() || !agreedToTerms()"
-          >
-            @if (isLoading()) {
-              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-              Creating account...
-            } @else {
-              Create account
-            }
-          </button>
-        </form>
-
-        <p class="switch-link">
-          Already have an account? <button type="button" class="link-btn" (click)="switchToSignIn()">Sign in</button>
-        </p>
-      </div>
-    </div>
-  </div>
-} @else {
-  <!-- ============ SIGN IN VIEW ============ -->
-  <div class="login-card">
-    <div class="text-center mb-4">
-      <h2 class="card-title mb-1">Sign in</h2>
-      <p class="text-muted">Enter your credentials to continue</p>
-    </div>
-
-    @if (sessionExpiredMessage()) {
-      <div class="alert alert-warning d-flex align-items-center gap-2 mb-3" role="alert">
-        <i class="bi bi-clock-history"></i>
-        {{ sessionExpiredMessage() }}
-      </div>
-    }
-
-    @if (error()) {
-      <os-error-display
-        [message]="error()!"
-        title="Login Failed"
-        (dismissed)="clearError()"
-      />
-    }
-
-    <form [formGroup]="loginForm" (ngSubmit)="onSignIn()">
-      <div class="mb-3">
-        <label for="email" class="form-label">Email address</label>
-        <input
-          type="email"
-          class="form-control"
-          id="email"
-          formControlName="email"
-          placeholder="name@example.com"
-          [class.is-invalid]="emailControl?.touched && emailControl?.invalid"
-        />
-        @if (emailControl?.touched && emailControl?.errors?.['required']) {
-          <div class="invalid-feedback d-block">Email is required</div>
-        }
-        @if (emailControl?.touched && emailControl?.errors?.['email']) {
-          <div class="invalid-feedback d-block">Please enter a valid email</div>
-        }
-      </div>
-
-      <div class="mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <label for="password" class="form-label mb-0">Password</label>
-          <button type="button" class="forgot-link" (click)="openForgotPassword()">Forgot password?</button>
         </div>
-        <div class="password-field">
-          <input
-            [type]="showPassword() ? 'text' : 'password'"
-            class="form-control"
-            id="password"
-            formControlName="password"
-            placeholder="Enter your password"
-            [class.is-invalid]="passwordControl?.touched && passwordControl?.invalid"
-          />
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeForgotPassword()">Cancel</button>
           <button
             type="button"
-            class="btn-toggle-pw"
-            (click)="togglePasswordVisibility()"
-            aria-label="Toggle password visibility"
+            class="btn btn-primary"
+            [disabled]="forgotLoading() || newPassword().length < 6"
+            (click)="submitForgotPassword()"
           >
-            <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
-          </button>
-        </div>
-        @if (passwordControl?.touched && passwordControl?.errors?.['required']) {
-          <div class="invalid-feedback d-block">Password is required</div>
-        }
-        @if (passwordControl?.touched && passwordControl?.errors?.['minlength']) {
-          <div class="invalid-feedback d-block">Password must be at least 6 characters</div>
-        }
-      </div>
-
-      <button
-        type="submit"
-        class="btn btn-primary w-100"
-        [disabled]="isLoading()"
-      >
-        @if (isLoading()) {
-          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-          Signing in...
-        } @else {
-          Sign In
-        }
-      </button>
-    </form>
-
-    <p class="switch-link mt-3">
-      Don't have an account? <button type="button" class="link-btn" (click)="switchToSignUp()">Sign up</button>
-    </p>
-  </div>
-
-  <!-- ============ FORGOT PASSWORD MODAL ============ -->
-  @if (showForgotModal()) {
-    <div class="modal-backdrop" (click)="closeForgotPassword()"></div>
-    <div class="modal-dialog" role="dialog" aria-labelledby="forgotModalTitle">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3 id="forgotModalTitle" class="modal-title">Reset your password</h3>
-          <button type="button" class="modal-close" (click)="closeForgotPassword()" aria-label="Close">
-            <i class="bi bi-x-lg"></i>
-          </button>
-        </div>
-
-        @if (forgotSuccess()) {
-          <div class="modal-body">
-            <div class="success-message">
-              <i class="bi bi-check-circle"></i>
-              <p>Your password has been reset successfully.</p>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-primary w-100" (click)="closeForgotPassword()">Back to sign in</button>
-          </div>
-        } @else {
-          <div class="modal-body">
-            <p class="modal-description">Enter a new password for your account.</p>
-            @if (forgotError()) {
-              <div class="alert alert-danger mb-3">{{ forgotError() }}</div>
+            @if (forgotLoading()) {
+              <span class="spinner-border spinner-border-sm" role="status"></span>
             }
-            <div class="form-group mb-0">
-              <label for="newPassword" class="form-label">New password</label>
-              <div class="password-field">
-                <input
-                  [type]="showNewPassword() ? 'text' : 'password'"
-                  class="form-control"
-                  id="newPassword"
-                  placeholder="Min 6 characters"
-                  [value]="newPassword()"
-                  (input)="onNewPasswordInput($event)"
-                  (keydown.enter)="submitForgotPassword()"
-                />
-                <button
-                  type="button"
-                  class="btn-toggle-pw"
-                  (click)="toggleNewPasswordVisibility()"
-                  aria-label="Toggle password visibility"
-                >
-                  <i class="bi" [class.bi-eye]="!showNewPassword()" [class.bi-eye-slash]="showNewPassword()"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" (click)="closeForgotPassword()">Cancel</button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              [disabled]="forgotLoading() || newPassword().length < 6"
-              (click)="submitForgotPassword()"
-            >
-              @if (forgotLoading()) {
-                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                Submitting...
-              } @else {
-                Submit
-              }
-            </button>
-          </div>
-        }
-      </div>
+            Submit
+          </button>
+        </div>
+      }
     </div>
-  }
+  </div>
 }

@@ -1,6 +1,6 @@
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '@services/auth';
 import { ErrorDisplay } from '@shared/error-display/error-display';
 
@@ -15,14 +15,10 @@ export class Login {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly route = inject(ActivatedRoute);
 
   readonly isLoading = this.authService.isLoading;
   readonly error = this.authService.error;
   readonly sessionExpiredMessage = this.authService.sessionExpiredMessage;
-
-  readonly _isSignUp = signal(true);
-  readonly isSignUp = this._isSignUp.asReadonly();
 
   private readonly _showPassword = signal(false);
   readonly showPassword = this._showPassword.asReadonly();
@@ -49,25 +45,12 @@ export class Login {
   private readonly _forgotSuccess = signal(false);
   readonly forgotSuccess = this._forgotSuccess.asReadonly();
 
-  loginForm: FormGroup = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
-  });
-
-  signupForm: FormGroup = this.fb.group({
+  form: FormGroup = this.fb.group({
     firstName: ['', [Validators.required]],
     lastName: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
-
-  constructor() {
-    // If navigated to /login, show sign-in view
-    const parentPath = this.route.snapshot.parent?.routeConfig?.path;
-    if (parentPath === 'login') {
-      this._isSignUp.set(false);
-    }
-  }
 
   togglePasswordVisibility(): void {
     this._showPassword.update(show => !show);
@@ -75,16 +58,6 @@ export class Login {
 
   toggleTerms(): void {
     this._agreedToTerms.update(v => !v);
-  }
-
-  switchToSignIn(): void {
-    this._isSignUp.set(false);
-    this.authService.clearError();
-  }
-
-  switchToSignUp(): void {
-    this._isSignUp.set(true);
-    this.authService.clearError();
   }
 
   // Forgot password modal
@@ -117,7 +90,7 @@ export class Login {
     const password = this._newPassword();
     if (password.length < 6) return;
 
-    const email = (this.loginForm.get('email')?.value ?? '').trim();
+    const email = (this.form.get('email')?.value ?? '').trim();
 
     this._forgotLoading.set(true);
     this._forgotError.set(null);
@@ -133,15 +106,15 @@ export class Login {
     }
   }
 
-  async onSignUp(): Promise<void> {
-    if (this.signupForm.invalid) {
-      this.signupForm.markAllAsTouched();
+  async onCreateAccount(): Promise<void> {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
 
     if (!this._agreedToTerms()) return;
 
-    const { firstName, lastName, email, password } = this.signupForm.value;
+    const { firstName, lastName, email, password } = this.form.value;
     const success = await this.authService.signup({ firstName, lastName, email, password });
 
     if (success) {
@@ -150,12 +123,17 @@ export class Login {
   }
 
   async onSignIn(): Promise<void> {
-    if (this.loginForm.invalid) {
-      this.loginForm.markAllAsTouched();
+    const emailControl = this.form.get('email');
+    const passwordControl = this.form.get('password');
+
+    if (emailControl?.invalid || passwordControl?.invalid) {
+      emailControl?.markAsTouched();
+      passwordControl?.markAsTouched();
       return;
     }
 
-    const { email, password } = this.loginForm.value;
+    const email = this.form.value.email;
+    const password = this.form.value.password;
     this.authService.clearSessionExpiredMessage();
     const success = await this.authService.login({ email, password });
 
@@ -177,29 +155,19 @@ export class Login {
     this.authService.clearError();
   }
 
-  // Sign-in form accessors
+  get firstNameControl() {
+    return this.form.get('firstName');
+  }
+
+  get lastNameControl() {
+    return this.form.get('lastName');
+  }
+
   get emailControl() {
-    return this.loginForm.get('email');
+    return this.form.get('email');
   }
 
   get passwordControl() {
-    return this.loginForm.get('password');
-  }
-
-  // Sign-up form accessors
-  get signupFirstName() {
-    return this.signupForm.get('firstName');
-  }
-
-  get signupLastName() {
-    return this.signupForm.get('lastName');
-  }
-
-  get signupEmail() {
-    return this.signupForm.get('email');
-  }
-
-  get signupPassword() {
-    return this.signupForm.get('password');
+    return this.form.get('password');
   }
 }
