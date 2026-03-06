@@ -64,6 +64,7 @@ export class AuthLayoutComponent {
   isSignup = false;
 
   constructor(private route: ActivatedRoute) {
-    this.isSignup = this.route.snapshot.routeConfig?.path === 'signup';
+    const path = this.route.snapshot.routeConfig?.path;
+    this.isSignup = path === 'signup' || path === 'login';
   }
 }
