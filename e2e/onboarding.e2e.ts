@@ -94,4 +94,29 @@ test.describe('Onboarding Wizard', { tag: '@nice-to-have' }, () => {
     const continueBtn = page.locator('button:has-text("Continue")');
     await expect(continueBtn).toBeVisible();
   });
+
+  test('business-type page does not show business info form', async ({ page }) => {
+    await page.goto(ROUTES.login);
+    await page.locator(SEL.emailInput).fill(CREDENTIALS.owner.email);
+    await page.locator(SEL.passwordInput).fill(CREDENTIALS.owner.password);
+    await page.locator(SEL.submitBtn).click();
+    await page.waitForTimeout(4000);
+
+    if (page.url().includes('/select-restaurant')) {
+      await page.locator(SEL.restaurantItem).first().click();
+      await page.waitForTimeout(3000);
+    }
+
+    await page.goto('/business-type');
+    await page.waitForTimeout(2000);
+
+    // These fields must NOT exist on this page
+    await expect(page.getByPlaceholder("e.g. Bella's Kitchen")).not.toBeVisible();
+    await expect(page.getByPlaceholder('123 Main St')).not.toBeVisible();
+    await expect(page.getByText('Tell us about your business')).not.toBeVisible();
+
+    // Business type selector MUST still be present
+    await expect(page.getByText('What kind of business?')).toBeVisible();
+    await expect(page.getByText('Catering')).toBeVisible();
+  });
 });
