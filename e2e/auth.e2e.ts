@@ -100,6 +100,21 @@ test.describe('Authentication', { tag: '@critical' }, () => {
     expect(page.url()).not.toMatch(/\/(signup|login)/);
   });
 
+  test('email and password fields should not be pre-filled on fresh page load', async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await page.goto('/login');
+    await page.waitForLoadState('networkidle');
+
+    const emailValue = await page.locator('input[formcontrolname="email"]').inputValue();
+    const passwordValue = await page.locator('input[formcontrolname="password"]').inputValue();
+
+    expect(emailValue).toBe('');
+    expect(passwordValue).toBe('');
+
+    await context.close();
+  });
+
   test('should switch between sign-in and sign-up forms', async ({ page }) => {
     await page.goto(ROUTES.login);
     await expect(page.locator(SEL.loginHeading)).toBeVisible();

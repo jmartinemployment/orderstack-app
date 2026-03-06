@@ -108,6 +108,7 @@
             id="email"
             formControlName="email"
             placeholder="name@example.com"
+            autocomplete="off"
             [class.is-invalid]="emailControl?.touched && emailControl?.invalid"
           />
           @if (emailControl?.touched && emailControl?.errors?.['required']) {
@@ -130,6 +131,7 @@
               id="password"
               formControlName="password"
               placeholder="Min 6 characters"
+              autocomplete="new-password"
               [class.is-invalid]="passwordControl?.touched && passwordControl?.invalid"
             />
             <button

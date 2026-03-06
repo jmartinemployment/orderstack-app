@@ -12,16 +12,19 @@ function createMockAuthService() {
   const _error = signal<string | null>(null);
   const _sessionExpiredMessage = signal<string | null>(null);
   const _merchants = signal<{ id: string; name: string }[]>([]);
+  const _selectedMerchantId = signal<string | null>(null);
 
   return {
     _isLoading,
     _error,
     _sessionExpiredMessage,
     _merchants,
+    _selectedMerchantId,
     isLoading: _isLoading.asReadonly(),
     error: _error.asReadonly(),
     sessionExpiredMessage: _sessionExpiredMessage.asReadonly(),
     merchants: _merchants.asReadonly(),
+    selectedMerchantId: _selectedMerchantId.asReadonly(),
     login: vi.fn().mockResolvedValue(true),
     signup: vi.fn().mockResolvedValue(true),
     clearError: vi.fn(),
@@ -81,6 +84,16 @@ describe('Login', () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.querySelector('.btn-create')).toBeTruthy();
     expect(el.querySelector('.btn-signin')).toBeTruthy();
+  });
+
+  it('email input has autocomplete="off"', () => {
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('#email');
+    expect(input.getAttribute('autocomplete')).toBe('off');
+  });
+
+  it('password input has autocomplete="new-password"', () => {
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('#password');
+    expect(input.getAttribute('autocomplete')).toBe('new-password');
   });
 
   // --- Password visibility ---
@@ -158,14 +171,14 @@ describe('Login', () => {
     });
   });
 
-  it('navigates to /setup on successful signup', async () => {
+  it('navigates to /business-type on successful signup', async () => {
     component.form.setValue({
       firstName: 'John', lastName: 'Doe',
       email: 'john@test.com', password: 'pass123',
     });
     component.toggleTerms();
     await component.onCreateAccount();
-    expect(router.navigate).toHaveBeenCalledWith(['/setup']);
+    expect(router.navigate).toHaveBeenCalledWith(['/business-type']);
   });
 
   it('does not navigate on failed signup', async () => {
@@ -202,10 +215,10 @@ describe('Login', () => {
 
   // --- Post-login routing ---
 
-  it('navigates to /setup when no restaurants', async () => {
+  it('navigates to /business-type when no restaurants', async () => {
     component.form.patchValue({ email: 'user@test.com', password: 'pass123' });
     await component.onSignIn();
-    expect(router.navigate).toHaveBeenCalledWith(['/setup']);
+    expect(router.navigate).toHaveBeenCalledWith(['/business-type']);
   });
 
   it('selects restaurant and navigates to /app/administration when exactly 1 restaurant', async () => {
