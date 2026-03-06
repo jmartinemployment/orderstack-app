@@ -46,6 +46,17 @@ export class AuthService {
   }
 
   private loadFromStorage(): void {
+    // One-time cleanup: remove poisoned 'selected_merchant_id = "undefined"' written by
+    // pre-BUG-37-fix onboarding. Safe to run every load — no-op if key is valid or absent.
+    const storedMerchantId = localStorage.getItem('selected_merchant_id');
+    if (storedMerchantId === 'undefined') {
+      localStorage.removeItem('selected_merchant_id');
+      localStorage.removeItem('selected_merchant_name');
+      localStorage.removeItem('selected_merchant_logo');
+      localStorage.removeItem('selected_merchant_address');
+      localStorage.removeItem('undefined-devices');
+    }
+
     const token = localStorage.getItem('auth_token');
     const userJson = localStorage.getItem('auth_user');
     const merchantsJson = localStorage.getItem('auth_merchants');
@@ -74,7 +85,7 @@ export class AuthService {
       }
     }
 
-    if (merchantId) {
+    if (merchantId && merchantId !== 'undefined') {
       this._selectedMerchantId.set(merchantId);
       this._selectedMerchantName.set(merchantName);
       this._selectedMerchantLogo.set(merchantLogo);
@@ -221,6 +232,11 @@ export class AuthService {
   }
 
   selectMerchant(merchantId: string, merchantName: string, merchantLogo?: string, merchantAddress?: string): void {
+    if (!merchantId || merchantId === 'undefined') {
+      console.warn('[AuthService] selectMerchant called with invalid merchantId:', merchantId);
+      return;
+    }
+
     this._selectedMerchantId.set(merchantId);
     this._selectedMerchantName.set(merchantName);
     this._selectedMerchantLogo.set(merchantLogo ?? null);

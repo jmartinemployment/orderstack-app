@@ -1236,7 +1236,19 @@ export class SetupWizard implements OnInit {
     this._isSubmitting.set(false);
 
     if (result) {
-      this.authService.selectMerchant(result.merchantId, payload.businessName);
+      const resolvedMerchantId: string | undefined =
+        result.merchantId ||
+        (result.restaurant?.['id'] as string | undefined) ||
+        (result.restaurant?.['merchantId'] as string | undefined);
+
+      if (!resolvedMerchantId || resolvedMerchantId === 'undefined') {
+        console.error('[SetupWizard] completeOnboarding returned no valid merchantId. Full result:', result);
+        this._submitError.set('Onboarding completed but merchant ID was not returned. Please refresh and try again.');
+        this._isSubmitting.set(false);
+        return;
+      }
+
+      this.authService.selectMerchant(resolvedMerchantId, payload.businessName);
       // Re-persist the merchant profile now that selectedMerchantId is set
       // (buildProfileFromPayload ran before selectMerchant, so persistProfile
       // silently skipped due to empty merchantId)
