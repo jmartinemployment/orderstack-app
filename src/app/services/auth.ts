@@ -56,6 +56,8 @@ export class AuthService {
       localStorage.removeItem('selected_merchant_address');
       localStorage.removeItem('undefined-devices');
     }
+    // Always clean up the menu-schedules-unknown poison key — safe no-op if absent.
+    localStorage.removeItem('menu-schedules-unknown');
 
     const token = localStorage.getItem('auth_token');
     const userJson = localStorage.getItem('auth_user');
@@ -229,6 +231,34 @@ export class AuthService {
 
   clearSessionExpiredMessage(): void {
     this._sessionExpiredMessage.set(null);
+  }
+
+  async refreshMerchantsFromServer(): Promise<boolean> {
+    if (!this._token()) return false;
+
+    try {
+      const user = await firstValueFrom(
+        this.http.get<User>(`${this.apiUrl}/auth/me`)
+      );
+
+      this._user.set(user);
+      localStorage.setItem('auth_user', JSON.stringify(user));
+
+      const serverIds: string[] = user.merchantIds ?? [];
+      if (serverIds.length > 0) {
+        const merged = serverIds.map(id => {
+          const existing = this._merchants().find(m => m.id === id);
+          return existing ?? { id, name: '', slug: '', role: 'owner' };
+        });
+        this._merchants.set(merged);
+        localStorage.setItem('auth_merchants', JSON.stringify(merged));
+        return true;
+      }
+
+      return false;
+    } catch {
+      return false;
+    }
   }
 
   selectMerchant(merchantId: string, merchantName: string, merchantLogo?: string, merchantAddress?: string): void {

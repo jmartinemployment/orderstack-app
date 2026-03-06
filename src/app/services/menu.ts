@@ -944,7 +944,8 @@ export class MenuService {
   }
 
   private persistSchedules(): void {
-    const key = `menu-schedules-${this.merchantId ?? 'unknown'}`;
+    if (!this.merchantId) return;
+    const key = `menu-schedules-${this.merchantId}`;
     const data = {
       schedules: this._menuSchedules(),
       activeId: this._activeScheduleId(),
@@ -954,7 +955,8 @@ export class MenuService {
   }
 
   private restoreSchedulesFromStorage(): void {
-    const key = `menu-schedules-${this.merchantId ?? 'unknown'}`;
+    if (!this.merchantId) return;
+    const key = `menu-schedules-${this.merchantId}`;
     try {
       const stored = localStorage.getItem(key);
       if (stored) {

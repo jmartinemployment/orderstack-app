@@ -46,9 +46,20 @@ export class RestaurantSelect {
   }
 
   private async loadRestaurants(): Promise<void> {
-    const merchantIds = this.authService.userMerchants();
+    let merchantIds = this.authService.userMerchants();
+
+    // If the cached merchant list is empty, attempt a server refresh before giving up.
+    // This handles the case where signup returned restaurants:[] but the merchant was
+    // created during onboarding (BUG-39).
     if (merchantIds.length === 0) {
-      this._error.set('No restaurants assigned to your account');
+      const refreshed = await this.authService.refreshMerchantsFromServer();
+      if (refreshed) {
+        merchantIds = this.authService.userMerchants();
+      }
+    }
+
+    if (merchantIds.length === 0) {
+      this._error.set('No restaurants found for your account. Please contact support or start a new restaurant setup.');
       return;
     }
 
