@@ -1,28 +1,34 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
+import { Router } from '@angular/router';
+import { DecimalPipe } from '@angular/common';
 import { CateringService } from '@services/catering.service';
-import { CateringEvent } from '@models/index';
+import { CateringJob, CATERING_STATUS_CONFIG } from '@models/index';
 
 interface CalendarDay {
   date: string;
   dayOfMonth: number;
   isCurrentMonth: boolean;
   isToday: boolean;
-  events: CateringEvent[];
+  events: CateringJob[];
 }
 
 @Component({
   selector: 'os-catering-calendar',
   standalone: true,
+  imports: [DecimalPipe],
   templateUrl: './catering-calendar.component.html',
   styleUrl: './catering-calendar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CateringCalendarComponent {
   private readonly cateringService = inject(CateringService);
+  private readonly router = inject(Router);
 
   readonly currentYear = signal(new Date().getFullYear());
   readonly currentMonth = signal(new Date().getMonth());
   readonly selectedDay = signal<string | null>(null);
+
+  readonly statusConfig = CATERING_STATUS_CONFIG;
 
   readonly monthLabel = computed(() => {
     const date = new Date(this.currentYear(), this.currentMonth(), 1);
@@ -52,7 +58,7 @@ export class CateringCalendarComponent {
         dayOfMonth: d,
         isCurrentMonth: false,
         isToday: date === today,
-        events: events.filter(e => e.eventDate.startsWith(date)),
+        events: events.filter(e => e.fulfillmentDate.startsWith(date)),
       });
     }
 
@@ -64,7 +70,7 @@ export class CateringCalendarComponent {
         dayOfMonth: d,
         isCurrentMonth: true,
         isToday: date === today,
-        events: events.filter(e => e.eventDate.startsWith(date)),
+        events: events.filter(e => e.fulfillmentDate.startsWith(date)),
       });
     }
 
@@ -77,7 +83,7 @@ export class CateringCalendarComponent {
         dayOfMonth: d,
         isCurrentMonth: false,
         isToday: date === today,
-        events: events.filter(e => e.eventDate.startsWith(date)),
+        events: events.filter(e => e.fulfillmentDate.startsWith(date)),
       });
     }
 
@@ -87,7 +93,7 @@ export class CateringCalendarComponent {
   readonly selectedDayEvents = computed(() => {
     const day = this.selectedDay();
     if (!day) return [];
-    return this.cateringService.events().filter(e => e.eventDate.startsWith(day));
+    return this.cateringService.events().filter(e => e.fulfillmentDate.startsWith(day));
   });
 
   prevMonth(): void {
@@ -113,25 +119,27 @@ export class CateringCalendarComponent {
   }
 
   selectDay(day: CalendarDay): void {
-    if (day.events.length > 0) {
-      this.selectedDay.set(this.selectedDay() === day.date ? null : day.date);
-    }
+    this.selectedDay.set(this.selectedDay() === day.date ? null : day.date);
   }
 
-  getDotClass(day: CalendarDay): string {
-    if (day.events.length === 0) return '';
-    const hasConfirmed = day.events.some(e => e.status === 'confirmed');
-    if (hasConfirmed) return 'dot-confirmed';
-    return 'dot-pending';
+  openJob(job: CateringJob): void {
+    this.router.navigate(['/app/catering/job', job.id]);
+  }
+
+  getStatusColor(status: string): string {
+    return CATERING_STATUS_CONFIG[status as keyof typeof CATERING_STATUS_CONFIG]?.color ?? '#6b7280';
   }
 
   getStatusBadgeClass(status: string): string {
     const map: Record<string, string> = {
       inquiry: 'bg-secondary',
-      proposal_sent: 'bg-warning text-dark',
-      confirmed: 'bg-success',
-      completed: 'bg-primary',
-      cancelled: 'bg-danger',
+      proposal_sent: 'bg-info text-dark',
+      contract_signed: 'bg-purple',
+      deposit_received: 'bg-warning text-dark',
+      in_progress: 'bg-primary',
+      final_payment: 'bg-danger',
+      completed: 'bg-success',
+      cancelled: 'bg-dark',
     };
     return map[status] ?? 'bg-secondary';
   }

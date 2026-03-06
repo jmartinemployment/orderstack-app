@@ -1,10 +1,16 @@
-import { Injectable, inject, signal, computed, effect } from '@angular/core';
+import { Injectable, inject, signal, computed, effect, untracked } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
-  CateringEvent,
-  CateringEventStatus,
+  CateringJob,
+  CateringJobStatus,
   CateringCapacitySettings,
+  CateringActivity,
+  CateringClientHistory,
+  CateringDeferredRevenueEntry,
+  CateringPerformanceReport,
+  CateringPrepList,
+  CATERING_STATUS_TRANSITIONS,
 } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -23,74 +29,152 @@ export class CateringService {
     effect(() => {
       const mid = this.authService.selectedMerchantId();
       if (mid) {
-        this.loadEvents();
-        this.loadCapacitySettings();
+        untracked(() => {
+          this.loadJobs();
+          this.loadCapacitySettings();
+        });
       }
     });
   }
 
-  private readonly _events = signal<CateringEvent[]>([]);
+  private readonly _jobs = signal<CateringJob[]>([]);
   private readonly _capacitySettings = signal<CateringCapacitySettings | null>(null);
   readonly isLoading = signal(false);
 
-  readonly events = this._events.asReadonly();
+  readonly jobs = this._jobs.asReadonly();
   readonly capacitySettings = this._capacitySettings.asReadonly();
 
-  readonly activeEvents = computed(() =>
-    this._events().filter(e =>
-      e.status === 'inquiry' || e.status === 'proposal_sent' || e.status === 'confirmed'
-    ).sort((a, b) => {
-      const order: Record<CateringEventStatus, number> = {
-        confirmed: 0, proposal_sent: 1, inquiry: 2, completed: 3, cancelled: 4,
-      };
-      return order[a.status] - order[b.status];
-    })
+  // Backward compat alias
+  readonly events = this._jobs.asReadonly();
+
+  // --- Pipeline computed signals ---
+
+  readonly activeJobs = computed(() =>
+    this._jobs().filter(j =>
+      j.status !== 'completed' && j.status !== 'cancelled'
+    ).sort((a, b) => a.fulfillmentDate.localeCompare(b.fulfillmentDate))
   );
 
-  readonly upcomingEvents = computed(() => {
+  readonly upcomingJobs = computed(() => {
     const today = new Date().toISOString().split('T')[0];
-    return this._events()
-      .filter(e => e.eventDate >= today && e.status !== 'cancelled')
-      .sort((a, b) => a.eventDate.localeCompare(b.eventDate));
+    return this._jobs()
+      .filter(j => j.fulfillmentDate >= today && j.status !== 'cancelled')
+      .sort((a, b) => a.fulfillmentDate.localeCompare(b.fulfillmentDate));
   });
 
-  readonly pastEvents = computed(() => {
+  readonly pastJobs = computed(() => {
     const today = new Date().toISOString().split('T')[0];
-    return this._events()
-      .filter(e => e.eventDate < today || e.status === 'completed' || e.status === 'cancelled')
-      .sort((a, b) => b.eventDate.localeCompare(a.eventDate));
+    return this._jobs()
+      .filter(j => j.fulfillmentDate < today || j.status === 'completed' || j.status === 'cancelled')
+      .sort((a, b) => b.fulfillmentDate.localeCompare(a.fulfillmentDate));
   });
+
+  // Backward compat aliases
+  readonly activeEvents = this.activeJobs;
+  readonly upcomingEvents = this.upcomingJobs;
+  readonly pastEvents = this.pastJobs;
 
   readonly conflictDays = computed(() => {
     const settings = this._capacitySettings();
     if (!settings) return [];
-    const confirmed = this._events().filter(e => e.status === 'confirmed');
+    const confirmed = this._jobs().filter(j =>
+      j.status !== 'cancelled' && j.status !== 'completed' && j.status !== 'inquiry'
+    );
     const byDate: Record<string, number> = {};
-    for (const e of confirmed) {
-      byDate[e.eventDate] = (byDate[e.eventDate] ?? 0) + e.headcount;
+    for (const j of confirmed) {
+      byDate[j.fulfillmentDate] = (byDate[j.fulfillmentDate] ?? 0) + j.headcount;
     }
     return Object.entries(byDate)
       .filter(([, total]) => total > settings.maxHeadcountPerDay)
       .map(([date]) => date);
   });
 
-  async loadEvents(): Promise<void> {
+  // --- Pipeline Metrics ---
+
+  readonly totalPipeline = computed(() =>
+    this.activeJobs().reduce((sum, j) => sum + j.totalCents, 0)
+  );
+
+  readonly outstandingBalance = computed(() =>
+    this.activeJobs().reduce((sum, j) => sum + (j.totalCents - j.paidCents), 0)
+  );
+
+  readonly eventsThisMonth = computed(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    return this._jobs().filter(j => {
+      const d = new Date(j.fulfillmentDate);
+      return d.getFullYear() === year && d.getMonth() === month && j.status !== 'cancelled';
+    }).length;
+  });
+
+  readonly avgJobValue = computed(() => {
+    const active = this.activeJobs();
+    if (active.length === 0) return 0;
+    return Math.round(active.reduce((sum, j) => sum + j.totalCents, 0) / active.length);
+  });
+
+  readonly nextUpcomingJob = computed(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return this._jobs().find(j =>
+      j.fulfillmentDate >= today
+      && j.status !== 'cancelled'
+      && j.status !== 'completed'
+    ) ?? null;
+  });
+
+  // Sidebar badge counts
+  readonly pendingJobsCount = computed(() =>
+    this._jobs().filter(j => j.status === 'inquiry' || j.status === 'proposal_sent').length
+  );
+
+  readonly proposalsAwaitingApproval = computed(() =>
+    this._jobs().filter(j => j.status === 'proposal_sent').length
+  );
+
+  readonly milestonesComingDue = computed(() => {
+    const today = new Date();
+    const threeDaysOut = new Date(today);
+    threeDaysOut.setDate(today.getDate() + 3);
+    const todayStr = today.toISOString().split('T')[0];
+    const thresholdStr = threeDaysOut.toISOString().split('T')[0];
+
+    let count = 0;
+    for (const j of this.activeJobs()) {
+      for (const m of j.milestones) {
+        if (!m.paidAt && m.dueDate && m.dueDate >= todayStr && m.dueDate <= thresholdStr) {
+          count++;
+        }
+      }
+    }
+    return count;
+  });
+
+  // --- API Methods ---
+
+  async loadJobs(): Promise<void> {
     const id = this.merchantId;
     if (!id) return;
 
     this.isLoading.set(true);
     try {
-      const events = await firstValueFrom(
-        this.http.get<CateringEvent[]>(
+      const jobs = await firstValueFrom(
+        this.http.get<CateringJob[]>(
           `${this.apiUrl}/merchant/${id}/catering/events`
         )
       );
-      this._events.set(events);
+      this._jobs.set(jobs);
     } catch {
-      this._events.set([]);
+      this._jobs.set([]);
     } finally {
       this.isLoading.set(false);
     }
+  }
+
+  // Backward compat alias
+  async loadEvents(): Promise<void> {
+    return this.loadJobs();
   }
 
   async loadCapacitySettings(): Promise<void> {
@@ -109,53 +193,80 @@ export class CateringService {
     }
   }
 
-  async createEvent(
-    data: Omit<CateringEvent, 'id' | 'createdAt' | 'updatedAt'>
-  ): Promise<CateringEvent | null> {
+  async getJob(jobId: string): Promise<CateringJob | null> {
     const id = this.merchantId;
-    if (!id) {
-      console.error('[CateringService] createEvent called with no merchantId');
-      return null;
-    }
+    if (!id) return null;
 
     try {
-      const event = await firstValueFrom(
-        this.http.post<CateringEvent>(
+      return await firstValueFrom(
+        this.http.get<CateringJob>(
+          `${this.apiUrl}/merchant/${id}/catering/events/${jobId}`
+        )
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  async createJob(
+    data: Omit<CateringJob, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<CateringJob | null> {
+    const id = this.merchantId;
+    if (!id) return null;
+
+    try {
+      const job = await firstValueFrom(
+        this.http.post<CateringJob>(
           `${this.apiUrl}/merchant/${id}/catering/events`,
           data
         )
       );
-      this._events.update(list => [...list, event]);
-      return event;
+      this._jobs.update(list => [...list, job]);
+      return job;
     } catch {
       return null;
     }
   }
 
-  async updateEvent(id: string, data: Partial<CateringEvent>): Promise<void> {
+  // Backward compat alias
+  async createEvent(data: Omit<CateringJob, 'id' | 'createdAt' | 'updatedAt'>): Promise<CateringJob | null> {
+    return this.createJob(data);
+  }
+
+  async updateJob(id: string, data: Partial<CateringJob>): Promise<CateringJob | null> {
     const mid = this.merchantId;
-    if (!mid) return;
+    if (!mid) return null;
 
     try {
       const updated = await firstValueFrom(
-        this.http.patch<CateringEvent>(
+        this.http.patch<CateringJob>(
           `${this.apiUrl}/merchant/${mid}/catering/events/${id}`,
           data
         )
       );
-      this._events.update(list =>
-        list.map(e => e.id === id ? updated : e)
+      this._jobs.update(list =>
+        list.map(j => j.id === id ? updated : j)
       );
+      return updated;
     } catch {
-      // silently fail — caller can check events signal
+      return null;
     }
   }
 
-  async updateStatus(id: string, status: CateringEventStatus): Promise<void> {
-    await this.updateEvent(id, { status });
+  // Backward compat alias
+  async updateEvent(id: string, data: Partial<CateringJob>): Promise<void> {
+    await this.updateJob(id, data);
   }
 
-  async deleteEvent(id: string): Promise<void> {
+  async updateStatus(id: string, status: CateringJobStatus): Promise<void> {
+    await this.updateJob(id, { status });
+  }
+
+  canTransitionTo(currentStatus: CateringJobStatus, targetStatus: CateringJobStatus): boolean {
+    return CATERING_STATUS_TRANSITIONS[currentStatus].includes(targetStatus);
+  }
+
+  async deleteJob(id: string): Promise<void> {
     const mid = this.merchantId;
     if (!mid) return;
 
@@ -165,9 +276,170 @@ export class CateringService {
           `${this.apiUrl}/merchant/${mid}/catering/events/${id}`
         )
       );
-      this._events.update(list => list.filter(e => e.id !== id));
+      this._jobs.update(list => list.filter(j => j.id !== id));
     } catch {
       // silently fail
+    }
+  }
+
+  // Backward compat alias
+  async deleteEvent(id: string): Promise<void> {
+    return this.deleteJob(id);
+  }
+
+  async markMilestonePaid(jobId: string, milestoneId: string): Promise<CateringJob | null> {
+    const mid = this.merchantId;
+    if (!mid) return null;
+
+    try {
+      const updated = await firstValueFrom(
+        this.http.patch<CateringJob>(
+          `${this.apiUrl}/merchant/${mid}/catering/events/${jobId}/milestones/${milestoneId}/pay`,
+          {}
+        )
+      );
+      this._jobs.update(list =>
+        list.map(j => j.id === jobId ? updated : j)
+      );
+      return updated;
+    } catch {
+      return null;
+    }
+  }
+
+  async cloneJob(jobId: string): Promise<CateringJob | null> {
+    const mid = this.merchantId;
+    if (!mid) return null;
+
+    try {
+      const clone = await firstValueFrom(
+        this.http.post<CateringJob>(
+          `${this.apiUrl}/merchant/${mid}/catering/events/${jobId}/clone`,
+          {}
+        )
+      );
+      this._jobs.update(list => [...list, clone]);
+      return clone;
+    } catch {
+      return null;
+    }
+  }
+
+  async generateProposal(jobId: string): Promise<{ token: string; url: string; expiresAt: string } | null> {
+    const mid = this.merchantId;
+    if (!mid) return null;
+
+    try {
+      return await firstValueFrom(
+        this.http.post<{ token: string; url: string; expiresAt: string }>(
+          `${this.apiUrl}/merchant/${mid}/catering/events/${jobId}/proposal`,
+          {}
+        )
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  async uploadContract(jobId: string, contractUrl: string): Promise<CateringJob | null> {
+    const mid = this.merchantId;
+    if (!mid) return null;
+
+    try {
+      const updated = await firstValueFrom(
+        this.http.post<CateringJob>(
+          `${this.apiUrl}/merchant/${mid}/catering/events/${jobId}/contract`,
+          { contractUrl }
+        )
+      );
+      this._jobs.update(list =>
+        list.map(j => j.id === jobId ? updated : j)
+      );
+      return updated;
+    } catch {
+      return null;
+    }
+  }
+
+  async loadActivity(jobId: string): Promise<CateringActivity[]> {
+    const mid = this.merchantId;
+    if (!mid) return [];
+
+    try {
+      return await firstValueFrom(
+        this.http.get<CateringActivity[]>(
+          `${this.apiUrl}/merchant/${mid}/catering/events/${jobId}/activity`
+        )
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  async loadClients(): Promise<CateringClientHistory[]> {
+    const mid = this.merchantId;
+    if (!mid) return [];
+
+    try {
+      return await firstValueFrom(
+        this.http.get<CateringClientHistory[]>(
+          `${this.apiUrl}/merchant/${mid}/catering/clients`
+        )
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  async loadPrepList(date: string): Promise<CateringPrepList | null> {
+    const mid = this.merchantId;
+    if (!mid) return null;
+
+    try {
+      return await firstValueFrom(
+        this.http.get<CateringPrepList>(
+          `${this.apiUrl}/merchant/${mid}/catering/prep-list`,
+          { params: { date } }
+        )
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  async loadDeferredRevenue(): Promise<CateringDeferredRevenueEntry[]> {
+    const mid = this.merchantId;
+    if (!mid) return [];
+
+    try {
+      return await firstValueFrom(
+        this.http.get<CateringDeferredRevenueEntry[]>(
+          `${this.apiUrl}/merchant/${mid}/reports/catering/deferred`
+        )
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  async loadPerformanceReport(): Promise<CateringPerformanceReport | null> {
+    const mid = this.merchantId;
+    if (!mid) return null;
+
+    try {
+      return await firstValueFrom(
+        this.http.get<CateringPerformanceReport>(
+          `${this.apiUrl}/merchant/${mid}/reports/catering/performance`
+        )
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  async bulkUpdateStatus(jobIds: string[], status: CateringJobStatus): Promise<void> {
+    for (const id of jobIds) {
+      await this.updateStatus(id, status);
     }
   }
 
@@ -185,6 +457,67 @@ export class CateringService {
       this._capacitySettings.set(saved);
     } catch {
       // silently fail
+    }
+  }
+
+  // Public API (no auth needed)
+  async getProposal(token: string): Promise<CateringJob | null> {
+    try {
+      return await firstValueFrom(
+        this.http.get<CateringJob>(
+          `${this.apiUrl}/catering/proposal/${token}`
+        )
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  async approveProposal(token: string, packageId: string): Promise<{ success: boolean; packageName: string; totalCents: number } | null> {
+    try {
+      return await firstValueFrom(
+        this.http.post<{ success: boolean; packageName: string; totalCents: number }>(
+          `${this.apiUrl}/catering/proposal/${token}/approve`,
+          { packageId }
+        )
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  async getPortal(token: string): Promise<CateringJob | null> {
+    try {
+      return await firstValueFrom(
+        this.http.get<CateringJob>(
+          `${this.apiUrl}/catering/portal/${token}`
+        )
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  async submitLead(merchantSlug: string, data: {
+    clientName: string;
+    clientEmail: string;
+    clientPhone?: string;
+    companyName?: string;
+    eventType?: string;
+    estimatedDate?: string;
+    estimatedHeadcount?: number;
+    message?: string;
+  }): Promise<boolean> {
+    try {
+      await firstValueFrom(
+        this.http.post(
+          `${this.apiUrl}/catering/lead/${merchantSlug}`,
+          data
+        )
+      );
+      return true;
+    } catch {
+      return false;
     }
   }
 }

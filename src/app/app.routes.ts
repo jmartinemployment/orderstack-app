@@ -108,6 +108,11 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'business-type',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/auth/business-type-select/business-type-select').then(m => m.BusinessTypeSelect),
+  },
+  {
     path: 'setup',
     canActivate: [authGuard],
     loadComponent: () => import('./features/onboarding/setup-wizard/setup-wizard').then(m => m.SetupWizard),
@@ -145,6 +150,19 @@ export const routes: Routes = [
   {
     path: 'customer-display',
     loadComponent: () => import('./features/pos/customer-display/customer-display').then(m => m.CustomerDisplay),
+  },
+  // Public catering pages (no auth)
+  {
+    path: 'catering/proposal/:token',
+    loadComponent: () => import('./features/catering/catering-proposal/catering-proposal.component').then(m => m.CateringProposalComponent),
+  },
+  {
+    path: 'catering/portal/:token',
+    loadComponent: () => import('./features/catering/catering-guest-portal/catering-guest-portal.component').then(m => m.CateringGuestPortalComponent),
+  },
+  {
+    path: 'catering/inquiry/:merchantSlug',
+    loadComponent: () => import('./features/catering/catering-lead-form/catering-lead-form.component').then(m => m.CateringLeadFormComponent),
   },
   {
     path: 'shop/:storeSlug',
@@ -287,6 +305,10 @@ export const routes: Routes = [
       { path: 'tables', redirectTo: 'floor-plan', pathMatch: 'full' },
       { path: 'bookings', loadComponent: () => import('./features/bookings/booking-manager').then(m => m.BookingManager) },
       { path: 'catering', loadComponent: () => import('./features/catering/catering-dashboard/catering-dashboard.component').then(m => m.CateringDashboardComponent) },
+      { path: 'catering/job/:id', loadComponent: () => import('./features/catering/catering-job-detail/catering-job-detail.component').then(m => m.CateringJobDetailComponent) },
+      { path: 'catering/job/:id/beo', loadComponent: () => import('./features/catering/catering-beo/catering-beo.component').then(m => m.CateringBeoComponent) },
+      { path: 'catering/reports', loadComponent: () => import('./features/catering/catering-reports/catering-reports.component').then(m => m.CateringReportsComponent) },
+      { path: 'catering/prep-list', loadComponent: () => import('./features/catering/catering-prep-list/catering-prep-list.component').then(m => m.CateringPrepListComponent) },
 
       // Menu
       { path: 'menu', loadComponent: () => import('./features/menu-mgmt/menu-management').then(m => m.MenuManagement) },

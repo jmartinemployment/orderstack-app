@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, Input, Output, EventEmitter, inject, signal, OnChanges, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CateringEvent, CateringEventStatus, CateringEventType, CateringLocationType } from '@models/index';
+import { CateringJob, CateringJobStatus, CateringEventType, CateringLocationType, CATERING_STATUS_CONFIG, defaultCateringMilestones } from '@models/index';
 import { CateringService } from '@services/catering.service';
 
 @Component({
@@ -12,7 +12,7 @@ import { CateringService } from '@services/catering.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CateringEventFormComponent implements OnChanges {
-  @Input() event: CateringEvent | null = null;
+  @Input() event: CateringJob | null = null;
   @Input() visible = false;
 
   @Output() saved = new EventEmitter<void>();
@@ -25,16 +25,17 @@ export class CateringEventFormComponent implements OnChanges {
 
   title = '';
   eventType: CateringEventType = 'corporate';
-  status: CateringEventStatus = 'inquiry';
-  eventDate = '';
+  status: CateringJobStatus = 'inquiry';
+  fulfillmentDate = '';
   startTime = '';
   endTime = '';
   headcount = 1;
   locationType: CateringLocationType = 'on_site';
   locationAddress = '';
-  contactName = '';
-  contactPhone = '';
-  contactEmail = '';
+  clientName = '';
+  clientPhone = '';
+  clientEmail = '';
+  companyName = '';
   notes = '';
 
   readonly eventTypes: { value: CateringEventType; label: string }[] = [
@@ -43,16 +44,13 @@ export class CateringEventFormComponent implements OnChanges {
     { value: 'birthday', label: 'Birthday' },
     { value: 'social', label: 'Social' },
     { value: 'fundraiser', label: 'Fundraiser' },
+    { value: 'holiday', label: 'Holiday' },
     { value: 'other', label: 'Other' },
   ];
 
-  readonly statuses: { value: CateringEventStatus; label: string }[] = [
-    { value: 'inquiry', label: 'Inquiry' },
-    { value: 'proposal_sent', label: 'Proposal Sent' },
-    { value: 'confirmed', label: 'Confirmed' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'cancelled', label: 'Cancelled' },
-  ];
+  readonly statuses: { value: CateringJobStatus; label: string }[] = Object.entries(CATERING_STATUS_CONFIG).map(
+    ([value, config]) => ({ value: value as CateringJobStatus, label: config.label })
+  );
 
   get isEditMode(): boolean {
     return this.event !== null;
@@ -70,29 +68,31 @@ export class CateringEventFormComponent implements OnChanges {
       this.title = this.event.title;
       this.eventType = this.event.eventType;
       this.status = this.event.status;
-      this.eventDate = this.event.eventDate.split('T')[0];
-      this.startTime = this.event.startTime;
-      this.endTime = this.event.endTime;
+      this.fulfillmentDate = this.event.fulfillmentDate.split('T')[0];
+      this.startTime = this.event.startTime ?? '';
+      this.endTime = this.event.endTime ?? '';
       this.headcount = this.event.headcount;
       this.locationType = this.event.locationType;
       this.locationAddress = this.event.locationAddress ?? '';
-      this.contactName = this.event.contactName;
-      this.contactPhone = this.event.contactPhone;
-      this.contactEmail = this.event.contactEmail;
+      this.clientName = this.event.clientName;
+      this.clientPhone = this.event.clientPhone ?? '';
+      this.clientEmail = this.event.clientEmail ?? '';
+      this.companyName = this.event.companyName ?? '';
       this.notes = this.event.notes ?? '';
     } else {
       this.title = '';
       this.eventType = 'corporate';
       this.status = 'inquiry';
-      this.eventDate = '';
+      this.fulfillmentDate = '';
       this.startTime = '';
       this.endTime = '';
       this.headcount = 1;
       this.locationType = 'on_site';
       this.locationAddress = '';
-      this.contactName = '';
-      this.contactPhone = '';
-      this.contactEmail = '';
+      this.clientName = '';
+      this.clientPhone = '';
+      this.clientEmail = '';
+      this.companyName = '';
       this.notes = '';
     }
   }
@@ -100,16 +100,14 @@ export class CateringEventFormComponent implements OnChanges {
   private validate(): string[] {
     const errors: string[] = [];
     if (!this.title.trim()) errors.push('Event title is required.');
-    if (!this.eventDate) errors.push('Event date is required.');
+    if (!this.fulfillmentDate) errors.push('Fulfillment date is required.');
     if (!this.startTime) errors.push('Start time is required.');
     if (!this.endTime) errors.push('End time is required.');
     if (this.headcount < 1) errors.push('Headcount must be at least 1.');
     if (this.locationType === 'off_site' && !this.locationAddress.trim()) {
       errors.push('Location address is required for off-site events.');
     }
-    if (!this.contactName.trim()) errors.push('Contact name is required.');
-    if (!this.contactPhone.trim()) errors.push('Contact phone is required.');
-    if (!this.contactEmail.trim()) errors.push('Contact email is required.');
+    if (!this.clientName.trim()) errors.push('Client name is required.');
     return errors;
   }
 
@@ -123,27 +121,40 @@ export class CateringEventFormComponent implements OnChanges {
     this.validationErrors.set([]);
     this.isSaving.set(true);
 
-    const data = {
-      restaurantId: '',
+    const data: Record<string, unknown> = {
       title: this.title.trim(),
       eventType: this.eventType,
       status: this.status,
-      eventDate: this.eventDate,
-      startTime: this.startTime,
-      endTime: this.endTime,
+      fulfillmentDate: this.fulfillmentDate,
+      startTime: this.startTime || undefined,
+      endTime: this.endTime || undefined,
       headcount: this.headcount,
       locationType: this.locationType,
       locationAddress: this.locationType === 'off_site' ? this.locationAddress.trim() : undefined,
-      contactName: this.contactName.trim(),
-      contactPhone: this.contactPhone.trim(),
-      contactEmail: this.contactEmail.trim(),
+      clientName: this.clientName.trim(),
+      clientPhone: this.clientPhone.trim() || undefined,
+      clientEmail: this.clientEmail.trim() || undefined,
+      companyName: this.companyName.trim() || undefined,
       notes: this.notes.trim() || undefined,
     };
 
+    if (!this.event) {
+      data['bookingDate'] = new Date().toISOString().split('T')[0];
+      data['packages'] = [];
+      data['milestones'] = defaultCateringMilestones();
+      data['totalCents'] = 0;
+      data['paidCents'] = 0;
+      data['subtotalCents'] = 0;
+      data['serviceChargeCents'] = 0;
+      data['taxCents'] = 0;
+      data['gratuityCents'] = 0;
+      data['restaurantId'] = '';
+    }
+
     if (this.event) {
-      await this.cateringService.updateEvent(this.event.id, data);
+      await this.cateringService.updateEvent(this.event.id, data as Partial<CateringJob>);
     } else {
-      await this.cateringService.createEvent(data as Omit<CateringEvent, 'id' | 'createdAt' | 'updatedAt'>);
+      await this.cateringService.createEvent(data as Omit<CateringJob, 'id' | 'createdAt' | 'updatedAt'>);
     }
 
     this.isSaving.set(false);

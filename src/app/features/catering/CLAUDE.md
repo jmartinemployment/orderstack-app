@@ -2,7 +2,7 @@
 
 ## Purpose
 Standalone catering event management module. Manages the full lifecycle
-from inquiry through event completion.
+from inquiry through event completion with financial tracking.
 
 ## API Base
 GET/POST /api/merchant/:id/catering/events
@@ -19,13 +19,19 @@ GET/PUT /api/merchant/:id/catering/capacity
 - CateringCalendar (os-catering-calendar)
 
 ## Service
-CateringService — HttpClient-based, signal state
+CateringService — HttpClient-based, signal state, pipeline metrics
+
+## Model
+CateringJob — full financial model with packages, milestones, invoicing fields
+Backward compat aliases: CateringEvent = CateringJob
 
 ## Sidebar visibility
-platform.businessCategory() === 'Caterer' OR 'catering' in enabledModules
+Catering mode gets a completely different sidebar nav (buildCateringNav):
+Administration, Jobs & Calendar, Invoices, Catering Menu, Clients, Reports, Staff/Scheduling, Marketing, Settings
 
 ## Status flow
-inquiry → proposal_sent → confirmed → completed (cancelled at any point)
+inquiry → proposal_sent → contract_signed → deposit_received → in_progress → final_payment → completed
+(cancelled from any state except completed)
 
 ## Phase 1 scope
-Event management only. No orders, deposits, or invoicing yet.
+Event management with financial field scaffolding. No actual invoicing, deposits, or proposals yet.

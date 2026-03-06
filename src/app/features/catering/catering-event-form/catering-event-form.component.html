@@ -2,7 +2,7 @@
   <div class="offcanvas-backdrop" (click)="close()"></div>
   <div class="offcanvas-panel">
     <div class="offcanvas-header d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
-      <h5 class="mb-0">{{ isEditMode ? 'Edit Event' : 'New Catering Event' }}</h5>
+      <h5 class="mb-0">{{ isEditMode ? 'Edit Job' : 'New Catering Job' }}</h5>
       <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
     </div>
 
@@ -16,7 +16,7 @@
       }
 
       <div class="mb-3">
-        <label class="form-label">Event Title <span class="text-danger">*</span></label>
+        <label class="form-label">Job Title <span class="text-danger">*</span></label>
         <input type="text" class="form-control" [(ngModel)]="title" placeholder="e.g. Johnson Wedding Reception">
       </div>
 
@@ -40,8 +40,8 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Event Date <span class="text-danger">*</span></label>
-        <input type="date" class="form-control" [(ngModel)]="eventDate">
+        <label class="form-label">Fulfillment Date <span class="text-danger">*</span></label>
+        <input type="date" class="form-control" [(ngModel)]="fulfillmentDate">
       </div>
 
       <div class="row mb-3">
@@ -84,18 +84,23 @@
       <hr>
 
       <div class="mb-3">
-        <label class="form-label">Contact Name <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" [(ngModel)]="contactName">
+        <label class="form-label">Client Name <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" [(ngModel)]="clientName">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Company</label>
+        <input type="text" class="form-control" [(ngModel)]="companyName" placeholder="e.g. Acme Corp">
       </div>
 
       <div class="row mb-3">
         <div class="col-6">
-          <label class="form-label">Contact Phone <span class="text-danger">*</span></label>
-          <input type="tel" class="form-control" [(ngModel)]="contactPhone">
+          <label class="form-label">Client Phone</label>
+          <input type="tel" class="form-control" [(ngModel)]="clientPhone">
         </div>
         <div class="col-6">
-          <label class="form-label">Contact Email <span class="text-danger">*</span></label>
-          <input type="email" class="form-control" [(ngModel)]="contactEmail">
+          <label class="form-label">Client Email</label>
+          <input type="email" class="form-control" [(ngModel)]="clientEmail">
         </div>
       </div>
 
@@ -113,7 +118,7 @@
         @if (isSaving()) {
           <span class="spinner-border spinner-border-sm me-1"></span>
         }
-        {{ isEditMode ? 'Save Changes' : 'Create Event' }}
+        {{ isEditMode ? 'Save Changes' : 'Create Job' }}
       </button>
     </div>
   </div>

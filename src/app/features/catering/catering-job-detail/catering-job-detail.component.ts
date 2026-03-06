@@ -1,0 +1,564 @@
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { CurrencyPipe, DatePipe, PercentPipe } from '@angular/common';
+import { CateringService } from '@services/catering.service';
+import {
+  CateringJob,
+  CateringJobStatus,
+  CateringPackage,
+  CateringMilestonePayment,
+  CateringActivity,
+  CateringTasting,
+  DeliveryDetails,
+  DietaryRequirements,
+  CATERING_STATUS_CONFIG,
+  CATERING_STATUS_TRANSITIONS,
+  defaultCateringMilestones,
+  defaultDietaryRequirements,
+} from '@models/index';
+
+@Component({
+  selector: 'os-catering-job-detail',
+  standalone: true,
+  imports: [FormsModule, CurrencyPipe, DatePipe, PercentPipe],
+  templateUrl: './catering-job-detail.component.html',
+  styleUrl: './catering-job-detail.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class CateringJobDetailComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly cateringService = inject(CateringService);
+
+  readonly job = signal<CateringJob | null>(null);
+  readonly activities = signal<CateringActivity[]>([]);
+  readonly isLoading = signal(true);
+  readonly isSaving = signal(false);
+  readonly activeSection = signal<string>('overview');
+  readonly proposalUrl = signal<string | null>(null);
+
+  // Package editor
+  readonly editingPackage = signal<CateringPackage | null>(null);
+  readonly showPackageForm = signal(false);
+  pkgName = '';
+  pkgTier: 'standard' | 'premium' | 'custom' = 'standard';
+  pkgPricingModel: 'per_person' | 'per_tray' | 'flat' = 'per_person';
+  pkgPricePerUnit = 0;
+  pkgMinHeadcount = 0;
+  pkgDescription = '';
+
+  // Milestone editor
+  readonly showMilestoneForm = signal(false);
+  msLabel = '';
+  msPercent = 0;
+  msDueDate = '';
+
+  // Tasting editor
+  readonly showTastingForm = signal(false);
+  tastingDate = '';
+  tastingAttendees = '';
+  tastingNotes = '';
+
+  // Delivery editor
+  deliveryDriverName = '';
+  deliveryDriverPhone = '';
+  deliveryLoadTime = '';
+  deliveryDepartureTime = '';
+  deliveryArrivalTime = '';
+  deliveryVehicle = '';
+  deliveryRouteNotes = '';
+  deliverySetupTime = '';
+  deliveryBreakdownTime = '';
+  deliveryEquipment = '';
+
+  // Dietary editor
+  dietary: DietaryRequirements = defaultDietaryRequirements();
+
+  // Fee editor
+  serviceChargePercent = 0;
+  taxPercent = 0;
+  gratuityPercent = 0;
+
+  readonly statusConfig = CATERING_STATUS_CONFIG;
+
+  readonly balanceCents = computed(() => {
+    const j = this.job();
+    if (!j) return 0;
+    return j.totalCents - j.paidCents;
+  });
+
+  readonly paymentProgress = computed(() => {
+    const j = this.job();
+    if (!j || j.totalCents === 0) return 0;
+    return Math.round((j.paidCents / j.totalCents) * 100);
+  });
+
+  readonly selectedPackage = computed(() => {
+    const j = this.job();
+    if (!j || !j.selectedPackageId) return null;
+    return j.packages.find(p => p.id === j.selectedPackageId) ?? null;
+  });
+
+  readonly nextStatuses = computed(() => {
+    const j = this.job();
+    if (!j) return [];
+    return CATERING_STATUS_TRANSITIONS[j.status].filter(s => s !== 'cancelled');
+  });
+
+  readonly canCancel = computed(() => {
+    const j = this.job();
+    return j !== null && j.status !== 'completed' && j.status !== 'cancelled';
+  });
+
+  async ngOnInit(): Promise<void> {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id) {
+      this.router.navigate(['/app/catering']);
+      return;
+    }
+    await this.loadJob(id);
+  }
+
+  private async loadJob(id: string): Promise<void> {
+    this.isLoading.set(true);
+    const job = await this.cateringService.getJob(id);
+    if (!job) {
+      this.router.navigate(['/app/catering']);
+      return;
+    }
+    this.job.set(job);
+    this.loadFormDefaults(job);
+    this.isLoading.set(false);
+
+    const acts = await this.cateringService.loadActivity(id);
+    this.activities.set(acts);
+  }
+
+  private loadFormDefaults(j: CateringJob): void {
+    this.serviceChargePercent = j.serviceChargePercent ?? 0;
+    this.taxPercent = j.taxPercent ?? 0;
+    this.gratuityPercent = j.gratuityPercent ?? 0;
+    this.dietary = j.dietaryRequirements ? { ...j.dietaryRequirements } : defaultDietaryRequirements();
+
+    const d = j.deliveryDetails;
+    if (d) {
+      this.deliveryDriverName = d.driverName ?? '';
+      this.deliveryDriverPhone = d.driverPhone ?? '';
+      this.deliveryLoadTime = d.loadTime ?? '';
+      this.deliveryDepartureTime = d.departureTime ?? '';
+      this.deliveryArrivalTime = d.arrivalTime ?? '';
+      this.deliveryVehicle = d.vehicleDescription ?? '';
+      this.deliveryRouteNotes = d.routeNotes ?? '';
+      this.deliverySetupTime = d.setupTime ?? '';
+      this.deliveryBreakdownTime = d.breakdownTime ?? '';
+      this.deliveryEquipment = (d.equipmentChecklist ?? []).join('\n');
+    }
+  }
+
+  goBack(): void {
+    this.router.navigate(['/app/catering']);
+  }
+
+  setSection(section: string): void {
+    this.activeSection.set(section);
+  }
+
+  formatCents(cents: number): string {
+    return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  formatTime(time: string): string {
+    if (!time) return '';
+    const [h, m] = time.split(':').map(Number);
+    const period = h >= 12 ? 'PM' : 'AM';
+    const hour = h % 12 || 12;
+    return `${hour}:${String(m).padStart(2, '0')} ${period}`;
+  }
+
+  // --- Status ---
+
+  async advanceStatus(status: CateringJobStatus): Promise<void> {
+    const j = this.job();
+    if (!j) return;
+    this.isSaving.set(true);
+    const updated = await this.cateringService.updateJob(j.id, { status });
+    if (updated) this.job.set(updated);
+    this.isSaving.set(false);
+    const acts = await this.cateringService.loadActivity(j.id);
+    this.activities.set(acts);
+  }
+
+  async cancelJob(): Promise<void> {
+    const j = this.job();
+    if (!j) return;
+    this.isSaving.set(true);
+    const updated = await this.cateringService.updateJob(j.id, { status: 'cancelled' });
+    if (updated) this.job.set(updated);
+    this.isSaving.set(false);
+  }
+
+  // --- Packages ---
+
+  openNewPackage(): void {
+    this.editingPackage.set(null);
+    this.pkgName = '';
+    this.pkgTier = 'standard';
+    this.pkgPricingModel = 'per_person';
+    this.pkgPricePerUnit = 0;
+    this.pkgMinHeadcount = 0;
+    this.pkgDescription = '';
+    this.showPackageForm.set(true);
+  }
+
+  openEditPackage(pkg: CateringPackage): void {
+    this.editingPackage.set(pkg);
+    this.pkgName = pkg.name;
+    this.pkgTier = pkg.tier;
+    this.pkgPricingModel = pkg.pricingModel;
+    this.pkgPricePerUnit = pkg.pricePerUnit;
+    this.pkgMinHeadcount = pkg.minimumHeadcount;
+    this.pkgDescription = pkg.description ?? '';
+    this.showPackageForm.set(true);
+  }
+
+  async savePackage(): Promise<void> {
+    const j = this.job();
+    if (!j || !this.pkgName.trim()) return;
+
+    this.isSaving.set(true);
+    const existing = this.editingPackage();
+    let packages: CateringPackage[];
+
+    if (existing) {
+      packages = j.packages.map(p =>
+        p.id === existing.id
+          ? { ...p, name: this.pkgName, tier: this.pkgTier, pricingModel: this.pkgPricingModel, pricePerUnit: this.pkgPricePerUnit, minimumHeadcount: this.pkgMinHeadcount, description: this.pkgDescription }
+          : p
+      );
+    } else {
+      const newPkg: CateringPackage = {
+        id: crypto.randomUUID(),
+        name: this.pkgName,
+        tier: this.pkgTier,
+        pricingModel: this.pkgPricingModel,
+        pricePerUnit: this.pkgPricePerUnit,
+        minimumHeadcount: this.pkgMinHeadcount,
+        description: this.pkgDescription,
+        menuItemIds: [],
+      };
+      packages = [...j.packages, newPkg];
+    }
+
+    const updated = await this.cateringService.updateJob(j.id, { packages });
+    if (updated) this.job.set(updated);
+    this.showPackageForm.set(false);
+    this.isSaving.set(false);
+  }
+
+  async removePackage(pkgId: string): Promise<void> {
+    const j = this.job();
+    if (!j) return;
+    this.isSaving.set(true);
+    const packages = j.packages.filter(p => p.id !== pkgId);
+    const data: Partial<CateringJob> = { packages };
+    if (j.selectedPackageId === pkgId) {
+      data.selectedPackageId = undefined;
+    }
+    const updated = await this.cateringService.updateJob(j.id, data);
+    if (updated) this.job.set(updated);
+    this.isSaving.set(false);
+  }
+
+  async selectPackage(pkgId: string): Promise<void> {
+    const j = this.job();
+    if (!j) return;
+
+    const pkg = j.packages.find(p => p.id === pkgId);
+    if (!pkg) return;
+
+    this.isSaving.set(true);
+    let subtotalCents = 0;
+    if (pkg.pricingModel === 'per_person') {
+      subtotalCents = Math.round(pkg.pricePerUnit * j.headcount * 100);
+    } else {
+      subtotalCents = Math.round(pkg.pricePerUnit * 100);
+    }
+
+    const updated = await this.cateringService.updateJob(j.id, {
+      selectedPackageId: pkgId,
+      subtotalCents,
+    });
+    if (updated) this.job.set(updated);
+    this.isSaving.set(false);
+  }
+
+  getPackageTotal(pkg: CateringPackage): number {
+    const j = this.job();
+    if (!j) return 0;
+    if (pkg.pricingModel === 'per_person') {
+      return Math.round(pkg.pricePerUnit * j.headcount * 100);
+    }
+    return Math.round(pkg.pricePerUnit * 100);
+  }
+
+  // --- Milestones ---
+
+  openNewMilestone(): void {
+    this.msLabel = '';
+    this.msPercent = 0;
+    this.msDueDate = '';
+    this.showMilestoneForm.set(true);
+  }
+
+  async saveMilestone(): Promise<void> {
+    const j = this.job();
+    if (!j || !this.msLabel.trim()) return;
+
+    this.isSaving.set(true);
+    const newMs: CateringMilestonePayment = {
+      id: crypto.randomUUID(),
+      jobId: j.id,
+      label: this.msLabel,
+      percent: this.msPercent,
+      amountCents: Math.round(j.totalCents * this.msPercent / 100),
+      dueDate: this.msDueDate || undefined,
+    };
+    const milestones = [...j.milestones, newMs];
+    const updated = await this.cateringService.updateJob(j.id, { milestones });
+    if (updated) this.job.set(updated);
+    this.showMilestoneForm.set(false);
+    this.isSaving.set(false);
+  }
+
+  async removeMilestone(msId: string): Promise<void> {
+    const j = this.job();
+    if (!j) return;
+    this.isSaving.set(true);
+    const milestones = j.milestones.filter(m => m.id !== msId);
+    const updated = await this.cateringService.updateJob(j.id, { milestones });
+    if (updated) this.job.set(updated);
+    this.isSaving.set(false);
+  }
+
+  async markPaid(msId: string): Promise<void> {
+    const j = this.job();
+    if (!j) return;
+    this.isSaving.set(true);
+    const updated = await this.cateringService.markMilestonePaid(j.id, msId);
+    if (updated) this.job.set(updated);
+    this.isSaving.set(false);
+    const acts = await this.cateringService.loadActivity(j.id);
+    this.activities.set(acts);
+  }
+
+  // --- Fees ---
+
+  async saveFees(): Promise<void> {
+    const j = this.job();
+    if (!j) return;
+    this.isSaving.set(true);
+    const updated = await this.cateringService.updateJob(j.id, {
+      serviceChargePercent: this.serviceChargePercent || undefined,
+      taxPercent: this.taxPercent || undefined,
+      gratuityPercent: this.gratuityPercent || undefined,
+    });
+    if (updated) {
+      this.job.set(updated);
+      this.serviceChargePercent = updated.serviceChargePercent ?? 0;
+      this.taxPercent = updated.taxPercent ?? 0;
+      this.gratuityPercent = updated.gratuityPercent ?? 0;
+    }
+    this.isSaving.set(false);
+  }
+
+  // --- Dietary ---
+
+  async saveDietary(): Promise<void> {
+    const j = this.job();
+    if (!j) return;
+    this.isSaving.set(true);
+    const updated = await this.cateringService.updateJob(j.id, {
+      dietaryRequirements: { ...this.dietary },
+    });
+    if (updated) this.job.set(updated);
+    this.isSaving.set(false);
+  }
+
+  get dietaryTotal(): number {
+    return this.dietary.vegetarian + this.dietary.vegan + this.dietary.glutenFree
+      + this.dietary.nutAllergy + this.dietary.dairyFree + this.dietary.kosher + this.dietary.halal;
+  }
+
+  // --- Tastings ---
+
+  openNewTasting(): void {
+    this.tastingDate = '';
+    this.tastingAttendees = '';
+    this.tastingNotes = '';
+    this.showTastingForm.set(true);
+  }
+
+  async saveTasting(): Promise<void> {
+    const j = this.job();
+    if (!j || !this.tastingDate) return;
+    this.isSaving.set(true);
+    const newTasting: CateringTasting = {
+      id: crypto.randomUUID(),
+      scheduledDate: this.tastingDate,
+      attendees: this.tastingAttendees,
+      notes: this.tastingNotes || undefined,
+    };
+    const tastings = [...(j.tastings ?? []), newTasting];
+    const updated = await this.cateringService.updateJob(j.id, { tastings });
+    if (updated) this.job.set(updated);
+    this.showTastingForm.set(false);
+    this.isSaving.set(false);
+  }
+
+  async completeTasting(tastingId: string): Promise<void> {
+    const j = this.job();
+    if (!j) return;
+    this.isSaving.set(true);
+    const tastings = (j.tastings ?? []).map(t =>
+      t.id === tastingId ? { ...t, completedAt: new Date().toISOString() } : t
+    );
+    const updated = await this.cateringService.updateJob(j.id, { tastings });
+    if (updated) this.job.set(updated);
+    this.isSaving.set(false);
+  }
+
+  // --- Delivery ---
+
+  async saveDelivery(): Promise<void> {
+    const j = this.job();
+    if (!j) return;
+    this.isSaving.set(true);
+    const deliveryDetails: DeliveryDetails = {
+      driverName: this.deliveryDriverName || undefined,
+      driverPhone: this.deliveryDriverPhone || undefined,
+      loadTime: this.deliveryLoadTime || undefined,
+      departureTime: this.deliveryDepartureTime || undefined,
+      arrivalTime: this.deliveryArrivalTime || undefined,
+      vehicleDescription: this.deliveryVehicle || undefined,
+      routeNotes: this.deliveryRouteNotes || undefined,
+      setupTime: this.deliverySetupTime || undefined,
+      breakdownTime: this.deliveryBreakdownTime || undefined,
+      equipmentChecklist: this.deliveryEquipment.split('\n').map(s => s.trim()).filter(Boolean),
+    };
+    const updated = await this.cateringService.updateJob(j.id, { deliveryDetails });
+    if (updated) this.job.set(updated);
+    this.isSaving.set(false);
+  }
+
+  // --- Proposal ---
+
+  async sendProposal(): Promise<void> {
+    const j = this.job();
+    if (!j) return;
+    this.isSaving.set(true);
+    const result = await this.cateringService.generateProposal(j.id);
+    if (result) {
+      this.proposalUrl.set(`${window.location.origin}/catering/proposal/${result.token}`);
+      const updated = await this.cateringService.getJob(j.id);
+      if (updated) this.job.set(updated);
+    }
+    this.isSaving.set(false);
+    const acts = await this.cateringService.loadActivity(j.id);
+    this.activities.set(acts);
+  }
+
+  copyProposalUrl(): void {
+    const url = this.proposalUrl();
+    if (url) {
+      navigator.clipboard.writeText(url);
+    }
+  }
+
+  // --- Contract ---
+
+  async uploadContract(): Promise<void> {
+    const j = this.job();
+    if (!j) return;
+    const url = prompt('Enter the contract document URL:');
+    if (!url) return;
+    this.isSaving.set(true);
+    const updated = await this.cateringService.uploadContract(j.id, url);
+    if (updated) this.job.set(updated);
+    this.isSaving.set(false);
+  }
+
+  // --- Clone ---
+
+  async cloneJob(): Promise<void> {
+    const j = this.job();
+    if (!j) return;
+    this.isSaving.set(true);
+    const clone = await this.cateringService.cloneJob(j.id);
+    this.isSaving.set(false);
+    if (clone) {
+      this.router.navigate(['/app/catering/job', clone.id]);
+    }
+  }
+
+  // --- BEO ---
+
+  openBeo(): void {
+    const j = this.job();
+    if (!j) return;
+    this.router.navigate(['/app/catering/job', j.id, 'beo']);
+  }
+
+  // --- .ics Export ---
+
+  downloadIcs(): void {
+    const j = this.job();
+    if (!j) return;
+    const start = j.fulfillmentDate.replaceAll('-', '') + 'T' + (j.startTime ?? '00:00').replaceAll(':', '') + '00';
+    const end = j.fulfillmentDate.replaceAll('-', '') + 'T' + (j.endTime ?? '23:59').replaceAll(':', '') + '00';
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'BEGIN:VEVENT',
+      `DTSTART:${start}`,
+      `DTEND:${end}`,
+      `SUMMARY:${j.title}`,
+      `DESCRIPTION:${j.headcount} guests - ${j.clientName}`,
+      `LOCATION:${j.locationAddress ?? 'On-site'}`,
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+    const blob = new Blob([ics], { type: 'text/calendar' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${j.title.replaceAll(' ', '-')}.ics`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // --- Activity helpers ---
+
+  getActivityIcon(action: string): string {
+    const map: Record<string, string> = {
+      created: 'bi-plus-circle',
+      status_changed: 'bi-arrow-right-circle',
+      proposal_sent: 'bi-send',
+      proposal_viewed: 'bi-eye',
+      proposal_approved: 'bi-check2-circle',
+      milestone_paid: 'bi-cash-stack',
+      contract_uploaded: 'bi-file-earmark-pdf',
+      lead_submitted: 'bi-envelope-open',
+    };
+    return map[action] ?? 'bi-circle';
+  }
+
+  getActivityColor(actorType: string): string {
+    const map: Record<string, string> = {
+      operator: 'text-primary',
+      client: 'text-success',
+      system: 'text-secondary',
+    };
+    return map[actorType] ?? 'text-secondary';
+  }
+}

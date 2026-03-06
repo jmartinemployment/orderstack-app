@@ -8,6 +8,7 @@ export interface NavItem {
   icon: string;
   route: string;
   key?: string;
+  badge?: number;
   alertSeverity?: AlertSeverity;
   children?: NavItem[];
 }

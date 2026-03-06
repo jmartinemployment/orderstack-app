@@ -27,6 +27,9 @@
         <i class="bi {{ item.icon }}"></i>
         @if (!collapsed()) {
           <span class="nav-label">{{ item.label }}</span>
+          @if (item.badge) {
+            <span class="nav-badge">{{ item.badge }}</span>
+          }
         }
       </a>
       @if (item.children && !collapsed()) {

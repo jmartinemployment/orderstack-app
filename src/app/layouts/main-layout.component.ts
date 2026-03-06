@@ -7,7 +7,9 @@ import { StaffManagementService } from '@services/staff-management';
 import { MenuService } from '@services/menu';
 import { TableService } from '@services/table';
 import { OrderService } from '@services/order';
+import { CateringService } from '@services/catering.service';
 import { Sidebar, type AlertSeverity, type NavItem } from '@shared/sidebar/sidebar';
+import type { ModeFeatureFlags } from '@models/index';
 
 @Component({
   selector: 'os-main-layout',
@@ -25,6 +27,7 @@ export class MainLayoutComponent {
   private readonly menuService = inject(MenuService);
   private readonly tableService = inject(TableService);
   private readonly orderService = inject(OrderService);
+  private readonly cateringService = inject(CateringService);
 
   readonly sidebarCollapsed = signal(false);
   readonly mobileMenuOpen = signal(false);
@@ -88,6 +91,7 @@ export class MainLayoutComponent {
   });
 
   readonly navItems = computed<NavItem[]>(() => {
+    const catering = this.platform.isCateringMode();
     const retail = this.platform.isRetailMode();
     const service = this.platform.isServiceMode();
     const restaurant = this.platform.isRestaurantMode();
@@ -96,6 +100,61 @@ export class MainLayoutComponent {
     const modules = this.platform.enabledModules();
     const alerts = this.sidebarAlerts();
 
+    const items: NavItem[] = catering
+      ? this.buildCateringNav()
+      : this.buildDefaultNav(retail, service, restaurant, mode, flags, modules);
+
+    // Apply alert severities from service signals
+    for (const item of items) {
+      item.alertSeverity = alerts[item.route] ?? null;
+    }
+
+    return items;
+  });
+
+  private buildCateringNav(): NavItem[] {
+    const pendingCount = this.cateringService.pendingJobsCount();
+    const milestoneDue = this.cateringService.milestonesComingDue();
+
+    return [
+      { label: 'Administration', icon: 'bi-speedometer2', route: '/app/administration' },
+      {
+        label: 'Jobs & Calendar',
+        icon: 'bi-kanban',
+        route: '/app/catering',
+        badge: pendingCount > 0 ? pendingCount : undefined,
+      },
+      {
+        label: 'Invoices',
+        icon: 'bi-file-earmark-text',
+        route: '/app/invoicing',
+        badge: milestoneDue > 0 ? milestoneDue : undefined,
+      },
+      { label: 'Prep Lists', icon: 'bi-list-check', route: '/app/catering/prep-list' },
+      { label: 'Catering Menu', icon: 'bi-book', route: '/app/menu' },
+      { label: 'Clients', icon: 'bi-people', route: '/app/customers' },
+      { label: 'Reports', icon: 'bi-bar-chart-line', route: '/app/catering/reports' },
+      {
+        label: 'Staff',
+        icon: 'bi-person-badge',
+        route: '/app/staff',
+        children: [
+          { label: 'Scheduling', icon: 'bi-calendar-week', route: '/app/staff/scheduling' },
+        ],
+      },
+      { label: 'Marketing', icon: 'bi-megaphone', route: '/app/marketing' },
+      { label: 'Settings', icon: 'bi-gear', route: '/app/settings' },
+    ];
+  }
+
+  private buildDefaultNav(
+    retail: boolean,
+    service: boolean,
+    restaurant: boolean,
+    mode: string,
+    flags: ModeFeatureFlags,
+    modules: readonly string[],
+  ): NavItem[] {
     const items: NavItem[] = [
       { label: 'Administration', icon: 'bi-speedometer2', route: '/app/administration' },
     ];
@@ -146,7 +205,7 @@ export class MainLayoutComponent {
     }
 
     if (mode === 'full_service' || mode === 'bar') {
-      if (flags.enableFloorPlan) {
+      if (flags['enableFloorPlan']) {
         items.push({ label: 'Floor Plan', icon: 'bi-columns-gap', route: '/app/floor-plan' });
       }
       if (hasModule(modules, 'bookings')) {
@@ -167,20 +226,10 @@ export class MainLayoutComponent {
       items.push({ label: 'Invoices', icon: 'bi-file-earmark-text', route: '/app/invoicing' });
     }
 
-    const isCaterer = this.platform.businessCategory() === 'Caterer';
-    if (isCaterer || hasModule(modules, 'catering')) {
-      items.push({ label: 'Catering', icon: 'bi-calendar2-event', route: '/app/catering' });
-    }
-
     items.push({ label: 'Settings', icon: 'bi-gear', route: '/app/settings' });
 
-    // Apply alert severities from service signals
-    for (const item of items) {
-      item.alertSeverity = alerts[item.route] ?? null;
-    }
-
     return items;
-  });
+  }
 
   toggleSidebar(): void {
     this.sidebarCollapsed.update(v => !v);

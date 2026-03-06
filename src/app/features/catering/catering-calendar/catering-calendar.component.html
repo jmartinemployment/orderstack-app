@@ -24,10 +24,14 @@
         (click)="selectDay(day)"
       >
         <span class="day-number">{{ day.dayOfMonth }}</span>
-        @if (day.events.length > 1) {
-          <span class="event-count-badge">{{ day.events.length }}</span>
-        } @else if (day.events.length === 1) {
-          <span class="event-dot" [class]="getDotClass(day)"></span>
+        @for (ev of day.events.slice(0, 2); track ev.id) {
+          <div class="cal-job-chip" [style.border-left-color]="getStatusColor(ev.status)" (click)="openJob(ev); $event.stopPropagation()">
+            <span class="cal-job-title">{{ ev.title }}</span>
+            <span class="cal-job-guests">{{ ev.headcount }}</span>
+          </div>
+        }
+        @if (day.events.length > 2) {
+          <div class="cal-overflow text-muted">+{{ day.events.length - 2 }} more</div>
         }
       </div>
     }
@@ -36,15 +40,22 @@
   @if (selectedDay() && selectedDayEvents().length > 0) {
     <div class="day-detail mt-3">
       <h6 class="fw-semibold small text-uppercase text-muted mb-2">
-        Events on {{ selectedDay() }}
+        Jobs on {{ selectedDay() }}
       </h6>
       @for (ev of selectedDayEvents(); track ev.id) {
-        <div class="day-event-row d-flex justify-content-between align-items-center mb-2">
+        <div class="day-event-row d-flex justify-content-between align-items-center mb-2" style="cursor: pointer;" (click)="openJob(ev)">
           <div>
             <span class="fw-semibold">{{ ev.title }}</span>
-            <span class="badge rounded-pill ms-2" [class]="getStatusBadgeClass(ev.status)">{{ ev.status }}</span>
+            <span class="badge rounded-pill ms-2" [class]="getStatusBadgeClass(ev.status)">
+              {{ statusConfig[ev.status]?.label ?? ev.status }}
+            </span>
           </div>
-          <span class="text-muted small">{{ ev.headcount }} guests</span>
+          <div class="text-end">
+            <span class="text-muted small">{{ ev.headcount }} guests</span>
+            @if (ev.totalCents > 0) {
+              <span class="ms-2 small fw-semibold">${{ (ev.totalCents / 100) | number:'1.0-0' }}</span>
+            }
+          </div>
         </div>
       }
     </div>

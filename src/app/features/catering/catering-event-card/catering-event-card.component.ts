@@ -1,42 +1,37 @@
-import { Component, ChangeDetectionStrategy, Input, Output, EventEmitter, computed, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
-import { CateringEvent, CateringEventStatus } from '@models/index';
+import { Component, ChangeDetectionStrategy, Input, Output, EventEmitter } from '@angular/core';
+import { CateringJob, CateringJobStatus, CATERING_STATUS_CONFIG, CATERING_STATUS_TRANSITIONS } from '@models/index';
 
 @Component({
   selector: 'os-catering-event-card',
   standalone: true,
-  imports: [DatePipe],
+  imports: [],
   templateUrl: './catering-event-card.component.html',
   styleUrl: './catering-event-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CateringEventCardComponent {
-  @Input({ required: true }) event!: CateringEvent;
+  @Input({ required: true }) event!: CateringJob;
 
-  @Output() statusAdvanced = new EventEmitter<{ id: string; status: CateringEventStatus }>();
-  @Output() editRequested = new EventEmitter<CateringEvent>();
+  @Output() statusAdvanced = new EventEmitter<{ id: string; status: CateringJobStatus }>();
+  @Output() editRequested = new EventEmitter<CateringJob>();
   @Output() cancelRequested = new EventEmitter<string>();
 
   get statusBadgeClass(): string {
-    const map: Record<CateringEventStatus, string> = {
+    const map: Record<CateringJobStatus, string> = {
       inquiry: 'bg-secondary',
-      proposal_sent: 'bg-warning text-dark',
-      confirmed: 'bg-success',
-      completed: 'bg-primary',
-      cancelled: 'bg-danger',
+      proposal_sent: 'bg-info text-dark',
+      contract_signed: 'bg-purple',
+      deposit_received: 'bg-warning text-dark',
+      in_progress: 'bg-primary',
+      final_payment: 'bg-danger',
+      completed: 'bg-success',
+      cancelled: 'bg-dark',
     };
     return map[this.event.status] ?? 'bg-secondary';
   }
 
   get statusLabel(): string {
-    const map: Record<CateringEventStatus, string> = {
-      inquiry: 'Inquiry',
-      proposal_sent: 'Proposal Sent',
-      confirmed: 'Confirmed',
-      completed: 'Completed',
-      cancelled: 'Cancelled',
-    };
-    return map[this.event.status] ?? this.event.status;
+    return CATERING_STATUS_CONFIG[this.event.status]?.label ?? this.event.status;
   }
 
   get eventTypeLabel(): string {
@@ -44,11 +39,12 @@ export class CateringEventCardComponent {
   }
 
   get formattedDate(): string {
-    const d = new Date(this.event.eventDate + 'T00:00:00');
+    const d = new Date(this.event.fulfillmentDate + 'T00:00:00');
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   get formattedTimeRange(): string {
+    if (!this.event.startTime || !this.event.endTime) return '';
     return `${this.formatTime(this.event.startTime)} – ${this.formatTime(this.event.endTime)}`;
   }
 
@@ -57,29 +53,39 @@ export class CateringEventCardComponent {
   }
 
   get canAdvance(): boolean {
-    return this.event.status === 'inquiry' || this.event.status === 'proposal_sent' || this.event.status === 'confirmed';
+    const transitions = CATERING_STATUS_TRANSITIONS[this.event.status];
+    return transitions.filter(s => s !== 'cancelled').length > 0;
   }
 
   get advanceLabel(): string {
     const map: Record<string, string> = {
       inquiry: 'Send Proposal',
-      proposal_sent: 'Confirm Event',
-      confirmed: 'Mark Complete',
+      proposal_sent: 'Contract Signed',
+      contract_signed: 'Deposit Received',
+      deposit_received: 'Start Job',
+      in_progress: 'Final Payment',
+      final_payment: 'Mark Complete',
     };
     return map[this.event.status] ?? '';
   }
 
-  get nextStatus(): CateringEventStatus {
-    const map: Record<string, CateringEventStatus> = {
-      inquiry: 'proposal_sent',
-      proposal_sent: 'confirmed',
-      confirmed: 'completed',
-    };
-    return map[this.event.status] ?? this.event.status;
+  get nextStatus(): CateringJobStatus {
+    const transitions = CATERING_STATUS_TRANSITIONS[this.event.status];
+    const nonCancel = transitions.filter(s => s !== 'cancelled');
+    return nonCancel[0] ?? this.event.status;
   }
 
   get canCancel(): boolean {
     return this.event.status !== 'completed' && this.event.status !== 'cancelled';
+  }
+
+  get paymentPercent(): number {
+    if (this.event.totalCents === 0) return 0;
+    return Math.round((this.event.paidCents / this.event.totalCents) * 100);
+  }
+
+  formatCents(cents: number): string {
+    return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   }
 
   advanceStatus(): void {

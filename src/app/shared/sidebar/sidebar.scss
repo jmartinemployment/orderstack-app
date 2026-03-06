@@ -132,6 +132,19 @@ $bg-active: #eef2ff;
   }
 }
 
+.nav-badge {
+  margin-left: auto;
+  background: $primary;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 6px;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1.4;
+}
+
 .nav-child {
   padding-left: 42px;
   font-size: 0.8125rem;
