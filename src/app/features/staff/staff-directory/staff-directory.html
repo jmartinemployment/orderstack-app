@@ -2,7 +2,7 @@
   <header class="page-header">
     <div class="header-left">
       <h1>Staff</h1>
-      <p class="header-subtitle">Manage your team members, roles, and onboarding</p>
+      <p class="header-subtitle">Manage your team members and roles</p>
     </div>
     <div class="header-actions">
       @if (viewMode() === 'list') {
@@ -91,7 +91,6 @@
           <span class="col-job">Job / Rate</span>
           <span class="col-contact">Contact</span>
           <span class="col-clock">Clock Status</span>
-          <span class="col-onboarding">Onboarding</span>
           <span class="col-actions">Actions</span>
         </div>
 
@@ -163,19 +162,6 @@
               }
             </div>
 
-            <!-- Onboarding -->
-            <div class="col-onboarding">
-              <button
-                type="button"
-                class="onboarding-badge-btn"
-                [class]="getOnboardingBadgeClass(member.onboardingStatus)"
-                (click)="toggleOnboarding(member.id)"
-                [attr.aria-label]="'Toggle onboarding details for ' + member.displayName">
-                {{ getOnboardingLabel(member.onboardingStatus) }}
-                <i class="bi" [class.bi-chevron-down]="expandedOnboardingId() !== member.id" [class.bi-chevron-up]="expandedOnboardingId() === member.id"></i>
-              </button>
-            </div>
-
             <!-- Actions -->
             <div class="col-actions">
               <button type="button" class="action-btn" (click)="openEditForm(member)" aria-label="Edit staff member">
@@ -196,37 +182,6 @@
             </div>
           </div>
 
-          <!-- Onboarding expanded -->
-          @if (expandedOnboardingId() === member.id) {
-            <div class="onboarding-panel">
-              @if (getChecklist(member.id); as checklist) {
-                <div class="onboarding-steps">
-                  @for (step of checklist.steps; track step.step) {
-                    <label class="onboarding-step">
-                      <input
-                        type="checkbox"
-                        [checked]="step.isComplete"
-                        (change)="toggleOnboardingStep(member.id, step.step, !step.isComplete)" />
-                      <span class="step-label" [class.step-complete]="step.isComplete">{{ step.label }}</span>
-                      @if (step.completedAt) {
-                        <span class="step-date">{{ step.completedAt | date:'shortDate' }}</span>
-                      }
-                    </label>
-                  }
-                </div>
-                @if (member.email) {
-                  <button type="button" class="onboarding-link-btn" (click)="sendOnboardingLink(member.id)">
-                    <i class="bi bi-send"></i>
-                    Send Onboarding Link
-                  </button>
-                }
-              } @else {
-                <div class="onboarding-loading">
-                  <os-loading-spinner />
-                </div>
-              }
-            </div>
-          }
         }
       </div>
     }

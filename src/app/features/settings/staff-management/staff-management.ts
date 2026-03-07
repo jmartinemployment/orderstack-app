@@ -13,10 +13,6 @@ import {
   PermissionSetFormData,
   PermissionCategory,
   PERMISSION_DEFINITIONS,
-  OnboardingChecklist,
-  OnboardingStepStatus,
-  OnboardingStep,
-  OnboardingStatus,
 } from '@models/staff-management.model';
 
 @Component({
@@ -101,28 +97,6 @@ export class StaffManagement {
 
   readonly permissionCategories: PermissionCategory[] = ['administration', 'pos', 'menu', 'timeclock', 'team', 'reporting', 'settings'];
   readonly permissionDefinitions = PERMISSION_DEFINITIONS;
-
-  // --- Onboarding ---
-  private readonly _showOnboarding = signal<string | null>(null);
-  private readonly _onboardingChecklist = signal<OnboardingChecklist | null>(null);
-  private readonly _activeOnboardingStep = signal<OnboardingStep | null>(null);
-  private readonly _obStepData = signal<Record<string, string>>({});
-
-  readonly showOnboarding = this._showOnboarding.asReadonly();
-  readonly onboardingChecklist = this._onboardingChecklist.asReadonly();
-  readonly activeOnboardingStep = this._activeOnboardingStep.asReadonly();
-  readonly obStepData = this._obStepData.asReadonly();
-
-  readonly onboardingProgress = computed(() => {
-    const checklist = this._onboardingChecklist();
-    if (!checklist?.steps.length) return 0;
-    const completed = checklist.steps.filter(s => s.isComplete).length;
-    return Math.round((completed / checklist.steps.length) * 100);
-  });
-
-  readonly membersNeedingOnboarding = computed(() =>
-    this.activeTeamMembers().filter(m => m.onboardingStatus !== 'complete')
-  );
 
   readonly pinForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
@@ -301,24 +275,6 @@ export class StaffManagement {
 
   getEnabledPermissionCount(ps: PermissionSet): number {
     return Object.values(ps.permissions).filter(Boolean).length;
-  }
-
-  getOnboardingStatusLabel(status: OnboardingStatus): string {
-    const labels: Record<OnboardingStatus, string> = {
-      not_started: 'Not Started',
-      in_progress: 'In Progress',
-      complete: 'Complete',
-    };
-    return labels[status];
-  }
-
-  getOnboardingStatusClass(status: OnboardingStatus): string {
-    const classes: Record<OnboardingStatus, string> = {
-      not_started: 'badge-warning',
-      in_progress: 'badge-info',
-      complete: 'badge-active',
-    };
-    return classes[status];
   }
 
   // ============ Team Member CRUD ============
@@ -545,179 +501,5 @@ export class StaffManagement {
 
   cancelDeactivate(): void {
     this._showConfirmDeactivate.set(null);
-  }
-
-  // ============ Onboarding ============
-
-  async openOnboarding(member: TeamMember): Promise<void> {
-    this._showOnboarding.set(member.id);
-    this._activeOnboardingStep.set(null);
-    const checklist = await this.staffService.loadOnboardingChecklist(member.id);
-    if (checklist) {
-      this._onboardingChecklist.set(checklist);
-    } else {
-      this._onboardingChecklist.set({
-        teamMemberId: member.id,
-        steps: this.getDefaultOnboardingSteps(),
-        completedAt: null,
-      });
-    }
-  }
-
-  closeOnboarding(): void {
-    this._showOnboarding.set(null);
-    this._onboardingChecklist.set(null);
-    this._activeOnboardingStep.set(null);
-    this._obStepData.set({});
-  }
-
-  openOnboardingStepForm(step: OnboardingStep): void {
-    // Load existing notes data into form fields
-    const checklist = this._onboardingChecklist();
-    const stepData = checklist?.steps.find(s => s.step === step);
-    let data: Record<string, string> = {};
-    if (stepData?.notes) {
-      try { data = JSON.parse(stepData.notes); } catch { /* empty */ }
-    }
-
-    // Gather data from completed steps for carry-forward
-    const completedData = this.getCompletedStepData(checklist);
-
-    // Pre-fill from member record + carry forward from completed steps
-    if (step === 'personal_info' && !data['firstName']) {
-      const memberId = this._showOnboarding();
-      const member = this.teamMembers().find(m => m.id === memberId);
-      if (member) {
-        const parts = member.displayName.split(' ');
-        data['firstName'] = parts[0] ?? '';
-        data['lastName'] = parts.slice(1).join(' ');
-        data['phone'] = member.phone ?? '';
-      }
-    }
-
-    if (step === 'tax_forms' && !data['legalName']) {
-      const firstName = completedData['personal_info']?.['firstName'] ?? '';
-      const lastName = completedData['personal_info']?.['lastName'] ?? '';
-      const fullName = [firstName, lastName].filter(Boolean).join(' ');
-      if (fullName) data['legalName'] = fullName;
-    }
-
-    if (step === 'direct_deposit' && !data['nameOnAccount']) {
-      const firstName = completedData['personal_info']?.['firstName'] ?? '';
-      const lastName = completedData['personal_info']?.['lastName'] ?? '';
-      const fullName = [firstName, lastName].filter(Boolean).join(' ');
-      if (fullName) data['nameOnAccount'] = fullName;
-    }
-
-    this._obStepData.set(data);
-    this._activeOnboardingStep.set(step);
-  }
-
-  private getCompletedStepData(checklist: OnboardingChecklist | null): Record<string, Record<string, string>> {
-    const result: Record<string, Record<string, string>> = {};
-    if (!checklist) return result;
-    for (const step of checklist.steps) {
-      if (step.notes) {
-        try { result[step.step] = JSON.parse(step.notes); } catch { /* empty */ }
-      }
-    }
-    return result;
-  }
-
-  closeOnboardingStepForm(): void {
-    this._activeOnboardingStep.set(null);
-    this._obStepData.set({});
-  }
-
-  setObField(field: string, value: string): void {
-    this._obStepData.update(d => ({ ...d, [field]: value }));
-  }
-
-  toggleObCheckbox(field: string): void {
-    this._obStepData.update(d => ({ ...d, [field]: d[field] === 'true' ? 'false' : 'true' }));
-  }
-
-  async saveOnboardingStep(): Promise<void> {
-    const memberId = this._showOnboarding();
-    const step = this._activeOnboardingStep();
-    if (!memberId || !step || this._isSaving()) return;
-
-    this._isSaving.set(true);
-
-    const notes = JSON.stringify(this._obStepData());
-    const success = await this.staffService.updateOnboardingStep(memberId, step, true, notes);
-
-    this._isSaving.set(false);
-
-    if (success) {
-      // Update local checklist state
-      this._onboardingChecklist.update(c => {
-        if (!c) return c;
-        return {
-          ...c,
-          steps: c.steps.map(s => s.step === step ? { ...s, isComplete: true, completedAt: new Date().toISOString(), notes } : s),
-        };
-      });
-      this.closeOnboardingStepForm();
-      this.showSuccess(`${this.getStepLabel(step)} saved`);
-
-      // Refresh team members to update onboardingStatus badge in table
-      this.staffService.loadTeamMembers();
-    }
-  }
-
-  getOnboardingMemberName(): string {
-    const memberId = this._showOnboarding();
-    if (!memberId) return '';
-    return this.teamMembers().find(m => m.id === memberId)?.displayName ?? '';
-  }
-
-  getStepIcon(step: OnboardingStep): string {
-    const icons: Record<OnboardingStep, string> = {
-      personal_info: 'bi-person-vcard',
-      tax_forms: 'bi-file-earmark-text',
-      direct_deposit: 'bi-bank',
-      documents: 'bi-folder2-open',
-      training: 'bi-mortarboard',
-      complete: 'bi-check-circle',
-    };
-    return icons[step];
-  }
-
-  getStepLabel(step: OnboardingStep): string {
-    const labels: Record<OnboardingStep, string> = {
-      personal_info: 'Personal Information',
-      tax_forms: 'Tax Forms',
-      direct_deposit: 'Direct Deposit',
-      documents: 'Documents',
-      training: 'Training & Acknowledgements',
-      complete: 'Onboarding Complete',
-    };
-    return labels[step];
-  }
-
-  getStepSummary(step: OnboardingStepStatus): string {
-    if (!step.notes) return '';
-    try {
-      const data = JSON.parse(step.notes) as Record<string, string>;
-      switch (step.step) {
-        case 'personal_info': return [data['firstName'], data['lastName']].filter(Boolean).join(' ');
-        case 'tax_forms': return data['legalName'] ?? (data['filingStatus'] ? `Filing: ${data['filingStatus']}` : '');
-        case 'direct_deposit': return data['bankName'] ?? '';
-        case 'documents': return data['idType'] ?? '';
-        case 'training': return data['acknowledged'] === 'true' ? 'Acknowledged' : '';
-        default: return '';
-      }
-    } catch { return ''; }
-  }
-
-  private getDefaultOnboardingSteps(): OnboardingStepStatus[] {
-    return [
-      { step: 'personal_info', label: 'Personal Information', isComplete: false, completedAt: null, notes: null },
-      { step: 'tax_forms', label: 'Tax Forms (W-4 / W-9)', isComplete: false, completedAt: null, notes: null },
-      { step: 'direct_deposit', label: 'Direct Deposit', isComplete: false, completedAt: null, notes: null },
-      { step: 'documents', label: 'Documents & ID Verification', isComplete: false, completedAt: null, notes: null },
-      { step: 'training', label: 'Training & Acknowledgements', isComplete: false, completedAt: null, notes: null },
-    ];
   }
 }

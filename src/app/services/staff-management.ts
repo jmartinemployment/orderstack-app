@@ -12,8 +12,6 @@ import {
   PermissionSetFormData,
   DeviceRegistration,
   DeviceRegistrationFormData,
-  OnboardingChecklist,
-  OnboardingStep,
 } from '../models/staff-management.model';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
@@ -30,7 +28,6 @@ export class StaffManagementService {
   private readonly _teamMembers = signal<TeamMember[]>([]);
   private readonly _permissionSets = signal<PermissionSet[]>([]);
   private readonly _devices = signal<DeviceRegistration[]>([]);
-  private readonly _onboardingChecklists = signal<Map<string, OnboardingChecklist>>(new Map());
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
 
@@ -38,7 +35,6 @@ export class StaffManagementService {
   readonly teamMembers = this._teamMembers.asReadonly();
   readonly permissionSets = this._permissionSets.asReadonly();
   readonly devices = this._devices.asReadonly();
-  readonly onboardingChecklists = this._onboardingChecklists.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
 
@@ -369,85 +365,6 @@ export class StaffManagementService {
       return true;
     } catch (err: unknown) {
       this._error.set(err instanceof Error ? err.message : 'Failed to revoke device');
-      return false;
-    }
-  }
-
-  // ============ Onboarding ============
-
-  async loadOnboardingChecklist(teamMemberId: string): Promise<OnboardingChecklist | null> {
-    if (!this.merchantId) return null;
-    this._error.set(null);
-    try {
-      const checklist = await firstValueFrom(
-        this.http.get<OnboardingChecklist>(`${this.apiUrl}/merchant/${this.merchantId}/team-members/${teamMemberId}/onboarding`)
-      );
-      this._onboardingChecklists.update(m => {
-        const updated = new Map(m);
-        updated.set(teamMemberId, checklist);
-        return updated;
-      });
-      return checklist;
-    } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load onboarding checklist');
-      return null;
-    }
-  }
-
-  async updateOnboardingStep(teamMemberId: string, step: OnboardingStep, isComplete: boolean, notes?: string): Promise<boolean> {
-    if (!this.merchantId) return false;
-    this._error.set(null);
-    try {
-      const resp = await firstValueFrom(
-        this.http.patch<{ success: boolean; onboardingStatus: string }>(`${this.apiUrl}/merchant/${this.merchantId}/team-members/${teamMemberId}/onboarding/${step}`, {
-          isComplete,
-          notes,
-        })
-      );
-      // Update the team member's onboardingStatus in local state so the badge reacts
-      if (resp.onboardingStatus) {
-        this._teamMembers.update(members =>
-          members.map(m =>
-            m.id === teamMemberId ? { ...m, onboardingStatus: resp.onboardingStatus as TeamMember['onboardingStatus'] } : m
-          )
-        );
-      }
-      await this.loadOnboardingChecklist(teamMemberId);
-      return true;
-    } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to update onboarding step');
-      return false;
-    }
-  }
-
-  async sendOnboardingLink(teamMemberId: string): Promise<boolean> {
-    if (!this.merchantId) return false;
-    this._error.set(null);
-    try {
-      await firstValueFrom(
-        this.http.post(`${this.apiUrl}/merchant/${this.merchantId}/team-members/${teamMemberId}/onboarding/send-link`, {})
-      );
-      return true;
-    } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to send onboarding link');
-      return false;
-    }
-  }
-
-  getOnboardingChecklist(teamMemberId: string): OnboardingChecklist | undefined {
-    return this._onboardingChecklists().get(teamMemberId);
-  }
-
-  async completeOnboarding(teamMemberId: string): Promise<boolean> {
-    if (!this.merchantId) return false;
-    this._error.set(null);
-    try {
-      await firstValueFrom(
-        this.http.post(`${this.apiUrl}/merchant/${this.merchantId}/team-members/${teamMemberId}/onboarding/complete`, {})
-      );
-      return true;
-    } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to complete onboarding');
       return false;
     }
   }

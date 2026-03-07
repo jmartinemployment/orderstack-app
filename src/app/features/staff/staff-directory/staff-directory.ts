@@ -14,8 +14,6 @@ import {
   TeamMember,
   TeamMemberFormData,
   TeamMemberJobFormData,
-  OnboardingChecklist,
-  OnboardingStep,
   TaxFilingStatus,
   StaffTaxInfo,
 } from '@models/index';
@@ -65,12 +63,6 @@ export class StaffDirectory implements OnInit {
 
   // Clock status: set of teamMemberIds currently clocked in
   private readonly _clockedInIds = signal<Set<string>>(new Set());
-
-  // Onboarding checklists keyed by teamMemberId
-  private readonly _checklists = signal<Map<string, OnboardingChecklist>>(new Map());
-  private readonly _expandedOnboardingId = signal<string | null>(null);
-
-  readonly expandedOnboardingId = this._expandedOnboardingId.asReadonly();
 
   // Search / filter
   private readonly _searchQuery = signal('');
@@ -183,65 +175,6 @@ export class StaffDirectory implements OnInit {
 
   setStatusFilter(filter: 'all' | 'active' | 'inactive'): void {
     this._statusFilter.set(filter);
-  }
-
-  // --- Onboarding ---
-
-  toggleOnboarding(memberId: string): void {
-    if (this._expandedOnboardingId() === memberId) {
-      this._expandedOnboardingId.set(null);
-      return;
-    }
-    this._expandedOnboardingId.set(memberId);
-
-    if (!this._checklists().has(memberId)) {
-      this.staffService.loadOnboardingChecklist(memberId).then(checklist => {
-        if (checklist) {
-          this._checklists.update(m => {
-            const updated = new Map(m);
-            updated.set(memberId, checklist);
-            return updated;
-          });
-        }
-      });
-    }
-  }
-
-  getChecklist(memberId: string): OnboardingChecklist | null {
-    return this._checklists().get(memberId) ?? null;
-  }
-
-  async toggleOnboardingStep(memberId: string, step: OnboardingStep, isComplete: boolean): Promise<void> {
-    const success = await this.staffService.updateOnboardingStep(memberId, step, isComplete);
-    if (success) {
-      const checklist = await this.staffService.loadOnboardingChecklist(memberId);
-      if (checklist) {
-        this._checklists.update(m => {
-          const updated = new Map(m);
-          updated.set(memberId, checklist);
-          return updated;
-        });
-      }
-    }
-  }
-
-  async sendOnboardingLink(memberId: string): Promise<void> {
-    const success = await this.staffService.sendOnboardingLink(memberId);
-    if (success) {
-      this.showToast('Onboarding link sent');
-    }
-  }
-
-  getOnboardingBadgeClass(status: string): string {
-    if (status === 'complete') return 'badge-success';
-    if (status === 'in_progress') return 'badge-warning';
-    return 'badge-secondary';
-  }
-
-  getOnboardingLabel(status: string): string {
-    if (status === 'complete') return 'Complete';
-    if (status === 'in_progress') return 'In Progress';
-    return 'Not Started';
   }
 
   // --- Form ---

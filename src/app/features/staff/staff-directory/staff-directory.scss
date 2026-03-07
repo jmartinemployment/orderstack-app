@@ -384,96 +384,6 @@
   }
 }
 
-// --- Onboarding column ---
-
-.onboarding-badge-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border: none;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: opacity 0.15s;
-
-  &:hover { opacity: 0.8; }
-
-  &.badge-success { background: #ecfdf5; color: #059669; }
-  &.badge-warning { background: #fef3c7; color: #d97706; }
-  &.badge-secondary { background: #f3f4f6; color: #6b7280; }
-
-  i { font-size: 10px; }
-}
-
-// --- Onboarding panel ---
-
-.onboarding-panel {
-  grid-column: 1 / -1;
-  padding: 16px 20px 16px 68px;
-  background: #fafbfc;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.onboarding-steps {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.onboarding-step {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  cursor: pointer;
-
-  input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    accent-color: #059669;
-    cursor: pointer;
-  }
-}
-
-.step-label {
-  color: #374151;
-
-  &.step-complete {
-    color: #9ca3af;
-    text-decoration: line-through;
-  }
-}
-
-.step-date {
-  font-size: 11px;
-  color: #9ca3af;
-  margin-left: auto;
-}
-
-.onboarding-link-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #374151;
-  cursor: pointer;
-  transition: all 0.15s;
-
-  &:hover { border-color: #d1d5db; background: #f9fafb; }
-}
-
-.onboarding-loading {
-  padding: 12px 0;
-}
-
 // --- Actions column ---
 
 .col-actions {
@@ -863,7 +773,6 @@
   .col-job,
   .col-contact,
   .col-clock,
-  .col-onboarding { flex: 0 0 auto; }
   .col-actions { margin-left: auto; }
 
   .stats-row { flex-wrap: wrap; }

@@ -43,8 +43,6 @@ export interface TeamMemberJobFormData {
   overtimeEligible: boolean;
 }
 
-export type OnboardingStatus = 'not_started' | 'in_progress' | 'complete';
-
 export interface TeamMember {
   id: string;
   merchantId: string;
@@ -64,7 +62,6 @@ export interface TeamMember {
   avatarUrl: string | null;
   hireDate: string | null;
   status: TeamMemberStatus;
-  onboardingStatus: OnboardingStatus;
   createdAt: string;
   staffPinId: string | null;
   taxInfo: StaffTaxInfo | null;
@@ -185,22 +182,4 @@ export interface DeviceRegistration {
 export interface DeviceRegistrationFormData {
   deviceName: string;
   locationId?: string;
-}
-
-// --- Onboarding ---
-
-export type OnboardingStep = 'personal_info' | 'tax_forms' | 'direct_deposit' | 'documents' | 'training' | 'complete';
-
-export interface OnboardingChecklist {
-  teamMemberId: string;
-  steps: OnboardingStepStatus[];
-  completedAt: string | null;
-}
-
-export interface OnboardingStepStatus {
-  step: OnboardingStep;
-  label: string;
-  isComplete: boolean;
-  completedAt: string | null;
-  notes: string | null;
 }
