@@ -529,7 +529,7 @@ export type PlatformComplexity =
 export interface MerchantProfile {
   id: string;
   businessName: string;
-  address: BusinessAddress;
+  address: BusinessAddress | null;
   verticals: BusinessVertical[];
   primaryVertical: BusinessVertical;
   complexity: PlatformComplexity;

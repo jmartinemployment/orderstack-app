@@ -1,7 +1,7 @@
-import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PlatformService } from '@services/platform';
-import type { BusinessHoursDay, BusinessAddress } from '@models/index';
+import type { BusinessHoursDay, BusinessAddress, MerchantProfile } from '@models/index';
 
 const DAYS: BusinessHoursDay['day'][] = [
   'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
@@ -33,7 +33,7 @@ const US_TIMEZONES: { value: string; label: string }[] = [
   styleUrl: './general-settings.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class GeneralSettings implements OnInit {
+export class GeneralSettings {
   private readonly platformService = inject(PlatformService);
 
   readonly isLoading = this.platformService.isLoading;
@@ -72,8 +72,13 @@ export class GeneralSettings implements OnInit {
     return parts.join(', ');
   });
 
-  ngOnInit(): void {
-    this.loadFromProfile();
+  constructor() {
+    effect(() => {
+      const profile = this.platformService.merchantProfile();
+      if (profile) {
+        this.loadFromProfile(profile);
+      }
+    });
   }
 
   updateBusinessName(value: string): void {
@@ -169,10 +174,7 @@ export class GeneralSettings implements OnInit {
     setTimeout(() => this._showSaveSuccess.set(false), 3000);
   }
 
-  private loadFromProfile(): void {
-    const profile = this.platformService.merchantProfile();
-    if (!profile) return;
-
+  private loadFromProfile(profile: MerchantProfile): void {
     this._businessName.set(profile.businessName);
     this._street.set(profile.address?.street ?? '');
     this._street2.set(profile.address?.street2 ?? '');

@@ -1,44 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { MerchantProfile, BusinessAddress, BusinessHoursDay } from '@models/index';
-
-// --- Pure function replica of GeneralSettings.loadFromProfile ---
-
-const DAYS: BusinessHoursDay['day'][] = [
-  'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
-];
-
-interface FormState {
-  businessName: string;
-  street: string;
-  street2: string;
-  city: string;
-  state: string;
-  zip: string;
-  phone: string;
-  timezone: string;
-  businessHours: BusinessHoursDay[];
-}
-
-function loadFromProfile(profile: MerchantProfile | null): FormState | null {
-  if (!profile) return null;
-
-  return {
-    businessName: profile.businessName,
-    street: profile.address?.street ?? '',
-    street2: profile.address?.street2 ?? '',
-    city: profile.address?.city ?? '',
-    state: profile.address?.state ?? '',
-    zip: profile.address?.zip ?? '',
-    phone: profile.address?.phone ?? '',
-    timezone: profile.address?.timezone ?? 'America/New_York',
-    businessHours:
-      (profile.businessHours ?? []).length > 0
-        ? structuredClone(profile.businessHours)
-        : DAYS.map(day => ({ day, open: '09:00', close: '22:00', closed: false })),
-  };
-}
-
-// --- Fixtures ---
+import '../../../../test-setup';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { signal } from '@angular/core';
+import { GeneralSettings } from './general-settings';
+import { PlatformService } from '@services/platform';
+import type { MerchantProfile, BusinessAddress } from '@models/index';
 
 function makeProfile(overrides: Partial<MerchantProfile> = {}): MerchantProfile {
   return {
@@ -69,41 +35,70 @@ function makeProfile(overrides: Partial<MerchantProfile> = {}): MerchantProfile 
   } as MerchantProfile;
 }
 
-// --- Tests ---
+function createMockPlatformService(initialProfile: MerchantProfile | null = null) {
+  const _merchantProfile = signal<MerchantProfile | null>(initialProfile);
+  return {
+    merchantProfile: _merchantProfile.asReadonly(),
+    isLoading: signal(false).asReadonly(),
+    saveMerchantProfile: vi.fn().mockResolvedValue(undefined),
+    _merchantProfile,
+  };
+}
 
-describe('GeneralSettings — loadFromProfile', () => {
-  it('does not throw when address is null', () => {
-    const profile = makeProfile({ address: null as unknown as BusinessAddress });
+describe('GeneralSettings', () => {
+  let fixture: ComponentFixture<GeneralSettings>;
+  let component: GeneralSettings;
+  let mockPlatform: ReturnType<typeof createMockPlatformService>;
 
-    let result: FormState | null = null;
-    expect(() => {
-      result = loadFromProfile(profile);
-    }).not.toThrow();
+  function setup(initialProfile: MerchantProfile | null = null) {
+    mockPlatform = createMockPlatformService(initialProfile);
 
-    expect(result).not.toBeNull();
-    expect(result!.street).toBe('');
-    expect(result!.city).toBe('');
-    expect(result!.state).toBe('');
-    expect(result!.zip).toBe('');
+    TestBed.configureTestingModule({
+      imports: [GeneralSettings],
+      providers: [
+        { provide: PlatformService, useValue: mockPlatform },
+      ],
+    });
+    fixture = TestBed.createComponent(GeneralSettings);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  it('does not throw when merchantProfile is null and form stays at initial values', () => {
+    expect(() => setup(null)).not.toThrow();
+
+    expect(component.businessName()).toBe('');
+    expect(component.street()).toBe('');
+    expect(component.city()).toBe('');
+    expect(component.state()).toBe('');
+    expect(component.zip()).toBe('');
+    expect(component.phone()).toBe('');
+    expect(component.timezone()).toBe('America/New_York');
   });
 
-  it('does not throw when address is undefined', () => {
-    const profile = makeProfile({ address: undefined as unknown as BusinessAddress });
+  it('populates form when merchantProfile signal emits a profile with address: null', () => {
+    setup(null);
 
-    let result: FormState | null = null;
-    expect(() => {
-      result = loadFromProfile(profile);
-    }).not.toThrow();
-
-    expect(result).not.toBeNull();
-    expect(result!.street).toBe('');
-    expect(result!.city).toBe('');
-    expect(result!.state).toBe('');
-    expect(result!.zip).toBe('');
-  });
-
-  it('populates address fields when address is present', () => {
+    // Simulate async profile load with null address
     const profile = makeProfile({
+      businessName: 'Null Address Bistro',
+      address: null,
+    });
+    mockPlatform._merchantProfile.set(profile);
+    TestBed.flushEffects();
+
+    expect(component.businessName()).toBe('Null Address Bistro');
+    expect(component.street()).toBe('');
+    expect(component.city()).toBe('');
+    expect(component.state()).toBe('');
+    expect(component.zip()).toBe('');
+    expect(component.phone()).toBe('');
+    expect(component.timezone()).toBe('America/New_York');
+  });
+
+  it('populates all fields when merchantProfile has a full address', () => {
+    const profile = makeProfile({
+      businessName: 'Full Address Cafe',
       address: {
         street: '456 Oak Ave',
         street2: 'Suite 200',
@@ -111,39 +106,25 @@ describe('GeneralSettings — loadFromProfile', () => {
         state: 'FL',
         zip: '33301',
         country: 'US',
-        timezone: 'America/New_York',
+        timezone: 'America/Chicago',
         phone: '954-555-9999',
-        lat: null,
-        lng: null,
+        lat: 26.12,
+        lng: -80.14,
       },
     });
+    setup(profile);
 
-    const result = loadFromProfile(profile)!;
-
-    expect(result.street).toBe('456 Oak Ave');
-    expect(result.street2).toBe('Suite 200');
-    expect(result.city).toBe('Fort Lauderdale');
-    expect(result.state).toBe('FL');
-    expect(result.zip).toBe('33301');
-    expect(result.phone).toBe('954-555-9999');
-    expect(result.timezone).toBe('America/New_York');
+    expect(component.businessName()).toBe('Full Address Cafe');
+    expect(component.street()).toBe('456 Oak Ave');
+    expect(component.street2()).toBe('Suite 200');
+    expect(component.city()).toBe('Fort Lauderdale');
+    expect(component.state()).toBe('FL');
+    expect(component.zip()).toBe('33301');
+    expect(component.phone()).toBe('954-555-9999');
+    expect(component.timezone()).toBe('America/Chicago');
   });
 
-  it('populates non-address fields even when address is null', () => {
-    const profile = makeProfile({
-      businessName: 'Null Address Bistro',
-      address: null as unknown as BusinessAddress,
-    });
-
-    const result = loadFromProfile(profile)!;
-
-    expect(result.businessName).toBe('Null Address Bistro');
-    expect(result.timezone).toBe('America/New_York');
-    expect(result.street).toBe('');
-    expect(result.city).toBe('');
-  });
-
-  it('handles partially populated address', () => {
+  it('handles partially populated address with null/undefined sub-properties', () => {
     const profile = makeProfile({
       address: {
         street: '789 Elm Blvd',
@@ -152,21 +133,68 @@ describe('GeneralSettings — loadFromProfile', () => {
         state: null as unknown as string,
         zip: '',
         country: 'US',
-        timezone: 'America/Chicago',
+        timezone: 'America/Denver',
         phone: null,
         lat: null,
         lng: null,
       },
     });
+    setup(profile);
 
-    const result = loadFromProfile(profile)!;
+    expect(component.street()).toBe('789 Elm Blvd');
+    expect(component.street2()).toBe('');
+    expect(component.city()).toBe('');
+    expect(component.state()).toBe('');
+    expect(component.zip()).toBe('');
+    expect(component.phone()).toBe('');
+    expect(component.timezone()).toBe('America/Denver');
+  });
 
-    expect(result.street).toBe('789 Elm Blvd');
-    expect(result.street2).toBe('');
-    expect(result.city).toBe('');
-    expect(result.state).toBe('');
-    expect(result.zip).toBe('');
-    expect(result.phone).toBe('');
-    expect(result.timezone).toBe('America/Chicago');
+  it('updates form when merchantProfile signal changes to a new profile', () => {
+    const first = makeProfile({
+      businessName: 'First Place',
+      address: {
+        street: '100 First St',
+        street2: null,
+        city: 'Miami',
+        state: 'FL',
+        zip: '33101',
+        country: 'US',
+        timezone: 'America/New_York',
+        phone: '305-111-1111',
+        lat: null,
+        lng: null,
+      },
+    });
+    setup(first);
+
+    expect(component.businessName()).toBe('First Place');
+    expect(component.street()).toBe('100 First St');
+
+    // Switch to second profile
+    const second = makeProfile({
+      businessName: 'Second Place',
+      address: {
+        street: '200 Second Ave',
+        street2: 'Unit B',
+        city: 'Tampa',
+        state: 'FL',
+        zip: '33602',
+        country: 'US',
+        timezone: 'America/Chicago',
+        phone: '813-222-2222',
+        lat: null,
+        lng: null,
+      },
+    });
+    mockPlatform._merchantProfile.set(second);
+    TestBed.flushEffects();
+
+    expect(component.businessName()).toBe('Second Place');
+    expect(component.street()).toBe('200 Second Ave');
+    expect(component.street2()).toBe('Unit B');
+    expect(component.city()).toBe('Tampa');
+    expect(component.timezone()).toBe('America/Chicago');
+    expect(component.phone()).toBe('813-222-2222');
   });
 });
