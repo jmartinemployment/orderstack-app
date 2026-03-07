@@ -91,7 +91,6 @@ inquiry -> proposal_sent -> contract_signed -> deposit_received -> in_progress -
 (cancelled from any state except completed)
 
 ## Remaining work
-- #13: Catering menu pricing — needs `menuType` + `cateringPricingModel` on MenuItem Prisma model
 - #14: Invoice branding defaults — needs columns on Restaurant Prisma model
 - #23: Transactional email — needs Resend email service (backend)
 - #24: Payment reminder cron — needs daily cron job (depends on #23)
@@ -103,4 +102,17 @@ inquiry -> proposal_sent -> contract_signed -> deposit_received -> in_progress -
 - Backend: Prisma schema with all financial/JSON fields, 22 endpoints, activity auto-logging
 - Frontend: 10 new components, 40 files changed, 5856 insertions
 - Backend commit: 8d46fc2, Frontend commit: 79464bb
+- Both pushed to origin/main
+
+**March 7, 2026 (Session 2):**
+- Implemented #13: Catering menu pricing
+- Backend: Added `cateringPricing` Json column to MenuItem Prisma model, pushed to Supabase
+- Backend: POST/PATCH menu item handlers accept and persist cateringPricing, all transform functions include it
+- Frontend: CateringPricingTier interface on MenuItem, cateringItems computed signal on MenuService
+- Frontend: Collapsible catering pricing tier editor in item-management form (visible only in catering mode)
+- Frontend: Package builder in catering-job-detail now has menu item picker with tier selection
+- Frontend: Package cards show selected menu items with pricing
+- Frontend: CateringPackage model extended with menuItems snapshot (name + pricingTier)
+- Tests: 10 new Vitest tests (4 cateringItems filter, 6 item-management pricing tiers) — all pass
+- Backend commit: 389ccb1, Frontend commit: 13b9443
 - Both pushed to origin/main

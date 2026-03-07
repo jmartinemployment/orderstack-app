@@ -312,4 +312,27 @@ describe('Login', () => {
     expect(component.emailControl).toBe(component.form.get('email'));
     expect(component.passwordControl).toBe(component.form.get('password'));
   });
+
+  // --- Email control validators ---
+
+  it('email control is invalid when empty', () => {
+    const email = component.emailControl!;
+    email.setValue('');
+    expect(email.valid).toBe(false);
+    expect(email.errors?.['required']).toBeTruthy();
+  });
+
+  it('email control is invalid for non-email string', () => {
+    const email = component.emailControl!;
+    email.setValue('not-an-email');
+    expect(email.valid).toBe(false);
+    expect(email.errors?.['email']).toBeTruthy();
+  });
+
+  it('email control is valid for properly formatted email', () => {
+    const email = component.emailControl!;
+    email.setValue('test@example.com');
+    expect(email.valid).toBe(true);
+    expect(email.errors).toBeNull();
+  });
 });

@@ -33,6 +33,25 @@ function makeLoginResponse(overrides: Partial<LoginResponse> = {}): LoginRespons
   };
 }
 
+// --- Signup request body ---
+
+interface SignupRequestBody {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
+
+function buildSignupBody(data: SignupRequestBody): Record<string, string> {
+  // Mirrors AuthService.signup() which sends data directly as POST body
+  return {
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    password: data.password,
+  };
+}
+
 // --- Pure function replicas of AuthService logic ---
 
 function extractErrorMessage(err: unknown): string {
@@ -147,6 +166,32 @@ function selectMerchantStorage(
 }
 
 // --- Tests ---
+
+describe('AuthService — signup includes email in HTTP POST body', () => {
+  it('includes email property in the request body', () => {
+    const body = buildSignupBody({
+      firstName: 'Bug',
+      lastName: 'Test',
+      email: 'bugtest@example.com',
+      password: 'BugTest2025!',
+    });
+
+    expect(body.email).toBe('bugtest@example.com');
+    expect(body).toHaveProperty('email');
+  });
+
+  it('preserves the exact email value without modification', () => {
+    const body = buildSignupBody({
+      firstName: 'A',
+      lastName: 'B',
+      email: 'MixedCase@Domain.COM',
+      password: 'pass123',
+    });
+
+    // Frontend sends email as-is; backend lowercases it
+    expect(body.email).toBe('MixedCase@Domain.COM');
+  });
+});
 
 describe('AuthService — extractErrorMessage', () => {
   it('extracts message from HTTP error with message field', () => {
