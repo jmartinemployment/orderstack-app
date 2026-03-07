@@ -44,7 +44,7 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: $text-primary;
+  background: $blue;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -56,7 +56,7 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
   transition: background 0.15s, opacity 0.15s;
 
   &:hover:not(:disabled) {
-    background: #000;
+    background: #0055cc;
   }
 
   &:disabled {

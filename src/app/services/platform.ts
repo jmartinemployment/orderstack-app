@@ -95,6 +95,10 @@ export class PlatformService {
 
   readonly isCateringMode = computed(() => this._currentDeviceMode() === 'catering');
 
+  readonly isQuickServiceMode = computed(() => this._currentDeviceMode() === 'quick_service');
+  readonly isFullServiceMode = computed(() => this._currentDeviceMode() === 'full_service');
+  readonly isBarMode = computed(() => this._currentDeviceMode() === 'bar');
+
   readonly businessCategory = computed<string | null>(
     () => this._merchantProfile()?.businessCategory ?? null
   );

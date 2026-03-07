@@ -487,6 +487,32 @@
               }
             </div>
 
+            <!-- Menu Type & Catering Pricing Model (catering mode only) -->
+            @if (platformService.isCateringMode()) {
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Menu Type</label>
+                  <select class="form-select" [value]="formMenuType()"
+                    (change)="setMenuType($any($event.target).value)">
+                    <option value="standard">Standard (POS)</option>
+                    <option value="catering">Catering</option>
+                  </select>
+                </div>
+                @if (formMenuType() === 'catering') {
+                  <div class="col-md-6">
+                    <label class="form-label">Pricing Model</label>
+                    <select class="form-select" [value]="formCateringPricingModel() ?? ''"
+                      (change)="setCateringPricingModel($any($event.target).value)">
+                      <option value="">None</option>
+                      <option value="per_person">Per Person</option>
+                      <option value="per_tray">Per Tray</option>
+                      <option value="flat">Flat Fee</option>
+                    </select>
+                  </div>
+                }
+              </div>
+            }
+
             <!-- Catering Pricing Section (collapsible, catering mode only) -->
             @if (platformService.isCateringMode()) {
               <div class="collapsible-section">

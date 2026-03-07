@@ -1,6 +1,8 @@
 import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CurrencyPipe } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { MenuService } from '@services/menu';
 import { ModifierService } from '@services/modifier';
 import { AuthService } from '@services/auth';
@@ -38,6 +40,7 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 })
 export class ItemManagement {
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
   readonly menuService = inject(MenuService);
   private readonly modifierService = inject(ModifierService);
   private readonly authService = inject(AuthService);
@@ -96,6 +99,17 @@ export class ItemManagement {
   // Catering pricing tiers
   private readonly _cateringPricingTiers = signal<CateringPricingTier[]>([]);
   private readonly _showCateringPricingSection = signal(false);
+  private readonly _formMenuType = signal<'standard' | 'catering'>('standard');
+  private readonly _formCateringPricingModel = signal<'per_person' | 'per_tray' | 'flat' | null>(null);
+
+  // Live query params signal — resolves correctly in zoneless mode
+  private readonly _queryParams = toSignal(this.route.queryParamMap);
+
+  // Derives menu type filter from ?type query param
+  private readonly _menuTypeFilter = computed(() => {
+    const raw = this._queryParams()?.get('type');
+    return (raw === 'catering' || raw === 'standard') ? raw : null;
+  });
 
   readonly editingItem = this._editingItem.asReadonly();
   readonly showForm = this._showForm.asReadonly();
@@ -124,6 +138,9 @@ export class ItemManagement {
   readonly imagePreview = this._imagePreview.asReadonly();
   readonly cateringPricingTiers = this._cateringPricingTiers.asReadonly();
   readonly showCateringPricingSection = this._showCateringPricingSection.asReadonly();
+  readonly formMenuType = this._formMenuType.asReadonly();
+  readonly formCateringPricingModel = this._formCateringPricingModel.asReadonly();
+  readonly menuTypeFilter = this._menuTypeFilter;
 
   readonly items = this.menuService.allItems;
   readonly categories = this.menuService.categories;
@@ -137,8 +154,14 @@ export class ItemManagement {
     const query = this._searchQuery().toLowerCase().trim();
     const field = this._sortField();
     const dir = this._sortDirection();
+    const typeFilter = this._menuTypeFilter();
 
     let result = this.items();
+
+    // Filter by menu type when navigated from a typed context (e.g. catering nav)
+    if (typeFilter) {
+      result = result.filter(item => (item.menuType ?? 'standard') === typeFilter);
+    }
 
     if (catId) {
       result = result.filter(item => item.categoryId === catId);
@@ -332,6 +355,15 @@ export class ItemManagement {
     );
   }
 
+  setMenuType(value: 'standard' | 'catering'): void {
+    this._formMenuType.set(value);
+  }
+
+  setCateringPricingModel(value: string): void {
+    const valid = ['per_person', 'per_tray', 'flat'];
+    this._formCateringPricingModel.set(valid.includes(value) ? value as 'per_person' | 'per_tray' | 'flat' : null);
+  }
+
   // ============ Nutrition ============
 
   updateNutrition(field: keyof NutritionFacts, value: string): void {
@@ -350,6 +382,9 @@ export class ItemManagement {
     this._imagePreview.set(null);
     this._selectedModifierGroupIds.set([]);
     this._cateringPricingTiers.set([]);
+    // Pre-set menu type from filter context so catering items default to catering
+    this._formMenuType.set(this._menuTypeFilter() ?? 'standard');
+    this._formCateringPricingModel.set(null);
     this._formAllergens.set([]);
     this._formAvailabilityWindows.set([]);
     this._formChannelVisibility.set({ pos: true, onlineOrdering: true, kiosk: true, deliveryApps: true });
@@ -373,6 +408,8 @@ export class ItemManagement {
     this._imagePreview.set(item.imageUrl ?? null);
     this._selectedModifierGroupIds.set(item.modifierGroups?.map(g => g.id) ?? []);
     this._cateringPricingTiers.set(item.cateringPricing ?? []);
+    this._formMenuType.set(item.menuType ?? 'standard');
+    this._formCateringPricingModel.set(item.cateringPricingModel ?? null);
     this._formAllergens.set(item.allergens ?? []);
     this._formAvailabilityWindows.set(item.availabilityWindows ?? []);
     this._formChannelVisibility.set(item.channelVisibility ?? {
@@ -407,6 +444,8 @@ export class ItemManagement {
     this._editingItem.set(null);
     this._selectedModifierGroupIds.set(item.modifierGroups?.map(g => g.id) ?? []);
     this._cateringPricingTiers.set(item.cateringPricing ?? []);
+    this._formMenuType.set(item.menuType ?? 'standard');
+    this._formCateringPricingModel.set(item.cateringPricingModel ?? null);
     this._formAllergens.set(item.allergens ?? []);
     this._formAvailabilityWindows.set(item.availabilityWindows ?? []);
     this._formChannelVisibility.set(item.channelVisibility ?? {
@@ -491,6 +530,8 @@ export class ItemManagement {
         allergens: this._formAllergens(),
         availabilityWindows: this._formAvailabilityWindows(),
         cateringPricing: this._cateringPricingTiers(),
+        menuType: this._formMenuType(),
+        cateringPricingModel: this._formCateringPricingModel(),
       };
 
       // Only include nutrition if at least one field is set

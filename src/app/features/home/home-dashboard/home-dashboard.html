@@ -42,7 +42,7 @@
           <div class="sg-header">
             <div>
               <h2 class="sg-title">Let's get growing, {{ businessName() }}</h2>
-              <p class="sg-subtitle">Complete these steps to start taking payments.</p>
+              <p class="sg-subtitle">{{ setupSubtitle() }}</p>
             </div>
             <div class="sg-progress-ring">
               <svg viewBox="0 0 48 48" class="sg-ring-svg">
@@ -114,32 +114,24 @@
         </div>
 
         <div class="kpi-grid">
-          <div class="kpi-card">
-            <span class="kpi-label">Net Sales</span>
-            <span class="kpi-value">{{ formatCurrency(_todayNetSales()) }}</span>
-            @if (_yesterdayNetSales() > 0) {
-              <span class="kpi-change" [class.positive]="salesChangePercent() >= 0" [class.negative]="salesChangePercent() < 0">
-                <i class="bi" [class.bi-arrow-up-short]="salesChangePercent() >= 0" [class.bi-arrow-down-short]="salesChangePercent() < 0"></i>
-                {{ formatPercent(salesChangePercent()) }} vs yesterday
+          @for (kpi of kpiConfig(); track kpi.label) {
+            <div class="kpi-card">
+              <span class="kpi-label">{{ kpi.label }}</span>
+              <span class="kpi-value">
+                @if (kpi.format === 'currency') {
+                  {{ formatCurrency(kpi.value) }}
+                } @else {
+                  {{ kpi.value }}
+                }
               </span>
-            }
-          </div>
-
-          <div class="kpi-card">
-            <span class="kpi-label">Orders</span>
-            <span class="kpi-value">{{ _todayOrderCount() }}</span>
-            @if (_yesterdayOrderCount() > 0) {
-              <span class="kpi-change" [class.positive]="ordersChangePercent() >= 0" [class.negative]="ordersChangePercent() < 0">
-                <i class="bi" [class.bi-arrow-up-short]="ordersChangePercent() >= 0" [class.bi-arrow-down-short]="ordersChangePercent() < 0"></i>
-                {{ formatPercent(ordersChangePercent()) }} vs yesterday
-              </span>
-            }
-          </div>
-
-          <div class="kpi-card">
-            <span class="kpi-label">Avg. Ticket</span>
-            <span class="kpi-value">{{ formatCurrency(todayAvgTicket()) }}</span>
-          </div>
+              @if (kpi.changePercent !== undefined && kpi.changePercent !== 0) {
+                <span class="kpi-change" [class.positive]="(kpi.changePercent ?? 0) >= 0" [class.negative]="(kpi.changePercent ?? 0) < 0">
+                  <i class="bi" [class.bi-arrow-up-short]="(kpi.changePercent ?? 0) >= 0" [class.bi-arrow-down-short]="(kpi.changePercent ?? 0) < 0"></i>
+                  {{ formatPercent(kpi.changePercent ?? 0) }} vs yesterday
+                </span>
+              }
+            </div>
+          }
         </div>
       </div>
     </div>

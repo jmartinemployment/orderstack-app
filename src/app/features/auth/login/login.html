@@ -110,6 +110,7 @@
             placeholder="name@example.com"
             autocomplete="off"
             [class.is-invalid]="emailControl?.touched && emailControl?.invalid"
+            (keydown.enter)="onSignIn()"
           />
           @if (emailControl?.touched && emailControl?.errors?.['required']) {
             <div class="invalid-feedback d-block">Email is required</div>
@@ -133,6 +134,7 @@
               placeholder="Min 6 characters"
               autocomplete="new-password"
               [class.is-invalid]="passwordControl?.touched && passwordControl?.invalid"
+              (keydown.enter)="onSignIn()"
             />
             <button
               type="button"

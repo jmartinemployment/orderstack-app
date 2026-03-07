@@ -132,6 +132,12 @@ $bg-active: #eef2ff;
   }
 }
 
+.nav-divider {
+  border: 0;
+  border-top: 1px solid $border-color;
+  margin: 8px 12px;
+}
+
 .nav-badge {
   margin-left: auto;
   background: $primary;

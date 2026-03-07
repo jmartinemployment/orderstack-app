@@ -1,4 +1,6 @@
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CategoryManagement } from './category-management/category-management';
 import { ItemManagement } from './item-management/item-management';
 import { ModifierManagement } from './modifier-management/modifier-management';
@@ -46,5 +48,21 @@ type MenuTab = 'categories' | 'items' | 'modifiers' | 'schedules';
   `],
 })
 export class MenuManagement {
-  readonly activeTab = signal<MenuTab>('categories');
+  private readonly route = inject(ActivatedRoute);
+
+  // Live signal from the router's query params — resolves correctly in zoneless mode
+  private readonly queryParams = toSignal(this.route.queryParamMap);
+
+  // Derives the initial tab from ?type query param; manual tab clicks override via set()
+  readonly activeTab = signal<MenuTab>(
+    this.route.snapshot.queryParamMap.has('type') ? 'items' : 'categories'
+  );
+
+  // Keep activeTab in sync if query params change while component is alive (e.g. browser back/forward)
+  readonly _syncTab = computed(() => {
+    const params = this.queryParams();
+    if (params?.has('type')) {
+      this.activeTab.set('items');
+    }
+  });
 }

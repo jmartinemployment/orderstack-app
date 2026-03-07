@@ -1476,3 +1476,82 @@ $paypal-blue: #003087;
     }
   }
 }
+
+// --- Mode Selection Card Grid ---
+
+.mode-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  max-width: 560px;
+  margin: 32px auto 0;
+}
+
+.mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 24px;
+  background: $bg-card;
+  border: 2px solid $border-color;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+
+  &:hover {
+    background: $bg-hover;
+    border-color: color.adjust($border-color, $lightness: -10%);
+  }
+
+  &.selected {
+    background: $blue-light;
+    border-color: $blue;
+  }
+
+  .mode-card-icon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.04);
+    border-radius: $radius-md;
+
+    i {
+      font-size: 1.5rem;
+      color: $text-primary;
+    }
+  }
+
+  &.selected .mode-card-icon {
+    background: $blue-light;
+
+    i {
+      color: $blue;
+    }
+  }
+
+  .mode-card-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: $text-primary;
+  }
+
+  .mode-card-subtext {
+    font-size: 0.8125rem;
+    color: $text-secondary;
+    line-height: 1.4;
+  }
+}
+
+@media (max-width: 480px) {
+  .mode-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-card {
+    padding: 24px 20px;
+  }
+}

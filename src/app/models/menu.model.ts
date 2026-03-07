@@ -78,6 +78,8 @@ export interface MenuItem {
   weightUnit?: WeightUnit;
 
   // --- Catering pricing ---
+  menuType?: 'standard' | 'catering';
+  cateringPricingModel?: 'per_person' | 'per_tray' | 'flat' | null;
   cateringPricing?: CateringPricingTier[];
 }
 

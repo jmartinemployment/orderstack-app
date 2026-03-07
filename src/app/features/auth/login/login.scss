@@ -237,6 +237,10 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
   .form-control {
     padding-right: 2.75rem;
     border-radius: $radius;
+
+    &:focus {
+      z-index: 1;
+    }
   }
 }
 
@@ -251,7 +255,7 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
   cursor: pointer;
   padding: 0.25rem;
   font-size: 1.1rem;
-  z-index: 2;
+  z-index: 10;
 
   &:hover {
     color: #fff;
@@ -339,6 +343,12 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
     background: $blue-hover;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba($blue, 0.25);
+  }
+
+  &:disabled,
+  &[disabled] {
+    pointer-events: none;
+    cursor: not-allowed;
   }
 }
 

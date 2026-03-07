@@ -11,6 +11,9 @@ export interface NavItem {
   badge?: number;
   alertSeverity?: AlertSeverity;
   children?: NavItem[];
+  dividerBefore?: boolean;
+  queryParams?: Record<string, string>;
+  exact?: boolean;
 }
 
 @Component({

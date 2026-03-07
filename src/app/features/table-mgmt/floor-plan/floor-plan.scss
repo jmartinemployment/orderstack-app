@@ -11,6 +11,7 @@ $danger: #ef4444;
 $warning: #f59e0b;
 $info: #3b82f6;
 $muted: #9ca3af;
+$closing: #7c3aed;
 
 :host {
   display: flex;
@@ -108,6 +109,9 @@ $muted: #9ca3af;
 .status-reserved { background-color: $warning; }
 .status-dirty { background-color: $muted; }
 .status-maintenance { background-color: $info; }
+.status-closing { background-color: $closing; }
+
+.bg-closing { background-color: $closing; color: #fff; }
 
 // Canvas
 .canvas {

@@ -34,7 +34,6 @@ export class MenuService {
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
   private readonly _currentLanguage = signal<'en' | 'es'>('en');
-
   private readonly _crudSupported = signal(false);
 
   // Reporting categories
@@ -43,7 +42,7 @@ export class MenuService {
   // Option sets
   private readonly _optionSets = signal<ItemOptionSet[]>([]);
 
-  // Menu schedules (GAP-R07)
+  // Menu schedules
   private readonly _menuSchedules = signal<MenuSchedule[]>([]);
   private readonly _activeScheduleId = signal<string | null>(null);
   private readonly _scheduleOverrides = signal<ScheduleOverride[]>([]);
@@ -77,7 +76,6 @@ export class MenuService {
     this.activeDayparts().map(dp => dp.id)
   );
 
-  // Computed signals
   readonly activeCategories = computed(() =>
     this._categories().filter(cat => cat.isActive !== false)
   );
@@ -109,9 +107,7 @@ export class MenuService {
   });
 
   readonly cateringItems = computed(() =>
-    this.allItems().filter(item =>
-      (item.cateringPricing ?? []).length > 0
-    )
+    this.allItems().filter(item => (item.cateringPricing ?? []).length > 0)
   );
 
   readonly popularItems = computed(() =>
@@ -121,6 +117,30 @@ export class MenuService {
   private get merchantId(): string | null {
     return this.authService.selectedMerchantId();
   }
+
+  // ─── Private fetch helper ──────────────────────────────────────────────────
+  // Called by CRUD methods after a mutation. Does NOT check _isLoading guard —
+  // the guard only lives in loadMenuForRestaurant() to prevent duplicate
+  // concurrent loads from the component layer. CRUD methods set _isLoading
+  // themselves, so they must bypass the guard when refreshing.
+
+  private async _fetchMenu(): Promise<void> {
+    const merchantId = this.merchantId;
+    if (!merchantId) return;
+    try {
+      const response = await firstValueFrom(
+        this.http.get<MenuCategory[]>(
+          `${this.apiUrl}/merchant/${merchantId}/menu/grouped?lang=${this._currentLanguage()}`
+        )
+      );
+      this._categories.set(this.normalizeMenuData(response || []));
+      this._crudSupported.set(true);
+    } catch (err: unknown) {
+      this._error.set(err instanceof Error ? err.message : 'Failed to load menu');
+    }
+  }
+
+  // ─── Public load (guarded) ─────────────────────────────────────────────────
 
   async loadMenu(): Promise<void> {
     return this.loadMenuForRestaurant(this.merchantId);
@@ -148,8 +168,7 @@ export class MenuService {
       this._categories.set(this.normalizeMenuData(response || []));
       this._crudSupported.set(true);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load menu';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to load menu');
     } finally {
       this._isLoading.set(false);
     }
@@ -159,6 +178,8 @@ export class MenuService {
     this._currentLanguage.set(lang);
     this.loadMenu();
   }
+
+  // ─── Category CRUD ─────────────────────────────────────────────────────────
 
   async createCategory(data: Partial<MenuCategory>): Promise<MenuCategory | null> {
     if (!this.merchantId) return null;
@@ -173,11 +194,10 @@ export class MenuService {
           data
         )
       );
-      await this.loadMenu();
+      await this._fetchMenu();
       return category;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create category';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to create category');
       return null;
     } finally {
       this._isLoading.set(false);
@@ -197,12 +217,10 @@ export class MenuService {
           data
         )
       );
-      this._crudSupported.set(true);
-      await this.loadMenu();
+      await this._fetchMenu();
       return true;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update category';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to update category');
       return false;
     } finally {
       this._isLoading.set(false);
@@ -221,17 +239,17 @@ export class MenuService {
           `${this.apiUrl}/merchant/${this.merchantId}/menu/categories/${categoryId}`
         )
       );
-      this._crudSupported.set(true);
-      await this.loadMenu();
+      await this._fetchMenu();
       return true;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete category';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to delete category');
       return false;
     } finally {
       this._isLoading.set(false);
     }
   }
+
+  // ─── Item CRUD ─────────────────────────────────────────────────────────────
 
   async createItem(data: Partial<MenuItem>): Promise<MenuItem | null> {
     if (!this.merchantId) return null;
@@ -246,11 +264,10 @@ export class MenuService {
           data
         )
       );
-      await this.loadMenu();
+      await this._fetchMenu();
       return item;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create item';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to create item');
       return null;
     } finally {
       this._isLoading.set(false);
@@ -270,12 +287,10 @@ export class MenuService {
           data
         )
       );
-      this._crudSupported.set(true);
-      await this.loadMenu();
+      await this._fetchMenu();
       return true;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update item';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to update item');
       return false;
     } finally {
       this._isLoading.set(false);
@@ -294,12 +309,10 @@ export class MenuService {
           `${this.apiUrl}/merchant/${this.merchantId}/menu/items/${itemId}`
         )
       );
-      this._crudSupported.set(true);
-      await this.loadMenu();
+      await this._fetchMenu();
       return true;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete item';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to delete item');
       return false;
     } finally {
       this._isLoading.set(false);
@@ -318,11 +331,10 @@ export class MenuService {
           { eightySixed, reason: eightySixed ? reason : undefined }
         )
       );
-      await this.loadMenu();
+      await this._fetchMenu();
       return true;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update 86 status';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to update 86 status');
       return false;
     }
   }
@@ -340,11 +352,10 @@ export class MenuService {
           {}
         )
       );
-      await this.loadMenu();
+      await this._fetchMenu();
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to estimate item cost';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to estimate item cost');
       return null;
     } finally {
       this._isLoading.set(false);
@@ -364,11 +375,10 @@ export class MenuService {
           {}
         )
       );
-      await this.loadMenu();
+      await this._fetchMenu();
       return item;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to generate description';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to generate description');
       return null;
     } finally {
       this._isLoading.set(false);
@@ -388,11 +398,10 @@ export class MenuService {
           {}
         )
       );
-      await this.loadMenu();
+      await this._fetchMenu();
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to estimate costs';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to estimate costs');
       return null;
     } finally {
       this._isLoading.set(false);
@@ -412,18 +421,17 @@ export class MenuService {
           {}
         )
       );
-      await this.loadMenu();
+      await this._fetchMenu();
       return response;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to generate descriptions';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to generate descriptions');
       return null;
     } finally {
       this._isLoading.set(false);
     }
   }
 
-  // --- Item Variations ---
+  // ─── Item Variations ───────────────────────────────────────────────────────
 
   async createVariation(itemId: string, data: Partial<ItemVariation>): Promise<ItemVariation | null> {
     if (!this.merchantId) return null;
@@ -437,11 +445,10 @@ export class MenuService {
           data
         )
       );
-      await this.loadMenu();
+      await this._fetchMenu();
       return variation;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create variation';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to create variation');
       return null;
     }
   }
@@ -458,11 +465,10 @@ export class MenuService {
           data
         )
       );
-      await this.loadMenu();
+      await this._fetchMenu();
       return true;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update variation';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to update variation');
       return false;
     }
   }
@@ -478,16 +484,15 @@ export class MenuService {
           `${this.apiUrl}/merchant/${this.merchantId}/menu/items/${itemId}/variations/${variationId}`
         )
       );
-      await this.loadMenu();
+      await this._fetchMenu();
       return true;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete variation';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to delete variation');
       return false;
     }
   }
 
-  // --- Reporting Categories ---
+  // ─── Reporting Categories ──────────────────────────────────────────────────
 
   async loadReportingCategories(): Promise<void> {
     if (!this.merchantId) return;
@@ -500,8 +505,7 @@ export class MenuService {
       );
       this._reportingCategories.set(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load reporting categories';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to load reporting categories');
     }
   }
 
@@ -520,8 +524,7 @@ export class MenuService {
       await this.loadReportingCategories();
       return category;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create reporting category';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to create reporting category');
       return null;
     }
   }
@@ -541,8 +544,7 @@ export class MenuService {
       await this.loadReportingCategories();
       return true;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update reporting category';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to update reporting category');
       return false;
     }
   }
@@ -561,13 +563,12 @@ export class MenuService {
       await this.loadReportingCategories();
       return true;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete reporting category';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to delete reporting category');
       return false;
     }
   }
 
-  // --- Option Sets ---
+  // ─── Option Sets ───────────────────────────────────────────────────────────
 
   async loadOptionSets(): Promise<void> {
     if (!this.merchantId) return;
@@ -580,8 +581,7 @@ export class MenuService {
       );
       this._optionSets.set(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load option sets';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to load option sets');
     }
   }
 
@@ -600,13 +600,12 @@ export class MenuService {
       await this.loadOptionSets();
       return optionSet;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create option set';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to create option set');
       return null;
     }
   }
 
-  // --- CSV Import/Export ---
+  // ─── CSV Import / Export ───────────────────────────────────────────────────
 
   async importMenuFromCsv(file: File): Promise<CsvImportResult | null> {
     if (!this.merchantId) return null;
@@ -623,11 +622,10 @@ export class MenuService {
           formData
         )
       );
-      await this.loadMenu();
+      await this._fetchMenu();
       return result;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to import menu';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to import menu');
       return null;
     } finally {
       this._isLoading.set(false);
@@ -653,12 +651,11 @@ export class MenuService {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to export menu';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to export menu');
     }
   }
 
-  // --- SKU Generation ---
+  // ─── SKU Generation ────────────────────────────────────────────────────────
 
   async autoGenerateSku(itemId: string): Promise<string | null> {
     if (!this.merchantId) return null;
@@ -672,11 +669,10 @@ export class MenuService {
           {}
         )
       );
-      await this.loadMenu();
+      await this._fetchMenu();
       return result.sku;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to generate SKU';
-      this._error.set(message);
+      this._error.set(err instanceof Error ? err.message : 'Failed to generate SKU');
       return null;
     }
   }
@@ -685,7 +681,7 @@ export class MenuService {
     this._error.set(null);
   }
 
-  // --- Menu Schedule CRUD (GAP-R07) ---
+  // ─── Menu Schedules ────────────────────────────────────────────────────────
 
   async loadMenuSchedules(): Promise<void> {
     if (!this.merchantId) return;
@@ -714,9 +710,7 @@ export class MenuService {
     };
 
     if (data.isDefault) {
-      this._menuSchedules.update(list =>
-        list.map(s => ({ ...s, isDefault: false }))
-      );
+      this._menuSchedules.update(list => list.map(s => ({ ...s, isDefault: false })));
       this._activeScheduleId.set(id);
     }
 
@@ -849,7 +843,7 @@ export class MenuService {
     return item.daypartIds.some(id => activeDpIds.includes(id));
   }
 
-  // --- Phase 2: Schedule Preview, Overrides, Notifications ---
+  // ─── Schedule Preview & Overrides ─────────────────────────────────────────
 
   previewMenuAt(targetDate: Date): SchedulePreviewResult[] {
     const schedule = this.activeSchedule();
@@ -976,7 +970,7 @@ export class MenuService {
     }
   }
 
-  // --- Menu Item Photos & AI Descriptions (GAP-R09) ---
+  // ─── Item Photos & AI Descriptions ────────────────────────────────────────
 
   async uploadItemImage(itemId: string, file: File): Promise<{ imageUrl: string; thumbnailUrl: string }> {
     const merchantId = this.authService.selectedMerchantId();
@@ -992,7 +986,6 @@ export class MenuService {
       )
     );
 
-    // Update local state
     this._categories.update(cats => cats.map(cat => ({
       ...cat,
       items: cat.items?.map(item =>
@@ -1039,6 +1032,8 @@ export class MenuService {
 
     return result.description;
   }
+
+  // ─── Helpers ───────────────────────────────────────────────────────────────
 
   private normalizeMenuData(categories: MenuCategory[]): MenuCategory[] {
     return categories.map(cat => ({

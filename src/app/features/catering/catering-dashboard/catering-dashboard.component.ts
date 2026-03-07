@@ -88,6 +88,10 @@ export class CateringDashboardComponent implements OnInit {
     }
   }
 
+  goToMenu(): void {
+    this.router.navigate(['/app/menu'], { queryParams: { type: 'catering' } });
+  }
+
   openNewEvent(): void {
     this.editingEvent.set(null);
     this.showForm.set(true);

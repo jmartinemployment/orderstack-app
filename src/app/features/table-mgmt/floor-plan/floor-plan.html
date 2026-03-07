@@ -70,6 +70,7 @@
           <span class="legend-item"><span class="legend-dot status-reserved"></span> Reserved</span>
           <span class="legend-item"><span class="legend-dot status-dirty"></span> Dirty</span>
           <span class="legend-item"><span class="legend-dot status-maintenance"></span> Maintenance</span>
+          <span class="legend-item"><span class="legend-dot status-closing"></span> Closing</span>
         </div>
 
         <!-- Canvas -->
@@ -91,6 +92,7 @@
               [class.status-reserved]="table.status === 'reserved'"
               [class.status-dirty]="table.status === 'dirty'"
               [class.status-maintenance]="table.status === 'maintenance'"
+              [class.status-closing]="table.status === 'closing'"
               [class.dragging]="dragTableId() === table.id"
               [class.selected]="selectedTable()?.id === table.id"
               [style]="getTableStyle(table)"
@@ -172,7 +174,7 @@
             <span class="col-capacity">{{ table.capacity }}</span>
             <span class="col-section">{{ table.section ?? '—' }}</span>
             <span class="col-status">
-              <span class="badge" [class.bg-success]="table.status === 'available'" [class.bg-danger]="table.status === 'occupied'" [class.bg-warning]="table.status === 'reserved'" [class.text-dark]="table.status === 'reserved'" [class.bg-secondary]="table.status === 'dirty'" [class.bg-info]="table.status === 'maintenance'">{{ table.status }}</span>
+              <span class="badge" [class.bg-success]="table.status === 'available'" [class.bg-danger]="table.status === 'occupied'" [class.bg-warning]="table.status === 'reserved'" [class.text-dark]="table.status === 'reserved'" [class.bg-secondary]="table.status === 'dirty'" [class.bg-info]="table.status === 'maintenance'" [class.bg-closing]="table.status === 'closing'">{{ table.status }}</span>
             </span>
             <span class="col-orders">
               @if (getTableOrders(table.id).length > 0) {
@@ -225,7 +227,7 @@
       </div>
       <div class="detail-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <span class="badge" [class.bg-success]="table.status === 'available'" [class.bg-danger]="table.status === 'occupied'" [class.bg-warning]="table.status === 'reserved'" [class.text-dark]="table.status === 'reserved'" [class.bg-secondary]="table.status === 'dirty'" [class.bg-info]="table.status === 'maintenance'">{{ table.status }}</span>
+          <span class="badge" [class.bg-success]="table.status === 'available'" [class.bg-danger]="table.status === 'occupied'" [class.bg-warning]="table.status === 'reserved'" [class.text-dark]="table.status === 'reserved'" [class.bg-secondary]="table.status === 'dirty'" [class.bg-info]="table.status === 'maintenance'" [class.bg-closing]="table.status === 'closing'">{{ table.status }}</span>
           <div class="d-flex gap-1">
             @for (opt of statusOptions; track opt.value) {
               <button
@@ -313,6 +315,11 @@
           @if (table.status === 'occupied') {
             <button type="button" class="btn btn-sm btn-primary w-100 mb-2" (click)="onTableTap(table, $event)">
               <i class="bi bi-pencil-square me-1"></i> Open in POS
+            </button>
+          }
+          @if (table.status === 'closing') {
+            <button type="button" class="btn btn-sm btn-outline-light w-100 mb-2" (click)="onTableTap(table, $event)">
+              <i class="bi bi-eye me-1"></i> View Order
             </button>
           }
           @if (table.status === 'dirty') {

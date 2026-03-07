@@ -5,6 +5,39 @@
   height: 100%;
 }
 
+.kiosk-closing-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: #1a1a2e;
+  color: #fff;
+  text-align: center;
+  padding: 2rem;
+}
+
+.closing-card {
+  max-width: 480px;
+
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    font-size: 1.125rem;
+    color: #9ca3af;
+  }
+}
+
+.closing-icon {
+  font-size: 4rem;
+  color: #7c3aed;
+  margin-bottom: 1.5rem;
+  display: block;
+}
+
 .kiosk-terminal {
   display: grid;
   grid-template-columns: 1fr 340px;

@@ -49,172 +49,6 @@ const US_STATES = [
 
 const ZIP_REGEX = /^\d{5}(-\d{4})?$/;
 
-// --- Business type -> mode mapping ---
-const BUSINESS_TYPE_MODE_MAP: Record<string, DevicePosMode> = {
-  // Food & Drink
-  'Fine Dining': 'full_service',
-  'Full Service Restaurant': 'full_service',
-  'Club / Lounge': 'full_service',
-  'Fast Food Restaurant': 'quick_service',
-  'Counter Service Restaurant': 'quick_service',
-  'Food Truck / Cart': 'quick_service',
-  'Ghost / Virtual Kitchen': 'quick_service',
-  'Bakery / Pastry Shop': 'quick_service',
-  'Coffee / Tea Cafe': 'quick_service',
-  'Caterer': 'catering',
-  'Bar': 'bar',
-  'Brewery': 'bar',
-  'Other Food & Drink': 'full_service',
-
-  // Retail
-  'Specialty Shop': 'retail',
-  'Electronics': 'retail',
-  'Clothing and Accessories': 'retail',
-  'Outdoor Markets': 'retail',
-  'Books / Mags / Music / Video': 'retail',
-  'Jewelry and Watches': 'retail',
-  'Beer / Wine Bottle Shops': 'retail',
-  'Baby / Children\'s Goods': 'retail',
-  'Sporting Goods': 'retail',
-  'Antique Shop': 'retail',
-  'Art / Photo / Film Shop': 'retail',
-  'Beauty Supplies': 'retail',
-  'Convenience Store': 'retail',
-  'Eyewear': 'retail',
-  'Flowers and Gifts': 'retail',
-  'Furniture / Home Goods': 'retail',
-  'Grocery / Market': 'retail',
-  'Hobby / Toy / Game Shop': 'retail',
-  'Pet Store': 'retail',
-  'Other Retail': 'retail',
-  'Miscellaneous Goods': 'retail',
-
-  // Beauty & Wellness (bookings)
-  'Blow Dry Bar': 'bookings',
-  'Brows / Lashes': 'bookings',
-  'Ear / Body Piercing': 'bookings',
-  'Hair Salon': 'bookings',
-  'Makeup Artistry': 'bookings',
-  'Nail Salon': 'bookings',
-  'Skin Care / Esthetics': 'bookings',
-  'Tanning Salon': 'bookings',
-  'Body Grooming': 'bookings',
-  'Day Spa': 'bookings',
-  'Barber Shop': 'bookings',
-  'Other Beauty & Personal Care': 'bookings',
-
-  // Sports & Fitness (bookings)
-  'Barre': 'bookings',
-  'Boxing Gym': 'bookings',
-  'Dance Studio': 'bookings',
-  'Fitness Studio': 'bookings',
-  'Gym / Health Club': 'bookings',
-  'Martial Arts': 'bookings',
-  'Pilates Studio': 'bookings',
-  'Swimming / Water Aerobics': 'bookings',
-  'Yoga Studio': 'bookings',
-  'Other Fitness': 'bookings',
-
-  // Healthcare (services)
-  'Audiology': 'services',
-  'Anesthesiology': 'services',
-  'Chiropractor': 'services',
-  'Cardiology': 'services',
-  'Dentistry': 'services',
-  'Emergency Medicine': 'services',
-  'Family Medicine': 'services',
-  'Nutrition / Dietetics': 'services',
-  'Obstetrics / Gynecology': 'services',
-  'Optometry / Eyewear': 'services',
-  'Pathology': 'services',
-  'Psychotherapy': 'services',
-  'Other Healthcare': 'services',
-
-  // Home & Repair (services)
-  'Automotive Services': 'services',
-  'Cleaning': 'services',
-  'Clothing / Shoe Repair / Alterations': 'services',
-  'Computer / Electronics / Appliances': 'services',
-  'Flooring': 'services',
-  'Heating and Air Conditioning': 'services',
-  'Installation Services': 'services',
-  'Locksmith Services': 'services',
-  'Moving and Storage': 'services',
-  'Plumbing': 'services',
-  'Towing Services': 'services',
-  'Other Home & Repair': 'services',
-
-  // Professional Services (services)
-  'Consulting': 'services',
-  'Software Development': 'services',
-  'Art and Design': 'services',
-  'Marketing / Advertising': 'services',
-  'Accounting': 'services',
-  'Architect': 'services',
-  'Photography': 'services',
-  'Printing Services': 'services',
-  'Real Estate': 'services',
-  'Interior Design': 'services',
-  'Child Care': 'services',
-  'Graphic Design': 'services',
-  'Car Washes': 'services',
-  'Delivery': 'services',
-  'Other Professional Services': 'services',
-
-  // Leisure & Entertainment (services)
-  'Events / Festivals': 'services',
-  'Movies / Film': 'services',
-  'Museum / Cultural': 'services',
-  'Music': 'services',
-  'Performing Arts': 'services',
-  'Sports Recreation': 'services',
-  'Tourism': 'services',
-  'Other Leisure & Entertainment': 'services',
-
-  // Charities, Education (services)
-  'Charitable Organization': 'services',
-  'Instructor / Teacher': 'bookings',
-  'Membership Organization': 'services',
-  'School': 'services',
-  'Tutor': 'bookings',
-  'Other Education & Membership': 'services',
-
-  // Pet Care (services)
-  'Pet Boarding / Daycare': 'bookings',
-  'Pet Sitting': 'bookings',
-  'Pet Store (Services)': 'services',
-  'Other Pet Care': 'services',
-
-  // Transportation (services)
-  'Bus': 'services',
-  'Delivery Service': 'services',
-  'Private Shuttle': 'services',
-  'Taxi': 'services',
-  'Town Car': 'services',
-  'Other Transportation': 'services',
-
-  // Casual
-  'Miscellaneous Services': 'services',
-  'Other': 'standard',
-};
-
-// Search aliases so common keywords match business types that don't contain them literally
-const BUSINESS_TYPE_SEARCH_ALIASES: Record<string, string[]> = {
-  'Fine Dining': ['restaurant', 'dining', 'sit down', 'dine in'],
-  'Full Service Restaurant': ['restaurant', 'dining', 'sit down', 'dine in', 'casual dining'],
-  'Club / Lounge': ['restaurant', 'nightclub', 'bar'],
-  'Bakery / Pastry Shop': ['restaurant', 'cafe', 'dessert'],
-  'Coffee / Tea Cafe': ['restaurant', 'cafe', 'shop'],
-  'Ghost / Virtual Kitchen': ['restaurant', 'delivery', 'cloud kitchen'],
-  'Caterer': ['restaurant', 'events', 'catering'],
-  'Hair Salon': ['salon', 'haircut', 'stylist'],
-  'Barber Shop': ['salon', 'haircut'],
-  'Day Spa': ['salon', 'massage', 'wellness'],
-  'Gym / Health Club': ['gym', 'fitness', 'workout'],
-  'Fitness Studio': ['gym', 'workout'],
-  'Grocery / Market': ['store', 'supermarket', 'food'],
-  'Convenience Store': ['store', 'shop', 'market'],
-};
 
 // --- Cuisine options ---
 const CUISINES = [
@@ -783,7 +617,7 @@ export class SetupWizard implements OnInit {
   // --- Step map ---
   // Business info and business type are now collected on /business-type before
   // the wizard loads. The wizard is a single confirmation/done step.
-  readonly totalSteps = computed(() => 1);
+  readonly totalSteps = computed(() => 2);
 
   // --- Wizard navigation ---
   readonly _currentStep = signal(1);
@@ -811,14 +645,21 @@ export class SetupWizard implements OnInit {
   readonly _bizState = signal('');
   readonly _bizZip = signal('');
 
-  // --- Step 2: Business Type ---
-  readonly _businessTypeSearch = signal('');
+  // --- Step 1: Mode Selection (4-card grid) ---
+  private readonly _selectedPosMode = signal<DevicePosMode | null>(null);
+  readonly selectedPosMode = this._selectedPosMode.asReadonly();
+
+  readonly MODE_CARDS = [
+    { mode: 'quick_service' as DevicePosMode, label: 'Quick Service', subtext: 'Counter, takeout, food truck', icon: 'bi-lightning-charge' },
+    { mode: 'full_service' as DevicePosMode, label: 'Full Service', subtext: 'Sit-down, table management', icon: 'bi-shop' },
+    { mode: 'bar' as DevicePosMode, label: 'Bar & Brewery', subtext: 'Tabs, drinks, nightlife', icon: 'bi-cup-straw' },
+    { mode: 'catering' as DevicePosMode, label: 'Catering', subtext: 'Events, proposals, milestone payments', icon: 'bi-truck' },
+  ];
+
+  // Legacy: kept for onboarding payload compatibility
   readonly _selectedBusinessType = signal<BusinessCategory | null>(null);
 
-  readonly filteredBusinessTypes = computed(() => {
-    const allowed = new Set(['Caterer', 'Full Service Restaurant']);
-    return BUSINESS_CATEGORIES.filter(c => allowed.has(c.name));
-  });
+  readonly isModeStep = computed(() => this._currentStep() === 1);
 
   // Derive vertical from business type selection
   readonly effectivePrimaryVertical = computed<BusinessVertical>(() => {
@@ -895,12 +736,7 @@ export class SetupWizard implements OnInit {
 
   // --- Auto-detect mode from business type ---
   readonly autoDetectedMode = computed<DevicePosMode>(() => {
-    const bt = this._selectedBusinessType();
-    if (bt) {
-      const mapped = BUSINESS_TYPE_MODE_MAP[bt.name];
-      if (mapped) return mapped;
-    }
-    return 'standard';
+    return this._selectedPosMode() ?? 'full_service';
   });
 
   readonly autoDetectedModeLabel = computed(() => {
@@ -963,6 +799,7 @@ export class SetupWizard implements OnInit {
   // --- Step validation ---
   readonly canProceed = computed(() => {
     if (this.isDoneStep()) return !this._isSubmitting();
+    if (this.isModeStep()) return this._selectedPosMode() !== null;
     return false;
   });
 
@@ -977,16 +814,15 @@ export class SetupWizard implements OnInit {
   };
 
   ngOnInit(): void {
-    // Apply pre-selected business type from /business-type screen
+    // Apply pre-selected mode from /business-type screen
     const pendingType = localStorage.getItem('pending_business_type');
     if (pendingType) {
       localStorage.removeItem('pending_business_type');
-      if (pendingType === 'catering') {
-        const caterer = BUSINESS_CATEGORIES.find(c => c.name === 'Caterer');
-        if (caterer) this._selectedBusinessType.set(caterer);
-      } else if (pendingType === 'full_service') {
-        const casual = BUSINESS_CATEGORIES.find(c => c.name === 'Full Service Restaurant');
-        if (casual) this._selectedBusinessType.set(casual);
+      const validModes: DevicePosMode[] = ['quick_service', 'full_service', 'bar', 'catering'];
+      if (validModes.includes(pendingType as DevicePosMode)) {
+        this._selectedPosMode.set(pendingType as DevicePosMode);
+        // Skip mode selection step since it was already chosen
+        this._currentStep.set(2);
       }
     }
 
@@ -1031,14 +867,24 @@ export class SetupWizard implements OnInit {
     this._bizNoPhysical.update(v => !v);
   }
 
-  // --- Step 2: Business Type selection ---
+  // --- Step 1: Mode Selection ---
 
-  selectBusinessType(type: BusinessCategory): void {
-    this._selectedBusinessType.set(type);
-  }
-
-  getVerticalLabel(vertical: BusinessVertical): string {
-    return BUSINESS_VERTICAL_CATALOG.find(c => c.vertical === vertical)?.label ?? vertical;
+  selectMode(mode: DevicePosMode): void {
+    this._selectedPosMode.set(mode);
+    // Map mode to a business category for the onboarding payload
+    const categoryMap: Partial<Record<DevicePosMode, string>> = {
+      quick_service: 'Fast Food Restaurant',
+      full_service: 'Full Service Restaurant',
+      bar: 'Bar',
+      catering: 'Caterer',
+    };
+    const catName = categoryMap[mode];
+    if (catName) {
+      const cat = BUSINESS_CATEGORIES.find(c => c.name === catName);
+      if (cat) this._selectedBusinessType.set(cat);
+    }
+    // Advance to next step
+    this.next();
   }
 
   // --- Cuisine ---

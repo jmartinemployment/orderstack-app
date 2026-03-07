@@ -1,6 +1,7 @@
 import '../../../test-setup';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { HttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { signal, computed } from '@angular/core';
 import { of } from 'rxjs';
@@ -29,6 +30,7 @@ describe('MenuManagement', () => {
     TestBed.configureTestingModule({
       imports: [MenuManagement],
       providers: [
+        provideRouter([]),
         { provide: AuthService, useValue: createMockAuthService() },
         { provide: HttpClient, useValue: { get: vi.fn().mockReturnValue(of([])), post: vi.fn().mockReturnValue(of({})), put: vi.fn().mockReturnValue(of({})), delete: vi.fn().mockReturnValue(of({})) } },
       ],

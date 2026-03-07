@@ -298,6 +298,8 @@ export class FloorPlan implements OnInit {
 
   toggleStatusMenu(tableId: string, event: Event): void {
     event.stopPropagation();
+    const table = this.tables().find(t => t.id === tableId);
+    if (table?.status === 'closing') return;
     this._showStatusMenu.set(
       this._showStatusMenu() === tableId ? null : tableId
     );
@@ -413,6 +415,7 @@ export class FloorPlan implements OnInit {
       case 'reserved': return 'status-reserved';
       case 'dirty': return 'status-dirty';
       case 'maintenance': return 'status-maintenance';
+      case 'closing': return 'status-closing';
       default: return 'status-available';
     }
   }
@@ -424,6 +427,7 @@ export class FloorPlan implements OnInit {
       case 'reserved': return 'bg-warning text-dark';
       case 'dirty': return 'bg-secondary';
       case 'maintenance': return 'bg-info';
+      case 'closing': return 'bg-closing';
       default: return 'bg-secondary';
     }
   }

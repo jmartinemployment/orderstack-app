@@ -1,3 +1,13 @@
+@if (isTableClosing()) {
+  <div class="kiosk-closing-screen">
+    <div class="closing-card">
+      <i class="bi bi-receipt-cutoff closing-icon"></i>
+      <h2>This table's check has been presented.</h2>
+      <p>Please see your server.</p>
+      <button type="button" class="btn btn-outline-light btn-lg mt-3" (click)="goBack()">Go Back</button>
+    </div>
+  </div>
+} @else {
 <div class="kiosk-terminal">
   <!-- ==================== LEFT: Item Grid Area ==================== -->
   <main class="kiosk-main">
@@ -115,3 +125,4 @@
 
 <!-- ==================== CHECKOUT OVERLAY ==================== -->
 <os-checkout [mode]="'charge'" [orderSource]="'kiosk'" />
+}

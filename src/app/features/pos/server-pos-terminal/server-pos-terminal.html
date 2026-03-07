@@ -196,6 +196,23 @@
         </div>
       }
 
+      @if (canPresentCheck()) {
+        <button
+          type="button"
+          class="present-check-btn"
+          (click)="presentCheck()">
+          <i class="bi bi-receipt-cutoff me-1"></i> Present Check
+        </button>
+      }
+      @if (checkPresented() || isTableClosing()) {
+        <button
+          type="button"
+          class="present-check-btn present-check-done"
+          disabled>
+          <i class="bi bi-check-lg me-1"></i> Check Presented
+        </button>
+      }
+
       <button
         type="button"
         class="charge-btn"

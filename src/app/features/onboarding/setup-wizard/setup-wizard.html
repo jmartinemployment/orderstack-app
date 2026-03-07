@@ -5,6 +5,30 @@
   </div>
 
   <div class="wizard-body">
+    <!-- ============ STEP 1: Mode Selection ============ -->
+    @if (isModeStep()) {
+      <div class="step-content">
+        <h2>What type of business do you run?</h2>
+        <p class="step-subtitle">Select the option that best describes your operation.</p>
+
+        <div class="mode-card-grid">
+          @for (card of MODE_CARDS; track card.mode) {
+            <button
+              type="button"
+              class="mode-card"
+              [class.selected]="selectedPosMode() === card.mode"
+              (click)="selectMode(card.mode)">
+              <div class="mode-card-icon">
+                <i class="bi" [class]="card.icon"></i>
+              </div>
+              <div class="mode-card-label">{{ card.label }}</div>
+              <div class="mode-card-subtext">{{ card.subtext }}</div>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
     <!-- ============ DONE STEP: You're All Set ============ -->
     @if (isDoneStep()) {
       <div class="step-content welcome-screen">

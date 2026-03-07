@@ -8,6 +8,7 @@ import {
   effect,
 } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { MenuService } from '@services/menu';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { TableService } from '@services/table';
@@ -31,6 +32,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class KioskTerminal implements OnInit {
+  private readonly router = inject(Router);
   private readonly menuService = inject(MenuService);
   private readonly settingsService = inject(RestaurantSettingsService);
   private readonly tableService = inject(TableService);
@@ -46,6 +48,11 @@ export class KioskTerminal implements OnInit {
   // Loading
   readonly isLoading = this.menuService.isLoading;
   readonly menuError = this.menuService.error;
+
+  // Table closing check — blocks ordering when check has been presented
+  readonly isTableClosing = computed(() =>
+    this.checkout.selectedTable()?.status === 'closing'
+  );
 
   // Helper for weight unit labels in template
   readonly weightUnitLabels = WEIGHT_UNIT_LABELS;
@@ -112,5 +119,10 @@ export class KioskTerminal implements OnInit {
 
   formatPrice(price: number | string): number {
     return typeof price === 'string' ? Number.parseFloat(price) : price;
+  }
+
+  goBack(): void {
+    this.checkout.clearCart();
+    void this.router.navigate(['/kiosk']);
   }
 }

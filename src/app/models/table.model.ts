@@ -1,4 +1,4 @@
-export type TableStatus = 'available' | 'occupied' | 'reserved' | 'dirty' | 'maintenance';
+export type TableStatus = 'available' | 'occupied' | 'reserved' | 'dirty' | 'maintenance' | 'closing';
 
 export interface RestaurantTable {
   id: string;

@@ -10,6 +10,7 @@ import {
   CateringDeferredRevenueEntry,
   CateringPerformanceReport,
   CateringPrepList,
+  CateringPackageTemplate,
   CATERING_STATUS_TRANSITIONS,
 } from '../models';
 import { AuthService } from './auth';
@@ -39,10 +40,12 @@ export class CateringService {
 
   private readonly _jobs = signal<CateringJob[]>([]);
   private readonly _capacitySettings = signal<CateringCapacitySettings | null>(null);
+  private readonly _packageTemplates = signal<CateringPackageTemplate[]>([]);
   readonly isLoading = signal(false);
 
   readonly jobs = this._jobs.asReadonly();
   readonly capacitySettings = this._capacitySettings.asReadonly();
+  readonly packageTemplates = this._packageTemplates.asReadonly();
 
   // Backward compat alias
   readonly events = this._jobs.asReadonly();
@@ -518,6 +521,83 @@ export class CateringService {
       return true;
     } catch {
       return false;
+    }
+  }
+
+  // --- Package Templates ---
+
+  async loadPackageTemplates(): Promise<void> {
+    const id = this.merchantId;
+    if (!id) return;
+
+    try {
+      const templates = await firstValueFrom(
+        this.http.get<CateringPackageTemplate[]>(
+          `${this.apiUrl}/merchant/${id}/catering/packages`
+        )
+      );
+      this._packageTemplates.set(templates);
+    } catch {
+      this._packageTemplates.set([]);
+    }
+  }
+
+  async createPackageTemplate(
+    data: Omit<CateringPackageTemplate, 'id' | 'merchantId' | 'isActive' | 'createdAt' | 'updatedAt'>
+  ): Promise<CateringPackageTemplate | null> {
+    const id = this.merchantId;
+    if (!id) return null;
+
+    try {
+      const template = await firstValueFrom(
+        this.http.post<CateringPackageTemplate>(
+          `${this.apiUrl}/merchant/${id}/catering/packages`,
+          data
+        )
+      );
+      this._packageTemplates.update(list => [template, ...list]);
+      return template;
+    } catch {
+      return null;
+    }
+  }
+
+  async updatePackageTemplate(
+    templateId: string,
+    data: Partial<CateringPackageTemplate>
+  ): Promise<CateringPackageTemplate | null> {
+    const id = this.merchantId;
+    if (!id) return null;
+
+    try {
+      const updated = await firstValueFrom(
+        this.http.patch<CateringPackageTemplate>(
+          `${this.apiUrl}/merchant/${id}/catering/packages/${templateId}`,
+          data
+        )
+      );
+      this._packageTemplates.update(list =>
+        list.map(t => t.id === templateId ? updated : t)
+      );
+      return updated;
+    } catch {
+      return null;
+    }
+  }
+
+  async deletePackageTemplate(templateId: string): Promise<void> {
+    const id = this.merchantId;
+    if (!id) return;
+
+    try {
+      await firstValueFrom(
+        this.http.delete(
+          `${this.apiUrl}/merchant/${id}/catering/packages/${templateId}`
+        )
+      );
+      this._packageTemplates.update(list => list.filter(t => t.id !== templateId));
+    } catch {
+      // silently fail
     }
   }
 }

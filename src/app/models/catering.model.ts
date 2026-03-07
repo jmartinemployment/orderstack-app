@@ -137,6 +137,21 @@ export interface CateringPackageItemTier {
   label?: string;
 }
 
+export interface CateringPackageTemplate {
+  id: string;
+  merchantId: string;
+  name: string;
+  tier: 'standard' | 'premium' | 'custom';
+  pricingModel: 'per_person' | 'per_tray' | 'flat';
+  pricePerUnitCents: number;
+  minimumHeadcount: number;
+  description?: string;
+  menuItemIds: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CateringMilestonePayment {
   id: string;
   jobId: string;

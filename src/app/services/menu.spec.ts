@@ -1,6 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import '../../test-setup';
+import { TestBed } from '@angular/core/testing';
+import { HttpClient } from '@angular/common/http';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { signal, computed } from '@angular/core';
+import { Subject, of, throwError } from 'rxjs';
 import type { MenuCategory, MenuItem, Daypart } from '@models/menu.model';
 import { isItemAvailable, isDaypartActive } from '@models/menu.model';
+import { MenuService } from '@services/menu';
+import { AuthService } from '@services/auth';
 
 // --- Fixtures ---
 
@@ -395,5 +402,261 @@ describe('MenuService — cateringItems', () => {
   it('handles undefined cateringPricing gracefully', () => {
     const items = [makeItem({ cateringPricing: undefined })];
     expect(filterCateringItems(items)).toHaveLength(0);
+  });
+});
+
+// ─── BUG-12: CRUD methods bypass _isLoading guard via _fetchMenu() ───────────
+//
+// Root cause: createCategory/updateCategory/deleteCategory set _isLoading=true,
+// then called loadMenu() which has an early-exit guard: if (_isLoading()) return.
+// Because the guard fired, _fetchMenu() never ran, and the categories signal
+// was never updated — the list stayed stale after every CRUD operation.
+//
+// Fix: Extract private _fetchMenu() with no guard. CRUD methods call _fetchMenu()
+// directly. loadMenu() retains the guard to prevent duplicate concurrent loads
+// from component ngOnInit calls.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function createMockAuthService() {
+  const _token = signal('tok');
+  const _user = signal({ firstName: 'Jeff' });
+  return {
+    isAuthenticated: computed(() => !!_token() && !!_user()),
+    user: _user.asReadonly(),
+    selectedMerchantId: signal<string | null>('r-1').asReadonly(),
+    selectedMerchantName: signal<string | null>('Test').asReadonly(),
+    merchants: signal([{ id: 'r-1' }]).asReadonly(),
+    userMerchants: computed(() => ['r-1']),
+    selectMerchant: vi.fn(),
+  };
+}
+
+describe('MenuService — BUG-12: _fetchMenu() bypass preserves categories after CRUD', () => {
+  let service: MenuService;
+  let httpMock: {
+    get: ReturnType<typeof vi.fn>;
+    post: ReturnType<typeof vi.fn>;
+    patch: ReturnType<typeof vi.fn>;
+    delete: ReturnType<typeof vi.fn>;
+  };
+
+  const CAT_1: MenuCategory = { id: 'cat-1', name: 'Appetizers', merchantId: 'r-1', isActive: true, displayOrder: 0 };
+  const CAT_NEW: MenuCategory = { id: 'cat-new', name: 'Desserts', merchantId: 'r-1', isActive: true, displayOrder: 1 };
+  const CAT_1_RENAMED: MenuCategory = { ...CAT_1, name: 'Starters' };
+
+  beforeEach(() => {
+    httpMock = {
+      get: vi.fn(),
+      post: vi.fn(),
+      patch: vi.fn(),
+      delete: vi.fn(),
+    };
+
+    TestBed.configureTestingModule({
+      providers: [
+        MenuService,
+        { provide: AuthService, useValue: createMockAuthService() },
+        { provide: HttpClient, useValue: httpMock },
+      ],
+    });
+
+    service = TestBed.inject(MenuService);
+  });
+
+  // ── Guard tests ───────────────────────────────────────────────────────────
+
+  it('loadMenuForRestaurant() returns early when _isLoading is already true', async () => {
+    // First call uses a Subject that never emits — holds _isLoading=true indefinitely
+    const slowSubject = new Subject<MenuCategory[]>();
+    httpMock.get
+      .mockReturnValueOnce(slowSubject.asObservable())
+      .mockReturnValue(of([CAT_1]));
+
+    // Start first load without awaiting (isLoading becomes true)
+    const p1 = service.loadMenuForRestaurant('r-1');
+
+    // Second call should hit the guard and return immediately
+    await service.loadMenuForRestaurant('r-1');
+
+    // Only one HTTP call was made — second call was guarded out
+    expect(httpMock.get).toHaveBeenCalledTimes(1);
+
+    // Complete the first load
+    slowSubject.next([CAT_1]);
+    slowSubject.complete();
+    await p1;
+  });
+
+  it('loadMenuForRestaurant() with null merchantId sets error, makes no HTTP call', async () => {
+    await service.loadMenuForRestaurant(null);
+    expect(httpMock.get).not.toHaveBeenCalled();
+    expect(service.error()).toBe('No restaurant selected');
+  });
+
+  // ── createCategory ────────────────────────────────────────────────────────
+
+  it('createCategory() refreshes categories signal even though _isLoading was set true', async () => {
+    // Seed initial state: one category
+    httpMock.get.mockReturnValueOnce(of([CAT_1]));
+    await service.loadMenuForRestaurant('r-1');
+    expect(service.categories()).toHaveLength(1);
+
+    // CRUD: POST creates new category, then GET returns both
+    httpMock.post.mockReturnValueOnce(of(CAT_NEW));
+    httpMock.get.mockReturnValueOnce(of([CAT_1, CAT_NEW]));
+
+    const result = await service.createCategory({ name: 'Desserts' });
+
+    expect(result?.name).toBe('Desserts');
+    // _fetchMenu() was called (bypassing _isLoading guard): categories updated
+    expect(service.categories()).toHaveLength(2);
+    expect(service.categories()[1].name).toBe('Desserts');
+  });
+
+  it('createCategory() calls GET endpoint twice: once on initial load, once after CRUD', async () => {
+    httpMock.get.mockReturnValue(of([CAT_1]));
+    await service.loadMenuForRestaurant('r-1');
+
+    httpMock.post.mockReturnValueOnce(of(CAT_NEW));
+    httpMock.get.mockReturnValueOnce(of([CAT_1, CAT_NEW]));
+
+    await service.createCategory({ name: 'Desserts' });
+
+    // get() called: 1 (initial load) + 1 (_fetchMenu after CRUD) = 2
+    expect(httpMock.get).toHaveBeenCalledTimes(2);
+  });
+
+  it('createCategory() returns null and sets error on HTTP failure', async () => {
+    httpMock.get.mockReturnValue(of([]));
+    await service.loadMenuForRestaurant('r-1');
+
+    httpMock.post.mockReturnValue(throwError(() => new Error('Network error')));
+
+    const result = await service.createCategory({ name: 'Desserts' });
+
+    expect(result).toBeNull();
+    expect(service.error()).toBe('Network error');
+  });
+
+  // ── updateCategory ────────────────────────────────────────────────────────
+
+  it('updateCategory() refreshes categories signal with renamed value', async () => {
+    httpMock.get.mockReturnValueOnce(of([CAT_1]));
+    await service.loadMenuForRestaurant('r-1');
+    expect(service.categories()[0].name).toBe('Appetizers');
+
+    httpMock.patch.mockReturnValueOnce(of({}));
+    httpMock.get.mockReturnValueOnce(of([CAT_1_RENAMED]));
+
+    const ok = await service.updateCategory('cat-1', { name: 'Starters' });
+
+    expect(ok).toBe(true);
+    expect(service.categories()[0].name).toBe('Starters');
+  });
+
+  it('updateCategory() calls GET endpoint for refresh after PATCH', async () => {
+    httpMock.get.mockReturnValueOnce(of([CAT_1]));
+    await service.loadMenuForRestaurant('r-1');
+
+    httpMock.patch.mockReturnValueOnce(of({}));
+    httpMock.get.mockReturnValueOnce(of([CAT_1_RENAMED]));
+
+    await service.updateCategory('cat-1', { name: 'Starters' });
+
+    expect(httpMock.patch).toHaveBeenCalledTimes(1);
+    // 1 initial load + 1 _fetchMenu after CRUD
+    expect(httpMock.get).toHaveBeenCalledTimes(2);
+  });
+
+  it('updateCategory() returns false and sets error on HTTP failure', async () => {
+    httpMock.get.mockReturnValue(of([]));
+    await service.loadMenuForRestaurant('r-1');
+
+    httpMock.patch.mockReturnValue(throwError(() => new Error('Server error')));
+
+    const ok = await service.updateCategory('cat-1', { name: 'Starters' });
+
+    expect(ok).toBe(false);
+    expect(service.error()).toBe('Server error');
+  });
+
+  // ── deleteCategory ────────────────────────────────────────────────────────
+
+  it('deleteCategory() removes category from signal after DELETE + refresh', async () => {
+    httpMock.get.mockReturnValueOnce(of([CAT_1, CAT_NEW]));
+    await service.loadMenuForRestaurant('r-1');
+    expect(service.categories()).toHaveLength(2);
+
+    httpMock.delete.mockReturnValueOnce(of(undefined));
+    httpMock.get.mockReturnValueOnce(of([CAT_1]));
+
+    const ok = await service.deleteCategory('cat-new');
+
+    expect(ok).toBe(true);
+    expect(service.categories()).toHaveLength(1);
+    expect(service.categories()[0].id).toBe('cat-1');
+  });
+
+  it('deleteCategory() calls GET endpoint for refresh after DELETE', async () => {
+    httpMock.get.mockReturnValueOnce(of([CAT_1]));
+    await service.loadMenuForRestaurant('r-1');
+
+    httpMock.delete.mockReturnValueOnce(of(undefined));
+    httpMock.get.mockReturnValueOnce(of([]));
+
+    await service.deleteCategory('cat-1');
+
+    expect(httpMock.delete).toHaveBeenCalledTimes(1);
+    expect(httpMock.get).toHaveBeenCalledTimes(2);
+  });
+
+  it('deleteCategory() returns false and sets error on HTTP failure', async () => {
+    httpMock.get.mockReturnValue(of([]));
+    await service.loadMenuForRestaurant('r-1');
+
+    httpMock.delete.mockReturnValue(throwError(() => new Error('Delete failed')));
+
+    const ok = await service.deleteCategory('cat-1');
+
+    expect(ok).toBe(false);
+    expect(service.error()).toBe('Delete failed');
+  });
+
+  // ── isLoading resets ──────────────────────────────────────────────────────
+
+  it('isLoading resets to false after createCategory resolves', async () => {
+    httpMock.get.mockReturnValue(of([]));
+    await service.loadMenuForRestaurant('r-1');
+
+    httpMock.post.mockReturnValueOnce(of(CAT_NEW));
+    httpMock.get.mockReturnValueOnce(of([CAT_NEW]));
+
+    await service.createCategory({ name: 'Desserts' });
+
+    expect(service.isLoading()).toBe(false);
+  });
+
+  it('isLoading resets to false after updateCategory resolves', async () => {
+    httpMock.get.mockReturnValue(of([CAT_1]));
+    await service.loadMenuForRestaurant('r-1');
+
+    httpMock.patch.mockReturnValueOnce(of({}));
+    httpMock.get.mockReturnValueOnce(of([CAT_1_RENAMED]));
+
+    await service.updateCategory('cat-1', { name: 'Starters' });
+
+    expect(service.isLoading()).toBe(false);
+  });
+
+  it('isLoading resets to false after deleteCategory resolves', async () => {
+    httpMock.get.mockReturnValue(of([CAT_1]));
+    await service.loadMenuForRestaurant('r-1');
+
+    httpMock.delete.mockReturnValueOnce(of(undefined));
+    httpMock.get.mockReturnValueOnce(of([]));
+
+    await service.deleteCategory('cat-1');
+
+    expect(service.isLoading()).toBe(false);
   });
 });

@@ -30,6 +30,7 @@ export class StaffManagementService {
   private readonly _devices = signal<DeviceRegistration[]>([]);
   private readonly _isLoading = signal(false);
   private readonly _error = signal<string | null>(null);
+  private readonly _teamMembersLoaded = signal(false);
 
   readonly pins = this._pins.asReadonly();
   readonly teamMembers = this._teamMembers.asReadonly();
@@ -37,6 +38,7 @@ export class StaffManagementService {
   readonly devices = this._devices.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
+  readonly teamMembersLoaded = this._teamMembersLoaded.asReadonly();
 
   readonly canManagePins = computed(() => {
     const user = this.authService.user();
@@ -146,6 +148,7 @@ export class StaffManagementService {
       }
     } finally {
       this._isLoading.set(false);
+      this._teamMembersLoaded.set(true);
     }
   }
 

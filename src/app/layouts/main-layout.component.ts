@@ -28,6 +28,7 @@ export class MainLayoutComponent {
   private readonly tableService = inject(TableService);
   private readonly orderService = inject(OrderService);
   private readonly cateringService = inject(CateringService);
+  private readonly isQuickServiceMode = this.platform.isQuickServiceMode;
 
   readonly sidebarCollapsed = signal(false);
   readonly mobileMenuOpen = signal(false);
@@ -68,9 +69,10 @@ export class MainLayoutComponent {
       alerts['/app/retail/pos'] = 'info';
     }
 
-    // Staff — no team members is a warning
+    // Staff — only warn after loadTeamMembers() has completed; avoids false-active
+    // orange background on every page while the service hasn't been loaded yet
     const team = this.staffService.teamMembers();
-    if (team.length === 0) {
+    if (this.staffService.teamMembersLoaded() && team.length === 0) {
       alerts['/app/staff'] = 'warning';
     }
 
@@ -85,6 +87,14 @@ export class MainLayoutComponent {
     const tables = this.tableService.tables();
     if (tables.length === 0) {
       alerts['/app/floor-plan'] = 'warning';
+    }
+
+    // KDS — pending ticket count
+    const kdsTickets = this.orderService.pendingOrders().length;
+    if (kdsTickets > 5) {
+      alerts['/app/kds'] = 'critical';
+    } else if (kdsTickets > 0) {
+      alerts['/app/kds'] = 'warning';
     }
 
     return alerts;
@@ -102,7 +112,9 @@ export class MainLayoutComponent {
 
     const items: NavItem[] = catering
       ? this.buildCateringNav()
-      : this.buildDefaultNav(retail, service, restaurant, mode, flags, modules);
+      : this.isQuickServiceMode()
+        ? this.buildQuickServiceNav(flags, modules)
+        : this.buildDefaultNav(retail, service, restaurant, mode, flags, modules);
 
     // Apply alert severities from service signals
     for (const item of items) {
@@ -113,38 +125,207 @@ export class MainLayoutComponent {
   });
 
   private buildCateringNav(): NavItem[] {
-    const pendingCount = this.cateringService.pendingJobsCount();
-    const milestoneDue = this.cateringService.milestonesComingDue();
+    const pendingJobs = this.cateringService.pendingJobsCount();
+    const pendingProps = this.cateringService.proposalsAwaitingApproval();
+    const dueMilestones = this.cateringService.milestonesComingDue();
 
     return [
-      { label: 'Administration', icon: 'bi-speedometer2', route: '/app/administration' },
+      // Pipeline
       {
-        label: 'Jobs & Calendar',
-        icon: 'bi-kanban',
-        route: '/app/catering',
-        badge: pendingCount > 0 ? pendingCount : undefined,
+        label: 'Dashboard',
+        icon: 'bi-speedometer2',
+        route: '/app/administration',
+        exact: true,
       },
+      {
+        label: 'Jobs',
+        icon: 'bi-briefcase',
+        route: '/app/catering',
+        badge: pendingJobs > 0 ? pendingJobs : undefined,
+        children: [
+          { label: 'Leads',       icon: 'bi-funnel',       route: '/app/catering', queryParams: { status: 'inquiry' } },
+          { label: 'Active Jobs', icon: 'bi-play-circle',  route: '/app/catering', queryParams: { status: 'active' } },
+          { label: 'Completed',   icon: 'bi-check-circle', route: '/app/catering', queryParams: { status: 'completed' } },
+          { label: 'All Jobs',    icon: 'bi-list-ul',      route: '/app/catering', queryParams: { status: 'all' } },
+        ],
+      },
+      {
+        label: 'Calendar',
+        icon: 'bi-calendar-event',
+        route: '/app/catering/calendar',
+      },
+      {
+        label: 'Proposals',
+        icon: 'bi-file-earmark-text',
+        route: '/app/catering/proposals',
+        badge: pendingProps > 0 ? pendingProps : undefined,
+      },
+
+      // Billing
       {
         label: 'Invoices',
-        icon: 'bi-file-earmark-text',
+        icon: 'bi-receipt',
         route: '/app/invoicing',
-        badge: milestoneDue > 0 ? milestoneDue : undefined,
+        badge: dueMilestones > 0 ? dueMilestones : undefined,
+        dividerBefore: true,
+        children: [
+          { label: 'All Invoices', icon: 'bi-collection',         route: '/app/invoicing' },
+          { label: 'Outstanding',  icon: 'bi-exclamation-circle', route: '/app/invoicing', queryParams: { status: 'outstanding' } },
+          { label: 'Milestones',   icon: 'bi-bar-chart-steps',    route: '/app/invoicing/milestones' },
+        ],
       },
-      { label: 'Prep Lists', icon: 'bi-list-check', route: '/app/catering/prep-list' },
-      { label: 'Catering Menu', icon: 'bi-book', route: '/app/menu' },
-      { label: 'Clients', icon: 'bi-people', route: '/app/customers' },
-      { label: 'Reports', icon: 'bi-bar-chart-line', route: '/app/catering/reports' },
+
+      // Operations
+      {
+        label: 'Clients',
+        icon: 'bi-person-lines-fill',
+        route: '/app/customers',
+        dividerBefore: true,
+      },
+      {
+        label: 'Menu',
+        icon: 'bi-book',
+        route: '/app/menu',
+        children: [
+          { label: 'Items',    icon: 'bi-box',    route: '/app/menu', queryParams: { type: 'catering' } },
+          { label: 'Packages', icon: 'bi-layers', route: '/app/menu/packages' },
+        ],
+      },
+      {
+        label: 'Delivery',
+        icon: 'bi-truck',
+        route: '/app/catering/delivery',
+      },
+
+      // Business
+      {
+        label: 'Reports',
+        icon: 'bi-bar-chart-line',
+        route: '/app/reports',
+        dividerBefore: true,
+        children: [
+          { label: 'Revenue',         icon: 'bi-currency-dollar', route: '/app/reports/revenue' },
+          { label: 'Deferred',        icon: 'bi-clock-history',   route: '/app/reports/deferred' },
+          { label: 'Job Performance', icon: 'bi-bar-chart',       route: '/app/reports/catering' },
+        ],
+      },
       {
         label: 'Staff',
         icon: 'bi-person-badge',
         route: '/app/staff',
         children: [
+          { label: 'Team',       icon: 'bi-people',        route: '/app/staff' },
           { label: 'Scheduling', icon: 'bi-calendar-week', route: '/app/staff/scheduling' },
         ],
       },
-      { label: 'Marketing', icon: 'bi-megaphone', route: '/app/marketing' },
-      { label: 'Settings', icon: 'bi-gear', route: '/app/settings' },
+      {
+        label: 'Marketing',
+        icon: 'bi-megaphone',
+        route: '/app/marketing',
+      },
+
+      // Config
+      {
+        label: 'Settings',
+        icon: 'bi-gear',
+        route: '/app/settings',
+        dividerBefore: true,
+        children: [
+          { label: 'Business Info',    icon: 'bi-building',    route: '/app/settings/business' },
+          { label: 'Invoice Branding', icon: 'bi-palette',     route: '/app/settings/branding' },
+          { label: 'Payment Setup',    icon: 'bi-credit-card', route: '/app/settings/payments' },
+          { label: 'Notifications',    icon: 'bi-bell',        route: '/app/settings/notifications' },
+        ],
+      },
     ];
+  }
+
+  private buildQuickServiceNav(flags: ModeFeatureFlags, modules: readonly string[]): NavItem[] {
+    const activeOrderCount = this.orderService.activeOrderCount();
+    const kdsCount = this.orderService.pendingOrders().length;
+
+    const items: NavItem[] = [
+      // Operations
+      { label: 'Administration', icon: 'bi-speedometer2', route: '/app/administration', exact: true },
+      {
+        label: 'Orders', icon: 'bi-receipt', route: '/app/orders',
+        badge: activeOrderCount > 0 ? activeOrderCount : undefined,
+        children: [
+          { label: 'Open', icon: 'bi-circle', route: '/app/orders', queryParams: { status: 'open' } },
+          { label: 'In Progress', icon: 'bi-arrow-repeat', route: '/app/orders', queryParams: { status: 'in_progress' } },
+          { label: 'Ready', icon: 'bi-check-circle', route: '/app/orders', queryParams: { status: 'ready' } },
+          { label: 'Order History', icon: 'bi-clock-history', route: '/app/orders/history' },
+        ],
+      },
+      { label: 'POS', icon: 'bi-tv', route: '/quick-service' },
+    ];
+
+    if (flags['enableKds']) {
+      items.push({
+        label: 'Kitchen (KDS)', icon: 'bi-display', route: '/app/kds',
+        badge: kdsCount > 0 ? kdsCount : undefined,
+      });
+    }
+
+    if (hasModule(modules, 'online_ordering')) {
+      items.push({ label: 'Online Orders', icon: 'bi-globe', route: '/app/online-ordering' });
+    }
+
+    // Menu & Promotions
+    items.push({
+      label: 'Items', icon: 'bi-book', route: '/app/menu', dividerBefore: true,
+      children: [
+        { label: 'Categories', icon: 'bi-grid', route: '/app/menu/categories' },
+        { label: 'Modifiers', icon: 'bi-sliders', route: '/app/menu/modifiers' },
+        { label: 'Combos', icon: 'bi-layers', route: '/app/menu/combos' },
+      ],
+    });
+    items.push({ label: 'Discounts', icon: 'bi-tag', route: '/app/discounts' });
+    items.push({ label: 'Gift Cards', icon: 'bi-gift', route: '/app/gift-cards' });
+
+    // Guests
+    items.push({ label: 'Customers', icon: 'bi-people', route: '/app/customers', dividerBefore: true });
+    if (hasModule(modules, 'loyalty')) {
+      items.push({ label: 'Loyalty', icon: 'bi-star', route: '/app/loyalty' });
+    }
+
+    // Business
+    items.push({
+      label: 'Reports', icon: 'bi-bar-chart-line', route: '/app/reports', dividerBefore: true,
+      children: [
+        { label: 'Sales Summary', icon: 'bi-graph-up', route: '/app/reports/sales' },
+        { label: 'Hourly Sales', icon: 'bi-clock', route: '/app/reports/hourly' },
+        { label: 'Item Velocity', icon: 'bi-speedometer', route: '/app/reports/items' },
+        { label: 'Labor Cost', icon: 'bi-person-workspace', route: '/app/reports/labor' },
+      ],
+    });
+    items.push({
+      label: 'Staff', icon: 'bi-person-badge', route: '/app/staff',
+      children: [
+        { label: 'Team', icon: 'bi-people', route: '/app/staff' },
+        { label: 'Scheduling', icon: 'bi-calendar-week', route: '/app/staff/scheduling' },
+        { label: 'Time Clock', icon: 'bi-stopwatch', route: '/app/staff/time-clock' },
+      ],
+    });
+    if (hasModule(modules, 'inventory')) {
+      items.push({ label: 'Inventory', icon: 'bi-box-seam', route: '/app/inventory' });
+      items.push({ label: 'Suppliers', icon: 'bi-truck', route: '/app/suppliers' });
+    }
+    items.push({ label: 'Marketing', icon: 'bi-megaphone', route: '/app/marketing' });
+
+    // Config
+    items.push({
+      label: 'Settings', icon: 'bi-gear', route: '/app/settings', dividerBefore: true,
+      children: [
+        { label: 'Hardware', icon: 'bi-printer', route: '/app/settings/hardware' },
+        { label: 'Payments', icon: 'bi-credit-card', route: '/app/settings/payments' },
+        { label: 'Tax & Fees', icon: 'bi-percent', route: '/app/settings/tax' },
+        { label: 'Notifications', icon: 'bi-bell', route: '/app/settings/notifications' },
+        { label: 'Integrations', icon: 'bi-plug', route: '/app/settings/integrations' },
+      ],
+    });
+
+    return items;
   }
 
   private buildDefaultNav(

@@ -15,10 +15,14 @@
 
   <nav class="sidebar-nav">
     @for (item of navItems(); track (item.key ?? item.route)) {
+      @if (item.dividerBefore && !collapsed()) {
+        <hr class="nav-divider">
+      }
       <a class="nav-item"
          [routerLink]="item.route"
+         [queryParams]="item.queryParams ?? null"
          routerLinkActive="active"
-         [routerLinkActiveOptions]="item.children ? { exact: true } : { exact: false }"
+         [routerLinkActiveOptions]="item.exact ? { exact: true } : item.children ? { exact: true } : { exact: false }"
          [class.nav-alert-critical]="item.alertSeverity === 'critical'"
          [class.nav-alert-warning]="item.alertSeverity === 'warning'"
          [class.nav-alert-info]="item.alertSeverity === 'info'"
@@ -33,14 +37,19 @@
         }
       </a>
       @if (item.children && !collapsed()) {
-        @for (child of item.children; track child.route) {
+        @for (child of item.children; track child.label) {
           <a class="nav-item nav-child"
              [routerLink]="child.route"
+             [queryParams]="child.queryParams ?? null"
              routerLinkActive="active"
+             [routerLinkActiveOptions]="child.queryParams ? { exact: true } : { exact: false }"
              (click)="closeMobile.emit()"
              [title]="collapsed() ? child.label : ''">
             <i class="bi {{ child.icon }}"></i>
             <span class="nav-label">{{ child.label }}</span>
+            @if (child.badge) {
+              <span class="nav-badge">{{ child.badge }}</span>
+            }
           </a>
         }
       }

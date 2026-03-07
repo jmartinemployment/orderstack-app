@@ -309,8 +309,12 @@ export const routes: Routes = [
       { path: 'catering/job/:id/beo', loadComponent: () => import('./features/catering/catering-beo/catering-beo.component').then(m => m.CateringBeoComponent) },
       { path: 'catering/reports', loadComponent: () => import('./features/catering/catering-reports/catering-reports.component').then(m => m.CateringReportsComponent) },
       { path: 'catering/prep-list', loadComponent: () => import('./features/catering/catering-prep-list/catering-prep-list.component').then(m => m.CateringPrepListComponent) },
+      { path: 'catering/calendar', loadComponent: () => import('./features/catering/catering-calendar/catering-calendar.component').then(m => m.CateringCalendarComponent) },
+      { path: 'catering/proposals', loadComponent: () => import('./features/catering/catering-proposals/catering-proposals.component').then(m => m.CateringProposalsComponent) },
+      { path: 'catering/delivery', loadComponent: () => import('./features/catering/catering-delivery/catering-delivery.component').then(m => m.CateringDeliveryComponent) },
 
       // Menu
+      { path: 'menu/packages', loadComponent: () => import('./features/catering/catering-packages/catering-packages.component').then(m => m.CateringPackagesComponent) },
       { path: 'menu', loadComponent: () => import('./features/menu-mgmt/menu-management').then(m => m.MenuManagement) },
       { path: 'combos', loadComponent: () => import('./features/menu-mgmt/combo-management/combo-management').then(m => m.ComboManagement) },
 
@@ -324,6 +328,9 @@ export const routes: Routes = [
       { path: 'analytics/sales', redirectTo: 'sales', pathMatch: 'full' },
       { path: 'menu-engineering', loadComponent: () => import('./features/analytics/menu-engineering-dashboard/menu-engineering-dashboard').then(m => m.MenuEngineeringDashboard) },
       { path: 'close-of-day', loadComponent: () => import('./features/reports/close-of-day/close-of-day').then(m => m.CloseOfDay) },
+      { path: 'reports/revenue', loadComponent: () => import('./features/catering/catering-revenue-report/catering-revenue-report.component').then(m => m.CateringRevenueReportComponent) },
+      { path: 'reports/deferred', loadComponent: () => import('./features/catering/catering-deferred-report/catering-deferred-report.component').then(m => m.CateringDeferredReportComponent) },
+      { path: 'reports/catering', loadComponent: () => import('./features/catering/catering-reports/catering-reports.component').then(m => m.CateringReportsComponent) },
       { path: 'reports', loadComponent: () => import('./features/reports/report-dashboard/report-dashboard').then(m => m.ReportDashboard) },
 
       // Customers
@@ -344,6 +351,7 @@ export const routes: Routes = [
       { path: 'scheduling', redirectTo: 'staff/scheduling', pathMatch: 'full' },
       { path: 'labor', redirectTo: 'staff/scheduling', pathMatch: 'full' },
       { path: 'invoicing', loadComponent: () => import('./features/invoicing/invoice-manager/invoice-manager').then(m => m.InvoiceManager) },
+      { path: 'invoicing/milestones', loadComponent: () => import('./features/catering/catering-milestones/catering-milestones.component').then(m => m.CateringMilestonesComponent) },
       { path: 'cash-drawer', loadComponent: () => import('./features/pos/cash-drawer/cash-drawer').then(m => m.CashDrawer) },
       { path: 'monitoring', loadComponent: () => import('./features/monitoring/monitoring-agent/monitoring-agent').then(m => m.MonitoringAgent) },
 
@@ -378,6 +386,10 @@ export const routes: Routes = [
 
       // Admin
       { path: 'multi-location', loadComponent: () => import('./features/multi-location/multi-location-dashboard/multi-location-dashboard').then(m => m.MultiLocationDashboard) },
+      { path: 'settings/business', loadComponent: () => import('./features/catering/catering-stub/catering-stub.component').then(m => m.CateringStubComponent), data: { title: 'Business Info' } },
+      { path: 'settings/branding', loadComponent: () => import('./features/catering/catering-stub/catering-stub.component').then(m => m.CateringStubComponent), data: { title: 'Invoice Branding' } },
+      { path: 'settings/payments', loadComponent: () => import('./features/catering/catering-stub/catering-stub.component').then(m => m.CateringStubComponent), data: { title: 'Payment Setup' } },
+      { path: 'settings/notifications', loadComponent: () => import('./features/catering/catering-stub/catering-stub.component').then(m => m.CateringStubComponent), data: { title: 'Notifications' } },
       { path: 'settings', loadComponent: () => import('./features/settings/control-panel/control-panel').then(m => m.ControlPanel) },
 
       // Online ordering admin (manages channel visibility, online hours) — owner/manager only

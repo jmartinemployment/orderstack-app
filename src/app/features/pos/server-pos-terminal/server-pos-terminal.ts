@@ -186,6 +186,26 @@ export class ServerPosTerminal implements OnInit {
     return typeof price === 'string' ? Number.parseFloat(price) : price;
   }
 
+  // --- Present Check ---
+  readonly checkPresented = signal(false);
+
+  readonly canPresentCheck = computed(() =>
+    this.checkout.cartItems().length > 0 &&
+    this.checkout.selectedTable() !== null &&
+    !this.checkPresented()
+  );
+
+  readonly isTableClosing = computed(() =>
+    this.checkout.selectedTable()?.status === 'closing'
+  );
+
+  async presentCheck(): Promise<void> {
+    const table = this.checkout.selectedTable();
+    if (!table) return;
+    await this.tableService.updateStatus(table.id, 'closing');
+    this.checkPresented.set(true);
+  }
+
   // --- Customer management ---
 
   toggleCustomerForm(): void {

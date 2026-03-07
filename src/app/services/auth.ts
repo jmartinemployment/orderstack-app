@@ -151,8 +151,14 @@ export class AuthService {
 
     try {
       const response = await firstValueFrom(
-        this.http.post<LoginResponse>(`${this.apiUrl}/auth/signup`, data)
+        this.http.post<LoginResponse & { message?: string }>(`${this.apiUrl}/auth/signup`, data)
       );
+
+      // Backend returns 200 with no token for duplicate emails (anti-enumeration)
+      if (!response.token) {
+        this._error.set('An account with this email already exists. Try signing in.');
+        return false;
+      }
 
       this._token.set(response.token);
       this._user.set(response.user);
