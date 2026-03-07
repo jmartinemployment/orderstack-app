@@ -34,6 +34,7 @@ export class CateringPackagesComponent implements OnInit {
   readonly _showForm = signal(false);
   readonly _editingId = signal<string | null>(null);
   readonly _saving = signal(false);
+  readonly _error = signal<string | null>(null);
   readonly _expandedId = signal<string | null>(null);
   readonly _confirmDeleteId = signal<string | null>(null);
   readonly _itemFilter = signal('');
@@ -143,6 +144,7 @@ export class CateringPackagesComponent implements OnInit {
   async saveForm(): Promise<void> {
     const form = this._form();
     this._saving.set(true);
+    this._error.set(null);
     try {
       const data = {
         name: form.name,
@@ -155,10 +157,16 @@ export class CateringPackagesComponent implements OnInit {
       };
 
       const editId = this._editingId();
+      let result: unknown;
       if (editId) {
-        await this.cateringService.updatePackageTemplate(editId, data);
+        result = await this.cateringService.updatePackageTemplate(editId, data);
       } else {
-        await this.cateringService.createPackageTemplate(data);
+        result = await this.cateringService.createPackageTemplate(data);
+      }
+
+      if (!result) {
+        this._error.set('Failed to save package. Please try again.');
+        return;
       }
       this.closeForm();
     } finally {

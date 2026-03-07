@@ -97,6 +97,10 @@
           </div>
         </div>
 
+        @if (_error()) {
+          <div class="form-error">{{ _error() }}</div>
+        }
+
         <div class="form-actions">
           <button type="button" class="btn-cancel" (click)="closeForm()">Cancel</button>
           <button type="button" class="btn-save" [disabled]="_saving() || !_form().name" (click)="saveForm()">

@@ -129,8 +129,8 @@
 
   <!-- Category Form Modal -->
   @if (showForm()) {
-    <div class="modal-overlay" (click)="closeForm()">
-      <div class="modal-content card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="onCategoryOverlayClick($event)">
+      <div class="modal-content card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">
             {{ editingCategory() ? 'Edit Category' : 'New Category' }}
@@ -202,8 +202,8 @@
 
   <!-- Reporting Category Form Modal -->
   @if (showReportingForm()) {
-    <div class="modal-overlay" (click)="closeReportingForm()">
-      <div class="modal-content card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="onReportingOverlayClick($event)">
+      <div class="modal-content card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">
             {{ editingReportingCategory() ? 'Edit' : 'New' }} Reporting Category
@@ -265,8 +265,8 @@
 
   <!-- Delete Confirmation Modal -->
   @if (deleteTarget(); as target) {
-    <div class="modal-overlay" (click)="cancelDelete()">
-      <div class="delete-confirm-modal card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="onDeleteOverlayClick($event)">
+      <div class="delete-confirm-modal card">
         <div class="card-header">
           <h5 class="mb-0">Delete Category</h5>
         </div>
@@ -284,8 +284,8 @@
 
   <!-- Delete Reporting Category Confirmation -->
   @if (deleteReportingTarget(); as target) {
-    <div class="modal-overlay" (click)="cancelDeleteReporting()">
-      <div class="delete-confirm-modal card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="onDeleteReportingOverlayClick($event)">
+      <div class="delete-confirm-modal card">
         <div class="card-header">
           <h5 class="mb-0">Delete Reporting Category</h5>
         </div>

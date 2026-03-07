@@ -484,6 +484,18 @@ export class ItemManagement {
     this.itemForm.reset();
   }
 
+  onOverlayClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.closeForm();
+  }
+
+  onDeleteOverlayClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.cancelDelete();
+  }
+
+  onImportOverlayClick(event: MouseEvent): void {
+    if (event.target === event.currentTarget) this.closeImportModal();
+  }
+
   toggleModifierGroup(groupId: string): void {
     const current = this._selectedModifierGroupIds();
     if (current.includes(groupId)) {

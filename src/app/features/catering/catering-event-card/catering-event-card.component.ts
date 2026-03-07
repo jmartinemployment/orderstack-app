@@ -39,7 +39,11 @@ export class CateringEventCardComponent {
   }
 
   get formattedDate(): string {
-    const d = new Date(this.event.fulfillmentDate + 'T00:00:00');
+    const value = this.event.fulfillmentDate;
+    if (!value) return 'Date TBD';
+    const dateStr = value.includes('T') ? value.split('T')[0] : value;
+    const d = new Date(dateStr + 'T00:00:00');
+    if (isNaN(d.getTime())) return 'Date TBD';
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
   }
 

@@ -212,8 +212,8 @@
 
   <!-- ==================== ITEM FORM MODAL ==================== -->
   @if (showForm()) {
-    <div class="modal-overlay" (click)="closeForm()">
-      <div class="modal-content card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="onOverlayClick($event)">
+      <div class="modal-content card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">{{ editingItem() ? 'Edit Item' : 'New Item' }}</h4>
           <button type="button" class="btn-close" (click)="closeForm()"></button>
@@ -713,8 +713,8 @@
 
   <!-- ==================== DELETE CONFIRMATION MODAL ==================== -->
   @if (deleteTarget(); as target) {
-    <div class="modal-overlay" (click)="cancelDelete()">
-      <div class="delete-confirm-modal card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="onDeleteOverlayClick($event)">
+      <div class="delete-confirm-modal card">
         <div class="card-header">
           <h5 class="mb-0">Delete Item</h5>
         </div>
@@ -732,8 +732,8 @@
 
   <!-- ==================== CSV IMPORT MODAL ==================== -->
   @if (showImportModal()) {
-    <div class="modal-overlay" (click)="closeImportModal()">
-      <div class="import-modal card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="onImportOverlayClick($event)">
+      <div class="import-modal card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">Import Menu Items</h5>
           <button type="button" class="btn-close" (click)="closeImportModal()"></button>
