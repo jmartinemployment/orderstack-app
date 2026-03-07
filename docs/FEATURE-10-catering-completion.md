@@ -4,10 +4,9 @@
 
 ## Authority
 
-`docs/MASTER-IMPLEMENTATION-PLAN.md` (March 7, 2026) is the single source of truth for all
-implementation details — UI specs, API shapes, unit test lists, and build gates. This document
-is a **delta audit**: what is confirmed done vs. what remains. Do not implement from this file
-alone — read the master plan step in full before executing each item.
+This document is self-contained. It supersedes FEATURE-02d, FEATURE-05, FEATURE-05b,
+FEATURE-06, FEATURE-07, and MASTER-IMPLEMENTATION-PLAN.md. All unimplemented items
+from those sources have been incorporated here with full specs.
 
 ---
 
@@ -187,7 +186,12 @@ Files to create/rewrite (4 total):
 - `catering-proposals.component.ts` — selector `os-catering-proposals`; `proposals = computed(() => jobs filtered to proposal_sent, sorted by fulfillmentDate)`
 - `catering-proposals.component.html` — page header + "New Job" button; empty state; card list (client, event title, date, headcount, total, days since sent, "View Job" + "Resend" actions)
 - `catering-proposals.component.scss`
-- `catering-proposals.component.spec.ts` — 5 unit tests (see master plan Step 9)
+- `catering-proposals.component.spec.ts` — 5 unit tests:
+  1. Renders empty state when service returns no `proposal_sent` jobs
+  2. Renders correct card count when service has `proposal_sent` jobs
+  3. `proposals` computed filters to `proposal_sent` status only
+  4. "View Job" navigates to the correct `/app/catering/job/:id` route
+  5. "Resend" calls `cateringService.generateProposal` with the correct job id
 
 Build gate: `ng build`.
 
@@ -201,7 +205,12 @@ Files to create/rewrite (4 total):
 - `catering-delivery.component.ts` — selector `os-catering-delivery`; `_dateFilter = signal('week')`; `deliveryJobs` computed (off-site, not cancelled, filtered by date, sorted ascending)
 - `catering-delivery.component.html` — header; Today/Week/Month filter toggle; empty state; card per job with delivery details section (inline edit for driver, load time, departure, arrival, equipment checklist)
 - `catering-delivery.component.scss`
-- `catering-delivery.component.spec.ts` — 5 unit tests (see master plan Step 10)
+- `catering-delivery.component.spec.ts` — 5 unit tests:
+  1. Renders empty state when no off-site jobs exist
+  2. Renders correct card count for the active date filter
+  3. `deliveryJobs` computed excludes jobs where `locationType === 'on_site'`
+  4. `deliveryJobs` computed excludes cancelled jobs
+  5. `cateringService.updateJob` called with correct `deliveryDetails` payload on save
 
 Build gate: `ng build`.
 
@@ -215,7 +224,12 @@ Files to create (4 total):
 - `catering-milestones/catering-milestones.component.ts` — selector `os-catering-milestones`; flattens all milestones from active jobs into `FlatMilestone[]`; `_filter` signal; overdue sort
 - `catering-milestones/catering-milestones.component.html` — header; 4-KPI strip (Outstanding, Due This Week, Overdue, Collected This Month); filter pills; milestone table with "Mark Paid" action
 - `catering-milestones/catering-milestones.component.scss`
-- `catering-milestones/catering-milestones.component.spec.ts` — 5 unit tests (see master plan Step 11)
+- `catering-milestones/catering-milestones.component.spec.ts` — 5 unit tests:
+  1. Renders without error when no jobs exist
+  2. KPI strip shows the correct total outstanding amount
+  3. `overdue` filter pill returns only past-due unpaid milestones
+  4. `cateringService.markMilestonePaid` called with correct `jobId` and `milestoneId`
+  5. "Mark Paid" button is disabled when `paidAt` is already set
 
 Build gate: `ng build`.
 
@@ -229,7 +243,11 @@ Files to create (4 total):
 - `catering-revenue-report/catering-revenue-report.component.ts` — selector `os-catering-revenue-report`; `_report` signal; calls `loadPerformanceReport()` on init
 - `catering-revenue-report/catering-revenue-report.component.html` — KPI cards (Total Jobs, Completed, Cancelled, Close Rate, Total Revenue, Avg Job Value, Outstanding); pure-CSS bar charts for event type + monthly breakdown
 - `catering-revenue-report/catering-revenue-report.component.scss`
-- `catering-revenue-report/catering-revenue-report.component.spec.ts` — 4 unit tests (see master plan Step 12)
+- `catering-revenue-report/catering-revenue-report.component.spec.ts` — 4 unit tests:
+  1. Renders loading state initially before report resolves
+  2. Renders all KPI cards when report data is present
+  3. Renders empty state when report returns no data
+  4. `cateringService.loadPerformanceReport` called in `ngOnInit`
 
 Build gate: `ng build`.
 
@@ -243,7 +261,12 @@ Files to create (4 total):
 - `catering-deferred-report/catering-deferred-report.component.ts` — selector `os-catering-deferred-report`; `_entries` signal; calls `loadDeferredRevenue()` on init
 - `catering-deferred-report/catering-deferred-report.component.html` — summary strip (Total Booked, Collected, Recognized, Still Deferred); table with amber highlight on Deferred column; footer totals row
 - `catering-deferred-report/catering-deferred-report.component.scss`
-- `catering-deferred-report/catering-deferred-report.component.spec.ts` — 5 unit tests (see master plan Step 13)
+- `catering-deferred-report/catering-deferred-report.component.spec.ts` — 5 unit tests:
+  1. Renders loading state initially before entries resolve
+  2. Renders table rows equal to `_entries()` length
+  3. Deferred column cell has amber highlight class when value > 0
+  4. Summary strip totals match the sum of `_entries()` values
+  5. `cateringService.loadDeferredRevenue` called in `ngOnInit`
 
 Build gate: `ng build`.
 
@@ -264,7 +287,13 @@ Frontend files:
 - Create `catering-packages/catering-packages.component.ts` — selector `os-catering-packages`; 2-column card grid; slide-in form panel with item picker (filtered to `menuType === 'catering'`)
 - Create `catering-packages/catering-packages.component.html`
 - Create `catering-packages/catering-packages.component.scss`
-- Create `catering-packages/catering-packages.component.spec.ts` — 6 unit tests (see master plan Step 14)
+- Create `catering-packages/catering-packages.component.spec.ts` — 6 unit tests:
+  1. Renders empty state when no package templates exist
+  2. Renders correct card count when templates are loaded
+  3. "Edit" button opens the form panel pre-populated with the template's values
+  4. `cateringService.createPackageTemplate` called on save when creating new
+  5. `cateringService.updatePackageTemplate` called on save when editing existing
+  6. `cateringService.deletePackageTemplate` called after delete confirmation
 
 **Money convention:** `pricePerUnitCents` is an integer (cents). Form input is in dollars; multiply by 100 before API call.
 
