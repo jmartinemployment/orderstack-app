@@ -348,6 +348,12 @@ export class PlatformService {
         )
       );
       this.authService.selectMerchant(id, name);
+
+      // Update in-memory profile so dashboard reads the correct name
+      const current = this._merchantProfile();
+      if (current) {
+        this._merchantProfile.set({ ...current, businessName: name });
+      }
     } catch {
       // Non-critical — name will be saved on next full profile update
     }
