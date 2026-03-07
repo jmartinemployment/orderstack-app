@@ -125,12 +125,14 @@
               <input
                 type="time"
                 class="form-control form-control-sm"
+                [attr.aria-label]="dayLabels[day] + ' open time'"
                 [ngModel]="hours?.open ?? '09:00'"
                 (ngModelChange)="updateDayOpen(day, $event)" />
               <span class="hours-sep">to</span>
               <input
                 type="time"
                 class="form-control form-control-sm"
+                [attr.aria-label]="dayLabels[day] + ' close time'"
                 [ngModel]="hours?.close ?? '22:00'"
                 (ngModelChange)="updateDayClose(day, $event)" />
             </div>
