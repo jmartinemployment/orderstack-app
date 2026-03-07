@@ -8,20 +8,7 @@ Additionally, "Table" is restaurant-specific. Renaming to "Area" makes the conce
 
 ## Changes
 
-### 1. Rename "Table" → "Area" in floor plan UI labels
-
-**Files:** `floor-plan.html`, `floor-plan.ts`
-
-UI text changes only (not model/service/variable names):
-- "Table #7" → "Area #7"
-- "Add Table" → "Add Area"
-- "Edit Table" → "Edit Area"
-- "No tables yet" → "No areas yet"
-- "Table Number" → "Area Number"
-- "Bus Table (Mark Available)" → "Bus Area (Mark Available)"
-- Column headers, KPI labels, etc.
-
-### 2. Add `mode` input to FloorPlan component
+### 1. Add `mode` input to FloorPlan component
 
 **File:** `src/app/features/table-mgmt/floor-plan/floor-plan.ts`
 
@@ -80,8 +67,8 @@ Move `/floor-plan` back inside `MainLayoutComponent` children. Remove the top-le
 
 | File | Change |
 |------|--------|
-| `floor-plan.ts` | Add `mode` input, guard drag, rename labels |
-| `floor-plan.html` | Rename Table→Area labels, hide admin UI in staff mode |
+| `floor-plan.ts` | Add `mode` input, guard drag |
+| `floor-plan.html` | Hide admin UI in staff mode |
 | `server-pos-terminal.ts` + `.html` | Add Floor Plan tab |
 | `bar-terminal.ts` + `.html` | Add Floor Plan tab |
 | `register-terminal.ts` + `.html` | Add Floor Plan tab |
@@ -93,5 +80,5 @@ Move `/floor-plan` back inside `MainLayoutComponent` children. Remove the top-le
 
 1. `ng build` passes
 2. Login as Diego (bartender) → lands on `/bar` → "Floor Plan" tab shows read-only floor plan with status controls only
-3. Admin dashboard → Floor Plan page retains full CRUD with "Area" labels
+3. Admin dashboard → Floor Plan page retains full CRUD
 4. Staff can change area status from any terminal's Floor Plan tab
