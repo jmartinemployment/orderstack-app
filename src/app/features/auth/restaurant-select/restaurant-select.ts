@@ -104,6 +104,7 @@ export class RestaurantSelect {
 
   async logout(): Promise<void> {
     await this.authService.logout();
+    await this.router.navigate(['/login']);
   }
 
   clearError(): void {

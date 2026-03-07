@@ -32,7 +32,7 @@ describe('RestaurantSelect', () => {
   let fixture: ComponentFixture<RestaurantSelect>;
   let component: RestaurantSelect;
   let authService: ReturnType<typeof createMockAuthService>;
-  let router: { navigate: ReturnType<typeof vi.fn> };
+  let router: { navigate: ReturnType<typeof vi.fn>; navigateByUrl: ReturnType<typeof vi.fn> };
   let httpClient: { get: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
@@ -40,7 +40,7 @@ describe('RestaurantSelect', () => {
       authenticated: true,
       merchantIds: ['r-1', 'r-2'],
     });
-    router = { navigate: vi.fn() };
+    router = { navigate: vi.fn().mockResolvedValue(true), navigateByUrl: vi.fn().mockResolvedValue(true) };
     httpClient = {
       get: vi.fn().mockImplementation((url: string) => {
         if (url.includes('r-1')) return of({ id: 'r-1', name: 'Taipa', address: '123 Main', logo: null });
@@ -109,16 +109,19 @@ describe('RestaurantSelect', () => {
     fixture.detectChanges();
     const items = fixture.nativeElement.querySelectorAll('.restaurant-item');
     items[0].click();
+    await fixture.whenStable();
     expect(authService.selectMerchant).toHaveBeenCalledWith('r-1', 'Taipa', null, '123 Main');
-    expect(router.navigate).toHaveBeenCalledWith(['/app/administration']);
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/app/administration');
   });
 
-  it('calls logout on sign out click', async () => {
+  it('calls logout and navigates to /login on sign out click', async () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const signOutBtn = fixture.nativeElement.querySelector('.btn-outline-secondary');
     signOutBtn.click();
+    await fixture.whenStable();
     expect(authService.logout).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
   });
 
   it('clears error on clearError()', () => {

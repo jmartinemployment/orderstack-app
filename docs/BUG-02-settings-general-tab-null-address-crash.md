@@ -1,6 +1,16 @@
 BUG-02: Settings General Tab Crashes with Null Address TypeError
 
 Reported: 2026-03-07
+Reopened: 2026-03-07
+Status: OPEN — Fix claimed by Claude Code but FAILED live retest
+
+Retest evidence:
+- Account used: bug01-verify-1772890297169@mailinator.com (null address, brand new account)
+- New Vercel chunk confirmed deployed: chunk-GW7UID4Q.js (different from pre-fix chunk-QJ72FRRW.js)
+- Console errors at 8:41:18 AM fresh page load: 3x TypeError: Cannot read properties of null (reading 'street') from loadFromProfile in the new chunk
+- Root cause: Claude Code Playwright test used owner@taipa.com which already HAS a populated address — the null address code path was never exercised
+- The fix was NOT verified against a null-address account before being marked done
+- Fix must be corrected and retested against a null-address account before closing
 Project: OrderStack (orderstack-app frontend)
 Severity: Critical — the Settings > General tab throws an unhandled TypeError on ngOnInit every time it loads, crashing the component and leaving all Business Information and Address fields blank. The merchant cannot view or edit their business profile.
 

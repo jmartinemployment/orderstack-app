@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { AuthService } from '@services/auth';
 import { PlatformService } from '@services/platform';
 import { InventoryService } from '@services/inventory';
@@ -243,8 +243,11 @@ export class MainLayoutComponent {
     this.mobileMenuOpen.set(false);
   }
 
-  logout(): void {
-    this.auth.logout();
+  private readonly router = inject(Router);
+
+  async logout(): Promise<void> {
+    await this.auth.logout();
+    await this.router.navigate(['/login']);
   }
 }
 

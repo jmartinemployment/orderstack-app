@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '@services/auth';
 import { Sidebar, type NavItem } from '@shared/sidebar/sidebar';
 import { BookingManager } from '../booking-manager';
@@ -28,7 +29,10 @@ export class Booking {
     this.sidebarCollapsed.update(v => !v);
   }
 
-  logout(): void {
-    this.auth.logout();
+  private readonly router = inject(Router);
+
+  async logout(): Promise<void> {
+    await this.auth.logout();
+    await this.router.navigate(['/login']);
   }
 }
