@@ -196,15 +196,15 @@
         </div>
       }
 
-      @if (canPresentCheck()) {
+      @if (checkout.canPresentCheck()) {
         <button
           type="button"
           class="present-check-btn"
-          (click)="presentCheck()">
+          (click)="checkout.presentCheck()">
           <i class="bi bi-receipt-cutoff me-1"></i> Present Check
         </button>
       }
-      @if (checkPresented() || isTableClosing()) {
+      @if (checkout.isTableClosing()) {
         <button
           type="button"
           class="present-check-btn present-check-done"
@@ -247,3 +247,18 @@
 
 <!-- ==================== SEND TO KITCHEN OVERLAY ==================== -->
 <os-checkout [mode]="'send'" [orderSource]="'terminal'" />
+
+<!-- ==================== TOAST NOTIFICATION ==================== -->
+@if (notification.toast(); as toast) {
+  <div class="pos-toast" role="status" aria-live="polite">
+    <i class="bi bi-check-circle-fill pos-toast-icon"></i>
+    <span class="pos-toast-message">{{ toast.message }}</span>
+    <button
+      type="button"
+      class="pos-toast-dismiss"
+      aria-label="Dismiss"
+      (click)="notification.dismiss()">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+}

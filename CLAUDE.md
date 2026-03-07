@@ -503,4 +503,27 @@ Execute: `cd .claude/skills/playwright-skill && node run.js /tmp/playwright-test
 - Retail ecommerce orders path bug: uses `/api/retail/ecommerce/orders` instead of `/api/restaurant/{id}/retail/ecommerce/orders`
 - Next: fix tab selector mismatches (Command Center Live, Food Cost Overview, Scheduling Timecards, Settings General/Team/Notifications), fix retail ecommerce orders path, implement backend endpoints
 
-*Last Updated: February 25, 2026 (Session 3)*
+**March 7, 2026 (Session 5):**
+- BUG-11 fixed: Staff sidebar persistent orange background — added `teamMembersLoaded` signal gate in `main-layout.component.ts` so alert only shows after `loadTeamMembers()` resolves; 6 new unit tests added to `main-layout.component.spec.ts`
+- BUG-12 fixed: Menu categories no UI refresh after CRUD — extracted private `_fetchMenu()` in `menu.ts` to bypass `_isLoading` guard; CRUD methods call `_fetchMenu()` directly
+- BUG-12 tests: 14 new TestBed service integration tests in `menu.spec.ts` (50 total, all pass); Playwright E2E at `/tmp/playwright-test-bug12-category-crud.js` verifies GET /menu/grouped fires after POST
+- Catering milestones nav fix: `viewJob()` was navigating to `/catering/job` — corrected to `/app/catering/job`
+- `table.model.ts`: Added `'closing'` to `TableStatus` — floor plan shows purple status, POS has "Present Check" button, kiosk shows blocking screen
+- `menu-management.spec.ts` and `item-management.spec.ts` both need `provideRouter([])` because their components inject `ActivatedRoute` (item-management is pre-existing failure, not introduced here)
+- Backend note: PATCH to `/api/merchant/.../menu/categories/{id}` returns 500 for existing demo categories — backend issue, not frontend; frontend `updateCategory()` correctly handles error and doesn't update stale state
+- Backend note: `/menu/grouped` only returns categories WITH items — new empty categories created via UI won't appear in list until items are added
+- Vitest: 1519 pass, 59 fail (8 files) — all 8 failing files are pre-existing (6 catering stubs + device + item-management)
+
+**Session 6:**
+- FEATURE-01 implemented: `closing` table state end-to-end
+  - Created `src/app/services/notification.ts` — signal-based toast (UUID-tracked auto-dismiss)
+  - `checkout.ts` rewritten: `presentCheck()` moved to service, auto-triggers on `startCheckout('charge')` when table not yet closing, `cancelCheckout()` reverts table to `occupied` if check was presented this session, `resetCheckout()` clears `_checkPresented`
+  - `server-pos-terminal.ts`: removed component-level `checkPresented`/`canPresentCheck`/`isTableClosing`/`presentCheck()` — all delegated to `CheckoutService`; injected `NotificationService` for toast
+  - `server-pos-terminal.html`: uses `checkout.canPresentCheck()`, `checkout.isTableClosing()`, `checkout.presentCheck()`; toast banner via `notification.toast()`
+  - `server-pos-terminal.scss`: added `.pos-toast` styles with slide-up animation
+- FEATURE-10 created: `docs/FEATURE-10-catering-completion.md` — delta audit consolidating all remaining work from FEATURE-02d, 05, 05b, 06, 07, and MASTER-IMPLEMENTATION-PLAN.md
+  - Backend group: Steps 1–4 (menuType, branding, Resend email, milestone cron) + Step 17a (Zod closing status, check void revert)
+  - Frontend group: Steps 5–16 (mode signals, wizard 4-card grid, home dashboard, catering components, stub upgrades, routes rewrite)
+- Next: implement FEATURE-10 (Step 17a backend validation is a good starting point; Step 8 home dashboard after Steps 5–6 verified)
+
+*Last Updated: Session 6*

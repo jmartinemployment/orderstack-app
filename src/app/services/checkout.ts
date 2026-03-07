@@ -3,6 +3,7 @@ import { OrderService } from './order';
 import { TableService } from './table';
 import { LoyaltyService } from './loyalty';
 import { RestaurantSettingsService } from './restaurant-settings';
+import { NotificationService } from './notification';
 import { CartItem } from '../models/cart.model';
 import { MenuItem, WeightUnit } from '../models/menu.model';
 import { RestaurantTable } from '../models/table.model';
@@ -29,6 +30,7 @@ export class CheckoutService {
   private readonly tableService = inject(TableService);
   private readonly loyaltyService = inject(LoyaltyService);
   private readonly settingsService = inject(RestaurantSettingsService);
+  private readonly notificationService = inject(NotificationService);
 
   // --- Cart state ---
 
@@ -81,8 +83,22 @@ export class CheckoutService {
   private readonly _createdOrderId = signal<string | null>(null);
   private readonly _checkoutError = signal<string | null>(null);
   private readonly _isCreatingOrder = signal(false);
-
   private readonly _orderNumber = signal<string | null>(null);
+
+  // --- Present Check state ---
+
+  private readonly _checkPresented = signal(false);
+  readonly checkPresented = this._checkPresented.asReadonly();
+
+  readonly canPresentCheck = computed(() =>
+    this._cartItems().length > 0 &&
+    this._selectedTable() !== null &&
+    !this._checkPresented()
+  );
+
+  readonly isTableClosing = computed(() =>
+    this._checkPresented() || this._selectedTable()?.status === 'closing'
+  );
 
   readonly checkoutStep = this._checkoutStep.asReadonly();
   readonly checkoutMode = this._checkoutMode.asReadonly();
@@ -225,6 +241,16 @@ export class CheckoutService {
     this._cartItems.set([]);
   }
 
+  // ==================== Present Check ====================
+
+  async presentCheck(): Promise<void> {
+    const table = this._selectedTable();
+    if (!table) return;
+    this._checkPresented.set(true);
+    this.notificationService.show(`Check presented — Table #${table.tableNumber}`);
+    await this.tableService.updateStatus(table.id, 'closing');
+  }
+
   // ==================== Checkout Flow ====================
 
   startCheckout(mode: CheckoutMode, orderSource: string): void {
@@ -233,6 +259,11 @@ export class CheckoutService {
     this._orderSource.set(orderSource);
     this._checkoutStep.set('dining-option');
     this._checkoutError.set(null);
+
+    // Auto-trigger closing state when charging a table that hasn't already presented check
+    if (mode === 'charge' && this._selectedTable() !== null && !this._checkPresented()) {
+      void this.presentCheck();
+    }
   }
 
   selectDiningOption(option: DiningOption): void {
@@ -476,6 +507,7 @@ export class CheckoutService {
     this._customerName.set('');
     this._customerPhone.set('');
     this._customerEmail.set('');
+    this._checkPresented.set(false);
   }
 
   finishAndNewOrder(): void {
@@ -484,6 +516,13 @@ export class CheckoutService {
   }
 
   cancelCheckout(): void {
+    // Revert table from closing back to occupied if check was presented this session
+    if (this._checkPresented()) {
+      const table = this._selectedTable();
+      if (table) {
+        void this.tableService.updateStatus(table.id, 'occupied');
+      }
+    }
     this.resetCheckout();
   }
 }

@@ -14,6 +14,7 @@ import { MenuService } from '@services/menu';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { TableService } from '@services/table';
 import { CheckoutService } from '@services/checkout';
+import { NotificationService } from '@services/notification';
 import { TopNavigation, TopNavigationTab } from '@shared/top-navigation';
 import { WeightScale } from '@shared/weight-scale';
 import { Checkout } from '@shared/checkout/checkout';
@@ -40,6 +41,7 @@ export class ServerPosTerminal implements OnInit {
   private readonly settingsService = inject(RestaurantSettingsService);
   private readonly tableService = inject(TableService);
   readonly checkout = inject(CheckoutService);
+  readonly notification = inject(NotificationService);
   private readonly _cdr = inject(ChangeDetectorRef);
 
   // Top tab state — default to Favorites
@@ -184,26 +186,6 @@ export class ServerPosTerminal implements OnInit {
 
   formatPrice(price: number | string): number {
     return typeof price === 'string' ? Number.parseFloat(price) : price;
-  }
-
-  // --- Present Check ---
-  readonly checkPresented = signal(false);
-
-  readonly canPresentCheck = computed(() =>
-    this.checkout.cartItems().length > 0 &&
-    this.checkout.selectedTable() !== null &&
-    !this.checkPresented()
-  );
-
-  readonly isTableClosing = computed(() =>
-    this.checkout.selectedTable()?.status === 'closing'
-  );
-
-  async presentCheck(): Promise<void> {
-    const table = this.checkout.selectedTable();
-    if (!table) return;
-    await this.tableService.updateStatus(table.id, 'closing');
-    this.checkPresented.set(true);
   }
 
   // --- Customer management ---
