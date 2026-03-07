@@ -25,6 +25,10 @@ export class AuthService {
   private readonly _selectedMerchantAddress = signal<string | null>(null);
   private readonly _sessionExpiredMessage = signal<string | null>(null);
 
+  // In-memory only — never persisted to storage
+  private readonly _pendingPassword = signal<string | null>(null);
+  readonly pendingPassword = this._pendingPassword.asReadonly();
+
   // Public readonly signals
   readonly user = this._user.asReadonly();
   readonly token = this._token.asReadonly();
@@ -154,6 +158,10 @@ export class AuthService {
       this._user.set(response.user);
       this._merchants.set(response.restaurants || []);
       this.saveToStorage(response.token, response.user, response.restaurants || []);
+
+      // Retain password in memory for onboarding (never persisted to storage)
+      this._pendingPassword.set(data.password);
+      localStorage.setItem('pending_email', data.email);
 
       return true;
     } catch (err: unknown) {
@@ -318,6 +326,11 @@ export class AuthService {
     } catch {
       return true;
     }
+  }
+
+  clearPendingCredentials(): void {
+    this._pendingPassword.set(null);
+    localStorage.removeItem('pending_email');
   }
 
   clearError(): void {

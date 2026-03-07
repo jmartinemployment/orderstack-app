@@ -781,10 +781,9 @@ export class SetupWizard implements OnInit {
   readonly deliveryProviders = DELIVERY_PROVIDERS;
 
   // --- Step map ---
-  // First-run flow (3 steps): address, biztype, done
-  // Hidden steps (cuisine, revenue, locations, delivery, plan, hardware) remain
-  // accessible from Settings after onboarding.
-  readonly totalSteps = computed(() => 3);
+  // Business info and business type are now collected on /business-type before
+  // the wizard loads. The wizard is a single confirmation/done step.
+  readonly totalSteps = computed(() => 1);
 
   // --- Wizard navigation ---
   readonly _currentStep = signal(1);
@@ -924,11 +923,7 @@ export class SetupWizard implements OnInit {
     this._currentStep() === this.totalSteps()
   );
 
-  readonly stepLabel = computed(() => {
-    const step = this._currentStep();
-    const labels = ['Business Info', 'Business Type', 'All Set'];
-    return labels[step - 1] ?? '';
-  });
+  readonly stepLabel = computed(() => 'All Set');
 
   // --- Submission ---
   readonly _isSubmitting = signal(false);
@@ -967,16 +962,6 @@ export class SetupWizard implements OnInit {
 
   // --- Step validation ---
   readonly canProceed = computed(() => {
-    const step = this._currentStep();
-
-    if (step === 1) {
-      return this._businessName().trim().length > 0
-        && this.isHomeAddressValid()
-        && this.isBizAddressValid();
-    }
-    if (step === 2) {
-      return this._selectedBusinessType() !== null;
-    }
     if (this.isDoneStep()) return !this._isSubmitting();
     return false;
   });
@@ -1005,19 +990,9 @@ export class SetupWizard implements OnInit {
       }
     }
 
-    // If merchant was already created on the /business-type screen, mark onboarding done
-    // so submitOnboarding doesn't try to create a duplicate.
+    // Restaurant was already created on /business-type — mark done
     if (this.authService.selectedMerchantId()) {
       this._onboardingDone.set(true);
-    }
-
-    // Resume mid-wizard on reload
-    const saved = localStorage.getItem('wizard-step');
-    if (saved) {
-      const step = Number.parseInt(saved, 10);
-      if (step >= 1 && step <= this.totalSteps()) {
-        this._currentStep.set(step);
-      }
     }
 
     history.pushState({ step: this._currentStep() }, '');
@@ -1032,18 +1007,6 @@ export class SetupWizard implements OnInit {
   async next(): Promise<void> {
     const current = this._currentStep();
     const total = this.totalSteps();
-
-    // Submit onboarding when leaving the business type step (step 2)
-    if (current === 2 && !this._onboardingDone()) {
-      await this.submitOnboarding();
-      if (!this._onboardingDone()) return; // submission failed
-    }
-
-    // If merchant was pre-created on /business-type, persist the business name
-    // entered on Step 1 (it was stored as "My Business" during createMerchantEarly)
-    if (current === 1 && this._onboardingDone() && this._businessName().trim()) {
-      await this.platformService.updateMerchantName(this._businessName().trim());
-    }
 
     if (current < total) {
       const nextStep = current + 1;

@@ -291,13 +291,17 @@ export class PlatformService {
     }
   }
 
-  async createMerchantEarly(
-    businessName: string,
-    businessCategory: string,
-    primaryVertical: BusinessVertical,
-    defaultDeviceMode: DevicePosMode,
-    address?: { street: string; city: string; state: string; zip: string; phone: string | null },
-  ): Promise<OnboardingResult | null> {
+  async createMerchantEarly(params: {
+    businessName: string;
+    businessCategory: string;
+    primaryVertical: BusinessVertical;
+    defaultDeviceMode: DevicePosMode;
+    email: string;
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+  }): Promise<OnboardingResult | null> {
     this._isLoading.set(true);
     this._error.set(null);
 
@@ -306,24 +310,25 @@ export class PlatformService {
         this.http.post<OnboardingResult>(
           `${this.apiUrl}/onboarding/create`,
           {
-            businessName,
-            businessCategory,
-            primaryVertical,
-            verticals: [primaryVertical],
-            defaultDeviceMode,
+            businessName: params.businessName,
+            businessCategory: params.businessCategory,
+            primaryVertical: params.primaryVertical,
+            verticals: [params.primaryVertical],
+            defaultDeviceMode: params.defaultDeviceMode,
             complexity: 'full',
-            address: address ? {
-              street: address.street,
+            ownerEmail: params.email,
+            address: {
+              street: params.address,
               street2: null,
-              city: address.city,
-              state: address.state,
-              zip: address.zip,
+              city: params.city,
+              state: params.state,
+              zip: params.zip,
               country: 'US',
               timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-              phone: address.phone,
+              phone: null,
               lat: null,
               lng: null,
-            } : undefined,
+            },
           }
         )
       );

@@ -1,170 +1,10 @@
 <div class="setup-wizard">
-  <!-- Brand + Progress -->
+  <!-- Brand -->
   <div class="wizard-brand">
     <i class="bi bi-stack"></i> OrderStack
   </div>
-  <div class="wizard-header">
-    <div class="progress-bar-container">
-      <div class="progress-bar-fill" [style.width.%]="progressPercent()"></div>
-    </div>
-    <div class="step-label">
-      <span>Step {{ currentStep() }} of {{ totalSteps() }}</span>
-      <span>{{ progressPercent() }}% complete</span>
-    </div>
-  </div>
 
   <div class="wizard-body">
-    <!-- ============ STEP 1: Business Name + Addresses ============ -->
-    @if (currentStep() === 1) {
-      <div class="step-content welcome-step">
-        <h2>Welcome to OrderStack!</h2>
-        <p class="step-subtitle">Let's shape this thing to fit your business.</p>
-
-        <div class="form-group">
-          <label for="businessName">Your business name</label>
-          <input
-            id="businessName"
-            type="text"
-            class="form-control"
-            placeholder="e.g. Taipa Kitchen"
-            [ngModel]="_businessName()"
-            (ngModelChange)="_businessName.set($event)" />
-          <p class="field-hint">This is how we'll identify you on emails, receipts, and messages to your customers.</p>
-        </div>
-
-        <!-- Home Address -->
-        <div class="address-section">
-          <label class="section-label">Your home address</label>
-          <p class="section-hint">Used for billing and account verification</p>
-
-          <input
-            type="text"
-            class="form-control"
-            placeholder="Street address (e.g. 123 Main St)"
-            [ngModel]="_homeStreet()"
-            (ngModelChange)="_homeStreet.set($event)" />
-          <input
-            type="text"
-            class="form-control mt-field"
-            placeholder="Apt, suite, etc. (optional)"
-            [ngModel]="_homeStreet2()"
-            (ngModelChange)="_homeStreet2.set($event)" />
-          <div class="address-row">
-            <input
-              type="text"
-              class="form-control"
-              placeholder="City"
-              [ngModel]="_homeCity()"
-              (ngModelChange)="_homeCity.set($event)" />
-            <select
-              class="form-control state-select"
-              [ngModel]="_homeState()"
-              (ngModelChange)="_homeState.set($event)"
-              aria-label="State">
-              <option value="" disabled>State</option>
-              @for (state of usStates; track state.code) {
-                <option [value]="state.code">{{ state.code }}</option>
-              }
-            </select>
-            <input
-              type="text"
-              class="form-control zip-input"
-              placeholder="ZIP"
-              maxlength="10"
-              [ngModel]="_homeZip()"
-              (ngModelChange)="_homeZip.set($event)" />
-          </div>
-        </div>
-
-        <!-- Business Address -->
-        <div class="address-section">
-          <label class="section-label">Business address</label>
-          <p class="section-hint">Where customers can find you</p>
-
-          <div class="checkbox-row">
-            <input
-              type="checkbox"
-              id="noPhysical"
-              class="form-check-input"
-              [checked]="_bizNoPhysical()"
-              (change)="toggleNoPhysical()" />
-            <label for="noPhysical" class="form-check-label">I don't have a physical business location</label>
-          </div>
-
-          @if (!_bizNoPhysical()) {
-            <div class="biz-address-fields">
-              <input
-                type="text"
-                class="form-control"
-                placeholder="Street address (e.g. 456 Oak Ave)"
-                [ngModel]="_bizStreet()"
-                (ngModelChange)="_bizStreet.set($event)" />
-              <input
-                type="text"
-                class="form-control mt-field"
-                placeholder="Apt, suite, etc. (optional)"
-                [ngModel]="_bizStreet2()"
-                (ngModelChange)="_bizStreet2.set($event)" />
-              <div class="address-row">
-                <input
-                  type="text"
-                  class="form-control"
-                  placeholder="City"
-                  [ngModel]="_bizCity()"
-                  (ngModelChange)="_bizCity.set($event)" />
-                <select
-                  class="form-control state-select"
-                  [ngModel]="_bizState()"
-                  (ngModelChange)="_bizState.set($event)"
-                  aria-label="Business state">
-                  <option value="" disabled>State</option>
-                  @for (state of usStates; track state.code) {
-                    <option [value]="state.code">{{ state.code }}</option>
-                  }
-                </select>
-                <input
-                  type="text"
-                  class="form-control zip-input"
-                  placeholder="ZIP"
-                  maxlength="10"
-                  [ngModel]="_bizZip()"
-                  (ngModelChange)="_bizZip.set($event)" />
-              </div>
-            </div>
-          }
-        </div>
-      </div>
-    }
-
-    <!-- ============ STEP 2: Business Type ============ -->
-    @if (currentStep() === 2) {
-      <div class="step-content">
-        <h2>What kind of business best describes <strong>{{ _businessName() || 'your business' }}</strong>?</h2>
-        <p class="step-subtitle">This helps us set up the right features for you.</p>
-
-        <div class="business-type-list">
-          @for (type of filteredBusinessTypes(); track type.name) {
-            <button
-              type="button"
-              class="business-type-item"
-              [class.selected]="_selectedBusinessType()?.name === type.name"
-              (click)="selectBusinessType(type)">
-              <div class="bt-info">
-                <span class="bt-name">{{ type.name }}</span>
-              </div>
-              @if (_selectedBusinessType()?.name === type.name) {
-                <i class="bi bi-check-circle-fill bt-check"></i>
-              }
-            </button>
-          }
-        </div>
-
-        @if (_submitError()) {
-          <div class="alert alert-danger mt-3">{{ _submitError() }}</div>
-        }
-      </div>
-    }
-
     <!-- ============ DONE STEP: You're All Set ============ -->
     @if (isDoneStep()) {
       <div class="step-content welcome-screen">
@@ -172,7 +12,7 @@
           <div class="welcome-icon">
             <i class="bi bi-rocket-takeoff-fill"></i>
           </div>
-          <h2>You're all set, {{ _businessName() || 'friend' }}!</h2>
+          <h2>You're all set!</h2>
           <p class="step-subtitle">Your account is ready. Head to your dashboard to add items, invite team members, and start selling.</p>
         </div>
 
@@ -215,30 +55,4 @@
       </div>
     }
   </div>
-
-  <!-- Navigation Footer (not on done step) -->
-  @if (!isDoneStep()) {
-    <div class="wizard-footer">
-      @if (currentStep() > 1) {
-        <button class="btn btn-outline" (click)="prev()">
-          <i class="bi bi-arrow-left"></i> Back
-        </button>
-      } @else {
-        <span></span>
-      }
-
-      <div class="footer-right">
-        <button
-          class="btn btn-primary"
-          [disabled]="!canProceed() || _isSubmitting()"
-          (click)="next()">
-          @if (_isSubmitting()) {
-            <i class="bi bi-arrow-repeat spin"></i> Setting up...
-          } @else {
-            Continue <i class="bi bi-arrow-right"></i>
-          }
-        </button>
-      </div>
-    </div>
-  }
 </div>

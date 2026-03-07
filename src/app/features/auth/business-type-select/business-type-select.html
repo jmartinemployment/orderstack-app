@@ -12,7 +12,7 @@
       @if (isSubmitting()) {
         <span class="bts-spinner"></span>
       }
-      Next
+      Create My Business
     </button>
   </header>
 
@@ -24,51 +24,122 @@
       </div>
     }
 
-    <h1 class="bts-heading">What kind of business?</h1>
-    <p class="bts-subtitle">We'll personalize OrderStack to fit your needs.</p>
+    <h1 class="bts-heading">Set up your business</h1>
+    <p class="bts-subtitle">Tell us about your business so we can personalize OrderStack for you.</p>
 
-    <div class="bts-options">
-      <button
-        class="bts-card"
-        [class.bts-card--selected]="selected() === 'catering'"
-        (click)="select('catering')"
-      >
-        <div class="bts-card-icon">
-          <i class="bi bi-calendar-event"></i>
-        </div>
-        <div class="bts-card-body">
-          <h3 class="bts-card-title">Catering</h3>
-          <p class="bts-card-desc">Event-based food service, off-premise catering, and private dining</p>
-        </div>
-        <div class="bts-card-check">
-          @if (selected() === 'catering') {
-            <i class="bi bi-check-circle-fill"></i>
-          } @else {
-            <i class="bi bi-circle"></i>
-          }
-        </div>
-      </button>
+    <!-- Business Type -->
+    <div class="bts-section">
+      <label class="bts-section-label">What kind of business?</label>
+      <div class="bts-options">
+        <button
+          class="bts-card"
+          [class.bts-card--selected]="selected() === 'catering'"
+          (click)="select('catering')"
+        >
+          <div class="bts-card-icon">
+            <i class="bi bi-calendar-event"></i>
+          </div>
+          <div class="bts-card-body">
+            <h3 class="bts-card-title">Catering</h3>
+            <p class="bts-card-desc">Event-based food service, off-premise catering, and private dining</p>
+          </div>
+          <div class="bts-card-check">
+            @if (selected() === 'catering') {
+              <i class="bi bi-check-circle-fill"></i>
+            } @else {
+              <i class="bi bi-circle"></i>
+            }
+          </div>
+        </button>
 
-      <button
-        class="bts-card"
-        [class.bts-card--selected]="selected() === 'full_service'"
-        (click)="select('full_service')"
-      >
-        <div class="bts-card-icon">
-          <i class="bi bi-shop"></i>
-        </div>
-        <div class="bts-card-body">
-          <h3 class="bts-card-title">Full Restaurant Service</h3>
-          <p class="bts-card-desc">Dine-in, takeout, delivery, and everything in between</p>
-        </div>
-        <div class="bts-card-check">
-          @if (selected() === 'full_service') {
-            <i class="bi bi-check-circle-fill"></i>
-          } @else {
-            <i class="bi bi-circle"></i>
+        <button
+          class="bts-card"
+          [class.bts-card--selected]="selected() === 'full_service'"
+          (click)="select('full_service')"
+        >
+          <div class="bts-card-icon">
+            <i class="bi bi-shop"></i>
+          </div>
+          <div class="bts-card-body">
+            <h3 class="bts-card-title">Full Restaurant Service</h3>
+            <p class="bts-card-desc">Dine-in, takeout, delivery, and everything in between</p>
+          </div>
+          <div class="bts-card-check">
+            @if (selected() === 'full_service') {
+              <i class="bi bi-check-circle-fill"></i>
+            } @else {
+              <i class="bi bi-circle"></i>
+            }
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Business Info -->
+    <div class="bts-section">
+      <label class="bts-section-label">Business information</label>
+
+      <div class="bts-field">
+        <label for="businessName" class="bts-field-label">Business name</label>
+        <input
+          id="businessName"
+          type="text"
+          class="bts-input"
+          placeholder="e.g. Taipa Kitchen"
+          [ngModel]="businessName()"
+          (ngModelChange)="businessName.set($event)" />
+      </div>
+
+      <div class="bts-field">
+        <label for="email" class="bts-field-label">Business email</label>
+        <input
+          id="email"
+          type="email"
+          class="bts-input"
+          placeholder="you@yourbusiness.com"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)" />
+      </div>
+    </div>
+
+    <!-- Business Address -->
+    <div class="bts-section">
+      <label class="bts-section-label">Business address</label>
+
+      <div class="bts-field">
+        <input
+          type="text"
+          class="bts-input"
+          placeholder="Street address (e.g. 123 Main St)"
+          [ngModel]="address()"
+          (ngModelChange)="address.set($event)" />
+      </div>
+
+      <div class="bts-address-row">
+        <input
+          type="text"
+          class="bts-input bts-input-city"
+          placeholder="City"
+          [ngModel]="city()"
+          (ngModelChange)="city.set($event)" />
+        <select
+          class="bts-input bts-input-state"
+          [ngModel]="state()"
+          (ngModelChange)="state.set($event)"
+          aria-label="State">
+          <option value="" disabled>State</option>
+          @for (st of usStates; track st.code) {
+            <option [value]="st.code">{{ st.code }}</option>
           }
-        </div>
-      </button>
+        </select>
+        <input
+          type="text"
+          class="bts-input bts-input-zip"
+          placeholder="ZIP"
+          maxlength="10"
+          [ngModel]="zip()"
+          (ngModelChange)="zip.set($event)" />
+      </div>
     </div>
   </main>
 </div>
