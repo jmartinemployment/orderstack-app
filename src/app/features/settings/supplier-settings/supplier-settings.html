@@ -74,8 +74,8 @@
           />
         </div>
         <div class="col-md-6">
-          <label class="form-label">Mode</label>
-          <select class="form-select form-select-sm" [value]="syscoMode()" (change)="onSyscoModeChange($event)">
+          <label for="syscoMode" class="form-label">Mode</label>
+          <select class="form-select form-select-sm" id="syscoMode" [value]="syscoMode()" (change)="onSyscoModeChange($event)">
             <option value="test">Test / Sandbox</option>
             <option value="production">Production</option>
           </select>
@@ -168,8 +168,8 @@
           />
         </div>
         <div class="col-md-6">
-          <label class="form-label">Mode</label>
-          <select class="form-select form-select-sm" [value]="gfsMode()" (change)="onGfsModeChange($event)">
+          <label for="gfsMode" class="form-label">Mode</label>
+          <select class="form-select form-select-sm" id="gfsMode" [value]="gfsMode()" (change)="onGfsModeChange($event)">
             <option value="test">Test / Sandbox</option>
             <option value="production">Production</option>
           </select>
