@@ -4,6 +4,7 @@ import { CurrencyPipe } from '@angular/common';
 import { MenuService } from '@services/menu';
 import { ModifierService } from '@services/modifier';
 import { AuthService } from '@services/auth';
+import { PlatformService } from '@services/platform';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
 import {
@@ -16,6 +17,7 @@ import {
   NutritionFacts,
   BarcodeFormat,
   CsvImportResult,
+  CateringPricingTier,
 } from '@models/index';
 
 export type SortField = 'name' | 'price' | 'category' | 'prepTime';
@@ -39,6 +41,7 @@ export class ItemManagement {
   readonly menuService = inject(MenuService);
   private readonly modifierService = inject(ModifierService);
   private readonly authService = inject(AuthService);
+  readonly platformService = inject(PlatformService);
 
   readonly isAuthenticated = this.authService.isAuthenticated;
   readonly allergenTypes = ALL_ALLERGEN_TYPES;
@@ -90,6 +93,10 @@ export class ItemManagement {
   private readonly _isUploadingImage = signal(false);
   private readonly _imagePreview = signal<string | null>(null);
 
+  // Catering pricing tiers
+  private readonly _cateringPricingTiers = signal<CateringPricingTier[]>([]);
+  private readonly _showCateringPricingSection = signal(false);
+
   readonly editingItem = this._editingItem.asReadonly();
   readonly showForm = this._showForm.asReadonly();
   readonly isSaving = this._isSaving.asReadonly();
@@ -115,6 +122,8 @@ export class ItemManagement {
   readonly isImporting = this._isImporting.asReadonly();
   readonly isUploadingImage = this._isUploadingImage.asReadonly();
   readonly imagePreview = this._imagePreview.asReadonly();
+  readonly cateringPricingTiers = this._cateringPricingTiers.asReadonly();
+  readonly showCateringPricingSection = this._showCateringPricingSection.asReadonly();
 
   readonly items = this.menuService.allItems;
   readonly categories = this.menuService.categories;
@@ -228,6 +237,7 @@ export class ItemManagement {
   toggleAvailabilitySection(): void { this._showAvailabilitySection.update(v => !v); }
   toggleAllergenSection(): void { this._showAllergenSection.update(v => !v); }
   toggleNutritionSection(): void { this._showNutritionSection.update(v => !v); }
+  toggleCateringPricingSection(): void { this._showCateringPricingSection.update(v => !v); }
 
   // ============ Channel Visibility ============
 
@@ -303,6 +313,25 @@ export class ItemManagement {
     return this._formAvailabilityWindows()[index]?.daysOfWeek.includes(day) ?? false;
   }
 
+  // ============ Catering Pricing Tiers ============
+
+  addPricingTier(): void {
+    this._cateringPricingTiers.update(tiers => [
+      ...tiers,
+      { model: 'per_person', price: 0 },
+    ]);
+  }
+
+  removePricingTier(index: number): void {
+    this._cateringPricingTiers.update(tiers => tiers.filter((_, i) => i !== index));
+  }
+
+  updatePricingTier(index: number, field: keyof CateringPricingTier, value: unknown): void {
+    this._cateringPricingTiers.update(tiers =>
+      tiers.map((t, i) => i === index ? { ...t, [field]: value } : t)
+    );
+  }
+
   // ============ Nutrition ============
 
   updateNutrition(field: keyof NutritionFacts, value: string): void {
@@ -320,6 +349,7 @@ export class ItemManagement {
     this._editingItem.set(null);
     this._imagePreview.set(null);
     this._selectedModifierGroupIds.set([]);
+    this._cateringPricingTiers.set([]);
     this._formAllergens.set([]);
     this._formAvailabilityWindows.set([]);
     this._formChannelVisibility.set({ pos: true, onlineOrdering: true, kiosk: true, deliveryApps: true });
@@ -342,6 +372,7 @@ export class ItemManagement {
     this._editingItem.set(item);
     this._imagePreview.set(item.imageUrl ?? null);
     this._selectedModifierGroupIds.set(item.modifierGroups?.map(g => g.id) ?? []);
+    this._cateringPricingTiers.set(item.cateringPricing ?? []);
     this._formAllergens.set(item.allergens ?? []);
     this._formAvailabilityWindows.set(item.availabilityWindows ?? []);
     this._formChannelVisibility.set(item.channelVisibility ?? {
@@ -375,6 +406,7 @@ export class ItemManagement {
   duplicateItem(item: MenuItem): void {
     this._editingItem.set(null);
     this._selectedModifierGroupIds.set(item.modifierGroups?.map(g => g.id) ?? []);
+    this._cateringPricingTiers.set(item.cateringPricing ?? []);
     this._formAllergens.set(item.allergens ?? []);
     this._formAvailabilityWindows.set(item.availabilityWindows ?? []);
     this._formChannelVisibility.set(item.channelVisibility ?? {
@@ -458,6 +490,7 @@ export class ItemManagement {
         channelVisibility: this._formChannelVisibility(),
         allergens: this._formAllergens(),
         availabilityWindows: this._formAvailabilityWindows(),
+        cateringPricing: this._cateringPricingTiers(),
       };
 
       // Only include nutrition if at least one field is set

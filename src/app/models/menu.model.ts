@@ -76,6 +76,17 @@ export interface MenuItem {
   // --- Sell by weight (Square parity) ---
   soldByWeight?: boolean;
   weightUnit?: WeightUnit;
+
+  // --- Catering pricing ---
+  cateringPricing?: CateringPricingTier[];
+}
+
+export interface CateringPricingTier {
+  model: 'per_person' | 'per_tray' | 'flat';
+  price: number;
+  minimumQuantity?: number;
+  servesQuantity?: number;
+  label?: string;
 }
 
 export interface ModifierGroup {

@@ -128,6 +128,13 @@ export interface CateringPackage {
   minimumHeadcount: number;
   description?: string;
   menuItemIds: string[];
+  menuItems?: { id: string; name: string; pricingTier?: CateringPackageItemTier }[];
+}
+
+export interface CateringPackageItemTier {
+  model: 'per_person' | 'per_tray' | 'flat';
+  price: number;
+  label?: string;
 }
 
 export interface CateringMilestonePayment {

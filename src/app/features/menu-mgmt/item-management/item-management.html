@@ -113,6 +113,17 @@
               <span class="price fw-bold">{{ item.price | currency }}</span>
             </div>
 
+            <!-- Catering pricing badges -->
+            @if (item.cateringPricing && item.cateringPricing.length > 0) {
+              <div class="catering-pricing-badges mb-2">
+                @for (tier of item.cateringPricing; track $index) {
+                  <span class="badge bg-primary me-1">
+                    {{ tier.label ? tier.label + ': ' : '' }}{{ tier.price | currency }}/{{ tier.model === 'per_person' ? 'person' : tier.model === 'per_tray' ? 'tray' : 'flat' }}
+                  </span>
+                }
+              </div>
+            }
+
             <!-- Allergen badges -->
             @if (item.allergens && item.allergens.length > 0) {
               <div class="allergen-badges mb-2">
@@ -475,6 +486,76 @@
                 </div>
               }
             </div>
+
+            <!-- Catering Pricing Section (collapsible, catering mode only) -->
+            @if (platformService.isCateringMode()) {
+              <div class="collapsible-section">
+                <button type="button" class="section-toggle" (click)="toggleCateringPricingSection()">
+                  <i class="bi" [class.bi-chevron-right]="!showCateringPricingSection()" [class.bi-chevron-down]="showCateringPricingSection()"></i>
+                  Catering Pricing
+                  @if (cateringPricingTiers().length > 0) {
+                    <span class="badge bg-primary ms-2">{{ cateringPricingTiers().length }}</span>
+                  }
+                </button>
+                @if (showCateringPricingSection()) {
+                  <div class="section-body">
+                    @for (tier of cateringPricingTiers(); track $index; let i = $index) {
+                      <div class="catering-tier-row mb-3 p-2 border rounded">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                          <span class="fw-semibold small">Tier {{ i + 1 }}</span>
+                          <button type="button" class="btn btn-sm btn-outline-danger" (click)="removePricingTier(i)">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </div>
+                        <div class="row g-2">
+                          <div class="col-md-3">
+                            <label class="form-label small">Pricing Model</label>
+                            <select class="form-select form-select-sm" [value]="tier.model"
+                              (change)="updatePricingTier(i, 'model', $any($event.target).value)">
+                              <option value="per_person">Per Person</option>
+                              <option value="per_tray">Per Tray</option>
+                              <option value="flat">Flat Rate</option>
+                            </select>
+                          </div>
+                          <div class="col-md-2">
+                            <label class="form-label small">Price ($)</label>
+                            <input type="number" class="form-control form-control-sm" min="0" step="0.01"
+                              [value]="tier.price"
+                              (input)="updatePricingTier(i, 'price', +$any($event.target).value)">
+                          </div>
+                          <div class="col-md-2">
+                            <label class="form-label small">Min Qty</label>
+                            <input type="number" class="form-control form-control-sm" min="0"
+                              [value]="tier.minimumQuantity ?? ''"
+                              (input)="updatePricingTier(i, 'minimumQuantity', $any($event.target).value ? +$any($event.target).value : undefined)">
+                          </div>
+                          @if (tier.model === 'per_tray') {
+                            <div class="col-md-2">
+                              <label class="form-label small">Serves</label>
+                              <input type="number" class="form-control form-control-sm" min="1"
+                                [value]="tier.servesQuantity ?? ''"
+                                (input)="updatePricingTier(i, 'servesQuantity', $any($event.target).value ? +$any($event.target).value : undefined)">
+                            </div>
+                          }
+                          <div class="col-md-3">
+                            <label class="form-label small">Label</label>
+                            <input type="text" class="form-control form-control-sm"
+                              placeholder="e.g. Half Tray"
+                              [value]="tier.label ?? ''"
+                              (input)="updatePricingTier(i, 'label', $any($event.target).value || undefined)">
+                          </div>
+                        </div>
+                      </div>
+                    } @empty {
+                      <p class="text-muted small mb-2">No pricing tiers set. Add tiers to enable this item for catering packages.</p>
+                    }
+                    <button type="button" class="btn btn-sm btn-outline-light" (click)="addPricingTier()">
+                      <i class="bi bi-plus-lg"></i> Add Pricing Tier
+                    </button>
+                  </div>
+                }
+              </div>
+            }
 
             <!-- Nutrition Facts Section (collapsible) -->
             <div class="collapsible-section">

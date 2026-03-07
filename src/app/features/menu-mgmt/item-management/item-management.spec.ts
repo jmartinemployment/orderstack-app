@@ -8,6 +8,7 @@ import { ItemManagement, SortField } from './item-management';
 import { MenuService } from '@services/menu';
 import { ModifierService } from '@services/modifier';
 import { AuthService } from '@services/auth';
+import { PlatformService } from '@services/platform';
 import type { MenuItem, MenuCategory, ModifierGroup, ReportingCategory } from '@models/index';
 
 function createMockAuthService() {
@@ -51,6 +52,17 @@ function createMockMenuService() {
   };
 }
 
+function createMockPlatformService(catering = false) {
+  return {
+    isCateringMode: computed(() => catering),
+    currentDeviceMode: signal<string>('full_service').asReadonly(),
+    merchantProfile: signal(null).asReadonly(),
+    isLoading: signal(false).asReadonly(),
+    createMerchantEarly: vi.fn(),
+    loadMerchantProfile: vi.fn(),
+  };
+}
+
 function createMockModifierService() {
   return {
     groups: signal<ModifierGroup[]>([
@@ -76,6 +88,7 @@ describe('ItemManagement', () => {
         { provide: AuthService, useValue: createMockAuthService() },
         { provide: MenuService, useValue: menuService },
         { provide: ModifierService, useValue: createMockModifierService() },
+        { provide: PlatformService, useValue: createMockPlatformService() },
         { provide: HttpClient, useValue: { get: vi.fn().mockReturnValue(of([])) } },
       ],
     });
@@ -426,5 +439,60 @@ describe('ItemManagement', () => {
   it('retry reloads menu', () => {
     component.retry();
     expect(menuService.loadMenu).toHaveBeenCalled();
+  });
+
+  // --- Catering Pricing Tiers ---
+
+  it('addPricingTier adds a default tier', () => {
+    component.openCreateForm();
+    expect(component.cateringPricingTiers().length).toBe(0);
+    component.addPricingTier();
+    expect(component.cateringPricingTiers().length).toBe(1);
+    expect(component.cateringPricingTiers()[0].model).toBe('per_person');
+  });
+
+  it('removePricingTier removes by index', () => {
+    component.openCreateForm();
+    component.addPricingTier();
+    component.addPricingTier();
+    component.removePricingTier(0);
+    expect(component.cateringPricingTiers().length).toBe(1);
+  });
+
+  it('updatePricingTier updates field', () => {
+    component.openCreateForm();
+    component.addPricingTier();
+    component.updatePricingTier(0, 'price', 8.5);
+    expect(component.cateringPricingTiers()[0].price).toBe(8.5);
+  });
+
+  it('updatePricingTier changes model', () => {
+    component.openCreateForm();
+    component.addPricingTier();
+    component.updatePricingTier(0, 'model', 'per_tray');
+    expect(component.cateringPricingTiers()[0].model).toBe('per_tray');
+  });
+
+  it('openEditForm loads cateringPricing from item', () => {
+    const item = {
+      ...createTestItems()[0],
+      cateringPricing: [{ model: 'per_person' as const, price: 12 }],
+    } as MenuItem;
+    component.openEditForm(item);
+    expect(component.cateringPricingTiers().length).toBe(1);
+    expect(component.cateringPricingTiers()[0].price).toBe(12);
+  });
+
+  it('includes cateringPricing in save payload', async () => {
+    component.openCreateForm();
+    component.itemForm.patchValue({ name: 'Catering Item', price: 10, categoryId: 'cat-1' });
+    component.addPricingTier();
+    component.updatePricingTier(0, 'price', 8.5);
+    await component.saveItem();
+    expect(menuService.createItem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cateringPricing: [{ model: 'per_person', price: 8.5 }],
+      })
+    );
   });
 });

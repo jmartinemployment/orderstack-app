@@ -351,3 +351,49 @@ describe('MenuService — filterAvailableItems', () => {
     expect(filterAvailableItems(items, ['dp-1'], new Date())).toHaveLength(1);
   });
 });
+
+// --- Catering pricing helpers ---
+
+function filterCateringItems(items: MenuItem[]): MenuItem[] {
+  return items.filter(item => (item.cateringPricing ?? []).length > 0);
+}
+
+describe('MenuService — cateringItems', () => {
+  it('filters to items with catering pricing tiers', () => {
+    const items = [
+      makeItem({ id: 'mi-1', cateringPricing: [{ model: 'per_person', price: 8.5 }] }),
+      makeItem({ id: 'mi-2' }),
+    ];
+    const result = filterCateringItems(items);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('mi-1');
+  });
+
+  it('returns empty when no items have pricing', () => {
+    const items = [
+      makeItem({ id: 'mi-1' }),
+      makeItem({ id: 'mi-2', cateringPricing: [] }),
+    ];
+    expect(filterCateringItems(items)).toHaveLength(0);
+  });
+
+  it('includes items with multiple tiers', () => {
+    const items = [
+      makeItem({
+        id: 'mi-1',
+        cateringPricing: [
+          { model: 'per_person', price: 8.5, minimumQuantity: 10 },
+          { model: 'per_tray', price: 85, servesQuantity: 12, label: 'Full Tray' },
+        ],
+      }),
+    ];
+    const result = filterCateringItems(items);
+    expect(result).toHaveLength(1);
+    expect(result[0].cateringPricing).toHaveLength(2);
+  });
+
+  it('handles undefined cateringPricing gracefully', () => {
+    const items = [makeItem({ cateringPricing: undefined })];
+    expect(filterCateringItems(items)).toHaveLength(0);
+  });
+});

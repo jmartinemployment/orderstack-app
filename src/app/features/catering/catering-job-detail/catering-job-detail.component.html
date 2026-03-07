@@ -293,6 +293,21 @@
                   @if (pkg.description) {
                     <p class="text-muted small mb-2">{{ pkg.description }}</p>
                   }
+                  @if (pkg.menuItems && pkg.menuItems.length > 0) {
+                    <div class="mb-2">
+                      <span class="text-muted small fw-semibold">Items:</span>
+                      <div class="d-flex flex-wrap gap-1 mt-1">
+                        @for (mi of pkg.menuItems; track mi.id) {
+                          <span class="badge bg-light text-secondary border">
+                            {{ mi.name }}
+                            @if (mi.pricingTier) {
+                              <span class="ms-1">({{ mi.pricingTier.price | currency }})</span>
+                            }
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  }
                   @if (j.selectedPackageId !== pkg.id) {
                     <button type="button" class="btn btn-sm btn-outline-primary w-100" (click)="selectPackage(pkg.id)" [disabled]="isSaving()">
                       Select Package
@@ -346,6 +361,46 @@
             <label class="form-label">Description</label>
             <textarea class="form-control" rows="2" [(ngModel)]="pkgDescription"></textarea>
           </div>
+
+          <!-- Menu Item Picker -->
+          <div class="mb-3">
+            <label class="form-label">Menu Items</label>
+            @if (cateringItems().length === 0) {
+              <div class="text-muted small p-3 border rounded text-center">
+                <i class="bi bi-info-circle me-1"></i>
+                No catering items available. Add pricing tiers to menu items in
+                <a routerLink="/app/menu" class="text-primary">Menu Management</a>.
+              </div>
+            } @else {
+              <div class="catering-item-picker border rounded" style="max-height: 240px; overflow-y: auto;">
+                @for (item of cateringItems(); track item.id) {
+                  <div class="d-flex align-items-center gap-2 px-3 py-2 border-bottom" [class.bg-primary-subtle]="isMenuItemSelected(item.id)">
+                    <input type="checkbox" class="form-check-input" [checked]="isMenuItemSelected(item.id)"
+                      (change)="toggleMenuItem(item.id)">
+                    <div class="flex-grow-1">
+                      <span class="fw-semibold small">{{ item.name }}</span>
+                    </div>
+                    @if (isMenuItemSelected(item.id) && item.cateringPricing && item.cateringPricing.length > 1) {
+                      <select class="form-select form-select-sm" style="max-width: 180px;"
+                        (change)="selectItemTier(item.id, item.cateringPricing![$any($event.target).selectedIndex])">
+                        @for (tier of item.cateringPricing; track $index) {
+                          <option [selected]="getSelectedTier(item.id)?.model === tier.model && getSelectedTier(item.id)?.price === tier.price">
+                            {{ tier.label ? tier.label + ': ' : '' }}{{ tier.price | currency }}/{{ tier.model === 'per_person' ? 'pp' : tier.model === 'per_tray' ? 'tray' : 'flat' }}
+                          </option>
+                        }
+                      </select>
+                    } @else if (isMenuItemSelected(item.id) && item.cateringPricing && item.cateringPricing.length === 1) {
+                      <span class="badge bg-secondary small">
+                        {{ item.cateringPricing[0].price | currency }}/{{ item.cateringPricing[0].model === 'per_person' ? 'pp' : item.cateringPricing[0].model === 'per_tray' ? 'tray' : 'flat' }}
+                      </span>
+                    }
+                  </div>
+                }
+              </div>
+              <div class="text-muted small mt-1">{{ selectedMenuItemIds().length }} item{{ selectedMenuItemIds().length !== 1 ? 's' : '' }} selected</div>
+            }
+          </div>
+
           <div class="d-flex gap-2 justify-content-end">
             <button type="button" class="btn btn-outline-secondary" (click)="showPackageForm.set(false)">Cancel</button>
             <button type="button" class="btn btn-primary" (click)="savePackage()" [disabled]="isSaving()">Save</button>

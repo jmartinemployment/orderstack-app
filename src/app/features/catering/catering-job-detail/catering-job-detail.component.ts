@@ -1,12 +1,14 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CurrencyPipe, DatePipe, PercentPipe } from '@angular/common';
 import { CateringService } from '@services/catering.service';
+import { MenuService } from '@services/menu';
 import {
   CateringJob,
   CateringJobStatus,
   CateringPackage,
+  CateringPackageItemTier,
   CateringMilestonePayment,
   CateringActivity,
   CateringTasting,
@@ -16,12 +18,14 @@ import {
   CATERING_STATUS_TRANSITIONS,
   defaultCateringMilestones,
   defaultDietaryRequirements,
+  MenuItem,
+  CateringPricingTier,
 } from '@models/index';
 
 @Component({
   selector: 'os-catering-job-detail',
   standalone: true,
-  imports: [FormsModule, CurrencyPipe, DatePipe, PercentPipe],
+  imports: [FormsModule, CurrencyPipe, DatePipe, PercentPipe, RouterLink],
   templateUrl: './catering-job-detail.component.html',
   styleUrl: './catering-job-detail.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,6 +34,7 @@ export class CateringJobDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly cateringService = inject(CateringService);
+  private readonly menuService = inject(MenuService);
 
   readonly job = signal<CateringJob | null>(null);
   readonly activities = signal<CateringActivity[]>([]);
@@ -47,6 +52,13 @@ export class CateringJobDetailComponent implements OnInit {
   pkgPricePerUnit = 0;
   pkgMinHeadcount = 0;
   pkgDescription = '';
+
+  // Catering menu item picker
+  readonly cateringItems = computed(() => this.menuService.cateringItems());
+  private readonly _selectedMenuItemIds = signal<string[]>([]);
+  private readonly _selectedTiers = signal<Record<string, CateringPricingTier>>({});
+  readonly selectedMenuItemIds = this._selectedMenuItemIds.asReadonly();
+  readonly selectedTiers = this._selectedTiers.asReadonly();
 
   // Milestone editor
   readonly showMilestoneForm = signal(false);
@@ -117,6 +129,7 @@ export class CateringJobDetailComponent implements OnInit {
       this.router.navigate(['/app/catering']);
       return;
     }
+    this.menuService.loadMenu();
     await this.loadJob(id);
   }
 
@@ -208,6 +221,8 @@ export class CateringJobDetailComponent implements OnInit {
     this.pkgPricePerUnit = 0;
     this.pkgMinHeadcount = 0;
     this.pkgDescription = '';
+    this._selectedMenuItemIds.set([]);
+    this._selectedTiers.set({});
     this.showPackageForm.set(true);
   }
 
@@ -219,7 +234,59 @@ export class CateringJobDetailComponent implements OnInit {
     this.pkgPricePerUnit = pkg.pricePerUnit;
     this.pkgMinHeadcount = pkg.minimumHeadcount;
     this.pkgDescription = pkg.description ?? '';
+    this._selectedMenuItemIds.set([...pkg.menuItemIds]);
+    const tiers: Record<string, CateringPricingTier> = {};
+    for (const mi of pkg.menuItems ?? []) {
+      if (mi.pricingTier) {
+        tiers[mi.id] = { model: mi.pricingTier.model, price: mi.pricingTier.price, label: mi.pricingTier.label };
+      }
+    }
+    this._selectedTiers.set(tiers);
     this.showPackageForm.set(true);
+  }
+
+  toggleMenuItem(itemId: string): void {
+    const ids = this._selectedMenuItemIds();
+    if (ids.includes(itemId)) {
+      this._selectedMenuItemIds.set(ids.filter(id => id !== itemId));
+      this._selectedTiers.update(t => {
+        const copy = { ...t };
+        delete copy[itemId];
+        return copy;
+      });
+    } else {
+      this._selectedMenuItemIds.set([...ids, itemId]);
+      const item = this.cateringItems().find(i => i.id === itemId);
+      if (item?.cateringPricing?.[0]) {
+        this._selectedTiers.update(t => ({ ...t, [itemId]: item.cateringPricing![0] }));
+      }
+    }
+  }
+
+  isMenuItemSelected(itemId: string): boolean {
+    return this._selectedMenuItemIds().includes(itemId);
+  }
+
+  selectItemTier(itemId: string, tier: CateringPricingTier): void {
+    this._selectedTiers.update(t => ({ ...t, [itemId]: tier }));
+  }
+
+  getSelectedTier(itemId: string): CateringPricingTier | undefined {
+    return this._selectedTiers()[itemId];
+  }
+
+  private buildMenuItemsSnapshot(): CateringPackage['menuItems'] {
+    const selectedIds = this._selectedMenuItemIds();
+    const tiers = this._selectedTiers();
+    return selectedIds.map(id => {
+      const item = this.cateringItems().find(i => i.id === id);
+      const tier = tiers[id];
+      return {
+        id,
+        name: item?.name ?? 'Unknown',
+        pricingTier: tier ? { model: tier.model, price: tier.price, label: tier.label } : undefined,
+      };
+    });
   }
 
   async savePackage(): Promise<void> {
@@ -228,12 +295,14 @@ export class CateringJobDetailComponent implements OnInit {
 
     this.isSaving.set(true);
     const existing = this.editingPackage();
+    const menuItemIds = this._selectedMenuItemIds();
+    const menuItems = this.buildMenuItemsSnapshot();
     let packages: CateringPackage[];
 
     if (existing) {
       packages = j.packages.map(p =>
         p.id === existing.id
-          ? { ...p, name: this.pkgName, tier: this.pkgTier, pricingModel: this.pkgPricingModel, pricePerUnit: this.pkgPricePerUnit, minimumHeadcount: this.pkgMinHeadcount, description: this.pkgDescription }
+          ? { ...p, name: this.pkgName, tier: this.pkgTier, pricingModel: this.pkgPricingModel, pricePerUnit: this.pkgPricePerUnit, minimumHeadcount: this.pkgMinHeadcount, description: this.pkgDescription, menuItemIds, menuItems }
           : p
       );
     } else {
@@ -245,7 +314,8 @@ export class CateringJobDetailComponent implements OnInit {
         pricePerUnit: this.pkgPricePerUnit,
         minimumHeadcount: this.pkgMinHeadcount,
         description: this.pkgDescription,
-        menuItemIds: [],
+        menuItemIds,
+        menuItems,
       };
       packages = [...j.packages, newPkg];
     }

@@ -108,6 +108,12 @@ export class MenuService {
     });
   });
 
+  readonly cateringItems = computed(() =>
+    this.allItems().filter(item =>
+      (item.cateringPricing ?? []).length > 0
+    )
+  );
+
   readonly popularItems = computed(() =>
     this.allItems().filter(item => item.popular || item.isPopular)
   );
