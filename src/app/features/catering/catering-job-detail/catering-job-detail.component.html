@@ -28,7 +28,7 @@
             {{ statusConfig[status].label }}
           </button>
         }
-        <button type="button" class="btn btn-sm btn-outline-primary" (click)="sendProposal()" [disabled]="isSaving() || j.packages.length === 0">
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="sendProposal()" [disabled]="isSaving()">
           <i class="bi bi-send me-1"></i> Send Proposal
         </button>
         <button type="button" class="btn btn-sm btn-outline-secondary" (click)="openBeo()">
