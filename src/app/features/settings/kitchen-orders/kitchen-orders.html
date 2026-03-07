@@ -51,8 +51,9 @@
 
   <!-- Course Pacing Mode -->
   <div class="panel mb-3">
-    <div class="panel-title">Course Pacing Mode</div>
+    <label class="panel-title" for="coursePacingMode">Course Pacing Mode</label>
     <select class="form-select"
+      id="coursePacingMode"
       [ngModel]="coursePacingMode()"
       (ngModelChange)="onCoursePacingModeChange($event)"
       [disabled]="!isManagerOrAbove()">
