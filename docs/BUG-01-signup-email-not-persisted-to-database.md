@@ -1,6 +1,8 @@
 BUG-01: Signup Email Not Persisted to Database
 
 Reported: 2026-03-07
+Resolved: 2026-03-07
+Status: CLOSED — Verified fixed in production
 Project: OrderStack (orderstack-app + Get-Order-Stack-Restaurant-Backend)
 Severity: Critical — new merchant accounts are created without an email address stored in the database, making password reset, email notifications, and account lookup by email impossible.
 

@@ -153,8 +153,8 @@ export class GeneralSettings implements OnInit {
       country: 'US',
       timezone: this._timezone(),
       phone: this._phone() || null,
-      lat: this.platformService.merchantProfile()?.address.lat ?? null,
-      lng: this.platformService.merchantProfile()?.address.lng ?? null,
+      lat: this.platformService.merchantProfile()?.address?.lat ?? null,
+      lng: this.platformService.merchantProfile()?.address?.lng ?? null,
     };
 
     await this.platformService.saveMerchantProfile({
@@ -174,15 +174,15 @@ export class GeneralSettings implements OnInit {
     if (!profile) return;
 
     this._businessName.set(profile.businessName);
-    this._street.set(profile.address.street);
-    this._street2.set(profile.address.street2 ?? '');
-    this._city.set(profile.address.city);
-    this._state.set(profile.address.state);
-    this._zip.set(profile.address.zip);
-    this._phone.set(profile.address.phone ?? '');
-    this._timezone.set(profile.address.timezone);
+    this._street.set(profile.address?.street ?? '');
+    this._street2.set(profile.address?.street2 ?? '');
+    this._city.set(profile.address?.city ?? '');
+    this._state.set(profile.address?.state ?? '');
+    this._zip.set(profile.address?.zip ?? '');
+    this._phone.set(profile.address?.phone ?? '');
+    this._timezone.set(profile.address?.timezone ?? 'America/New_York');
     this._businessHours.set(
-      profile.businessHours.length > 0
+      (profile.businessHours ?? []).length > 0
         ? structuredClone(profile.businessHours)
         : DAYS.map(day => ({ day, open: '09:00', close: '22:00', closed: false }))
     );
