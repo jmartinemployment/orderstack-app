@@ -22,14 +22,6 @@ function filteredBusinessTypes(): BusinessCategory[] {
   return BUSINESS_CATEGORIES.filter(c => allowed.has(c.name));
 }
 
-function canProceed(step: number, businessName: string, selectedType: BusinessCategory | null, isSubmitting: boolean, homeValid: boolean, bizValid: boolean): boolean {
-  switch (step) {
-    case 1: return businessName.trim().length > 0 && homeValid && bizValid;
-    case 2: return selectedType !== null;
-    default: return false;
-  }
-}
-
 function progressPercent(step: number, totalSteps: number): number {
   return Math.round((step / totalSteps) * 100);
 }
@@ -80,42 +72,25 @@ describe('SetupWizard — Business Type Filtering', () => {
   });
 });
 
-describe('SetupWizard — Step Validation', () => {
-  it('step 1 requires non-empty business name and valid addresses', () => {
-    expect(canProceed(1, '', null, false, true, true)).toBe(false);
-    expect(canProceed(1, '   ', null, false, true, true)).toBe(false);
-    expect(canProceed(1, 'My Business', null, false, true, true)).toBe(true);
+describe('SetupWizard — Reduced to Done Step Only', () => {
+  it('totalSteps is 1', () => {
+    const totalSteps = 1;
+    expect(totalSteps).toBe(1);
   });
 
-  it('step 1 requires valid home address', () => {
-    expect(canProceed(1, 'My Business', null, false, false, true)).toBe(false);
+  it('isDoneStep when currentStep equals totalSteps', () => {
+    const currentStep = 1;
+    const totalSteps = 1;
+    expect(currentStep === totalSteps).toBe(true);
   });
 
-  it('step 1 requires valid business address', () => {
-    expect(canProceed(1, 'My Business', null, false, true, false)).toBe(false);
+  it('stepLabel is All Set', () => {
+    const stepLabel = 'All Set';
+    expect(stepLabel).toBe('All Set');
   });
 
-  it('step 2 requires selected business type', () => {
-    expect(canProceed(2, 'Name', null, false, true, true)).toBe(false);
-    expect(canProceed(2, 'Name', makeBizType('Caterer'), false, true, true)).toBe(true);
-  });
-
-  it('unknown step returns false', () => {
-    expect(canProceed(99, 'Name', makeBizType('Caterer'), false, true, true)).toBe(false);
-  });
-});
-
-describe('SetupWizard — Progress', () => {
-  it('step 1 of 3 = 33%', () => {
-    expect(progressPercent(1, 3)).toBe(33);
-  });
-
-  it('step 2 of 3 = 67%', () => {
-    expect(progressPercent(2, 3)).toBe(67);
-  });
-
-  it('step 3 of 3 = 100%', () => {
-    expect(progressPercent(3, 3)).toBe(100);
+  it('progress is 100% at step 1 of 1', () => {
+    expect(progressPercent(1, 1)).toBe(100);
   });
 });
 

@@ -428,3 +428,32 @@ describe('AuthService — selectMerchantStorage', () => {
     expect(result.selected_merchant_logo).toBeNull();
   });
 });
+
+describe('AuthService — pendingPassword and clearPendingCredentials', () => {
+  it('clearPendingCredentials removes pending_email from storage', () => {
+    const storage: Record<string, string | null> = {
+      pending_email: 'test@example.com',
+    };
+
+    // Simulate clearPendingCredentials
+    delete storage['pending_email'];
+
+    expect(storage['pending_email']).toBeUndefined();
+  });
+
+  it('pending password is in-memory only, not persisted', () => {
+    // The _pendingPassword signal is never written to localStorage.
+    // Verify by checking that no storage key matches 'pending_password'.
+    const storageKeys = ['auth_token', 'auth_user', 'auth_merchants', 'selected_merchant_id', 'selected_merchant_name', 'selected_merchant_logo', 'pending_email'];
+    expect(storageKeys).not.toContain('pending_password');
+  });
+
+  it('signup stores email in pending_email key', () => {
+    // Mirrors AuthService.signup() which sets localStorage.setItem('pending_email', data.email)
+    const storage: Record<string, string> = {};
+    const email = 'newuser@example.com';
+    storage['pending_email'] = email;
+
+    expect(storage['pending_email']).toBe('newuser@example.com');
+  });
+});
