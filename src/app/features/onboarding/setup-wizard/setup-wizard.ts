@@ -1040,8 +1040,8 @@ export class SetupWizard implements OnInit {
     }
 
     // If merchant was pre-created on /business-type, persist the business name
-    // entered on Step 1 (it wasn't saved during createMerchantEarly)
-    if (current === 2 && this._onboardingDone() && this._businessName().trim()) {
+    // entered on Step 1 (it was stored as "My Business" during createMerchantEarly)
+    if (current === 1 && this._onboardingDone() && this._businessName().trim()) {
       await this.platformService.updateMerchantName(this._businessName().trim());
     }
 

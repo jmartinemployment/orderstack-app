@@ -40,7 +40,7 @@ export class BusinessTypeSelect {
     const defaultDeviceMode = type === 'catering' ? 'catering' : 'full_service';
 
     const result = await this.platformService.createMerchantEarly(
-      businessCategory,
+      'My Business',
       businessCategory,
       'food_and_drink',
       defaultDeviceMode,
