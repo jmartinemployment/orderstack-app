@@ -238,7 +238,7 @@
             @for (pct of stpTipPercentages(); track pct; let i = $index) {
               <span class="stp-tip-chip">
                 {{ pct }}%
-                <button type="button" class="stp-chip-remove" (click)="removeTipPercentage(i)">
+                <button type="button" class="stp-chip-remove" [attr.aria-label]="'Remove ' + pct + '% tip option'" (click)="removeTipPercentage(i)">
                   <i class="bi bi-x"></i>
                 </button>
               </span>
@@ -254,7 +254,7 @@
                 (input)="setStpCustomTip($any($event.target).value)"
                 (keydown.enter)="addTipPercentage()"
               />
-              <button type="button" class="btn btn-sm btn-outline-primary" (click)="addTipPercentage()">
+              <button type="button" class="btn btn-sm btn-outline-primary" aria-label="Add tip percentage" (click)="addTipPercentage()">
                 <i class="bi bi-plus"></i>
               </button>
             </div>
