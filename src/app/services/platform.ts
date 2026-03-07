@@ -343,7 +343,7 @@ export class PlatformService {
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant/${id}/merchant-profile`,
+          `${this.apiUrl}/merchant/${id}/merchant-profile`,
           { businessName: name }
         )
       );
