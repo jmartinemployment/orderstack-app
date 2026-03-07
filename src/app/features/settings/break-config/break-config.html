@@ -55,20 +55,20 @@
     <h6 class="mb-3">Workweek Configuration</h6>
     <div class="row g-3">
       <div class="col-md-4">
-        <label class="form-label">Week Starts On</label>
-        <select class="form-select" [value]="wwStartDay()" (change)="setWwStartDay(+$any($event.target).value)">
+        <label for="wwStartDay" class="form-label">Week Starts On</label>
+        <select id="wwStartDay" class="form-select" [value]="wwStartDay()" (change)="setWwStartDay(+$any($event.target).value)">
           @for (day of dayLabels; track $index) {
             <option [value]="$index">{{ day }}</option>
           }
         </select>
       </div>
       <div class="col-md-4">
-        <label class="form-label">Day Starts At</label>
-        <input type="time" class="form-control" [value]="wwStartTime()" (input)="setWwStartTime($any($event.target).value)">
+        <label for="wwStartTime" class="form-label">Day Starts At</label>
+        <input id="wwStartTime" type="time" class="form-control" [value]="wwStartTime()" (input)="setWwStartTime($any($event.target).value)">
       </div>
       <div class="col-md-4">
-        <label class="form-label">Overtime After (hours/week)</label>
-        <input type="number" class="form-control" [value]="wwOtThreshold()" (input)="setWwOtThreshold(+$any($event.target).value)" min="20" max="60" step="1">
+        <label for="wwOtThreshold" class="form-label">Overtime After (hours/week)</label>
+        <input id="wwOtThreshold" type="number" class="form-control" [value]="wwOtThreshold()" (input)="setWwOtThreshold(+$any($event.target).value)" min="20" max="60" step="1">
       </div>
     </div>
     @if (wwIsDirty()) {
@@ -95,13 +95,13 @@
     @if (tcScheduleEnforcement()) {
       <div class="row g-3 ms-3">
         <div class="col-md-6">
-          <label class="form-label">Early clock-in grace (minutes)</label>
-          <input type="number" class="form-control" [value]="tcEarlyGraceMinutes()" (input)="setTcEarlyGrace(+$any($event.target).value)" min="0" max="60">
+          <label for="tcEarlyGrace" class="form-label">Early clock-in grace (minutes)</label>
+          <input id="tcEarlyGrace" type="number" class="form-control" [value]="tcEarlyGraceMinutes()" (input)="setTcEarlyGrace(+$any($event.target).value)" min="0" max="60">
           <div class="text-muted small mt-1">Allow clock-in this many minutes before shift start.</div>
         </div>
         <div class="col-md-6">
-          <label class="form-label">Late clock-in threshold (minutes)</label>
-          <input type="number" class="form-control" [value]="tcLateThresholdMinutes()" (input)="setTcLateThreshold(+$any($event.target).value)" min="1" max="60">
+          <label for="tcLateThreshold" class="form-label">Late clock-in threshold (minutes)</label>
+          <input id="tcLateThreshold" type="number" class="form-control" [value]="tcLateThresholdMinutes()" (input)="setTcLateThreshold(+$any($event.target).value)" min="1" max="60">
           <div class="text-muted small mt-1">Flag clock-ins this many minutes after shift start.</div>
         </div>
       </div>
@@ -117,8 +117,8 @@
     <h6 class="mb-3">Auto Clock-Out</h6>
     <div class="row g-3">
       <div class="col-md-6">
-        <label class="form-label">Auto clock-out mode</label>
-        <select class="form-select" [value]="tcAutoClockOutMode()" (change)="setAutoClockOutMode($any($event.target).value)">
+        <label for="tcAutoClockOutMode" class="form-label">Auto clock-out mode</label>
+        <select id="tcAutoClockOutMode" class="form-select" [value]="tcAutoClockOutMode()" (change)="setAutoClockOutMode($any($event.target).value)">
           <option value="never">Never</option>
           <option value="after_shift_end">After shift end</option>
           <option value="business_day_cutoff">Business day cutoff</option>
@@ -127,15 +127,15 @@
 
       @if (tcAutoClockOutMode() === 'after_shift_end') {
         <div class="col-md-6">
-          <label class="form-label">Delay after shift end (minutes)</label>
-          <input type="number" class="form-control" [value]="tcAutoClockOutDelay()" (input)="setAutoClockOutDelay(+$any($event.target).value)" min="5" max="120">
+          <label for="tcAutoClockOutDelay" class="form-label">Delay after shift end (minutes)</label>
+          <input id="tcAutoClockOutDelay" type="number" class="form-control" [value]="tcAutoClockOutDelay()" (input)="setAutoClockOutDelay(+$any($event.target).value)" min="5" max="120">
         </div>
       }
 
       @if (tcAutoClockOutMode() === 'business_day_cutoff') {
         <div class="col-md-6">
-          <label class="form-label">Business day cutoff time</label>
-          <input type="time" class="form-control" [value]="tcBusinessDayCutoff()" (input)="setBusinessDayCutoff($any($event.target).value)">
+          <label for="tcBusinessDayCutoff" class="form-label">Business day cutoff time</label>
+          <input id="tcBusinessDayCutoff" type="time" class="form-control" [value]="tcBusinessDayCutoff()" (input)="setBusinessDayCutoff($any($event.target).value)">
         </div>
       }
     </div>
