@@ -176,7 +176,7 @@ export class PrinterSettings implements OnInit {
   startEdit(printer: Printer): void {
     this._editingPrinter.set(printer);
     this._editName.set(printer.name);
-    this._editModel.set(printer.model as PrinterModel);
+    this._editModel.set(printer.model);
     this._editIpAddress.set(printer.ipAddress ?? '');
     this._editPrintWidth.set(printer.printWidth);
     this._editIsDefault.set(printer.isDefault);
@@ -256,22 +256,22 @@ export class PrinterSettings implements OnInit {
 
   onFormSelect(field: string, event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
-    switch (field) {
-      case 'model': this._formModel.set(value as PrinterModel); break;
+    if (field === 'model') {
+      this._formModel.set(value as PrinterModel);
     }
   }
 
   onFormNumber(field: string, event: Event): void {
     const value = Number.parseInt((event.target as HTMLInputElement).value, 10);
-    switch (field) {
-      case 'printWidth': this._formPrintWidth.set(value || 48); break;
+    if (field === 'printWidth') {
+      this._formPrintWidth.set(value || 48);
     }
   }
 
   onFormCheckbox(field: string, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
-    switch (field) {
-      case 'isDefault': this._formIsDefault.set(checked); break;
+    if (field === 'isDefault') {
+      this._formIsDefault.set(checked);
     }
   }
 
@@ -285,22 +285,22 @@ export class PrinterSettings implements OnInit {
 
   onEditSelect(field: string, event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
-    switch (field) {
-      case 'model': this._editModel.set(value as PrinterModel); break;
+    if (field === 'model') {
+      this._editModel.set(value as PrinterModel);
     }
   }
 
   onEditNumber(field: string, event: Event): void {
     const value = Number.parseInt((event.target as HTMLInputElement).value, 10);
-    switch (field) {
-      case 'printWidth': this._editPrintWidth.set(value || 48); break;
+    if (field === 'printWidth') {
+      this._editPrintWidth.set(value || 48);
     }
   }
 
   onEditCheckbox(field: string, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
-    switch (field) {
-      case 'isDefault': this._editIsDefault.set(checked); break;
+    if (field === 'isDefault') {
+      this._editIsDefault.set(checked);
     }
   }
 

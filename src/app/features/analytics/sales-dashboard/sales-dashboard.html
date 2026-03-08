@@ -296,8 +296,8 @@
           <h6>New Sales Goal</h6>
 
           <div class="goal-form-field">
-            <label>Period</label>
-            <div class="btn-group-sm">
+            <label id="goal-period-label">Period</label>
+            <div class="btn-group-sm" role="group" aria-labelledby="goal-period-label">
               @for (type of ['daily', 'weekly', 'monthly']; track type) {
                 <button
                   class="btn btn-sm"
@@ -311,8 +311,9 @@
           </div>
 
           <div class="goal-form-field">
-            <label>Target Revenue ($)</label>
+            <label for="goal-target-revenue">Target Revenue ($)</label>
             <input
+              id="goal-target-revenue"
               type="number"
               class="form-control form-control-sm"
               min="1"
@@ -324,8 +325,9 @@
 
           <div class="goal-form-row">
             <div class="goal-form-field">
-              <label>Start Date</label>
+              <label for="goal-start-date">Start Date</label>
               <input
+                id="goal-start-date"
                 type="date"
                 class="form-control form-control-sm"
                 aria-label="Goal start date"
@@ -333,8 +335,9 @@
                 (ngModelChange)="setGoalStartDate($event)">
             </div>
             <div class="goal-form-field">
-              <label>End Date</label>
+              <label for="goal-end-date">End Date</label>
               <input
+                id="goal-end-date"
                 type="date"
                 class="form-control form-control-sm"
                 aria-label="Goal end date"

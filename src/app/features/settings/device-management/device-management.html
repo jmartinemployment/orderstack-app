@@ -46,7 +46,7 @@
     <h6 class="section-label mb-2">Active</h6>
     <div class="device-list mb-3">
       @for (device of activeDevices(); track device.id) {
-        <div class="device-row" [class.selected]="selectedDeviceId() === device.id" (click)="selectDevice(device.id)" (keydown.enter)="selectDevice(device.id)" tabindex="0" role="button">
+        <div class="device-row" [class.selected]="selectedDeviceId() === device.id" (click)="selectDevice(device.id)" (keydown.enter)="selectDevice(device.id)" tabindex="0">
           <div class="d-flex align-items-center gap-2 flex-grow-1">
             <span class="status-dot status-active"></span>
             <div>
@@ -82,7 +82,7 @@
     <h6 class="section-label mb-2">Pending Pairing</h6>
     <div class="device-list mb-3">
       @for (device of pendingDevices(); track device.id) {
-        <div class="device-row" [class.selected]="selectedDeviceId() === device.id" [class.expired]="isExpired(device)" (click)="selectDevice(device.id)" (keydown.enter)="selectDevice(device.id)" tabindex="0" role="button">
+        <div class="device-row" [class.selected]="selectedDeviceId() === device.id" [class.expired]="isExpired(device)" (click)="selectDevice(device.id)" (keydown.enter)="selectDevice(device.id)" tabindex="0">
           <div class="d-flex align-items-center gap-2 flex-grow-1">
             <span class="status-dot status-pending"></span>
             <div>
@@ -126,7 +126,7 @@
     <h6 class="section-label mb-2">Revoked</h6>
     <div class="device-list mb-3">
       @for (device of revokedDevices(); track device.id) {
-        <div class="device-row revoked" [class.selected]="selectedDeviceId() === device.id" (click)="selectDevice(device.id)" (keydown.enter)="selectDevice(device.id)" tabindex="0" role="button">
+        <div class="device-row revoked" [class.selected]="selectedDeviceId() === device.id" (click)="selectDevice(device.id)" (keydown.enter)="selectDevice(device.id)" tabindex="0">
           <div class="d-flex align-items-center gap-2 flex-grow-1">
             <span class="status-dot status-revoked"></span>
             <div>
@@ -162,7 +162,7 @@
 
   <!-- Generate Code Modal -->
   @if (showGenerateForm()) {
-    <div class="modal-backdrop" (click)="closeGenerateForm()" (keydown.enter)="closeGenerateForm()" tabindex="0" role="button"></div>
+    <div class="modal-backdrop" (click)="closeGenerateForm()" (keydown.enter)="closeGenerateForm()" tabindex="0"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">

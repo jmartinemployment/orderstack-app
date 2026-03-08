@@ -176,7 +176,7 @@
 
   <!-- ============ Team Member Form Modal ============ -->
   @if (showTeamMemberForm()) {
-    <div class="modal-backdrop" (click)="closeTeamMemberForm()" (keydown.enter)="closeTeamMemberForm()" tabindex="0" role="button"></div>
+    <div class="modal-backdrop" (click)="closeTeamMemberForm()" (keydown.enter)="closeTeamMemberForm()" tabindex="0"></div>
     <div class="modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -245,7 +245,7 @@
           <!-- Jobs Section -->
           <div class="mt-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <label class="form-label mb-0">Jobs</label>
+              <label class="form-label mb-0" id="jobs-section-label">Jobs</label>
               <button class="btn btn-outline-light btn-sm" (click)="addJobRow()">
                 <i class="bi bi-plus"></i> Add Job
               </button>
@@ -264,14 +264,14 @@
                   </div>
                   <div class="col-md-2">
                     <div class="form-check">
-                      <input class="form-check-input" type="checkbox" aria-label="Tip eligible" [checked]="job.isTipEligible" (change)="updateJobField($index, 'isTipEligible', $any($event.target).checked)">
-                      <label class="form-check-label small">Tips</label>
+                      <input class="form-check-input" type="checkbox" [id]="'job-tip-' + $index" aria-label="Tip eligible" [checked]="job.isTipEligible" (change)="updateJobField($index, 'isTipEligible', $any($event.target).checked)">
+                      <label class="form-check-label small" [for]="'job-tip-' + $index">Tips</label>
                     </div>
                   </div>
                   <div class="col-md-2">
                     <div class="form-check">
-                      <input class="form-check-input" type="checkbox" aria-label="Primary job" [checked]="job.isPrimary" (change)="updateJobField($index, 'isPrimary', $any($event.target).checked)">
-                      <label class="form-check-label small">Primary</label>
+                      <input class="form-check-input" type="checkbox" [id]="'job-primary-' + $index" aria-label="Primary job" [checked]="job.isPrimary" (change)="updateJobField($index, 'isPrimary', $any($event.target).checked)">
+                      <label class="form-check-label small" [for]="'job-primary-' + $index">Primary</label>
                     </div>
                   </div>
                   <div class="col-md-1">
@@ -301,7 +301,7 @@
 
   <!-- ============ Permission Set Form Modal ============ -->
   @if (showPermissionForm()) {
-    <div class="modal-backdrop" (click)="closePermissionForm()" (keydown.enter)="closePermissionForm()" tabindex="0" role="button"></div>
+    <div class="modal-backdrop" (click)="closePermissionForm()" (keydown.enter)="closePermissionForm()" tabindex="0"></div>
     <div class="modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -319,7 +319,7 @@
               <div class="perm-category">
                 <h6 class="perm-category-label">{{ getCategoryLabel(category) }}</h6>
                 @for (perm of getPermissionsByCategory(category); track perm.key) {
-                  <div class="perm-item" (click)="togglePermission(perm.key)" (keydown.enter)="togglePermission(perm.key)" tabindex="0" role="button">
+                  <button type="button" class="perm-item" (click)="togglePermission(perm.key)">
                     <input
                       class="form-check-input"
                       type="checkbox"
@@ -330,7 +330,7 @@
                       <span class="perm-label">{{ perm.label }}</span>
                       <span class="perm-desc">{{ perm.description }}</span>
                     </div>
-                  </div>
+                  </button>
                 }
               </div>
             }
@@ -392,7 +392,7 @@
 
   <!-- ============ Create/Edit PIN Modal ============ -->
   @if (showPinForm()) {
-    <div class="modal-backdrop" (click)="closePinForm()" (keydown.enter)="closePinForm()" tabindex="0" role="button"></div>
+    <div class="modal-backdrop" (click)="closePinForm()" (keydown.enter)="closePinForm()" tabindex="0"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -441,7 +441,7 @@
 
   <!-- ============ Change Password Modal ============ -->
   @if (showPasswordForm()) {
-    <div class="modal-backdrop" (click)="closePasswordForm()" (keydown.enter)="closePasswordForm()" tabindex="0" role="button"></div>
+    <div class="modal-backdrop" (click)="closePasswordForm()" (keydown.enter)="closePasswordForm()" tabindex="0"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -484,7 +484,7 @@
 
   <!-- ============ Deactivation Confirmation Modal ============ -->
   @if (showConfirmDeactivate()) {
-    <div class="modal-backdrop" (click)="cancelDeactivate()" (keydown.enter)="cancelDeactivate()" tabindex="0" role="button"></div>
+    <div class="modal-backdrop" (click)="cancelDeactivate()" (keydown.enter)="cancelDeactivate()" tabindex="0"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">

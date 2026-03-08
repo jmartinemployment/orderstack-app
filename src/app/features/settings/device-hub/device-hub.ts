@@ -13,7 +13,6 @@ import {
   DeviceHubTab,
   DeviceType,
   DeviceFormData,
-  Device,
   DeviceMode,
   DeviceModeFormData,
   DeviceModeSettings,

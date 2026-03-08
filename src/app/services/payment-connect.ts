@@ -47,7 +47,7 @@ export class PaymentConnectService {
 
     try {
       // Step 1: Create account
-      const createRes = await firstValueFrom(
+      await firstValueFrom(
         this.http.post<{ accountId: string }>(`${this.apiUrl}/merchant/${rid}/connect/stripe/create-account`, {}),
       );
 

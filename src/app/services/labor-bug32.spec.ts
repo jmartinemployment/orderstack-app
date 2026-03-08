@@ -110,6 +110,7 @@ describe('LaborService — BUG-32 staff scheduling API 404 handling', () => {
 
       await svc.loadTimecards();
       http.expectNone(`${base}/timecards`);
+      expect(svc.timecards().length).toBe(0);
     });
   });
 

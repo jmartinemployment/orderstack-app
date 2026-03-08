@@ -12,11 +12,9 @@ import type {
   QuickKeyFormData,
   StoreCredit,
   LayawayRecord,
-  LayawayPayment,
   ReceiptTemplate,
   ReturnRequest,
   ReturnPolicy,
-  RefundMethod,
 } from '../models/retail.model';
 import { RetailCatalogService } from './retail-catalog';
 import { RetailInventoryService } from './retail-inventory';

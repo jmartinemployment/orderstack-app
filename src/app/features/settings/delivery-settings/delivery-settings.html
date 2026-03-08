@@ -837,7 +837,7 @@
 
   <!-- Driver Form Modal -->
   @if (showDriverForm()) {
-    <div class="modal-overlay" (click)="closeDriverForm()" (keydown.enter)="closeDriverForm()" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="closeDriverForm()" (keydown.enter)="closeDriverForm()" tabindex="0">
       <div class="driver-form-modal card" (click)="$event.stopPropagation()">
         <div class="card-header">
           <h5 class="mb-0">{{ editingDriver() ? 'Edit Driver' : 'Add Driver' }}</h5>

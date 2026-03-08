@@ -708,7 +708,7 @@ export const MENU_TEMPLATES: MenuTemplate[] = [
           { name: 'Bacon', description: null, price: 1.49, sortOrder: 2, prepTimeMinutes: 0, sku: null, durationMinutes: null },
           { name: 'Avocado', description: null, price: 1.49, sortOrder: 3, prepTimeMinutes: 0, sku: null, durationMinutes: null },
           { name: 'Extra Patty', description: null, price: 2.99, sortOrder: 4, prepTimeMinutes: 5, sku: null, durationMinutes: null },
-          { name: 'Side of Ranch', description: null, price: 0.50, sortOrder: 5, prepTimeMinutes: 0, sku: null, durationMinutes: null },
+          { name: 'Side of Ranch', description: null, price: 0.5, sortOrder: 5, prepTimeMinutes: 0, sku: null, durationMinutes: null },
         ],
       },
     ],

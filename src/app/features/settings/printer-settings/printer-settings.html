@@ -44,7 +44,7 @@
         <p class="mb-2 small">{{ np.name }} is ready for configuration.</p>
       }
       <div class="mb-2">
-        <label class="form-label small">CloudPRNT Server URL</label>
+        <label class="form-label small" id="cloudprnt-url-label">CloudPRNT Server URL</label>
         <div class="d-flex gap-2">
           <code class="cloudprnt-url flex-fill">{{ config.serverUrl }}</code>
           <button type="button" class="btn btn-sm btn-outline-info" (click)="copyCloudPrntUrl()">
@@ -302,7 +302,7 @@
 
   <!-- Delete Confirmation Modal -->
   @if (deletingPrinter(); as dp) {
-    <div class="modal-backdrop" (click)="cancelDelete()" (keydown.enter)="cancelDelete()" tabindex="0" role="button"></div>
+    <div class="modal-backdrop" (click)="cancelDelete()" (keydown.enter)="cancelDelete()" tabindex="0"></div>
     <div class="stock-modal">
       <h5 class="mb-3">Delete Printer</h5>
       <div class="alert alert-warning small mb-3">

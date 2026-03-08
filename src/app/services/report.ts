@@ -6,7 +6,6 @@ import { PlatformService } from '@services/platform';
 import { environment } from '@environments/environment';
 import {
   ReportBlock,
-  ReportBlockType,
   SavedReport,
   SavedReportFormData,
   ReportSchedule,

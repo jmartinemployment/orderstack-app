@@ -5,8 +5,6 @@ import {
   computed,
   OnDestroy,
   afterNextRender,
-  ElementRef,
-  inject,
 } from '@angular/core';
 import { TestimonialCardComponent } from './testimonial-card.component';
 import { TESTIMONIALS_HEADER, TESTIMONIALS } from '../marketing.config';

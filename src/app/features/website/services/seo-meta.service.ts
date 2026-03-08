@@ -42,7 +42,7 @@ export class SeoMetaService {
 
     // Canonical
     const canonical = config.canonical ?? `${BASE_URL}${config.path}`;
-    let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    let link = document.querySelector('link[rel="canonical"]');
     if (!link) {
       link = document.createElement('link');
       link.setAttribute('rel', 'canonical');

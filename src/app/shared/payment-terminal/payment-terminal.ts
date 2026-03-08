@@ -64,9 +64,10 @@ export class PaymentTerminal {
 
     const initiated = await this.paymentService.initiatePayment(this.orderId(), this.amount());
     if (!initiated) {
+      const errorMsg = this.paymentService.error() ?? 'Failed to start payment';
       this._state.set('failed');
-      this._error.set(this.paymentService.error() ?? 'Failed to start payment');
-      this.paymentFailed.emit(this._error()!);
+      this._error.set(errorMsg);
+      this.paymentFailed.emit(errorMsg);
       return;
     }
 
@@ -74,17 +75,19 @@ export class PaymentTerminal {
     setTimeout(async () => {
       const container = this.paypalContainer()?.nativeElement;
       if (!container) {
+        const errorMsg = 'Payment UI container not available';
         this._state.set('failed');
-        this._error.set('Payment UI container not available');
-        this.paymentFailed.emit(this._error()!);
+        this._error.set(errorMsg);
+        this.paymentFailed.emit(errorMsg);
         return;
       }
 
       const mounted = await this.paymentService.mountPaymentUI(container);
       if (!mounted) {
+        const errorMsg = 'Failed to load payment buttons';
         this._state.set('failed');
-        this._error.set('Failed to load payment buttons');
-        this.paymentFailed.emit(this._error()!);
+        this._error.set(errorMsg);
+        this.paymentFailed.emit(errorMsg);
         return;
       }
 
@@ -95,14 +98,16 @@ export class PaymentTerminal {
           this._state.set('success');
           this.paymentComplete.emit();
         } else {
+          const errorMsg = 'Payment was not approved';
           this._state.set('failed');
-          this._error.set('Payment was not approved');
-          this.paymentFailed.emit(this._error()!);
+          this._error.set(errorMsg);
+          this.paymentFailed.emit(errorMsg);
         }
       } catch (err: unknown) {
+        const errorMsg = err instanceof Error ? err.message : 'Payment failed';
         this._state.set('failed');
-        this._error.set(err instanceof Error ? err.message : 'Payment failed');
-        this.paymentFailed.emit(this._error()!);
+        this._error.set(errorMsg);
+        this.paymentFailed.emit(errorMsg);
       }
     });
   }
@@ -116,9 +121,10 @@ export class PaymentTerminal {
 
     const initiated = await this.paymentService.initiatePayment(this.orderId(), this.amount());
     if (!initiated) {
+      const errorMsg = this.paymentService.error() ?? 'Failed to start payment';
       this._state.set('failed');
-      this._error.set(this.paymentService.error() ?? 'Failed to start payment');
-      this.paymentFailed.emit(this._error()!);
+      this._error.set(errorMsg);
+      this.paymentFailed.emit(errorMsg);
       return;
     }
 
@@ -135,14 +141,16 @@ export class PaymentTerminal {
           this._state.set('success');
           this.paymentComplete.emit();
         } else {
+          const errorMsg = 'Card payment was not approved';
           this._state.set('failed');
-          this._error.set('Card payment was not approved');
-          this.paymentFailed.emit(this._error()!);
+          this._error.set(errorMsg);
+          this.paymentFailed.emit(errorMsg);
         }
       } catch (err: unknown) {
+        const errorMsg = err instanceof Error ? err.message : 'Card payment failed';
         this._state.set('failed');
-        this._error.set(err instanceof Error ? err.message : 'Card payment failed');
-        this.paymentFailed.emit(this._error()!);
+        this._error.set(errorMsg);
+        this.paymentFailed.emit(errorMsg);
       }
     });
   }

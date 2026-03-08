@@ -76,7 +76,7 @@
   } @else {
     <div class="gc-list">
       @for (card of filteredCards(); track card.id) {
-        <div class="gc-card" (click)="openDetail(card)" (keydown.enter)="openDetail(card)" tabindex="0" role="button">
+        <div class="gc-card" (click)="openDetail(card)" (keydown.enter)="openDetail(card)" tabindex="0">
           <div class="d-flex justify-content-between align-items-start mb-1">
             <div>
               <code class="gc-code">{{ card.code }}</code>
@@ -112,7 +112,7 @@
 
   <!-- Create Form Modal -->
   @if (showCreateForm()) {
-    <div class="gc-modal-overlay" (click)="closeCreateForm()" (keydown.enter)="closeCreateForm()" tabindex="0" role="button">
+    <div class="gc-modal-overlay" (click)="closeCreateForm()" (keydown.enter)="closeCreateForm()" tabindex="0">
       <div class="gc-modal" (click)="$event.stopPropagation()">
         <div class="gc-modal-header">
           <h5 class="mb-0">Create Gift Card</h5>
@@ -121,7 +121,7 @@
         <div class="gc-modal-body">
           <!-- Type -->
           <div class="mb-3">
-            <label class="form-label small">Type</label>
+            <label class="form-label small" id="gc-type-label">Type</label>
             <div class="d-flex gap-2">
               <button type="button" class="btn btn-sm"
                 [class.btn-primary]="formType() === 'digital'"
@@ -140,7 +140,7 @@
 
           <!-- Amount -->
           <div class="mb-3">
-            <label class="form-label small">Amount</label>
+            <label class="form-label small" id="gc-amount-label">Amount</label>
             <div class="d-flex flex-wrap gap-2">
               @for (amt of amounts; track amt) {
                 <button type="button" class="btn btn-sm gc-amount-btn"
@@ -226,7 +226,7 @@
 
   <!-- Detail Modal -->
   @if (showDetail(); as card) {
-    <div class="gc-modal-overlay" (click)="closeDetail()" (keydown.enter)="closeDetail()" tabindex="0" role="button">
+    <div class="gc-modal-overlay" (click)="closeDetail()" (keydown.enter)="closeDetail()" tabindex="0">
       <div class="gc-modal" (click)="$event.stopPropagation()">
         <div class="gc-modal-header">
           <h5 class="mb-0">Gift Card Details</h5>
@@ -326,7 +326,7 @@
 
   <!-- Activate Physical Card Modal -->
   @if (showActivateForm()) {
-    <div class="gc-modal-overlay" (click)="closeActivateForm()" (keydown.enter)="closeActivateForm()" tabindex="0" role="button">
+    <div class="gc-modal-overlay" (click)="closeActivateForm()" (keydown.enter)="closeActivateForm()" tabindex="0">
       <div class="gc-modal" (click)="$event.stopPropagation()">
         <div class="gc-modal-header">
           <h5 class="mb-0">Activate Physical Card</h5>
@@ -353,7 +353,7 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label small">Amount to Load</label>
+            <label class="form-label small" id="activate-amount-label">Amount to Load</label>
             <div class="d-flex flex-wrap gap-2">
               @for (amt of amounts; track amt) {
                 <button type="button" class="btn btn-sm gc-amount-btn"

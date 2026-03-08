@@ -1,7 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { Customer, CustomerSegment, CustomerSegmentInfo, SavedAddress, SavedAddressFormData, FeedbackRequest, Referral, ReferralConfig, SmartGroup, SmartGroupFormData, MessageThread, CustomerMessage, MessageTemplate } from '../models';
+import { Customer, CustomerSegmentInfo, SavedAddress, SavedAddressFormData, FeedbackRequest, Referral, ReferralConfig, SmartGroup, SmartGroupFormData, MessageThread, CustomerMessage, MessageTemplate } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
 

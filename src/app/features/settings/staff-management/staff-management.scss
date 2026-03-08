@@ -294,6 +294,12 @@
   border-radius: 0.25rem;
   cursor: pointer;
   transition: background-color 0.15s;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  width: 100%;
 
   &:hover {
     background-color: rgba(0, 106, 255, 0.06);

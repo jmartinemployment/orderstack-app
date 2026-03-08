@@ -122,11 +122,14 @@ export class MainLayoutComponent {
     const modules = this.platform.enabledModules();
     const alerts = this.sidebarAlerts();
 
-    const items: NavItem[] = catering
-      ? this.buildCateringNav()
-      : this.isQuickServiceMode()
-        ? this.buildQuickServiceNav(flags, modules)
-        : this.buildDefaultNav(retail, service, restaurant, mode, flags, modules);
+    let items: NavItem[];
+    if (catering) {
+      items = this.buildCateringNav();
+    } else if (this.isQuickServiceMode()) {
+      items = this.buildQuickServiceNav(flags, modules);
+    } else {
+      items = this.buildDefaultNav(retail, service, restaurant, mode, flags, modules);
+    }
 
     // Apply alert severities from service signals
     for (const item of items) {
@@ -284,16 +287,18 @@ export class MainLayoutComponent {
     }
 
     // Menu & Promotions
-    items.push({
-      label: 'Items', icon: 'bi-book', route: '/app/menu', dividerBefore: true,
-      children: [
-        { label: 'Categories', icon: 'bi-grid', route: '/app/menu/categories' },
-        { label: 'Modifiers', icon: 'bi-sliders', route: '/app/menu/modifiers' },
-        { label: 'Combos', icon: 'bi-layers', route: '/app/menu/combos' },
-      ],
-    });
-    items.push({ label: 'Discounts', icon: 'bi-tag', route: '/app/discounts' });
-    items.push({ label: 'Gift Cards', icon: 'bi-gift', route: '/app/gift-cards' });
+    items.push(
+      {
+        label: 'Items', icon: 'bi-book', route: '/app/menu', dividerBefore: true,
+        children: [
+          { label: 'Categories', icon: 'bi-grid', route: '/app/menu/categories' },
+          { label: 'Modifiers', icon: 'bi-sliders', route: '/app/menu/modifiers' },
+          { label: 'Combos', icon: 'bi-layers', route: '/app/menu/combos' },
+        ],
+      },
+      { label: 'Discounts', icon: 'bi-tag', route: '/app/discounts' },
+      { label: 'Gift Cards', icon: 'bi-gift', route: '/app/gift-cards' },
+    );
 
     // Guests
     items.push({ label: 'Customers', icon: 'bi-people', route: '/app/customers', dividerBefore: true });
@@ -302,40 +307,45 @@ export class MainLayoutComponent {
     }
 
     // Business
-    items.push({
-      label: 'Reports', icon: 'bi-bar-chart-line', route: '/app/reports', dividerBefore: true,
-      children: [
-        { label: 'Sales Summary', icon: 'bi-graph-up', route: '/app/reports/sales' },
-        { label: 'Hourly Sales', icon: 'bi-clock', route: '/app/reports/hourly' },
-        { label: 'Item Velocity', icon: 'bi-speedometer', route: '/app/reports/items' },
-        { label: 'Labor Cost', icon: 'bi-person-workspace', route: '/app/reports/labor' },
-      ],
-    });
-    items.push({
-      label: 'Staff', icon: 'bi-person-badge', route: '/app/staff',
-      children: [
-        { label: 'Team', icon: 'bi-people', route: '/app/staff' },
-        { label: 'Scheduling', icon: 'bi-calendar-week', route: '/app/staff/scheduling' },
-        { label: 'Time Clock', icon: 'bi-stopwatch', route: '/app/staff/time-clock' },
-      ],
-    });
+    items.push(
+      {
+        label: 'Reports', icon: 'bi-bar-chart-line', route: '/app/reports', dividerBefore: true,
+        children: [
+          { label: 'Sales Summary', icon: 'bi-graph-up', route: '/app/reports/sales' },
+          { label: 'Hourly Sales', icon: 'bi-clock', route: '/app/reports/hourly' },
+          { label: 'Item Velocity', icon: 'bi-speedometer', route: '/app/reports/items' },
+          { label: 'Labor Cost', icon: 'bi-person-workspace', route: '/app/reports/labor' },
+        ],
+      },
+      {
+        label: 'Staff', icon: 'bi-person-badge', route: '/app/staff',
+        children: [
+          { label: 'Team', icon: 'bi-people', route: '/app/staff' },
+          { label: 'Scheduling', icon: 'bi-calendar-week', route: '/app/staff/scheduling' },
+          { label: 'Time Clock', icon: 'bi-stopwatch', route: '/app/staff/time-clock' },
+        ],
+      },
+    );
     if (hasModule(modules, 'inventory')) {
-      items.push({ label: 'Inventory', icon: 'bi-box-seam', route: '/app/inventory' });
-      items.push({ label: 'Suppliers', icon: 'bi-truck', route: '/app/suppliers' });
+      items.push(
+        { label: 'Inventory', icon: 'bi-box-seam', route: '/app/inventory' },
+        { label: 'Suppliers', icon: 'bi-truck', route: '/app/suppliers' },
+      );
     }
-    items.push({ label: 'Marketing', icon: 'bi-megaphone', route: '/app/marketing' });
-
     // Config
-    items.push({
-      label: 'Settings', icon: 'bi-gear', route: '/app/settings', dividerBefore: true,
-      children: [
-        { label: 'Hardware', icon: 'bi-printer', route: '/app/settings/hardware' },
-        { label: 'Payments', icon: 'bi-credit-card', route: '/app/settings/payments' },
-        { label: 'Tax & Fees', icon: 'bi-percent', route: '/app/settings/tax' },
-        { label: 'Notifications', icon: 'bi-bell', route: '/app/settings/notifications' },
-        { label: 'Integrations', icon: 'bi-plug', route: '/app/settings/integrations' },
-      ],
-    });
+    items.push(
+      { label: 'Marketing', icon: 'bi-megaphone', route: '/app/marketing' },
+      {
+        label: 'Settings', icon: 'bi-gear', route: '/app/settings', dividerBefore: true,
+        children: [
+          { label: 'Hardware', icon: 'bi-printer', route: '/app/settings/hardware' },
+          { label: 'Payments', icon: 'bi-credit-card', route: '/app/settings/payments' },
+          { label: 'Tax & Fees', icon: 'bi-percent', route: '/app/settings/tax' },
+          { label: 'Notifications', icon: 'bi-bell', route: '/app/settings/notifications' },
+          { label: 'Integrations', icon: 'bi-plug', route: '/app/settings/integrations' },
+        ],
+      },
+    );
 
     return items;
   }
@@ -401,16 +411,18 @@ export class MainLayoutComponent {
       items.push({ label: 'Online', icon: 'bi-globe', route: '/app/online-ordering' });
     }
 
-    items.push({ label: 'Customers', icon: 'bi-people', route: '/app/customers' });
-    items.push({ label: 'Reports', icon: 'bi-bar-chart-line', route: '/app/reports' });
-    items.push({
-      label: 'Staff',
-      icon: 'bi-person-badge',
-      route: '/app/staff',
-      children: [
-        { label: 'Scheduling', icon: 'bi-calendar-week', route: '/app/staff/scheduling' },
-      ],
-    });
+    items.push(
+      { label: 'Customers', icon: 'bi-people', route: '/app/customers' },
+      { label: 'Reports', icon: 'bi-bar-chart-line', route: '/app/reports' },
+      {
+        label: 'Staff',
+        icon: 'bi-person-badge',
+        route: '/app/staff',
+        children: [
+          { label: 'Scheduling', icon: 'bi-calendar-week', route: '/app/staff/scheduling' },
+        ],
+      },
+    );
 
     if (retail) {
       items.push({ label: 'Inventory', icon: 'bi-box-seam', route: '/app/retail/inventory' });
@@ -442,8 +454,10 @@ export class MainLayoutComponent {
     }
 
     if (retail) {
-      items.push({ label: 'Vendors', icon: 'bi-truck', route: '/app/retail/vendors' });
-      items.push({ label: 'Fulfillment', icon: 'bi-box2', route: '/app/retail/fulfillment' });
+      items.push(
+        { label: 'Vendors', icon: 'bi-truck', route: '/app/retail/vendors' },
+        { label: 'Fulfillment', icon: 'bi-box2', route: '/app/retail/fulfillment' },
+      );
     }
 
     if (mode === 'bookings') {

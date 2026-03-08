@@ -505,7 +505,7 @@ export class DeliveryService {
       const query = params.toString();
 
       const response = await fetch(
-        `${this.apiUrl}/merchant/${this.merchantId}/marketplace/status-sync/jobs${query ? `?${query}` : ''}`,
+        `${this.apiUrl}/merchant/${this.merchantId}/marketplace/status-sync/jobs${query ? '?' + query : ''}`,
         { headers: this.buildAuthHeaders() },
       );
       if (!response.ok) {
@@ -773,7 +773,7 @@ export class DeliveryService {
     }
     try {
       const text = await response.text();
-      return text || fallback;
+      return text ?? fallback;
     } catch {
       return fallback;
     }

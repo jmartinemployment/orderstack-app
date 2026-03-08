@@ -7,7 +7,6 @@ import {
   NotificationChannel,
   SmsProvider,
   EmailProvider,
-  defaultNotificationSettings,
 } from '@models/index';
 
 @Component({

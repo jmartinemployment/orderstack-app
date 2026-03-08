@@ -1,6 +1,5 @@
 import { OrderType, CustomerInfo } from './order.model';
-import { MenuItem, Modifier } from './menu.model';
-import { WeightUnit } from './menu.model';
+import { MenuItem, Modifier, WeightUnit } from './menu.model';
 
 export interface CartItem {
   id: string;

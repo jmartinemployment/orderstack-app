@@ -85,7 +85,7 @@
       } @else {
         <div class="invoice-list">
           @for (invoice of filteredInvoices(); track invoice.id) {
-            <div class="invoice-card" role="button" tabindex="0" (click)="selectInvoice(invoice)" (keydown.enter)="selectInvoice(invoice)">
+            <div class="invoice-card" tabindex="0" [attr.aria-label]="'View invoice: ' + invoice.invoiceNumber" (click)="selectInvoice(invoice)" (keydown.enter)="selectInvoice(invoice)">
               <div class="d-flex justify-content-between align-items-start">
                 <div>
                   <div class="invoice-number">{{ invoice.invoiceNumber }}</div>
@@ -151,7 +151,7 @@
 
     <!-- INVOICE DETAIL MODAL -->
     @if (selectedInvoice(); as detail) {
-      <div class="modal-backdrop" role="button" tabindex="0" (click)="closeDetail()" (keydown.enter)="closeDetail()"></div>
+      <div class="modal-backdrop" (click)="closeDetail()"></div>
       <div class="detail-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-start mb-3">
           <div>
@@ -277,7 +277,7 @@
 
     <!-- CREATE INVOICE FORM MODAL -->
     @if (showInvoiceForm()) {
-      <div class="modal-backdrop" role="button" tabindex="0" (click)="closeInvoiceForm()" (keydown.enter)="closeInvoiceForm()"></div>
+      <div class="modal-backdrop" (click)="closeInvoiceForm()"></div>
       <div class="form-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">New Invoice</h4>
@@ -377,7 +377,7 @@
         <div class="d-flex gap-2">
           <button type="button" class="btn btn-primary" [disabled]="!canSaveInvoice() || isSaving()" (click)="saveInvoice()">
             @if (isSaving()) {
-              <span class="spinner-border spinner-border-sm me-1"></span>
+              <span class="spinner-border spinner-border-sm me-1" role="status"><span class="visually-hidden">Saving...</span></span>
             }
             Create Invoice
           </button>
@@ -388,7 +388,7 @@
 
     <!-- CREATE HOUSE ACCOUNT FORM MODAL -->
     @if (showAccountForm()) {
-      <div class="modal-backdrop" role="button" tabindex="0" (click)="closeAccountForm()" (keydown.enter)="closeAccountForm()"></div>
+      <div class="modal-backdrop" (click)="closeAccountForm()"></div>
       <div class="form-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">New House Account</h4>
@@ -431,7 +431,7 @@
         <div class="d-flex gap-2">
           <button type="button" class="btn btn-primary" [disabled]="!canSaveAccount() || isSaving()" (click)="saveHouseAccount()">
             @if (isSaving()) {
-              <span class="spinner-border spinner-border-sm me-1"></span>
+              <span class="spinner-border spinner-border-sm me-1" role="status"><span class="visually-hidden">Saving...</span></span>
             }
             Create Account
           </button>

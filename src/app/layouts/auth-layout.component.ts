@@ -64,7 +64,7 @@ import { RouterOutlet, ActivatedRoute } from '@angular/router';
 export class AuthLayoutComponent {
   isSignup = false;
 
-  constructor(private route: ActivatedRoute) {
+  constructor(private readonly route: ActivatedRoute) {
     const path = this.route.snapshot.routeConfig?.path;
     this.isSignup = path === 'signup' || path === 'login';
   }

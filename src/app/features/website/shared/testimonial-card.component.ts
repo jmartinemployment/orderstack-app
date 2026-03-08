@@ -138,5 +138,5 @@ export class TestimonialCardComponent {
   readonly testimonial = input.required<Testimonial>();
 
   readonly stars = computed(() => Array.from({ length: this.testimonial().rating }));
-  readonly initial = computed(() => this.testimonial().authorName.charAt(0));
+  readonly initial = computed(() => this.testimonial().authorName.at(0) ?? '');
 }

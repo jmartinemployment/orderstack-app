@@ -134,7 +134,7 @@ export function calculateDenominationTotal(d: CashDenomination): number {
     d.fives * 5 +
     d.ones * 1 +
     d.quarters * 0.25 +
-    d.dimes * 0.10 +
+    d.dimes * 0.1 +
     d.nickels * 0.05 +
     d.pennies * 0.01
   );

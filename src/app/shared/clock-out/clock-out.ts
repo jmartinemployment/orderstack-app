@@ -11,7 +11,7 @@ import {
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { LaborService } from '@services/labor';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
-import { Timecard, BreakType, Shift } from '@models/index';
+import { BreakType, Shift } from '@models/index';
 
 @Component({
   selector: 'os-clock-out',
@@ -103,7 +103,8 @@ export class ClockOut {
     }, 0);
 
     const paidBreakMinutes = tc.breaks.filter(b => b.isPaid && b.endAt).reduce((sum, b) => {
-      return sum + (b.actualMinutes ?? Math.floor((new Date(b.endAt!).getTime() - new Date(b.startAt).getTime()) / 60000));
+      const endTime = b.endAt ?? b.startAt;
+      return sum + (b.actualMinutes ?? Math.floor((new Date(endTime).getTime() - new Date(b.startAt).getTime()) / 60000));
     }, 0);
 
     const unpaidBreakMinutes = breakMinutes - paidBreakMinutes;
@@ -377,7 +378,7 @@ export class ClockOut {
     const h = d.getHours();
     const m = d.getMinutes();
     const period = h >= 12 ? 'PM' : 'AM';
-    const hour = h % 12 || 12;
+    const hour = h % 12 === 0 ? 12 : h % 12;
     return `${hour}:${m.toString().padStart(2, '0')} ${period}`;
   }
 }

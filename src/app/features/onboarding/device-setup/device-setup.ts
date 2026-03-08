@@ -234,10 +234,9 @@ export class DeviceSetup implements OnInit {
 
     return {
       platform,
-      // navigator.platform is deprecated but no standard replacement exists for OS version detection
-      osVersion: navigator.platform ?? null,
+      osVersion: (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform ?? null,
       appVersion: null,
-      screenSize: `${window.screen.width}x${window.screen.height}`,
+      screenSize: `${globalThis.screen.width}x${globalThis.screen.height}`,
       serialNumber: null,
     };
   }

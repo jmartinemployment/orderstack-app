@@ -334,7 +334,7 @@ export class StaffManagement {
   }
 
   setTmPermissionSet(id: string): void {
-    this._tmFormPermissionSetId.set(id || null);
+    this._tmFormPermissionSetId.set(id ?? null);
   }
 
   addJobRow(): void {

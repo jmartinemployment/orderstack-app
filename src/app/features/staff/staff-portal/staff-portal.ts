@@ -18,11 +18,9 @@ import {
   StaffEarnings,
   ShiftPosition,
   Timecard,
-  TimecardBreak,
   BreakType,
   TimeclockTab,
   TimecardEditType,
-  StaffNotification,
   PtoType,
   PtoRequest,
   PtoRequestStatus,
@@ -662,8 +660,8 @@ export class StaffPortal {
     this._showPtoForm.set(false);
   }
 
-  setPtoType(type: string): void {
-    this._ptoType.set(type as PtoType);
+  setPtoType(type: PtoType): void {
+    this._ptoType.set(type);
   }
 
   setPtoStartDate(date: string): void {
@@ -1136,18 +1134,15 @@ export class StaffPortal {
     this._editTimecardId.set(null);
   }
 
-  setEditType(type: string): void {
-    const valid: TimecardEditType[] = ['clock_in', 'clock_out', 'break_start', 'break_end', 'job_change'];
-    if (valid.includes(type as TimecardEditType)) {
-      this._editType.set(type as TimecardEditType);
-      // Update original value based on type
-      const tc = this._todayTimecards().find(t => t.id === this._editTimecardId());
-      if (tc) {
-        if (type === 'clock_in') this._editOriginalValue.set(tc.clockInAt);
-        else if (type === 'clock_out') this._editOriginalValue.set(tc.clockOutAt ?? 'N/A');
-        else if (type === 'job_change') this._editOriginalValue.set(tc.jobTitle);
-        else this._editOriginalValue.set('');
-      }
+  setEditType(type: TimecardEditType): void {
+    this._editType.set(type);
+    // Update original value based on type
+    const tc = this._todayTimecards().find(t => t.id === this._editTimecardId());
+    if (tc) {
+      if (type === 'clock_in') this._editOriginalValue.set(tc.clockInAt);
+      else if (type === 'clock_out') this._editOriginalValue.set(tc.clockOutAt ?? 'N/A');
+      else if (type === 'job_change') this._editOriginalValue.set(tc.jobTitle);
+      else this._editOriginalValue.set('');
     }
   }
 

@@ -12,7 +12,6 @@ import {
   RecurringBooking,
   EventBooking,
   EventFormData,
-  EventAttendee,
   TurnTimeStats,
   GuestPreferences,
   CalendarConnection,

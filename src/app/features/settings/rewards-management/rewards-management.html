@@ -61,7 +61,7 @@
 
   <!-- Add/Edit Modal -->
   @if (showModal()) {
-    <div class="modal-overlay" (click)="closeModal()" (keydown.enter)="closeModal()" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="closeModal()" (keydown.enter)="closeModal()" tabindex="0">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <h5>{{ isEditing() ? 'Edit Reward' : 'Add Reward' }}</h5>
 

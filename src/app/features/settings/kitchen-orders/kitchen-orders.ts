@@ -75,10 +75,10 @@ export class KitchenOrders implements OnInit {
   });
 
   readonly throttlingDescription = computed(() => {
-    if (!this._orderThrottlingEnabled()) {
-      return 'Throttling is disabled. New tickets flow immediately to the kitchen queue.';
+    if (this._orderThrottlingEnabled()) {
+      return `Auto-hold triggers at ${this._maxActiveOrders()} active or ${this._maxOverdueOrders()} overdue tickets, and resumes below ${this._releaseActiveOrders()} active / ${this._releaseOverdueOrders()} overdue.`;
     }
-    return `Auto-hold triggers at ${this._maxActiveOrders()} active or ${this._maxOverdueOrders()} overdue tickets, and resumes below ${this._releaseActiveOrders()} active / ${this._releaseOverdueOrders()} overdue.`;
+    return 'Throttling is disabled. New tickets flow immediately to the kitchen queue.';
   });
 
   readonly timeoutDescription = computed(() => {

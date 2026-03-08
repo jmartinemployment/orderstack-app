@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { BLOG_POSTS_RAW, BlogPostRaw } from './blog-registry';
 import { BlogPost } from '../marketing.config';
 

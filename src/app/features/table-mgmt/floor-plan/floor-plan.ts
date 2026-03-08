@@ -22,8 +22,7 @@ import { FloorPlanNavigation } from './floor-plan-navigation/floor-plan-navigati
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
 import { ClockOut } from '@shared/clock-out';
-import { RestaurantTable, TableFormData, TableStatus, Booking } from '@models/index';
-import { Order, getOrderIdentifier } from '@models/index';
+import { RestaurantTable, TableFormData, TableStatus, Booking, Order } from '@models/index';
 
 export interface TableSelectedEvent {
   table: RestaurantTable;

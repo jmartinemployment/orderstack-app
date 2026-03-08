@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } 
 import { DatePipe, TitleCasePipe } from '@angular/common';
 import { StaffManagementService } from '@services/staff-management';
 import { AuthService } from '@services/auth';
-import { DeviceRegistration, DeviceRegistrationFormData } from '@models/staff-management.model';
+import { DeviceRegistration } from '@models/staff-management.model';
 
 @Component({
   selector: 'os-device-management',

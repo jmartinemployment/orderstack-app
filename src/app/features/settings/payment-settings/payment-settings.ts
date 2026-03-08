@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
-import { PaymentConnectService, ConnectStatus } from '@services/payment-connect';
+import { PaymentConnectService } from '@services/payment-connect';
 import { PaymentProcessorType, PaymentSettings, ScanToPaySettings } from '@models/index';
 
 @Component({

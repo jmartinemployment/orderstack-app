@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input } from '@angular/core';
 import { CaseStudyPreview } from '../marketing.config';
 
 @Component({

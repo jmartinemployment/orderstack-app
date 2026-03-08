@@ -27,7 +27,6 @@ import {
   OrderTemplate,
   OrderTemplateItem,
   ScanToPaySession,
-  CourseTemplate,
 } from '../models';
 import { getDiningOption, DiningOptionType } from '../models/dining-option.model';
 import { AuthService } from './auth';
@@ -83,6 +82,12 @@ function mapBackendPaymentStatus(status: string): 'OPEN' | 'PAID' | 'CLOSED' {
     default:
       return 'OPEN';
   }
+}
+
+function derivePaymentProcessor(raw: any): 'stripe' | 'paypal' | undefined {
+  if (raw.stripePaymentIntentId) return 'stripe';
+  if (raw.paypalOrderId) return 'paypal';
+  return undefined;
 }
 
 function deriveFulfillmentStatus(backendOrderStatus: string): FulfillmentStatus {
@@ -238,9 +243,7 @@ function deriveCourseListFromSelections(selections: Selection[]): Course[] {
     if (courseFireStatusRank(sel.course.fireStatus) > courseFireStatusRank(existing.fireStatus)) {
       existing.fireStatus = sel.course.fireStatus;
     }
-    if (!existing.readyDate && sel.course.readyDate) {
-      existing.readyDate = sel.course.readyDate;
-    } else if (existing.readyDate && sel.course.readyDate && sel.course.readyDate > existing.readyDate) {
+    if (sel.course.readyDate && (!existing.readyDate || sel.course.readyDate > existing.readyDate)) {
       existing.readyDate = sel.course.readyDate;
     }
   }
@@ -280,7 +283,7 @@ function mapPayments(raw: any, totalAmount: number, tipAmount: number, checkPaym
     amount: totalAmount,
     tipAmount,
     status: checkPaymentStatus,
-    paymentProcessor: raw.stripePaymentIntentId ? 'stripe' : (raw.paypalOrderId ? 'paypal' : undefined),
+    paymentProcessor: derivePaymentProcessor(raw),
     paymentProcessorId: raw.stripePaymentIntentId ?? raw.paypalOrderId,
     paidDate: checkPaymentStatus === 'PAID' ? new Date() : undefined,
   }];
@@ -524,7 +527,7 @@ export class OrderService implements OnDestroy {
             c => c.name.toLowerCase() === String(completedCourseName).toLowerCase()
           );
           const nextCourse = completedIdx >= 0 ? courses[completedIdx + 1] : undefined;
-          if (nextCourse && nextCourse.fireStatus === 'PENDING') {
+          if (nextCourse?.fireStatus === 'PENDING') {
             this._courseCompleteNotifications.set({
               orderId,
               tableName: order?.table?.name ?? '',
@@ -641,16 +644,8 @@ export class OrderService implements OnDestroy {
         return [mapped, ...orders];
       }
 
-      if (type === 'cancelled' && index !== -1) {
-        const updated = [...orders];
-        updated[index] = mapped;
-        return updated;
-      }
-
-      if (type === 'updated' && index !== -1) {
-        const updated = [...orders];
-        updated[index] = mapped;
-        return updated;
+      if ((type === 'cancelled' || type === 'updated') && index !== -1) {
+        return orders.map((o, i) => i === index ? mapped : o);
       }
 
       return orders;

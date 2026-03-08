@@ -43,8 +43,7 @@ export class PairDevice {
     const code = this.pairForm.value.code ?? '';
 
     const hardwareInfo: DeviceHardwareInfo = {
-      // navigator.platform is deprecated but there is no standard replacement for device platform detection
-      platform: navigator.platform ?? 'Unknown',
+      platform: (navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform ?? 'Unknown',
       osVersion: navigator.userAgent ?? null,
       appVersion: null,
       screenSize: `${globalThis.screen.width}x${globalThis.screen.height}`,

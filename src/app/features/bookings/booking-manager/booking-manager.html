@@ -100,7 +100,7 @@
     @if (activeTab() === 'today') {
       <div class="booking-list">
         @for (res of todayReservations(); track res.id) {
-          <div class="res-card" (click)="selectBooking(res)" (keydown.enter)="selectBooking(res)" tabindex="0" role="button">
+          <div class="res-card" (click)="selectBooking(res)" (keydown.enter)="selectBooking(res)" tabindex="0" [attr.aria-label]="'View booking for ' + res.customerName">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div class="d-flex align-items-center gap-2">
                 <span class="res-time">{{ formatTime(res.reservationTime) }}</span>
@@ -245,7 +245,7 @@
             <div class="d-flex gap-2">
               <button type="button" class="btn btn-sm btn-outline-primary" (click)="syncCalendarNow()" [disabled]="calendarSyncing()">
                 @if (calendarSyncing()) {
-                  <span class="spinner-border spinner-border-sm me-1"></span> Syncing...
+                  <span class="spinner-border spinner-border-sm me-1" role="status"><span class="visually-hidden">Syncing...</span></span> Syncing...
                 } @else {
                   <i class="bi bi-arrow-repeat"></i> Sync Now
                 }
@@ -310,7 +310,7 @@
                   [style.left]="getBlockStyle(block)['left']"
                   [style.width]="getBlockStyle(block)['width']"
                   [title]="block.booking.customerName + ' - Party of ' + block.booking.partySize"
-                  (click)="selectBooking(block.booking)" (keydown.enter)="selectBooking(block.booking)" tabindex="0" role="button">
+                  (click)="selectBooking(block.booking)" (keydown.enter)="selectBooking(block.booking)" tabindex="0" [attr.aria-label]="'View booking for ' + block.booking.customerName">
                   <span class="block-name">{{ block.booking.customerName }}</span>
                   <span class="block-size">{{ block.booking.partySize }}</span>
                 </div>
@@ -355,7 +355,7 @@
 
       <div class="booking-list">
         @for (res of upcomingReservations(); track res.id) {
-          <div class="res-card" (click)="selectBooking(res)" (keydown.enter)="selectBooking(res)" tabindex="0" role="button">
+          <div class="res-card" (click)="selectBooking(res)" (keydown.enter)="selectBooking(res)" tabindex="0" [attr.aria-label]="'View booking for ' + res.customerName">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div class="d-flex align-items-center gap-2">
                 <span class="res-date">{{ res.reservationTime | date:'EEE, MMM d' }}</span>
@@ -453,7 +453,7 @@
               <span class="small fw-semibold">Virtual Waitlist Active</span>
               @if (vConfig.joinUrl) {
                 <span class="small text-muted ms-2">{{ vConfig.joinUrl }}</span>
-                <button type="button" class="btn btn-sm btn-link p-0" (click)="copyJoinLink()">
+                <button type="button" class="btn btn-sm btn-link p-0" (click)="copyJoinLink()" aria-label="Copy join link">
                   <i class="bi bi-clipboard"></i>
                 </button>
               }
@@ -597,14 +597,14 @@
                   <i class="bi bi-box-arrow-in-right"></i> Seat Now
                 </button>
               }
-              <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeGuest(entry); $event.stopPropagation()">
+              <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeGuest(entry); $event.stopPropagation()" aria-label="Remove guest">
                 <i class="bi bi-x-lg"></i>
               </button>
               <div class="ms-auto d-flex gap-1">
-                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="moveUp(entry)" [disabled]="entry.position <= 1">
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="moveUp(entry)" [disabled]="entry.position <= 1" aria-label="Move up">
                   <i class="bi bi-arrow-up"></i>
                 </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="moveDown(entry)">
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="moveDown(entry)" aria-label="Move down">
                   <i class="bi bi-arrow-down"></i>
                 </button>
               </div>
@@ -635,7 +635,7 @@
       } @else {
         <div class="event-list">
           @for (evt of (eventFilter() === 'upcoming' ? upcomingEvents() : pastEvents()); track evt.id) {
-            <div class="event-card" (click)="selectEvent(evt)" (keydown.enter)="selectEvent(evt)" tabindex="0" role="button">
+            <div class="event-card" (click)="selectEvent(evt)" (keydown.enter)="selectEvent(evt)" tabindex="0" [attr.aria-label]="'View event: ' + evt.title">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                   <span class="badge badge-event-type me-2">{{ getEventTypeLabel(evt.bookingType) }}</span>
@@ -679,7 +679,7 @@
 
   <!-- ═══ WAITLIST FORM MODAL ═══ -->
   @if (showWaitlistForm()) {
-    <div class="modal-overlay" (click)="closeWaitlistForm()" (keydown.enter)="closeWaitlistForm()" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="closeWaitlistForm()">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Add to Waitlist</h4>
@@ -714,7 +714,7 @@
           <button type="button" class="btn btn-warning" (click)="saveWaitlistEntry()"
             [disabled]="!waitlistName().trim() || waitlistSaving()">
             @if (waitlistSaving()) {
-              <span class="spinner-border spinner-border-sm me-1"></span> Saving...
+              <span class="spinner-border spinner-border-sm me-1" role="status"><span class="visually-hidden">Saving...</span></span> Saving...
             } @else {
               Add to Waitlist
             }
@@ -726,7 +726,7 @@
 
   <!-- ═══ NEW RESERVATION MODAL ═══ -->
   @if (showForm()) {
-    <div class="modal-overlay" (click)="closeForm()" (keydown.enter)="closeForm()" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="closeForm()">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">New Booking</h4>
@@ -817,7 +817,7 @@
             <button type="button" class="btn btn-outline-secondary" (click)="closeForm()" [disabled]="isSaving()">Cancel</button>
             <button type="submit" class="btn btn-primary" [disabled]="bookingForm.invalid || isSaving()">
               @if (isSaving()) {
-                <span class="spinner-border spinner-border-sm me-2"></span>
+                <span class="spinner-border spinner-border-sm me-2" role="status"><span class="visually-hidden">Saving...</span></span>
                 Saving...
               } @else if (showRecurringForm()) {
                 Create Recurring
@@ -833,7 +833,7 @@
 
   <!-- ═══ NEW EVENT MODAL ═══ -->
   @if (showEventForm()) {
-    <div class="modal-overlay" (click)="closeEventForm()" (keydown.enter)="closeEventForm()" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="closeEventForm()">
       <div class="modal-content card modal-wide" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">New Event</h4>
@@ -901,7 +901,7 @@
             <button type="button" class="btn btn-outline-secondary" (click)="closeEventForm()" [disabled]="isSavingEvent()">Cancel</button>
             <button type="submit" class="btn btn-primary" [disabled]="eventForm.invalid || isSavingEvent()">
               @if (isSavingEvent()) {
-                <span class="spinner-border spinner-border-sm me-2"></span> Creating...
+                <span class="spinner-border spinner-border-sm me-2" role="status"><span class="visually-hidden">Creating...</span></span> Creating...
               } @else {
                 Create Event
               }
@@ -914,7 +914,7 @@
 
   <!-- ═══ RESERVATION DETAIL MODAL ═══ -->
   @if (selectedBooking(); as res) {
-    <div class="modal-overlay" (click)="closeDetail()" (keydown.enter)="closeDetail()" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="closeDetail()">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Booking Details</h4>
@@ -1028,7 +1028,7 @@
 
   <!-- ═══ EVENT DETAIL MODAL ═══ -->
   @if (selectedEvent(); as evt) {
-    <div class="modal-overlay" (click)="closeEventDetail()" (keydown.enter)="closeEventDetail()" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="closeEventDetail()">
       <div class="modal-content card modal-wide" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">{{ evt.title }}</h4>
@@ -1115,7 +1115,7 @@
 
   <!-- ═══ GUEST PREFERENCES MODAL ═══ -->
   @if (showPreferencesModal()) {
-    <div class="modal-overlay" (click)="closePreferences()" (keydown.enter)="closePreferences()" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="closePreferences()">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Guest Preferences</h4>
@@ -1187,7 +1187,7 @@
 
   <!-- ═══ SMS CONFIG MODAL ═══ -->
   @if (showSmsConfig()) {
-    <div class="modal-overlay" (click)="closeSmsConfig()" (keydown.enter)="closeSmsConfig()" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="closeSmsConfig()">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Waitlist SMS Notifications</h4>
@@ -1234,7 +1234,7 @@
           <button type="button" class="btn btn-outline-secondary" (click)="closeSmsConfig()" [disabled]="smsSaving()">Cancel</button>
           <button type="button" class="btn btn-primary" (click)="saveSmsConfig()" [disabled]="smsSaving()">
             @if (smsSaving()) {
-              <span class="spinner-border spinner-border-sm me-1"></span> Saving...
+              <span class="spinner-border spinner-border-sm me-1" role="status"><span class="visually-hidden">Saving...</span></span> Saving...
             } @else {
               Save Configuration
             }
@@ -1246,7 +1246,7 @@
 
   <!-- ═══ VIRTUAL WAITLIST CONFIG MODAL ═══ -->
   @if (showVirtualConfig()) {
-    <div class="modal-overlay" (click)="closeVirtualConfig()" (keydown.enter)="closeVirtualConfig()" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="closeVirtualConfig()">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Virtual Waitlist</h4>
@@ -1277,7 +1277,7 @@
                 <label class="form-label">Join Link</label>
                 <div class="input-group">
                   <input type="text" class="form-control" [value]="vConfig.joinUrl" readonly aria-label="Join link" />
-                  <button type="button" class="btn btn-outline-secondary" (click)="copyJoinLink()">
+                  <button type="button" class="btn btn-outline-secondary" (click)="copyJoinLink()" aria-label="Copy join link">
                     <i class="bi bi-clipboard"></i>
                   </button>
                 </div>
@@ -1298,7 +1298,7 @@
           <button type="button" class="btn btn-outline-secondary" (click)="closeVirtualConfig()" [disabled]="virtualSaving()">Cancel</button>
           <button type="button" class="btn btn-primary" (click)="saveVirtualConfig()" [disabled]="virtualSaving()">
             @if (virtualSaving()) {
-              <span class="spinner-border spinner-border-sm me-1"></span> Saving...
+              <span class="spinner-border spinner-border-sm me-1" role="status"><span class="visually-hidden">Saving...</span></span> Saving...
             } @else {
               Save Configuration
             }

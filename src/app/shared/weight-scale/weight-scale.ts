@@ -50,7 +50,6 @@ export class WeightScale {
     if (!this.isValidWeight()) return 'Enter weight';
     const w = this.parsedWeight();
     const unit = this.unitLabel();
-    const total = this.estimatedTotal();
     return `Add ${w} ${unit}`;
   });
 

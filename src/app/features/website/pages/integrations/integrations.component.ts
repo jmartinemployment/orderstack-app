@@ -5,7 +5,6 @@ import { IntegrationCardComponent } from '../../shared/integration-card.componen
 import { FinalCtaComponent } from '../../shared/final-cta.component';
 import { SeoMetaService } from '../../services/seo-meta.service';
 import {
-  Integration,
   IntegrationCategory,
   INTEGRATIONS_HERO,
   INTEGRATION_CATEGORIES,

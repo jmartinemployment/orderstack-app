@@ -577,13 +577,13 @@ export class RestaurantSettingsService {
       ...raw,
       coursePacingMode,
       targetCourseServeGapSeconds: this.normalizeTargetCourseServeGapSeconds(raw.targetCourseServeGapSeconds),
-      orderThrottlingEnabled: Boolean(raw.orderThrottlingEnabled ?? defaults.orderThrottlingEnabled),
+      orderThrottlingEnabled: raw.orderThrottlingEnabled ?? defaults.orderThrottlingEnabled,
       maxActiveOrders: this.normalizeMaxActiveOrders(raw.maxActiveOrders),
       maxOverdueOrders: this.normalizeMaxOverdueOrders(raw.maxOverdueOrders),
       releaseActiveOrders: this.normalizeReleaseActiveOrders(raw.releaseActiveOrders, raw.maxActiveOrders),
       releaseOverdueOrders: this.normalizeReleaseOverdueOrders(raw.releaseOverdueOrders, raw.maxOverdueOrders),
       maxHoldMinutes: this.normalizeMaxHoldMinutes(raw.maxHoldMinutes),
-      allowRushThrottle: Boolean(raw.allowRushThrottle ?? defaults.allowRushThrottle),
+      allowRushThrottle: raw.allowRushThrottle ?? defaults.allowRushThrottle,
     };
   }
 

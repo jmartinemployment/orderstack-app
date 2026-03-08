@@ -15,7 +15,6 @@ import {
   SalePricing,
   SalePricingFormData,
   ChannelVisibilitySetting,
-  SyncChannel,
 } from '../models/retail-ecommerce.model';
 import { RetailItem } from '../models/retail.model';
 import { AuthService } from './auth';

@@ -86,7 +86,7 @@
     <!-- Default Course Names -->
     @if (coursePacingEnabled()) {
       <div class="course-names-section">
-        <label class="form-label">Default Courses</label>
+        <label class="form-label" id="default-courses-label">Default Courses</label>
         <p class="text-muted small mb-2">These names appear as quick-select options when servers assign items to courses.</p>
         <div class="course-name-list">
           @for (name of defaultCourseNames(); track $index; let i = $index) {

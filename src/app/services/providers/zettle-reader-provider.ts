@@ -184,7 +184,7 @@ export class ZettleReaderProvider implements PaymentProvider {
   }
 
   sendPaymentRequest(amount: number, reference: string): void {
-    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    if (this.ws?.readyState !== WebSocket.OPEN) return;
 
     const request: ZettlePaymentRequest = {
       type: 'payment_request',

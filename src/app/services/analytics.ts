@@ -702,7 +702,7 @@ export class AnalyticsService {
       .map(alert => ({
         id: `proactive-alert-${alert.id}`,
         query: 'proactive',
-        responseType: 'text' as const,
+        responseType: 'text',
         title: `${typeLabels[alert.type] ?? 'Alert'} Detected`,
         data: { text: alert.message },
         trend: (alert.severity === 'critical' ? 'down' : 'flat') as 'down' | 'flat',
@@ -784,7 +784,7 @@ export class AnalyticsService {
       responseType: 'text',
       title: 'Prep Time Inaccuracies',
       data: { text: `${flagged.length} menu item(s) have prep time estimates that deviate significantly from actual times. Review in Menu Engineering > Prep Time tab.` },
-      trend: 'flat' as const,
+      trend: 'flat',
       createdAt: now,
     }];
   }
