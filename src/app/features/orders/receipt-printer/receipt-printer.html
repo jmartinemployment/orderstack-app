@@ -70,7 +70,7 @@
 
     @if (order().cateringInfo) {
       <div class="dining-detail mb-2">
-        <div><strong>Catering:</strong> {{ order().cateringInfo!.eventType ?? 'Event' }} &mdash; {{ order().cateringInfo!.headcount }} guests</div>
+        <div><strong>Catering:</strong> {{ order().cateringInfo!.eventType ?? 'Event' }} &mdash; {{ order().cateringInfo!.headcount }} {{ order().cateringInfo!.headcount === 1 ? 'guest' : 'guests' }}</div>
         @if (order().cateringInfo!.specialInstructions) {
           <div class="small fst-italic">{{ order().cateringInfo!.specialInstructions }}</div>
         }

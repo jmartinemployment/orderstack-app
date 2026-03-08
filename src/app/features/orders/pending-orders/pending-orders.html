@@ -311,7 +311,7 @@
             @if (order.cateringInfo) {
               <div class="catering-detail small mb-2">
                 <div>
-                  <strong>Event:</strong> {{ order.cateringInfo.eventType ?? 'Event' }} &mdash; {{ order.cateringInfo.headcount }} guests
+                  <strong>Event:</strong> {{ order.cateringInfo.eventType ?? 'Event' }} &mdash; {{ order.cateringInfo.headcount }} {{ order.cateringInfo.headcount === 1 ? 'guest' : 'guests' }}
                 </div>
                 @if (order.cateringInfo.setupRequired) {
                   <span class="badge bg-info">Setup Required</span>
@@ -638,7 +638,7 @@
                 }
               }
               @if (_selectedOrder()!.cateringInfo; as cat) {
-                <p class="mb-1"><strong>Event:</strong> {{ cat.eventType ?? 'Event' }} &mdash; {{ cat.headcount }} guests</p>
+                <p class="mb-1"><strong>Event:</strong> {{ cat.eventType ?? 'Event' }} &mdash; {{ cat.headcount }} {{ cat.headcount === 1 ? 'guest' : 'guests' }}</p>
                 @if (cat.eventDate) {
                   <p class="mb-1"><strong>Date:</strong> {{ cat.eventDate | date:'mediumDate' }}@if (cat.eventTime) { at {{ cat.eventTime }}}</p>
                 }

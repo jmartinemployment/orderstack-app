@@ -267,7 +267,7 @@
                 <span class="badge" [class.bg-warning]="res.status === 'confirmed'" [class.text-dark]="res.status === 'confirmed'" [class.bg-danger]="res.status === 'seated'">{{ res.status }}</span>
               </div>
               <div class="d-flex gap-3 text-muted small mb-1">
-                <span><i class="bi bi-people-fill me-1"></i>{{ res.partySize }} guests</span>
+                <span><i class="bi bi-people-fill me-1"></i>{{ res.partySize }} {{ res.partySize === 1 ? 'guest' : 'guests' }}</span>
                 <span><i class="bi bi-clock me-1"></i>{{ res.reservationTime | date:'shortTime' }}</span>
               </div>
               @if (res.customerPhone) {

@@ -40,7 +40,7 @@
             <th>Date</th>
             <td>{{ j.fulfillmentDate | date:'fullDate':'UTC' }}</td>
             <th>Headcount</th>
-            <td>{{ j.headcount }} guests</td>
+            <td>{{ j.headcount }} {{ j.headcount === 1 ? 'guest' : 'guests' }}</td>
           </tr>
           <tr>
             <th>Start Time</th>

@@ -128,7 +128,7 @@
     @if (order().cateringInfo) {
       <div class="dining-info catering-info mb-2 small">
         <span class="badge bg-purple me-1">Catering</span>
-        {{ order().cateringInfo!.headcount }} guests
+        {{ order().cateringInfo!.headcount }} {{ order().cateringInfo!.headcount === 1 ? 'guest' : 'guests' }}
         @if (order().cateringInfo!.eventType) {
           &mdash; {{ order().cateringInfo!.eventType }}
         }

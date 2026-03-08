@@ -25,7 +25,7 @@
       <i class="bi bi-clock"></i> {{ formattedTimeRange }}
     </span>
     <span class="detail-chip">
-      <i class="bi bi-people"></i> {{ event.headcount }} guests
+      <i class="bi bi-people"></i> {{ event.headcount }} {{ event.headcount === 1 ? 'guest' : 'guests' }}
     </span>
     <span class="badge rounded-pill" [class]="event.locationType === 'on_site' ? 'border text-secondary' : 'border text-info'">
       {{ locationLabel }}

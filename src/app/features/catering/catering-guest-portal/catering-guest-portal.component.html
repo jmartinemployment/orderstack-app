@@ -39,7 +39,7 @@
         }
         <div class="detail-item">
           <span class="detail-label">Headcount</span>
-          <span class="detail-value">{{ j.headcount }} guests</span>
+          <span class="detail-value">{{ j.headcount }} {{ j.headcount === 1 ? 'guest' : 'guests' }}</span>
         </div>
         <div class="detail-item">
           <span class="detail-label">Location</span>

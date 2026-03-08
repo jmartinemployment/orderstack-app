@@ -30,7 +30,7 @@
     <header class="prep-header text-center mb-4">
       <h1 class="prep-title">PREP LIST</h1>
       <h2 class="prep-date">{{ pl.date | date:'fullDate' }}</h2>
-      <p class="text-muted mb-0">{{ pl.jobCount }} job(s) &mdash; {{ pl.totalGuests }} total guests</p>
+      <p class="text-muted mb-0">{{ pl.jobCount }} job(s) &mdash; {{ pl.totalGuests }} total {{ pl.totalGuests === 1 ? 'guest' : 'guests' }}</p>
     </header>
 
     <hr />
@@ -52,7 +52,7 @@
               <h3 class="job-title mb-0">{{ job.title }}</h3>
               <small class="text-muted">Start: {{ formatTime(job.startTime) }}</small>
             </div>
-            <span class="badge bg-primary fs-6">{{ job.headcount }} guests</span>
+            <span class="badge bg-primary fs-6">{{ job.headcount }} {{ job.headcount === 1 ? 'guest' : 'guests' }}</span>
           </div>
 
           <!-- Selected Package -->

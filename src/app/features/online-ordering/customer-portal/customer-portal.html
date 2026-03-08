@@ -409,7 +409,7 @@
                         <span class="badge" [class]="getStatusClass(res.status)">{{ res.status }}</span>
                       </div>
                       <div class="d-flex gap-3 small text-muted">
-                        <span><i class="bi bi-people me-1"></i> {{ res.partySize }} guests</span>
+                        <span><i class="bi bi-people me-1"></i> {{ res.partySize }} {{ res.partySize === 1 ? 'guest' : 'guests' }}</span>
                         @if (res.tableNumber) {
                           <span><i class="bi bi-grid me-1"></i> Table {{ res.tableNumber }}</span>
                         }

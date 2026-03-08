@@ -472,7 +472,7 @@
               <div class="d-flex align-items-center gap-2">
                 <i class="bi bi-geo-alt-fill"></i>
                 <strong>{{ entry.partyName }}</strong>
-                <span class="badge bg-secondary">{{ entry.partySize }} guests</span>
+                <span class="badge bg-secondary">{{ entry.partySize }} {{ entry.partySize === 1 ? 'guest' : 'guests' }}</span>
               </div>
               <div class="d-flex align-items-center gap-2">
                 <span class="small text-muted">Confirmed at {{ getOnMyWayTime(entry) }}</span>
@@ -560,7 +560,7 @@
                 <span class="waitlist-position">{{ entry.position }}</span>
                 <div>
                   <strong>{{ entry.partyName }}</strong>
-                  <span class="badge bg-secondary ms-2">{{ entry.partySize }} guests</span>
+                  <span class="badge bg-secondary ms-2">{{ entry.partySize }} {{ entry.partySize === 1 ? 'guest' : 'guests' }}</span>
                   @if (entry.status === 'notified') {
                     <span class="badge bg-success ms-1">Notified</span>
                   }
@@ -938,7 +938,7 @@
             </div>
             <div class="detail-item">
               <span class="detail-label">Party Size</span>
-              <span>{{ res.partySize }} guests</span>
+              <span>{{ res.partySize }} {{ res.partySize === 1 ? 'guest' : 'guests' }}</span>
             </div>
             <div class="detail-item">
               <span class="detail-label">Phone</span>

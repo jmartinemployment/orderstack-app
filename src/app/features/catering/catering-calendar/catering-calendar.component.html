@@ -51,7 +51,7 @@
             </span>
           </div>
           <div class="text-end">
-            <span class="text-muted small">{{ ev.headcount }} guests</span>
+            <span class="text-muted small">{{ ev.headcount }} {{ ev.headcount === 1 ? 'guest' : 'guests' }}</span>
             @if (ev.totalCents > 0) {
               <span class="ms-2 small fw-semibold">${{ (ev.totalCents / 100) | number:'1.0-0' }}</span>
             }

@@ -70,7 +70,7 @@
         }
         <div class="detail-item">
           <span class="detail-label">Headcount</span>
-          <span class="detail-value">{{ job()!.headcount }} guests</span>
+          <span class="detail-value">{{ job()!.headcount }} {{ job()!.headcount === 1 ? 'guest' : 'guests' }}</span>
         </div>
         @if (job()!.locationAddress) {
           <div class="detail-item">
@@ -110,7 +110,7 @@
               <p class="package-description">{{ pkg.description }}</p>
             }
             @if (pkg.minimumHeadcount > 0) {
-              <p class="package-minimum">Minimum {{ pkg.minimumHeadcount }} guests</p>
+              <p class="package-minimum">Minimum {{ pkg.minimumHeadcount }} {{ pkg.minimumHeadcount === 1 ? 'guest' : 'guests' }}</p>
             }
             <button
               class="btn select-btn"

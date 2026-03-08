@@ -129,7 +129,7 @@
               <span class="pricing-value">{{ t.pricePerUnitCents / 100 | currency:'USD' }}</span>
             </div>
             <div class="card-stats">
-              <span>Min. {{ t.minimumHeadcount }} guests</span>
+              <span>Min. {{ t.minimumHeadcount }} {{ t.minimumHeadcount === 1 ? 'guest' : 'guests' }}</span>
               <span>{{ t.menuItemIds.length }} items</span>
             </div>
           </div>

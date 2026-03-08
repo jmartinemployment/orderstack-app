@@ -312,7 +312,7 @@
                 }
               }
               @if (selectedOrder()!.cateringInfo; as cat) {
-                <p class="mb-1"><strong>Event:</strong> {{ cat.eventType ?? 'Event' }} &mdash; {{ cat.headcount }} guests</p>
+                <p class="mb-1"><strong>Event:</strong> {{ cat.eventType ?? 'Event' }} &mdash; {{ cat.headcount }} {{ cat.headcount === 1 ? 'guest' : 'guests' }}</p>
                 @if (cat.eventDate) {
                   <p class="mb-1"><strong>Date:</strong> {{ cat.eventDate | date:'mediumDate' }}@if (cat.eventTime) { at {{ cat.eventTime }}}</p>
                 }
