@@ -1,5 +1,5 @@
 @if (hasGroups() && currentGroup(); as group) {
-  <div class="modifier-overlay" (click)="onCancel()">
+  <div class="modifier-overlay" (click)="onCancel()" (keydown.enter)="onCancel()" tabindex="0">
     <div class="modifier-panel" (click)="$event.stopPropagation()">
       <!-- Header -->
       <div class="modifier-header">

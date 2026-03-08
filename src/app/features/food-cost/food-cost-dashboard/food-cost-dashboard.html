@@ -566,7 +566,7 @@
 
   <!-- ═══ VENDOR FORM MODAL ═══ -->
   @if (showVendorForm()) {
-    <div class="modal-overlay" (click)="closeVendorForm()">
+    <div class="modal-overlay" (click)="closeVendorForm()" (keydown.enter)="closeVendorForm()" tabindex="0">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>{{ editingVendor() ? 'Edit' : 'Add' }} Vendor</h3>
@@ -612,7 +612,7 @@
 
   <!-- ═══ INVOICE FORM MODAL ═══ -->
   @if (showInvoiceForm()) {
-    <div class="modal-overlay" (click)="closeInvoiceForm()">
+    <div class="modal-overlay" (click)="closeInvoiceForm()" (keydown.enter)="closeInvoiceForm()" tabindex="0">
       <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Manual Invoice Entry</h3>
@@ -689,7 +689,7 @@
 
   <!-- ═══ RECIPE FORM MODAL ═══ -->
   @if (showRecipeForm()) {
-    <div class="modal-overlay" (click)="closeRecipeForm()">
+    <div class="modal-overlay" (click)="closeRecipeForm()" (keydown.enter)="closeRecipeForm()" tabindex="0">
       <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>{{ editingRecipe() ? 'Edit' : 'New' }} Recipe</h3>

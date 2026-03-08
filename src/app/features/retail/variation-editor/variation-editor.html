@@ -220,7 +220,7 @@
 
 <!-- Bulk Price Modal -->
 @if (showBulkPriceModal()) {
-  <div class="modal-overlay" (click)="showBulkPriceModal.set(false)">
+  <div class="modal-overlay" (click)="showBulkPriceModal.set(false)" (keydown.enter)="showBulkPriceModal.set(false)" tabindex="0">
     <div class="modal-panel" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Bulk Price Adjustment</h3>
@@ -256,7 +256,7 @@
 
 <!-- Auto-Generate Modal -->
 @if (showGenerateModal()) {
-  <div class="modal-overlay" (click)="showGenerateModal.set(false)">
+  <div class="modal-overlay" (click)="showGenerateModal.set(false)" (keydown.enter)="showGenerateModal.set(false)" tabindex="0">
     <div class="modal-panel modal-lg" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Generate Variations</h3>

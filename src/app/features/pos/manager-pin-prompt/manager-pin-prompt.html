@@ -1,4 +1,4 @@
-<div class="pin-overlay" (click)="onCancel()">
+<div class="pin-overlay" (click)="onCancel()" (keydown.enter)="onCancel()" tabindex="0">
   <div class="pin-modal" (click)="$event.stopPropagation()">
     <div class="pin-header">
       <h5>{{ title() }}</h5>

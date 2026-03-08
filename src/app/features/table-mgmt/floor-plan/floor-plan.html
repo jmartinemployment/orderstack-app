@@ -348,7 +348,7 @@
 
   <!-- QR Code Modal -->
   @if (showQrModal() && qrTable(); as qrT) {
-    <div class="modal-overlay" (click)="closeQrModal()">
+    <div class="modal-overlay" (click)="closeQrModal()" (keydown.enter)="closeQrModal()" tabindex="0">
       <div class="modal-content card qr-modal" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">QR Code — Area #{{ qrT.tableNumber }}</h5>
@@ -368,7 +368,7 @@
 
   <!-- Add/Edit Modal -->
   @if (showAddForm()) {
-    <div class="modal-overlay" (click)="closeForm()">
+    <div class="modal-overlay" (click)="closeForm()" (keydown.enter)="closeForm()" tabindex="0">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">{{ editingTable() ? 'Edit Area' : 'Add Area' }}</h5>

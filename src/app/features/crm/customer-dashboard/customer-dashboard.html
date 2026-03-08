@@ -115,29 +115,29 @@
         <table class="table crm-table">
           <thead>
             <tr>
-              <th (click)="toggleSort('name')" class="sortable">
+              <th (click)="toggleSort('name')" (keydown.enter)="toggleSort('name')" class="sortable" tabindex="0">
                 Name
                 @if (getSortIcon('name') === 'asc') { <span class="sort-arrow">^</span> }
                 @if (getSortIcon('name') === 'desc') { <span class="sort-arrow">v</span> }
               </th>
               <th>Contact</th>
               <th>Segment</th>
-              <th (click)="toggleSort('totalOrders')" class="sortable text-end">
+              <th (click)="toggleSort('totalOrders')" (keydown.enter)="toggleSort('totalOrders')" class="sortable text-end" tabindex="0">
                 Orders
                 @if (getSortIcon('totalOrders') === 'asc') { <span class="sort-arrow">^</span> }
                 @if (getSortIcon('totalOrders') === 'desc') { <span class="sort-arrow">v</span> }
               </th>
-              <th (click)="toggleSort('totalSpent')" class="sortable text-end">
+              <th (click)="toggleSort('totalSpent')" (keydown.enter)="toggleSort('totalSpent')" class="sortable text-end" tabindex="0">
                 Spent
                 @if (getSortIcon('totalSpent') === 'asc') { <span class="sort-arrow">^</span> }
                 @if (getSortIcon('totalSpent') === 'desc') { <span class="sort-arrow">v</span> }
               </th>
-              <th (click)="toggleSort('lastOrderDate')" class="sortable text-end">
+              <th (click)="toggleSort('lastOrderDate')" (keydown.enter)="toggleSort('lastOrderDate')" class="sortable text-end" tabindex="0">
                 Last Order
                 @if (getSortIcon('lastOrderDate') === 'asc') { <span class="sort-arrow">^</span> }
                 @if (getSortIcon('lastOrderDate') === 'desc') { <span class="sort-arrow">v</span> }
               </th>
-              <th (click)="toggleSort('loyaltyPoints')" class="sortable text-end">
+              <th (click)="toggleSort('loyaltyPoints')" (keydown.enter)="toggleSort('loyaltyPoints')" class="sortable text-end" tabindex="0">
                 Points
                 @if (getSortIcon('loyaltyPoints') === 'asc') { <span class="sort-arrow">^</span> }
                 @if (getSortIcon('loyaltyPoints') === 'desc') { <span class="sort-arrow">v</span> }
@@ -146,7 +146,7 @@
           </thead>
           <tbody>
             @for (customer of filteredCustomers(); track customer.id) {
-              <tr class="customer-row" (click)="selectCustomer(customer)">
+              <tr class="customer-row" (click)="selectCustomer(customer)" (keydown.enter)="selectCustomer(customer)" tabindex="0">
                 <td>
                   <span class="customer-name">{{ getCustomerName(customer) }}</span>
                   @if (customer.tags.length > 0) {
@@ -694,7 +694,7 @@
 
   <!-- Customer Detail Side Panel -->
   @if (selectedCustomer(); as customer) {
-    <div class="detail-overlay" (click)="closeDetail()">
+    <div class="detail-overlay" (click)="closeDetail()" (keydown.enter)="closeDetail()" tabindex="0">
       <div class="detail-panel" (click)="$event.stopPropagation()">
         <div class="detail-header d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">{{ getCustomerName(customer) }}</h4>
