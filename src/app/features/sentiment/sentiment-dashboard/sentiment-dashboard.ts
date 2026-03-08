@@ -137,7 +137,8 @@ export class SentimentDashboard {
 
       this._entries.set(entries.sort((a, b) => b.analyzedAt.getTime() - a.analyzedAt.getTime()));
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load orders');
+      const msg = err instanceof Error ? err.message : 'Failed to load orders';
+      this._error.set(msg.includes('Timeout') ? 'Request timed out — try refreshing' : msg);
     } finally {
       this._isLoading.set(false);
     }

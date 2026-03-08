@@ -133,4 +133,16 @@ describe('sentiment-dashboard — stuck spinner prevention (BUG-27)', () => {
     expect(templateSource).toContain('error()');
     expect(templateSource).toContain('alert');
   });
+
+  it('HTTP call has a timeout to prevent indefinite hang', () => {
+    expect(tsSource).toContain('timeout(15_000)');
+  });
+
+  it('timeout error produces a user-friendly message', () => {
+    expect(tsSource).toContain("'Request timed out — try refreshing'");
+  });
+
+  it('guards against non-array API response', () => {
+    expect(tsSource).toContain('Array.isArray(orders)');
+  });
 });
