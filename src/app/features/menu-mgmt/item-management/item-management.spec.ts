@@ -443,6 +443,71 @@ describe('ItemManagement', () => {
     expect(menuService.loadMenu).toHaveBeenCalled();
   });
 
+  // --- Modal overlay click guards (BUG-13) ---
+
+  it('onOverlayClick closes form when target equals currentTarget (click on overlay)', () => {
+    component.openCreateForm();
+    const overlayDiv = document.createElement('div');
+    const event = new MouseEvent('click', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: overlayDiv });
+    Object.defineProperty(event, 'currentTarget', { value: overlayDiv });
+    component.onOverlayClick(event);
+    expect(component.showForm()).toBe(false);
+  });
+
+  it('onOverlayClick does NOT close form when target differs from currentTarget (click on child)', () => {
+    component.openCreateForm();
+    const overlayDiv = document.createElement('div');
+    const selectEl = document.createElement('select');
+    const event = new MouseEvent('click', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: selectEl });
+    Object.defineProperty(event, 'currentTarget', { value: overlayDiv });
+    component.onOverlayClick(event);
+    expect(component.showForm()).toBe(true);
+  });
+
+  it('onDeleteOverlayClick closes delete modal only on overlay click', () => {
+    component.confirmDelete(createTestItems()[0]);
+    expect(component.deleteTarget()).toBeTruthy();
+
+    // Click on child — should NOT close
+    const overlay = document.createElement('div');
+    const child = document.createElement('div');
+    const childEvent = new MouseEvent('click', { bubbles: true });
+    Object.defineProperty(childEvent, 'target', { value: child });
+    Object.defineProperty(childEvent, 'currentTarget', { value: overlay });
+    component.onDeleteOverlayClick(childEvent);
+    expect(component.deleteTarget()).toBeTruthy();
+
+    // Click on overlay — should close
+    const overlayEvent = new MouseEvent('click', { bubbles: true });
+    Object.defineProperty(overlayEvent, 'target', { value: overlay });
+    Object.defineProperty(overlayEvent, 'currentTarget', { value: overlay });
+    component.onDeleteOverlayClick(overlayEvent);
+    expect(component.deleteTarget()).toBeNull();
+  });
+
+  it('onImportOverlayClick closes import modal only on overlay click', () => {
+    component.openImportModal();
+    expect(component.showImportModal()).toBe(true);
+
+    // Click on child — stays open
+    const overlay = document.createElement('div');
+    const child = document.createElement('div');
+    const childEvent = new MouseEvent('click', { bubbles: true });
+    Object.defineProperty(childEvent, 'target', { value: child });
+    Object.defineProperty(childEvent, 'currentTarget', { value: overlay });
+    component.onImportOverlayClick(childEvent);
+    expect(component.showImportModal()).toBe(true);
+
+    // Click on overlay — closes
+    const overlayEvent = new MouseEvent('click', { bubbles: true });
+    Object.defineProperty(overlayEvent, 'target', { value: overlay });
+    Object.defineProperty(overlayEvent, 'currentTarget', { value: overlay });
+    component.onImportOverlayClick(overlayEvent);
+    expect(component.showImportModal()).toBe(false);
+  });
+
   // --- Catering Pricing Tiers ---
 
   it('addPricingTier adds a default tier', () => {
