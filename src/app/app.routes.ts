@@ -248,6 +248,7 @@ export const routes: Routes = [
   },
 
   // Legacy redirects — catch old bookmarked URLs and redirect to /app/*
+  { path: 'dashboard', redirectTo: '/app/administration', pathMatch: 'full' },
   { path: 'administration', redirectTo: '/app/administration', pathMatch: 'full' },
   { path: 'orders', redirectTo: '/app/orders', pathMatch: 'full' },
   { path: 'order-history', redirectTo: '/app/order-history', pathMatch: 'full' },
@@ -395,6 +396,9 @@ export const routes: Routes = [
       // Online ordering admin (manages channel visibility, online hours) — owner/manager only
       { path: 'online-ordering', canActivate: [roleGuard('owner', 'manager', 'super_admin')], loadComponent: () => import('./features/online-ordering/online-ordering-admin/online-ordering-admin').then(m => m.OnlineOrderingAdmin) },
       { path: 'online', redirectTo: 'online-ordering', pathMatch: 'full' },
+
+      // Legacy alias
+      { path: 'dashboard', redirectTo: 'administration', pathMatch: 'full' },
 
       // Default — redirect to administration
       { path: '', redirectTo: 'administration', pathMatch: 'full' },

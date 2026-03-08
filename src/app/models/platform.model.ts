@@ -817,7 +817,7 @@ export interface NavigationItem {
 }
 
 export const NAVIGATION_ITEMS: NavigationItem[] = [
-  { label: 'Dashboard', icon: 'bi-grid', route: '/dashboard' },
+  { label: 'Dashboard', icon: 'bi-grid', route: '/administration' },
   { label: 'Orders', icon: 'bi-receipt', route: '/orders' },
   { label: 'Customers', icon: 'bi-people', route: '/customers', requiredModule: 'crm' },
   { label: 'Reports', icon: 'bi-bar-chart', route: '/reports', requiredModule: 'reports' },
