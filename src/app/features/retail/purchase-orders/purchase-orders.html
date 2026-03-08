@@ -132,8 +132,8 @@
 
   <!-- Create PO Modal -->
   @if (showCreateModal()) {
-    <div class="modal-backdrop" (click)="closeCreateModal()" (keydown.enter)="closeCreateModal()" tabindex="0">
-      <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
+    <div class="modal-backdrop" (click)="closeCreateModal()" (keydown.enter)="closeCreateModal()" aria-hidden="true">
+      <div class="modal-content modal-wide" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>New Purchase Order</h3>
           <button class="btn-close" (click)="closeCreateModal()"><i class="bi bi-x-lg"></i></button>
@@ -221,8 +221,8 @@
 
   <!-- Receive Modal -->
   @if (showReceiveModal() && receivePO(); as po) {
-    <div class="modal-backdrop" (click)="closeReceiveModal()" (keydown.enter)="closeReceiveModal()" tabindex="0">
-      <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
+    <div class="modal-backdrop" (click)="closeReceiveModal()" (keydown.enter)="closeReceiveModal()" aria-hidden="true">
+      <div class="modal-content modal-wide" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Receive PO-{{ po.id.substring(0, 8) }}</h3>
           <button class="btn-close" (click)="closeReceiveModal()"><i class="bi bi-x-lg"></i></button>

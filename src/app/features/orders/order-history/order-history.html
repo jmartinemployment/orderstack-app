@@ -221,8 +221,8 @@
 
   <!-- Order Detail Modal -->
   @if (selectedOrder()) {
-    <div class="modal-overlay" tabindex="0" (click)="closeOrderDetail()" (keydown.enter)="closeOrderDetail()">
-      <div class="modal-content card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="closeOrderDetail()" (keydown.enter)="closeOrderDetail()" aria-hidden="true">
+      <div class="modal-content card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Order #{{ getOrderNumber(selectedOrder()!) }}</h4>
           <button type="button" class="btn-close" (click)="closeOrderDetail()"></button>

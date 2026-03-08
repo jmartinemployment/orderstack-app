@@ -218,7 +218,7 @@
   <!-- Search Modal -->
   @if (activeModal() === 'search') {
     <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
-      <div class="modal-content modal-search" (click)="$event.stopPropagation()">
+      <div class="modal-content modal-search" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Search Items</h3>
           <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
@@ -259,7 +259,7 @@
   <!-- Variation Picker Modal -->
   @if (activeModal() === 'variation-picker' && pickerItem()) {
     <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Select Variation — {{ pickerItem()!.name }}</h3>
           <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
@@ -283,7 +283,7 @@
   <!-- Payment Modal -->
   @if (activeModal() === 'payment') {
     <div class="modal-backdrop">
-      <div class="modal-content modal-payment" (click)="$event.stopPropagation()">
+      <div class="modal-content modal-payment" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <!-- Method Selection -->
         @if (paymentStep() === 'method') {
           <div class="modal-header">
@@ -642,7 +642,7 @@
   <!-- Layaway Modal -->
   @if (activeModal() === 'layaway') {
     <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Create Layaway</h3>
           <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
@@ -697,7 +697,7 @@
   <!-- Layaway Payment Modal -->
   @if (activeModal() === 'layaway-payment' && selectedLayaway(); as layaway) {
     <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Layaway Payment — LAY-{{ layaway.id.substring(0, 8) }}</h3>
           <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
@@ -759,7 +759,7 @@
   <!-- Receipt Settings Modal -->
   @if (activeModal() === 'receipt-settings') {
     <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
-      <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
+      <div class="modal-content modal-wide" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Receipt Settings</h3>
           <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
@@ -839,7 +839,7 @@
   <!-- Price Override Modal -->
   @if (activeModal() === 'price-override') {
     <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Price Override</h3>
           <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
@@ -879,7 +879,7 @@
   <!-- Weight Entry Modal -->
   @if (activeModal() === 'weight-entry') {
     <div class="modal-backdrop" (click)="closeModal()" aria-hidden="true">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Enter Weight</h3>
           <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
@@ -908,7 +908,7 @@
   <!-- Quick Key Config Modal -->
   @if (activeModal() === 'quick-key-config') {
     <div class="modal-backdrop" (click)="closeModal()" aria-hidden="true">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Configure Quick Key</h3>
           <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
