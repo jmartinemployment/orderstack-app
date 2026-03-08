@@ -145,7 +145,7 @@
       </div>
 
       <!-- Payment Methods Breakdown -->
-      @if (report.salesByPaymentMethod.length > 0) {
+      @if ((report.salesByPaymentMethod?.length ?? 0) > 0) {
         <div class="section-card">
           <h3 class="section-title">Payment Methods</h3>
           <div class="payment-bars">
@@ -166,7 +166,7 @@
       }
 
       <!-- Top Items Quick View -->
-      @if (report.salesByItem.length > 0) {
+      @if ((report.salesByItem?.length ?? 0) > 0) {
         <div class="section-card">
           <h3 class="section-title">
             Top Items
@@ -182,7 +182,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (item of report.salesByItem.slice(0, 10); track item.itemId) {
+              @for (item of (report.salesByItem ?? []).slice(0, 10); track item.itemId) {
                 <tr>
                   <td>
                     <div class="item-name">{{ item.itemName }}</div>
@@ -205,7 +205,7 @@
       }
 
       <!-- Top Categories Quick View -->
-      @if (report.salesByCategory.length > 0) {
+      @if ((report.salesByCategory?.length ?? 0) > 0) {
         <div class="section-card">
           <h3 class="section-title">
             Categories
@@ -546,7 +546,7 @@
       </div>
 
       <!-- COGS Trend Chart -->
-      @if (cogs.trend.length > 0) {
+      @if ((cogs.trend?.length ?? 0) > 0) {
         <div class="section-card">
           <h3 class="section-title">COGS Trend</h3>
           <div class="trend-chart">
@@ -564,7 +564,7 @@
       }
 
       <!-- Per-Item COGS Table -->
-      @if (cogs.rows.length > 0) {
+      @if ((cogs.rows?.length ?? 0) > 0) {
         <div class="section-card">
           <h3 class="section-title">COGS by Item</h3>
           <div class="table-responsive">
@@ -646,7 +646,7 @@
                   </div>
                 </div>
 
-                @if (vendor.topItems.length > 0) {
+                @if ((vendor.topItems?.length ?? 0) > 0) {
                   <div class="vendor-top-items">
                     <div class="top-items-label">Top Items</div>
                     @for (item of vendor.topItems; track item.itemName) {
@@ -777,7 +777,7 @@
         </div>
       </div>
 
-      @if (forecast.dailyForecasts.length > 0) {
+      @if ((forecast.dailyForecasts?.length ?? 0) > 0) {
         <div class="section-card">
           <h3 class="section-title">Daily Forecast</h3>
           <div class="forecast-chart">
@@ -898,7 +898,7 @@
       </div>
 
       <!-- Monthly Revenue Comparison -->
-      @if (yoy.monthlyRevenue.length > 0) {
+      @if ((yoy.monthlyRevenue?.length ?? 0) > 0) {
         <div class="section-card">
           <h3 class="section-title">Monthly Revenue Comparison</h3>
           <div class="yoy-chart">
@@ -921,7 +921,7 @@
 
       <!-- Top Growth & Decline -->
       <div class="yoy-columns">
-        @if (yoy.topGrowthItems.length > 0) {
+        @if ((yoy.topGrowthItems?.length ?? 0) > 0) {
           <div class="section-card">
             <h3 class="section-title"><i class="bi bi-arrow-up-circle text-success"></i> Top Growth</h3>
             @for (item of yoy.topGrowthItems; track item.itemName) {
@@ -933,7 +933,7 @@
           </div>
         }
 
-        @if (yoy.topDeclineItems.length > 0) {
+        @if ((yoy.topDeclineItems?.length ?? 0) > 0) {
           <div class="section-card">
             <h3 class="section-title"><i class="bi bi-arrow-down-circle text-danger"></i> Largest Decline</h3>
             @for (item of yoy.topDeclineItems; track item.itemName) {
