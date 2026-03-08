@@ -74,7 +74,7 @@
         </div>
         <div class="notification-list">
           @for (notif of notifications(); track notif.id) {
-            <div class="notification-item" [class.unread]="!notif.isRead" (click)="markAsRead(notif.id)" (keydown.enter)="markAsRead(notif.id)" tabindex="0" role="button">
+            <div class="notification-item" [class.unread]="!notif.isRead" (click)="markAsRead(notif.id)" (keydown.enter)="markAsRead(notif.id)" tabindex="0">
               <i class="bi {{ getNotificationIcon(notif.type) }} notification-icon"></i>
               <div class="notification-content">
                 <div class="notification-title">{{ notif.title }}</div>
@@ -97,7 +97,7 @@
 
     <!-- Error banner -->
     @if (error()) {
-      <div class="error-banner" (click)="dismissError()" (keydown.enter)="dismissError()" tabindex="0" role="button">
+      <div class="error-banner" (click)="dismissError()" (keydown.enter)="dismissError()" tabindex="0">
         <i class="bi bi-exclamation-triangle"></i>
         {{ error() }}
         <i class="bi bi-x"></i>
@@ -202,7 +202,7 @@
           <div class="pto-form">
             <h4>Request Time Off</h4>
             <div class="form-group">
-              <label>Type</label>
+              <span class="form-label">Type</span>
               <select class="form-select" aria-label="Time off type" [value]="ptoType()" (change)="setPtoType($any($event.target).value)">
                 <option value="vacation">Vacation</option>
                 <option value="sick">Sick</option>
@@ -212,20 +212,20 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>Start Date</label>
+                <span class="form-label">Start Date</span>
                 <input type="date" class="form-input" aria-label="Start date" [value]="ptoStartDate()" (input)="setPtoStartDate($any($event.target).value)">
               </div>
               <div class="form-group">
-                <label>End Date</label>
+                <span class="form-label">End Date</span>
                 <input type="date" class="form-input" aria-label="End date" [value]="ptoEndDate()" (input)="setPtoEndDate($any($event.target).value)">
               </div>
               <div class="form-group">
-                <label>Hours</label>
+                <span class="form-label">Hours</span>
                 <input type="number" class="form-input" aria-label="Hours" min="1" max="80" [value]="ptoHours()" (input)="setPtoHours($any($event.target).valueAsNumber)">
               </div>
             </div>
             <div class="form-group">
-              <label>Reason (optional)</label>
+              <span class="form-label">Reason (optional)</span>
               <input type="text" class="form-input" aria-label="Reason for time off" placeholder="Reason for time off" [value]="ptoReason()" (input)="setPtoReason($any($event.target).value)">
             </div>
             <div class="pto-form-actions">
@@ -367,7 +367,7 @@
           <div class="swap-form">
             <h4>Request Shift Swap</h4>
             <div class="form-group">
-              <label>Select shift to swap</label>
+              <span class="form-label">Select shift to swap</span>
               <select class="form-select" aria-label="Select shift to swap" (change)="setSwapShiftId($any($event.target).value)">
                 <option value="">Choose a shift...</option>
                 @for (shift of swappableShifts(); track shift.id) {
@@ -378,7 +378,7 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Reason</label>
+              <span class="form-label">Reason</span>
               <input type="text" class="form-input" aria-label="Swap reason" placeholder="Why do you need this swap?" [value]="swapReason()" (input)="setSwapReason($any($event.target).value)">
             </div>
             <div class="swap-form-actions">
@@ -531,7 +531,7 @@
 
         <!-- Manager Override Modal -->
         @if (showManagerOverride()) {
-          <div class="modal-overlay" (click)="cancelManagerOverride()" (keydown.enter)="cancelManagerOverride()" tabindex="0" role="button">
+          <div class="modal-overlay" (click)="cancelManagerOverride()" (keydown.enter)="cancelManagerOverride()" tabindex="0">
             <div class="manager-override-modal" (click)="$event.stopPropagation()">
               <h4><i class="bi bi-shield-lock"></i> Manager Override Required</h4>
               <p class="text-muted">{{ scheduleBlockMessage() }}</p>
@@ -635,11 +635,11 @@
 
         <!-- Timecard Edit Request Modal -->
         @if (showEditForm()) {
-          <div class="modal-overlay" (click)="closeEditRequest()" (keydown.enter)="closeEditRequest()" tabindex="0" role="button">
+          <div class="modal-overlay" (click)="closeEditRequest()" (keydown.enter)="closeEditRequest()" tabindex="0">
             <div class="edit-request-modal" (click)="$event.stopPropagation()">
               <h3>Request Timecard Edit</h3>
               <div class="edit-form-group">
-                <label>Edit Type</label>
+                <span class="form-label">Edit Type</span>
                 <select class="edit-select" aria-label="Edit type" [value]="editType()" (change)="setEditType($any($event.target).value)">
                   @for (opt of editTypeOptions; track opt.value) {
                     <option [value]="opt.value">{{ opt.label }}</option>
@@ -647,11 +647,11 @@
                 </select>
               </div>
               <div class="edit-form-group">
-                <label>Original Value</label>
+                <span class="form-label">Original Value</span>
                 <div class="edit-original">{{ editOriginalValue() }}</div>
               </div>
               <div class="edit-form-group">
-                <label>New Value</label>
+                <span class="form-label">New Value</span>
                 @if (editType() === 'job_change') {
                   <input type="text" class="edit-input" aria-label="New job title" placeholder="New job title" [value]="editNewValue()" (input)="setEditNewValue($any($event.target).value)">
                 } @else {
@@ -659,7 +659,7 @@
                 }
               </div>
               <div class="edit-form-group">
-                <label>Reason *</label>
+                <span class="form-label">Reason *</span>
                 <input type="text" class="edit-input" aria-label="Edit reason" placeholder="Why is this edit needed?" [value]="editReason()" (input)="setEditReason($any($event.target).value)">
               </div>
               <div class="edit-actions">
@@ -674,7 +674,7 @@
 
         <!-- Clock Out Confirmation Modal -->
         @if (showClockOutConfirm()) {
-          <div class="modal-overlay" (click)="cancelClockOut()" (keydown.enter)="cancelClockOut()" tabindex="0" role="button">
+          <div class="modal-overlay" (click)="cancelClockOut()" (keydown.enter)="cancelClockOut()" tabindex="0">
             <div class="clock-out-modal" (click)="$event.stopPropagation()">
               <h3>Shift Summary</h3>
 
@@ -749,7 +749,7 @@
 
                 @if (s.isTipEligible) {
                   <div class="tip-declaration">
-                    <label>Declare Cash Tips ($)</label>
+                    <span class="form-label">Declare Cash Tips ($)</span>
                     <input
                       type="number"
                       class="tip-input"
@@ -777,7 +777,7 @@
 
         <!-- Job Switch Modal -->
         @if (showJobSwitcher()) {
-          <div class="modal-overlay" (click)="cancelJobSwitch()" (keydown.enter)="cancelJobSwitch()" tabindex="0" role="button">
+          <div class="modal-overlay" (click)="cancelJobSwitch()" (keydown.enter)="cancelJobSwitch()" tabindex="0">
             <div class="job-switch-modal" (click)="$event.stopPropagation()">
               <h3>Switch Job</h3>
               <p class="job-switch-desc">

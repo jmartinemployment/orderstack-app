@@ -213,7 +213,7 @@
 
   <!-- ==================== ITEM FORM MODAL ==================== -->
   @if (showForm()) {
-    <div class="modal-overlay" (click)="onOverlayClick($event)" (keydown.enter)="onOverlayClick($event)" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="onOverlayClick($event)" (keydown.enter)="onOverlayClick($event)" tabindex="0">
       <div class="modal-content card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">{{ editingItem() ? 'Edit Item' : 'New Item' }}</h4>
@@ -277,7 +277,7 @@
 
             <!-- Image Upload -->
             <div class="mb-3">
-              <label class="form-label">Item Photo</label>
+              <span class="form-label">Item Photo</span>
               @if (imagePreview() || editingItem()?.imageUrl) {
                 <div class="image-preview-container">
                   <img [src]="imagePreview() || editingItem()?.imageUrl" alt="Item preview" class="image-preview" />
@@ -299,7 +299,7 @@
                   }
                 </div>
               } @else {
-                <div class="image-dropzone" (click)="imageFileInput.click()" (keydown.enter)="imageFileInput.click()" tabindex="0" role="button">
+                <div class="image-dropzone" (click)="imageFileInput.click()" (keydown.enter)="imageFileInput.click()" tabindex="0">
                   <i class="bi bi-camera"></i>
                   <span>Click to upload a photo</span>
                   <span class="dropzone-hint">JPG, PNG, or WebP — max 2MB</span>
@@ -541,7 +541,7 @@
                         </div>
                         <div class="row g-2">
                           <div class="col-md-3">
-                            <label class="form-label small">Pricing Model</label>
+                            <span class="form-label small">Pricing Model</span>
                             <select class="form-select form-select-sm" aria-label="Tier pricing model" [value]="tier.model"
                               (change)="updatePricingTier(i, 'model', $any($event.target).value)">
                               <option value="per_person">Per Person</option>
@@ -550,14 +550,14 @@
                             </select>
                           </div>
                           <div class="col-md-2">
-                            <label class="form-label small">Price ($)</label>
+                            <span class="form-label small">Price ($)</span>
                             <input type="number" class="form-control form-control-sm" min="0" step="0.01"
                               aria-label="Tier price"
                               [value]="tier.price"
                               (input)="updatePricingTier(i, 'price', +$any($event.target).value)">
                           </div>
                           <div class="col-md-2">
-                            <label class="form-label small">Min Qty</label>
+                            <span class="form-label small">Min Qty</span>
                             <input type="number" class="form-control form-control-sm" min="0"
                               aria-label="Minimum quantity"
                               [value]="tier.minimumQuantity ?? ''"
@@ -565,7 +565,7 @@
                           </div>
                           @if (tier.model === 'per_tray') {
                             <div class="col-md-2">
-                              <label class="form-label small">Serves</label>
+                              <span class="form-label small">Serves</span>
                               <input type="number" class="form-control form-control-sm" min="1"
                                 aria-label="Serves quantity"
                                 [value]="tier.servesQuantity ?? ''"
@@ -573,7 +573,7 @@
                             </div>
                           }
                           <div class="col-md-3">
-                            <label class="form-label small">Label</label>
+                            <span class="form-label small">Label</span>
                             <input type="text" class="form-control form-control-sm"
                               placeholder="e.g. Half Tray"
                               aria-label="Tier label"
@@ -603,7 +603,7 @@
                 <div class="section-body">
                   <div class="row g-2">
                     <div class="col-6 col-md-4">
-                      <label class="form-label small">Serving Size</label>
+                      <span class="form-label small">Serving Size</span>
                       <input type="text" class="form-control form-control-sm"
                         placeholder="e.g., 1 slice (120g)"
                         aria-label="Serving size"
@@ -611,70 +611,70 @@
                         (input)="updateNutrition('servingSize', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
-                      <label class="form-label small">Calories</label>
+                      <span class="form-label small">Calories</span>
                       <input type="number" class="form-control form-control-sm" min="0"
                         aria-label="Calories"
                         [value]="formNutrition().calories"
                         (input)="updateNutrition('calories', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
-                      <label class="form-label small">Total Fat (g)</label>
+                      <span class="form-label small">Total Fat (g)</span>
                       <input type="number" class="form-control form-control-sm" min="0" step="0.1"
                         aria-label="Total fat in grams"
                         [value]="formNutrition().totalFat"
                         (input)="updateNutrition('totalFat', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
-                      <label class="form-label small">Saturated Fat (g)</label>
+                      <span class="form-label small">Saturated Fat (g)</span>
                       <input type="number" class="form-control form-control-sm" min="0" step="0.1"
                         aria-label="Saturated fat in grams"
                         [value]="formNutrition().saturatedFat"
                         (input)="updateNutrition('saturatedFat', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
-                      <label class="form-label small">Trans Fat (g)</label>
+                      <span class="form-label small">Trans Fat (g)</span>
                       <input type="number" class="form-control form-control-sm" min="0" step="0.1"
                         aria-label="Trans fat in grams"
                         [value]="formNutrition().transFat"
                         (input)="updateNutrition('transFat', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
-                      <label class="form-label small">Cholesterol (mg)</label>
+                      <span class="form-label small">Cholesterol (mg)</span>
                       <input type="number" class="form-control form-control-sm" min="0"
                         aria-label="Cholesterol in milligrams"
                         [value]="formNutrition().cholesterol"
                         (input)="updateNutrition('cholesterol', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
-                      <label class="form-label small">Sodium (mg)</label>
+                      <span class="form-label small">Sodium (mg)</span>
                       <input type="number" class="form-control form-control-sm" min="0"
                         aria-label="Sodium in milligrams"
                         [value]="formNutrition().sodium"
                         (input)="updateNutrition('sodium', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
-                      <label class="form-label small">Total Carbs (g)</label>
+                      <span class="form-label small">Total Carbs (g)</span>
                       <input type="number" class="form-control form-control-sm" min="0" step="0.1"
                         aria-label="Total carbohydrates in grams"
                         [value]="formNutrition().totalCarbs"
                         (input)="updateNutrition('totalCarbs', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
-                      <label class="form-label small">Dietary Fiber (g)</label>
+                      <span class="form-label small">Dietary Fiber (g)</span>
                       <input type="number" class="form-control form-control-sm" min="0" step="0.1"
                         aria-label="Dietary fiber in grams"
                         [value]="formNutrition().dietaryFiber"
                         (input)="updateNutrition('dietaryFiber', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
-                      <label class="form-label small">Total Sugars (g)</label>
+                      <span class="form-label small">Total Sugars (g)</span>
                       <input type="number" class="form-control form-control-sm" min="0" step="0.1"
                         aria-label="Total sugars in grams"
                         [value]="formNutrition().totalSugars"
                         (input)="updateNutrition('totalSugars', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
-                      <label class="form-label small">Protein (g)</label>
+                      <span class="form-label small">Protein (g)</span>
                       <input type="number" class="form-control form-control-sm" min="0" step="0.1"
                         aria-label="Protein in grams"
                         [value]="formNutrition().protein"
@@ -688,15 +688,15 @@
             <!-- Modifier Groups -->
             @if (modifierGroups().length > 0) {
               <div class="mb-3 mt-3">
-                <label class="form-label">Modifier Groups</label>
+                <span class="form-label">Modifier Groups</span>
                 <div class="modifier-group-grid">
                   @for (group of modifierGroups(); track group.id) {
-                    <div class="form-check modifier-group-check" (click)="toggleModifierGroup(group.id)" (keydown.enter)="toggleModifierGroup(group.id)" tabindex="0" role="button">
+                    <div class="form-check modifier-group-check" (click)="toggleModifierGroup(group.id)" (keydown.enter)="toggleModifierGroup(group.id)" tabindex="0">
                       <input class="form-check-input" type="checkbox"
+                        [id]="'mod-group-' + group.id"
                         [checked]="isModifierGroupSelected(group.id)"
-                        aria-label="Select modifier group"
                         (click)="$event.stopPropagation()">
-                      <label class="form-check-label">
+                      <label class="form-check-label" [for]="'mod-group-' + group.id">
                         {{ group.name }}
                         <span class="text-muted small">({{ group.modifiers.length }} options)</span>
                       </label>
@@ -735,7 +735,7 @@
 
   <!-- ==================== DELETE CONFIRMATION MODAL ==================== -->
   @if (deleteTarget(); as target) {
-    <div class="modal-overlay" (click)="onDeleteOverlayClick($event)" (keydown.enter)="onDeleteOverlayClick($event)" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="onDeleteOverlayClick($event)" (keydown.enter)="onDeleteOverlayClick($event)" tabindex="0">
       <div class="delete-confirm-modal card">
         <div class="card-header">
           <h5 class="mb-0">Delete Item</h5>
@@ -754,7 +754,7 @@
 
   <!-- ==================== CSV IMPORT MODAL ==================== -->
   @if (showImportModal()) {
-    <div class="modal-overlay" (click)="onImportOverlayClick($event)" (keydown.enter)="onImportOverlayClick($event)" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="onImportOverlayClick($event)" (keydown.enter)="onImportOverlayClick($event)" tabindex="0">
       <div class="import-modal card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">Import Menu Items</h5>

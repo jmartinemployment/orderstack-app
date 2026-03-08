@@ -30,7 +30,7 @@
       @for (group of groups(); track group.id) {
         <div class="group-card">
           <!-- Group Header -->
-          <div class="group-header" (click)="toggleGroup(group.id)" (keydown.enter)="toggleGroup(group.id)" tabindex="0" role="button">
+          <div class="group-header" (click)="toggleGroup(group.id)" (keydown.enter)="toggleGroup(group.id)" tabindex="0">
             <div class="d-flex align-items-center gap-2">
               <i class="bi" [class.bi-chevron-right]="!isExpanded(group.id)" [class.bi-chevron-down]="isExpanded(group.id)"></i>
               <h6 class="mb-0">{{ group.name }}</h6>
@@ -118,7 +118,7 @@
 
   <!-- ============ Group Form Modal ============ -->
   @if (showGroupForm()) {
-    <div class="modal-backdrop" (click)="closeGroupForm()" (keydown.enter)="closeGroupForm()" tabindex="0" role="button"></div>
+    <div class="modal-backdrop" (click)="closeGroupForm()" (keydown.enter)="closeGroupForm()" tabindex="0"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -177,7 +177,7 @@
 
   <!-- ============ Option Form Modal ============ -->
   @if (showOptionForm()) {
-    <div class="modal-backdrop" (click)="closeOptionForm()" (keydown.enter)="closeOptionForm()" tabindex="0" role="button"></div>
+    <div class="modal-backdrop" (click)="closeOptionForm()" (keydown.enter)="closeOptionForm()" tabindex="0"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -216,7 +216,7 @@
 
   <!-- ============ Delete Confirmation Modal ============ -->
   @if (showDeleteConfirm()) {
-    <div class="modal-backdrop" (click)="cancelDelete()" (keydown.enter)="cancelDelete()" tabindex="0" role="button"></div>
+    <div class="modal-backdrop" (click)="cancelDelete()" (keydown.enter)="cancelDelete()" tabindex="0"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">

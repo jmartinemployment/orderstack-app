@@ -141,7 +141,7 @@
                 <div class="template-dropdown-label">Apply Template</div>
                 @for (tpl of scheduleTemplates(); track tpl.id) {
                   <div class="template-dropdown-item d-flex justify-content-between align-items-center"
-                    role="button" tabindex="0" (click)="applyTemplate(tpl)"
+                    tabindex="0" (click)="applyTemplate(tpl)"
                     (keydown.enter)="applyTemplate(tpl)">
                     <span><i class="bi bi-calendar-check"></i> {{ tpl.name }}</span>
                     <button class="btn-template-delete" (click)="deleteTemplate(tpl, $event)" title="Delete">
@@ -223,13 +223,13 @@
               <small class="text-muted">{{ staff.role }}</small>
             </div>
             @for (day of weekDays(); track day) {
-              <div class="grid-cell" role="button" tabindex="0"
+              <div class="grid-cell" tabindex="0"
                 (click)="openNewShift(staff.id, day)"
                 (keydown.enter)="openNewShift(staff.id, day)">
                 @for (shift of getShiftsForCell(staff.id, day); track shift.id) {
                   <div class="shift-block"
                     [style.border-left-color]="getPositionColor(shift.position)"
-                    role="button" tabindex="0"
+                    tabindex="0"
                     (click)="openEditShift(shift); $event.stopPropagation()"
                     (keydown.enter)="openEditShift(shift); $event.stopPropagation()">
                     <div class="shift-time">{{ formatTime(shift.startTime) }}-{{ formatTime(shift.endTime) }}</div>
@@ -267,7 +267,7 @@
           <h6 class="mb-3"><i class="bi bi-box-arrow-in-right"></i> Clock In</h6>
           <div class="d-flex gap-2">
             <select class="form-select form-select-sm"
-              aria-label="Select staff to clock in"
+              aria-label="Clock In — Select staff"
               [ngModel]="clockInPin()" (ngModelChange)="setClockInPin($event)">
               <option value="">Select staff...</option>
               @for (member of staffRows(); track member.id) {
@@ -412,15 +412,15 @@
           <table class="table table-sm table-hover">
             <thead>
               <tr>
-                <th class="sortable" role="button" tabindex="0"
+                <th class="sortable" tabindex="0"
                   (click)="sortReport('name')" (keydown.enter)="sortReport('name')">Name</th>
                 <th>Role</th>
-                <th class="sortable" role="button" tabindex="0"
+                <th class="sortable" tabindex="0"
                   (click)="sortReport('hours')" (keydown.enter)="sortReport('hours')">Reg Hours</th>
                 <th>OT Hours</th>
-                <th class="sortable" role="button" tabindex="0"
+                <th class="sortable" tabindex="0"
                   (click)="sortReport('hours')" (keydown.enter)="sortReport('hours')">Total</th>
-                <th class="sortable" role="button" tabindex="0"
+                <th class="sortable" tabindex="0"
                   (click)="sortReport('cost')" (keydown.enter)="sortReport('cost')">Cost</th>
                 <th>Shifts</th>
               </tr>
@@ -726,7 +726,7 @@
       @for (period of payrollPeriods(); track period.id) {
         <div class="payroll-period-card mb-2" [class.expanded]="expandedPayrollId() === period.id">
           <!-- Period Header -->
-          <div class="payroll-period-header" role="button" tabindex="0"
+          <div class="payroll-period-header" tabindex="0"
             (click)="expandPayroll(period)" (keydown.enter)="expandPayroll(period)">
             <div class="d-flex align-items-center gap-2">
               <i class="bi" [class.bi-chevron-right]="expandedPayrollId() !== period.id"
@@ -788,22 +788,22 @@
                 <table class="table table-dark table-sm table-hover mb-0">
                   <thead>
                     <tr>
-                      <th class="sortable" role="button" tabindex="0"
+                      <th class="sortable" tabindex="0"
                         (click)="sortPayroll('name')" (keydown.enter)="sortPayroll('name')">Employee</th>
-                      <th class="sortable text-end" role="button" tabindex="0"
+                      <th class="sortable text-end" tabindex="0"
                         (click)="sortPayroll('hours')" (keydown.enter)="sortPayroll('hours')">Reg Hrs</th>
                       <th class="text-end">OT Hrs</th>
                       <th class="text-end">Reg Pay</th>
                       <th class="text-end">OT Pay</th>
                       <th class="text-end">Tips</th>
                       <th class="text-end">Commissions</th>
-                      <th class="sortable text-end" role="button" tabindex="0"
+                      <th class="sortable text-end" tabindex="0"
                         (click)="sortPayroll('gross')" (keydown.enter)="sortPayroll('gross')">Gross Pay</th>
                     </tr>
                   </thead>
                   <tbody>
                     @for (member of sortedPayrollMembers(); track member.teamMemberId) {
-                      <tr class="payroll-member-row" role="button" tabindex="0"
+                      <tr class="payroll-member-row" tabindex="0"
                         (click)="toggleMemberExpand(member.teamMemberId)"
                         (keydown.enter)="toggleMemberExpand(member.teamMemberId)"
                         [class.overtime-row]="member.overtimeHours > 0">
@@ -1099,7 +1099,7 @@
 
     <!-- ==================== SHIFT MODAL ==================== -->
     @if (showShiftModal()) {
-      <div class="modal-backdrop" role="button" tabindex="0"
+      <div class="modal-backdrop" tabindex="0"
         (click)="closeShiftModal()" (keydown.enter)="closeShiftModal()"></div>
       <div class="modal-dialog">
         <div class="modal-content">

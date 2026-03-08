@@ -118,7 +118,7 @@
       <!-- Manager override for schedule enforcement -->
       @if (showManagerOverride()) {
         <div class="manager-override">
-          <label>Manager Override — Enter a manager PIN to proceed</label>
+          <span class="form-label">Manager Override — Enter a manager PIN to proceed</span>
           <div class="override-input-row">
             <input
               type="password"
@@ -145,7 +145,7 @@
 
       @if (needsJobSelection()) {
         <div class="job-selector">
-          <label>Select your role for this shift:</label>
+          <span class="form-label">Select your role for this shift:</span>
           <div class="job-options">
             @for (job of memberJobs(); track job.id) {
               <button

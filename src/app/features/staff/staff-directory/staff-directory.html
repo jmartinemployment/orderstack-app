@@ -238,11 +238,11 @@
         @for (job of formJobs(); track $index; let i = $index) {
           <div class="job-row">
             <div class="job-field">
-              <label>Title *</label>
+              <span class="form-label">Title *</span>
               <input type="text" [ngModel]="job.jobTitle" (ngModelChange)="updateJobField(i, 'jobTitle', $event)" placeholder="e.g. Server" aria-label="Job title" />
             </div>
             <div class="job-field job-rate-field">
-              <label>Hourly Rate</label>
+              <span class="form-label">Hourly Rate</span>
               <input type="number" [ngModel]="job.hourlyRate" (ngModelChange)="updateJobField(i, 'hourlyRate', $event)" step="0.25" min="0" aria-label="Hourly rate" />
             </div>
             <div class="job-field job-check-field">

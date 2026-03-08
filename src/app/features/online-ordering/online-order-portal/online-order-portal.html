@@ -190,7 +190,7 @@
               <img [src]="item.thumbnailUrl || item.imageUrl || item.image" [alt]="item.name"
                 class="menu-item-image" loading="lazy" />
             }
-            <div class="item-info" (click)="toggleItemExpanded(item.id)" (keydown.enter)="toggleItemExpanded(item.id)" tabindex="0" role="button">
+            <button type="button" class="item-info" (click)="toggleItemExpanded(item.id)" (keydown.enter)="toggleItemExpanded(item.id)" tabindex="0">
               <div class="item-name">{{ item.name }}</div>
               @if (item.description) {
                 <div class="item-desc">{{ item.description }}</div>
@@ -247,7 +247,7 @@
                   </div>
                 </div>
               }
-            </div>
+            </button>
             <div class="item-action">
               @if (!isItemAvailable(item)) {
                 <span class="unavailable-label">Unavailable</span>
@@ -280,10 +280,10 @@
 
       <!-- Floating Cart Bar -->
       @if (cartItemCount() > 0) {
-        <div class="floating-cart" (click)="goToCart()" (keydown.enter)="goToCart()" tabindex="0" role="button">
+        <button type="button" class="floating-cart" (click)="goToCart()" (keydown.enter)="goToCart()" tabindex="0">
           <span>View Cart ({{ cartItemCount() }} items)</span>
           <span class="fw-bold">{{ cartTotal() | currency }}</span>
-        </div>
+        </button>
       }
     }
 
@@ -432,8 +432,8 @@
         <!-- Order Type (hidden in tableside mode) -->
         @if (!isTableside()) {
           <div class="mb-3">
-            <label class="form-label">Order Type</label>
-            <div class="order-type-toggle d-flex gap-2 flex-wrap">
+            <label class="form-label" id="oop-order-type-label">Order Type</label>
+            <div class="order-type-toggle d-flex gap-2 flex-wrap" role="group" aria-labelledby="oop-order-type-label">
               <button
                 type="button"
                 class="btn flex-fill"
@@ -507,7 +507,7 @@
             @if (showRecentOrders()) {
               <div class="recent-orders-list">
                 @for (order of recentOrders(); track order.guid) {
-                  <div class="recent-order-card" (click)="reorderFromPast(order)" (keydown.enter)="reorderFromPast(order)" tabindex="0" role="button">
+                  <button type="button" class="recent-order-card" (click)="reorderFromPast(order)" (keydown.enter)="reorderFromPast(order)" tabindex="0">
                     <div class="recent-order-header">
                       <span class="recent-order-date">{{ order.timestamps.createdDate | date:'MMM d' }}</span>
                       <span class="recent-order-total">{{ order.totalAmount | currency }}</span>
@@ -523,7 +523,7 @@
                     <div class="recent-order-action">
                       <i class="bi bi-plus-circle me-1"></i> Add to Cart
                     </div>
-                  </div>
+                  </button>
                 }
               </div>
             }
@@ -540,8 +540,8 @@
           <!-- Saved Addresses (Step 7) -->
           @if (savedAddresses().length > 0) {
             <div class="saved-addresses-section mb-3">
-              <label class="form-label">Delivery Address</label>
-              <div class="saved-address-list">
+              <label class="form-label" id="oop-delivery-address-label">Delivery Address</label>
+              <div class="saved-address-list" role="group" aria-labelledby="oop-delivery-address-label">
                 @for (addr of savedAddresses(); track addr.id) {
                   <button
                     type="button"
@@ -642,7 +642,7 @@
 
         <!-- Loyalty Program -->
         @if (loyaltyEnabled()) {
-          <div class="loyalty-section mb-3">
+          <div class="loyalty-section mb-3" role="group" aria-label="Loyalty Program">
             <label class="form-label">Loyalty Program</label>
             @if (isLookingUpLoyalty()) {
               <div class="d-flex align-items-center gap-2">
@@ -780,7 +780,7 @@
         </div>
 
         <!-- Tip Selection -->
-        <div class="tip-section mb-3">
+        <div class="tip-section mb-3" role="group" aria-label="Add a Tip">
           <label class="form-label">Add a Tip</label>
           <div class="tip-presets d-flex gap-2 mb-2">
             @for (preset of tipPresets; track preset.percent) {
@@ -892,7 +892,7 @@
 
     <!-- AGE VERIFICATION MODAL -->
     @if (showAgeVerification()) {
-      <div class="modal-backdrop" (click)="cancelAgeVerification()" (keydown.enter)="cancelAgeVerification()" tabindex="0" role="button"></div>
+      <div class="modal-backdrop" (click)="cancelAgeVerification()" (keydown.enter)="cancelAgeVerification()" tabindex="0"></div>
       <div class="age-modal">
         <div class="age-modal-icon"><i class="bi bi-shield-check"></i></div>
         <h3>Age Verification</h3>

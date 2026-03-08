@@ -49,9 +49,9 @@
       <!-- Value input -->
       @if (type() !== 'comp') {
         <div class="mb-3">
-          <label class="form-label">
+          <span class="form-label">
             {{ type() === 'percentage' ? 'Percentage' : 'Amount ($)' }}
-          </label>
+          </span>
           <div class="input-group">
             @if (type() === 'flat') {
               <span class="input-group-text">$</span>
@@ -81,7 +81,7 @@
 
       <!-- Reason -->
       <div class="mb-3">
-        <label class="form-label">Reason</label>
+        <span class="form-label">Reason</span>
         <select
           class="form-select"
           aria-label="Discount reason"

@@ -63,13 +63,13 @@
           </div>
 
           <div class="mb-2">
-            <label class="form-label">Name</label>
+            <span class="form-label">Name</span>
             <input type="text" class="form-control form-control-sm" [value]="formName()" (input)="onFormField('name', $event)" placeholder="e.g. Happy Hour" aria-label="Rule name" />
           </div>
 
           <div class="row g-2 mb-2">
             <div class="col-6">
-              <label class="form-label">Type</label>
+              <span class="form-label">Type</span>
               <select class="form-select form-select-sm" [value]="formType()" (change)="onFormField('type', $event)" aria-label="Rule type">
                 <option value="happy_hour">Happy Hour</option>
                 <option value="surge">Surge</option>
@@ -79,7 +79,7 @@
               </select>
             </div>
             <div class="col-6">
-              <label class="form-label">Multiplier</label>
+              <span class="form-label">Multiplier</span>
               <input type="number" class="form-control form-control-sm" [value]="formMultiplier()" (input)="onFormField('multiplier', $event)" step="0.05" min="0.5" max="2" aria-label="Price multiplier" />
               <small class="text-muted">{{ getMultiplierLabel(formMultiplier()) }}</small>
             </div>
@@ -87,17 +87,17 @@
 
           <div class="row g-2 mb-2">
             <div class="col-6">
-              <label class="form-label">Start Time</label>
+              <span class="form-label">Start Time</span>
               <input type="time" class="form-control form-control-sm" [value]="formStartTime()" (input)="onFormField('startTime', $event)" aria-label="Start time" />
             </div>
             <div class="col-6">
-              <label class="form-label">End Time</label>
+              <span class="form-label">End Time</span>
               <input type="time" class="form-control form-control-sm" [value]="formEndTime()" (input)="onFormField('endTime', $event)" aria-label="End time" />
             </div>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Days</label>
+            <span class="form-label">Days</span>
             <div class="day-pills d-flex gap-1 flex-wrap">
               @for (day of allDays(); track day) {
                 <button type="button" class="day-pill" [class.active]="formDays().includes(day)" (click)="toggleFormDay(day)">

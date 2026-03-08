@@ -15,7 +15,7 @@
       @if (mode() === 'void') {
         <!-- Void reason -->
         <div class="mb-3">
-          <label class="form-label">Reason for void</label>
+          <span class="form-label">Reason for void</span>
           <div class="reason-grid">
             @for (opt of voidReasons; track opt.value) {
               <button
@@ -43,7 +43,7 @@
       } @else {
         <!-- Comp reason -->
         <div class="mb-3">
-          <label class="form-label">Reason for comp</label>
+          <span class="form-label">Reason for comp</span>
           <input
             type="text"
             class="form-control"
@@ -62,7 +62,7 @@
       <!-- Manager PIN section -->
       @if (needsPin()) {
         <div class="pin-section mb-3">
-          <label class="form-label">Manager PIN</label>
+          <span class="form-label">Manager PIN</span>
           <input
             type="password"
             class="form-control pin-input"

@@ -101,7 +101,7 @@
               (click)="selectTable(table)"
               (keydown.enter)="selectTable(table)"
               tabindex="0"
-              role="button"
+             
               [attr.aria-label]="'Area ' + table.tableNumber + ', ' + table.status"
             >
               <span class="table-number">{{ table.tableNumber }}</span>
@@ -167,7 +167,7 @@
           <span class="col-actions">Actions</span>
         </div>
         @for (table of filteredTables(); track table.id) {
-          <div class="list-row" [class.selected]="selectedTable()?.id === table.id" (click)="selectTable(table)" (keydown.enter)="selectTable(table)" tabindex="0" role="button">
+          <div class="list-row" [class.selected]="selectedTable()?.id === table.id" (click)="selectTable(table)" (keydown.enter)="selectTable(table)" tabindex="0">
             <span class="col-num fw-bold">{{ table.tableNumber }}</span>
             <span class="col-name">
               {{ table.tableName ?? '—' }}

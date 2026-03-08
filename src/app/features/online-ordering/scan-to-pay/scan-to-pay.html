@@ -165,8 +165,9 @@
           <h3>Payment</h3>
           <div class="card-form">
             <div class="form-field">
-              <label>Name on Card</label>
+              <label for="stp-card-name">Name on Card</label>
               <input
+                id="stp-card-name"
                 type="text"
                 placeholder="John Smith"
                 autocomplete="cc-name"
@@ -175,8 +176,9 @@
                 (input)="setCardName($any($event.target).value)">
             </div>
             <div class="form-field">
-              <label>Card Number</label>
+              <label for="stp-card-number">Card Number</label>
               <input
+                id="stp-card-number"
                 type="text"
                 inputmode="numeric"
                 placeholder="4242 4242 4242 4242"
@@ -187,8 +189,9 @@
             </div>
             <div class="form-row">
               <div class="form-field">
-                <label>Expiry</label>
+                <label for="stp-card-expiry">Expiry</label>
                 <input
+                  id="stp-card-expiry"
                   type="text"
                   inputmode="numeric"
                   placeholder="MM/YY"
@@ -198,8 +201,9 @@
                   (input)="setCardExpiry($any($event.target).value)">
               </div>
               <div class="form-field">
-                <label>CVC</label>
+                <label for="stp-card-cvc">CVC</label>
                 <input
+                  id="stp-card-cvc"
                   type="text"
                   inputmode="numeric"
                   placeholder="123"

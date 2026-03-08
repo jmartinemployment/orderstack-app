@@ -121,7 +121,7 @@
         <div class="gc-modal-body">
           <!-- Type -->
           <div class="mb-3">
-            <label class="form-label small" id="gc-type-label">Type</label>
+            <span class="form-label small" id="gc-type-label">Type</span>
             <div class="d-flex gap-2">
               <button type="button" class="btn btn-sm"
                 [class.btn-primary]="formType() === 'digital'"
@@ -140,7 +140,7 @@
 
           <!-- Amount -->
           <div class="mb-3">
-            <label class="form-label small" id="gc-amount-label">Amount</label>
+            <span class="form-label small" id="gc-amount-label">Amount</span>
             <div class="d-flex flex-wrap gap-2">
               @for (amt of amounts; track amt) {
                 <button type="button" class="btn btn-sm gc-amount-btn"
@@ -353,7 +353,7 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label small" id="activate-amount-label">Amount to Load</label>
+            <span class="form-label small" id="activate-amount-label">Amount to Load</span>
             <div class="d-flex flex-wrap gap-2">
               @for (amt of amounts; track amt) {
                 <button type="button" class="btn btn-sm gc-amount-btn"

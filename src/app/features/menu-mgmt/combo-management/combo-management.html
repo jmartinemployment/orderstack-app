@@ -97,7 +97,7 @@
 
     <!-- CREATE/EDIT FORM MODAL -->
     @if (showForm()) {
-      <div class="modal-backdrop" (click)="closeForm()" (keydown.enter)="closeForm()" tabindex="0" role="button"></div>
+      <div class="modal-backdrop" (click)="closeForm()" (keydown.enter)="closeForm()" tabindex="0"></div>
       <div class="form-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">{{ editingCombo() ? 'Edit Combo' : 'New Combo' }}</h4>
@@ -155,7 +155,7 @@
 
         <!-- Selected Items -->
         <div class="mb-3">
-          <label class="form-label">Combo Items (min. 2) *</label>
+          <span class="form-label">Combo Items (min. 2) *</span>
           @if (formItems().length > 0) {
             <div class="selected-items mb-2">
               @for (fi of formItems(); track fi.menuItemId) {

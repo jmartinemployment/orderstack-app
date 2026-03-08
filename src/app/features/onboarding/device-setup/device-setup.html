@@ -127,7 +127,7 @@
           </p>
 
           <div class="code-input-section">
-            <label class="form-label fw-semibold">Pairing Code</label>
+            <label for="pairingCodeInput" class="form-label fw-semibold">Pairing Code</label>
             <div class="code-display">
               @for (i of [0, 1, 2, 3, 4]; track i) {
                 <div class="code-cell" [class.filled]="codeDigits().length > i">
@@ -136,6 +136,7 @@
               }
             </div>
             <input
+              id="pairingCodeInput"
               type="text"
               class="code-hidden-input"
               [value]="pairingCode()"

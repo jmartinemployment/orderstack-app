@@ -46,7 +46,7 @@
       }
       <!-- Course Pacing Mode -->
       <div class="d-flex align-items-center gap-2">
-        <label class="small text-muted mb-0">Courses:</label>
+        <span class="small text-muted mb-0">Courses:</span>
         <select
           class="form-select form-select-sm pacing-select"
           aria-label="Course pacing mode"
@@ -75,7 +75,7 @@
       <!-- Auto-fire delay (only when auto_fire_timed) -->
       @if (coursePacingMode() === 'auto_fire_timed') {
         <div class="d-flex align-items-center gap-2">
-          <label class="small text-muted mb-0">Fire delay (s):</label>
+          <span class="small text-muted mb-0">Fire delay (s):</span>
           <input
             type="number"
             class="form-control form-control-sm auto-fire-control"
@@ -90,7 +90,7 @@
       <!-- Default prep minutes (only when stagger enabled) -->
       @if (prepTimeFiringEnabled()) {
         <div class="d-flex align-items-center gap-2">
-          <label class="small text-muted mb-0">Prep (min):</label>
+          <span class="small text-muted mb-0">Prep (min):</span>
           <input
             type="number"
             class="form-control form-control-sm auto-fire-control"
@@ -105,7 +105,7 @@
       <!-- Station Selector -->
       @if (stations().length > 0) {
         <div class="d-flex align-items-center gap-2">
-          <label class="small text-muted mb-0">Station:</label>
+          <span class="small text-muted mb-0">Station:</span>
           <select
             class="form-select form-select-sm station-select"
             aria-label="Station filter"
