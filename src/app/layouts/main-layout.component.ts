@@ -34,8 +34,20 @@ export class MainLayoutComponent {
   readonly mobileMenuOpen = signal(false);
 
   readonly user = this.auth.user;
-  readonly selectedMerchantName = this.auth.selectedMerchantName;
-  readonly selectedMerchantAddress = this.auth.selectedMerchantAddress;
+
+  readonly selectedMerchantName = computed(() => {
+    const profile = this.platform.merchantProfile();
+    if (profile?.businessName) return profile.businessName;
+    return this.auth.selectedMerchantName() ?? null;
+  });
+
+  readonly selectedMerchantAddress = computed(() => {
+    const profile = this.platform.merchantProfile();
+    const addr = profile?.address;
+    if (addr?.city && addr?.state) return `${addr.city}, ${addr.state}`;
+    if (addr?.city) return addr.city;
+    return this.auth.selectedMerchantAddress() ?? null;
+  });
 
   readonly userName = computed(() => this.user()?.firstName ?? null);
 

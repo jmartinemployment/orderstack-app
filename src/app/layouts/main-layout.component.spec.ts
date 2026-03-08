@@ -314,3 +314,111 @@ describe('MainLayout — buildCateringNav (FEATURE-04 spec)', () => {
     expect(findTopLevel(nav, 'Invoices')?.badge).toBeUndefined();
   });
 });
+
+/**
+ * Tests for BUG-20: Sidebar shows placeholder "jeff / 123 main" instead of
+ * the merchant's actual business name and formatted address.
+ *
+ * Root cause: main-layout passed auth.selectedMerchantName (raw DB value from
+ * login response) directly to the sidebar. Fix: prefer PlatformService's
+ * merchantProfile.businessName and structured address (city, state).
+ *
+ * These pure functions mirror the computed() logic in main-layout.component.ts.
+ */
+
+interface BusinessAddress {
+  street: string;
+  street2: string | null;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+  timezone: string;
+  phone: string | null;
+  lat: number | null;
+}
+
+interface MerchantProfileSlice {
+  businessName: string;
+  address: BusinessAddress | null;
+}
+
+function resolveMerchantName(
+  profile: MerchantProfileSlice | null,
+  authName: string | null,
+): string | null {
+  if (profile?.businessName) return profile.businessName;
+  return authName ?? null;
+}
+
+function resolveMerchantAddress(
+  profile: MerchantProfileSlice | null,
+  authAddress: string | null,
+): string | null {
+  const addr = profile?.address;
+  if (addr?.city && addr?.state) return `${addr.city}, ${addr.state}`;
+  if (addr?.city) return addr.city;
+  return authAddress ?? null;
+}
+
+describe('MainLayout — BUG-20 merchant name/address resolution', () => {
+  const fullAddress: BusinessAddress = {
+    street: '123 Main St',
+    street2: null,
+    city: 'Fort Lauderdale',
+    state: 'FL',
+    zip: '33301',
+    country: 'US',
+    timezone: 'America/New_York',
+    phone: null,
+    lat: null,
+  };
+
+  it('prefers merchantProfile.businessName over auth name', () => {
+    const profile: MerchantProfileSlice = { businessName: 'Taipa Kitchen', address: null };
+    expect(resolveMerchantName(profile, 'jeff')).toBe('Taipa Kitchen');
+  });
+
+  it('falls back to auth name when profile is null', () => {
+    expect(resolveMerchantName(null, 'jeff')).toBe('jeff');
+  });
+
+  it('falls back to auth name when profile.businessName is empty', () => {
+    const profile: MerchantProfileSlice = { businessName: '', address: null };
+    expect(resolveMerchantName(profile, 'jeff')).toBe('jeff');
+  });
+
+  it('returns null when both profile and auth name are missing', () => {
+    expect(resolveMerchantName(null, null)).toBeNull();
+  });
+
+  it('formats address as "City, State" from profile address', () => {
+    const profile: MerchantProfileSlice = { businessName: 'Test', address: fullAddress };
+    expect(resolveMerchantAddress(profile, '123 main')).toBe('Fort Lauderdale, FL');
+  });
+
+  it('falls back to city-only when state is empty', () => {
+    const addr = { ...fullAddress, state: '' };
+    const profile: MerchantProfileSlice = { businessName: 'Test', address: addr };
+    expect(resolveMerchantAddress(profile, '123 main')).toBe('Fort Lauderdale');
+  });
+
+  it('falls back to auth address when profile address is null', () => {
+    const profile: MerchantProfileSlice = { businessName: 'Test', address: null };
+    expect(resolveMerchantAddress(profile, '123 main')).toBe('123 main');
+  });
+
+  it('falls back to auth address when profile is null', () => {
+    expect(resolveMerchantAddress(null, '123 main')).toBe('123 main');
+  });
+
+  it('returns null when both profile address and auth address are missing', () => {
+    expect(resolveMerchantAddress(null, null)).toBeNull();
+  });
+
+  it('returns null when profile address has no city', () => {
+    const addr = { ...fullAddress, city: '', state: '' };
+    const profile: MerchantProfileSlice = { businessName: 'Test', address: addr };
+    expect(resolveMerchantAddress(profile, null)).toBeNull();
+  });
+});

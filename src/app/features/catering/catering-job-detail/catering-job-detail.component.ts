@@ -94,6 +94,18 @@ export class CateringJobDetailComponent implements OnInit {
 
   readonly statusConfig = CATERING_STATUS_CONFIG;
 
+  /** Action-oriented labels for status advancement buttons (BUG-21) */
+  readonly statusActionLabels: Record<CateringJobStatus, string> = {
+    inquiry: 'Inquiry',
+    proposal_sent: 'Mark Proposal Sent',
+    contract_signed: 'Mark Contract Signed',
+    deposit_received: 'Record Deposit',
+    in_progress: 'Start Event',
+    final_payment: 'Record Final Payment',
+    completed: 'Mark Completed',
+    cancelled: 'Cancel',
+  };
+
   readonly balanceCents = computed(() => {
     const j = this.job();
     if (!j) return 0;

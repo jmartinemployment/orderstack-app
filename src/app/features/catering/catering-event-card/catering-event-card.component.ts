@@ -63,11 +63,11 @@ export class CateringEventCardComponent {
 
   get advanceLabel(): string {
     const map: Record<string, string> = {
-      inquiry: 'Send Proposal',
-      proposal_sent: 'Contract Signed',
-      contract_signed: 'Deposit Received',
+      inquiry: 'Mark Proposal Sent',
+      proposal_sent: 'Mark Contract Signed',
+      contract_signed: 'Record Deposit',
       deposit_received: 'Start Job',
-      in_progress: 'Final Payment',
+      in_progress: 'Record Final Payment',
       final_payment: 'Mark Complete',
     };
     return map[this.event.status] ?? '';
