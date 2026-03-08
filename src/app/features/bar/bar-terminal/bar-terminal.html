@@ -260,7 +260,7 @@
 
   <!-- Payment Modal -->
   @if (showPaymentModal() && paymentOrder()) {
-    <div class="bar-payment-overlay" (click)="closePaymentModal()" (keydown.escape)="closePaymentModal()" tabindex="0">
+    <div class="bar-payment-overlay" (click)="closePaymentModal()" (keydown.enter)="closePaymentModal()" (keydown.escape)="closePaymentModal()" tabindex="0">
       <div class="bar-payment-modal" (click)="$event.stopPropagation()" (keydown.escape)="closePaymentModal()">
         <div class="bar-payment-modal-header">
           <div>
