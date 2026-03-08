@@ -177,8 +177,37 @@
         </div>
       </div>
     } @else {
+      <!-- Status-filtered view (Leads, specific status from sidebar) -->
+      @if (isStatusFiltered()) {
+        <div class="event-list">
+          @if (filteredAllJobs().length === 0) {
+            <div class="empty-state text-center py-5">
+              <i class="bi bi-funnel display-4 text-muted mb-3 d-block"></i>
+              <p class="text-muted mb-3">No jobs with this status</p>
+              <button type="button" class="btn btn-primary" (click)="openNewEvent()">Create Job</button>
+            </div>
+          } @else {
+            @for (event of filteredAllJobs(); track event.id) {
+              <div class="d-flex align-items-start gap-2 mb-2">
+                <div class="form-check mt-2">
+                  <input class="form-check-input" type="checkbox" [checked]="isSelected(event.id)" (change)="toggleSelect(event.id)" aria-label="Select job">
+                </div>
+                <div class="flex-grow-1" (click)="openJobDetail(event)" (keydown.enter)="openJobDetail(event)" tabindex="0" role="button" style="cursor: pointer;">
+                  <os-catering-event-card
+                    [event]="event"
+                    (statusAdvanced)="advanceStatus($event)"
+                    (editRequested)="openEditEvent($event)"
+                    (cancelRequested)="cancelEvent($event)"
+                  />
+                </div>
+              </div>
+            }
+          }
+        </div>
+      }
+
       <!-- Active Tab -->
-      @if (activeTab() === 'active') {
+      @if (!isStatusFiltered() && activeTab() === 'active') {
         <div class="event-list">
           @if (filteredActiveJobs().length === 0) {
             <div class="empty-state text-center py-5">
@@ -209,7 +238,7 @@
       }
 
       <!-- Upcoming Tab -->
-      @if (activeTab() === 'upcoming') {
+      @if (!isStatusFiltered() && activeTab() === 'upcoming') {
         <div class="event-list">
           @if (filteredUpcomingJobs().length === 0) {
             <div class="empty-state text-center py-5">
@@ -238,7 +267,7 @@
       }
 
       <!-- Past Tab -->
-      @if (activeTab() === 'past') {
+      @if (!isStatusFiltered() && activeTab() === 'past') {
         <div class="event-list">
           @if (filteredPastJobs().length === 0) {
             <div class="empty-state text-center py-5">

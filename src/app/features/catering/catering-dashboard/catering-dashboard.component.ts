@@ -1,5 +1,5 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CateringService } from '@services/catering.service';
 import { CateringJob, CateringJobStatus, CATERING_STATUS_CONFIG } from '@models/index';
 import { CateringEventCardComponent } from '../catering-event-card/catering-event-card.component';
@@ -9,6 +9,11 @@ import { FormsModule } from '@angular/forms';
 
 type CateringTab = 'active' | 'upcoming' | 'past' | 'calendar' | 'capacity';
 
+const VALID_STATUSES = new Set<CateringJobStatus>([
+  'inquiry', 'proposal_sent', 'contract_signed', 'deposit_received',
+  'in_progress', 'final_payment', 'completed', 'cancelled',
+]);
+
 @Component({
   selector: 'os-catering-dashboard',
   standalone: true,
@@ -17,9 +22,10 @@ type CateringTab = 'active' | 'upcoming' | 'past' | 'calendar' | 'capacity';
   styleUrl: './catering-dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CateringDashboardComponent {
+export class CateringDashboardComponent implements OnInit {
   readonly cateringService = inject(CateringService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly activeTab = signal<CateringTab>('active');
   readonly showForm = signal(false);
@@ -27,6 +33,20 @@ export class CateringDashboardComponent {
   readonly searchQuery = signal('');
   readonly selectedIds = signal<Set<string>>(new Set());
   readonly statusFilter = signal<CateringJobStatus | 'all'>('all');
+
+  ngOnInit(): void {
+    const status = this.route.snapshot.queryParamMap.get('status');
+    if (status === 'active') {
+      this.statusFilter.set('all');
+      this.activeTab.set('active');
+    } else if (status === 'completed') {
+      this.statusFilter.set('completed');
+      this.activeTab.set('past');
+    } else if (status !== null && VALID_STATUSES.has(status as CateringJobStatus)) {
+      this.statusFilter.set(status as CateringJobStatus);
+      this.activeTab.set('upcoming');
+    }
+  }
 
   // Capacity local signals
   readonly capMaxEvents = signal(3);
@@ -57,6 +77,10 @@ export class CateringDashboardComponent {
   readonly filteredActiveJobs = computed(() => this.filterJobs(this.cateringService.activeEvents()));
   readonly filteredUpcomingJobs = computed(() => this.filterJobs(this.cateringService.upcomingEvents()));
   readonly filteredPastJobs = computed(() => this.filterJobs(this.cateringService.pastEvents()));
+
+  // When a specific status filter is active, show all matching jobs regardless of date bucket
+  readonly isStatusFiltered = computed(() => this.statusFilter() !== 'all');
+  readonly filteredAllJobs = computed(() => this.filterJobs(this.cateringService.events().slice()));
 
   // KPIs
   readonly conflictDaysCount = computed(() => this.cateringService.conflictDays().length);
