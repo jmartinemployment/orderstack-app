@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
 import { PercentPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 import { AuthService } from '@services/auth';
 import { environment } from '@environments/environment';
 // Uses raw backend response (any[]) — avoids depending on the mapped Order model
@@ -123,11 +123,13 @@ export class SentimentDashboard {
 
     try {
       const orders = await firstValueFrom(
-        this.http.get<any[]>(`${environment.apiUrl}/merchant/${merchantId}/orders`)
+        this.http.get<any[]>(`${environment.apiUrl}/merchant/${merchantId}/orders`).pipe(
+          timeout(15_000),
+        ),
       );
 
       const entries: SentimentEntry[] = [];
-      for (const order of orders) {
+      for (const order of (Array.isArray(orders) ? orders : [])) {
         if (order.specialInstructions?.trim()) {
           entries.push(this.analyzeText(order.id, order.orderNumber ?? order.id.slice(-4).toUpperCase(), order.specialInstructions));
         }

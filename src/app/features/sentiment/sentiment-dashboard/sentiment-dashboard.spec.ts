@@ -96,3 +96,41 @@ describe('sentiment-dashboard — state logic simulation (BUG-25)', () => {
     expect(resolveView(false, 0)).toBe('empty');
   });
 });
+
+/**
+ * BUG-27: Sentiment dashboard stuck spinner — verifying it stays fixed.
+ * The fix (BUG-25) ensures loadAndAnalyze() always clears isLoading in finally block,
+ * and the template uses three-way branching so the spinner never gets stuck.
+ */
+describe('sentiment-dashboard — stuck spinner prevention (BUG-27)', () => {
+  const tsSource = (() => {
+    const { readFileSync } = require('node:fs');
+    const { resolve } = require('node:path');
+    return readFileSync(resolve(__dirname, 'sentiment-dashboard.ts'), 'utf-8');
+  })();
+
+  it('loadAndAnalyze uses try/finally to always clear isLoading', () => {
+    expect(tsSource).toContain('finally');
+    expect(tsSource).toContain('_isLoading.set(false)');
+  });
+
+  it('isLoading is set to true before the API call', () => {
+    const setTrueIndex = tsSource.indexOf('_isLoading.set(true)');
+    const httpGetIndex = tsSource.indexOf('this.http.get');
+    expect(setTrueIndex).toBeGreaterThan(-1);
+    expect(httpGetIndex).toBeGreaterThan(setTrueIndex);
+  });
+
+  it('error state is captured so spinner does not mask failures', () => {
+    expect(tsSource).toContain('_error.set(');
+    // Error is set in the catch block
+    const catchIndex = tsSource.indexOf('catch (err');
+    const errorSetIndex = tsSource.indexOf('_error.set(', catchIndex);
+    expect(errorSetIndex).toBeGreaterThan(catchIndex);
+  });
+
+  it('template shows error alert when error signal is set', () => {
+    expect(templateSource).toContain('error()');
+    expect(templateSource).toContain('alert');
+  });
+});

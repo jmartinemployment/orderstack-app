@@ -30,6 +30,14 @@ interface UnifiedInsight {
   type: 'positive' | 'negative' | 'neutral' | 'action' | 'warning';
 }
 
+/** Wraps a promise with a timeout — resolves with void on timeout instead of hanging */
+function withTimeout(promise: Promise<void>, ms: number): Promise<void> {
+  return Promise.race([
+    promise,
+    new Promise<void>(resolve => setTimeout(resolve, ms)),
+  ]);
+}
+
 @Component({
   selector: 'os-command-center',
   imports: [CurrencyPipe, DecimalPipe, LoadingSpinner, ErrorDisplay],
@@ -255,7 +263,7 @@ export class CommandCenter {
     this._activeTab.set(tab);
 
     if (tab === 'forecast' && !this._revenueForecast()) {
-      this.loadForecastData();
+      this.loadForecastData().catch(() => {/* errors handled inside */});
     }
   }
 
@@ -265,17 +273,19 @@ export class CommandCenter {
     this._isLoading.set(true);
     this._error.set(null);
 
+    const PER_CALL_TIMEOUT = 15_000;
+
     try {
-      await Promise.all([
-        this.analyticsService.loadSalesReport('daily'),
-        this.analyticsService.loadMenuEngineering(30),
-        this.inventoryService.loadAlerts(),
-        this.inventoryService.loadPredictions(),
-        this.orderService.loadOrders({ limit: 20 }),
-        this.loadProfitSummary(),
-        this.settingsService.loadAiAdminConfig(),
-        this.analyticsService.loadPinnedWidgets(),
-        this.analyticsService.loadProactiveInsights(),
+      await Promise.allSettled([
+        withTimeout(this.analyticsService.loadSalesReport('daily'), PER_CALL_TIMEOUT),
+        withTimeout(this.analyticsService.loadMenuEngineering(30), PER_CALL_TIMEOUT),
+        withTimeout(this.inventoryService.loadAlerts(), PER_CALL_TIMEOUT),
+        withTimeout(this.inventoryService.loadPredictions(), PER_CALL_TIMEOUT),
+        withTimeout(this.orderService.loadOrders({ limit: 20 }), PER_CALL_TIMEOUT),
+        withTimeout(this.loadProfitSummary(), PER_CALL_TIMEOUT),
+        withTimeout(this.settingsService.loadAiAdminConfig(), PER_CALL_TIMEOUT),
+        withTimeout(this.analyticsService.loadPinnedWidgets(), PER_CALL_TIMEOUT),
+        withTimeout(this.analyticsService.loadProactiveInsights(), PER_CALL_TIMEOUT),
       ]);
       this._lastRefresh.set(new Date());
     } catch (err: unknown) {
@@ -349,24 +359,31 @@ export class CommandCenter {
 
   // === Predictive Analytics Methods ===
 
+  private static readonly FORECAST_TIMEOUT = 15_000;
+
   async loadForecastData(): Promise<void> {
-    await Promise.all([
-      this.loadRevenueForecast(),
-      this.loadDemandForecast(),
-      this.loadStaffingRecommendation(),
+    await Promise.allSettled([
+      withTimeout(this.loadRevenueForecast(), CommandCenter.FORECAST_TIMEOUT),
+      withTimeout(this.loadDemandForecast(), CommandCenter.FORECAST_TIMEOUT),
+      withTimeout(this.loadStaffingRecommendation(), CommandCenter.FORECAST_TIMEOUT),
     ]);
   }
 
   async loadRevenueForecast(): Promise<void> {
     this._isLoadingForecast.set(true);
-    const result = await this.analyticsService.getRevenueForecast(this._forecastDays());
-    this._revenueForecast.set(result);
-    this._isLoadingForecast.set(false);
+    try {
+      const result = await this.analyticsService.getRevenueForecast(this._forecastDays());
+      this._revenueForecast.set(result);
+    } catch {
+      this._revenueForecast.set(null);
+    } finally {
+      this._isLoadingForecast.set(false);
+    }
   }
 
   setForecastDays(days: number): void {
     this._forecastDays.set(days);
-    this.loadRevenueForecast();
+    this.loadRevenueForecast().catch(() => {/* errors handled inside */});
   }
 
   getForecastBarHeight(upper: number): number {
@@ -383,14 +400,19 @@ export class CommandCenter {
 
   async loadDemandForecast(): Promise<void> {
     this._isLoadingDemand.set(true);
-    const result = await this.analyticsService.getDemandForecast(this._demandForecastDate());
-    this._demandForecast.set(result);
-    this._isLoadingDemand.set(false);
+    try {
+      const result = await this.analyticsService.getDemandForecast(this._demandForecastDate());
+      this._demandForecast.set(result);
+    } catch {
+      this._demandForecast.set([]);
+    } finally {
+      this._isLoadingDemand.set(false);
+    }
   }
 
   setDemandDate(date: string): void {
     this._demandForecastDate.set(date);
-    this.loadDemandForecast();
+    this.loadDemandForecast().catch(() => {/* errors handled inside */});
   }
 
   getConfidenceClass(confidence: number): string {
@@ -407,14 +429,19 @@ export class CommandCenter {
 
   async loadStaffingRecommendation(): Promise<void> {
     this._isLoadingStaffing.set(true);
-    const result = await this.analyticsService.getStaffingRecommendation(this._staffingDate());
-    this._staffingRec.set(result);
-    this._isLoadingStaffing.set(false);
+    try {
+      const result = await this.analyticsService.getStaffingRecommendation(this._staffingDate());
+      this._staffingRec.set(result);
+    } catch {
+      this._staffingRec.set(null);
+    } finally {
+      this._isLoadingStaffing.set(false);
+    }
   }
 
   setStaffingDate(date: string): void {
     this._staffingDate.set(date);
-    this.loadStaffingRecommendation();
+    this.loadStaffingRecommendation().catch(() => {/* errors handled inside */});
   }
 
   getStaffBarHeight(count: number): number {
@@ -479,9 +506,13 @@ export class CommandCenter {
   }
 
   private async loadProfitSummary(): Promise<void> {
-    const result = await this.orderService.getRecentProfit(10);
-    if (result) {
-      this._profitSummary.set(result);
+    try {
+      const result = await this.orderService.getRecentProfit(10);
+      if (result) {
+        this._profitSummary.set(result);
+      }
+    } catch {
+      // Profit summary is non-critical — leave as null
     }
   }
 }

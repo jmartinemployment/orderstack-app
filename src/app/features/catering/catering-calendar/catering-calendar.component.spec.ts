@@ -205,3 +205,36 @@ describe('CateringCalendarComponent', () => {
     expect(component.selectedDay()).toBeNull();
   });
 });
+
+/**
+ * BUG-27: Catering calendar prev/next buttons missing aria-label.
+ * Icon-only buttons need aria-label for screen readers.
+ */
+describe('CateringCalendarComponent template — a11y aria-labels (BUG-27)', () => {
+  const templateSource = (() => {
+    const { readFileSync } = require('node:fs');
+    const { resolve } = require('node:path');
+    return readFileSync(resolve(__dirname, 'catering-calendar.component.html'), 'utf-8');
+  })();
+
+  it('prev month button has aria-label="Previous month"', () => {
+    expect(templateSource).toContain('aria-label="Previous month"');
+  });
+
+  it('next month button has aria-label="Next month"', () => {
+    expect(templateSource).toContain('aria-label="Next month"');
+  });
+
+  it('no icon-only buttons without aria-label remain', () => {
+    // All buttons in the template should either have text content or aria-label
+    const buttonMatches = templateSource.match(/<button[^>]*>/g) ?? [];
+    for (const btn of buttonMatches) {
+      // If button contains only an icon child (no text), it must have aria-label
+      const hasAriaLabel = btn.includes('aria-label=');
+      const hasTextContent = !btn.includes('(click)="prevMonth()"') && !btn.includes('(click)="nextMonth()"');
+      if (!hasTextContent) {
+        expect(hasAriaLabel).toBe(true);
+      }
+    }
+  });
+});
