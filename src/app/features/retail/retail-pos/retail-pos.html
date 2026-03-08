@@ -217,7 +217,7 @@
 
   <!-- Search Modal -->
   @if (activeModal() === 'search') {
-    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
       <div class="modal-content modal-search" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Search Items</h3>
@@ -258,7 +258,7 @@
 
   <!-- Variation Picker Modal -->
   @if (activeModal() === 'variation-picker' && pickerItem()) {
-    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Select Variation — {{ pickerItem()!.name }}</h3>
@@ -641,7 +641,7 @@
 
   <!-- Layaway Modal -->
   @if (activeModal() === 'layaway') {
-    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Create Layaway</h3>
@@ -696,7 +696,7 @@
 
   <!-- Layaway Payment Modal -->
   @if (activeModal() === 'layaway-payment' && selectedLayaway(); as layaway) {
-    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Layaway Payment — LAY-{{ layaway.id.substring(0, 8) }}</h3>
@@ -758,7 +758,7 @@
 
   <!-- Receipt Settings Modal -->
   @if (activeModal() === 'receipt-settings') {
-    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
       <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Receipt Settings</h3>
@@ -838,7 +838,7 @@
 
   <!-- Price Override Modal -->
   @if (activeModal() === 'price-override') {
-    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Price Override</h3>

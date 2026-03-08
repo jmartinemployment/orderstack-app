@@ -87,8 +87,8 @@
 
   <!-- Clock-Out Modal -->
   @if (showClockOutModal()) {
-    <div class="modal-overlay" (click)="cancelClockOut()" (keydown.escape)="cancelClockOut()">
-      <div class="clock-out-modal" (click)="$event.stopPropagation()" (keydown.escape)="cancelClockOut()">
+    <div class="modal-overlay" (click)="cancelClockOut()" (keydown.enter)="cancelClockOut()" (keydown.escape)="cancelClockOut()">
+      <div class="clock-out-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.escape)="cancelClockOut()">
         <h3>Shift Summary</h3>
 
         @if (shiftSummary(); as s) {
@@ -188,8 +188,8 @@
 
   <!-- Job Switch Modal -->
   @if (showJobSwitcher()) {
-    <div class="modal-overlay" (click)="cancelJobSwitch()" (keydown.escape)="cancelJobSwitch()">
-      <div class="job-switch-modal" (click)="$event.stopPropagation()" (keydown.escape)="cancelJobSwitch()">
+    <div class="modal-overlay" (click)="cancelJobSwitch()" (keydown.enter)="cancelJobSwitch()" (keydown.escape)="cancelJobSwitch()">
+      <div class="job-switch-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.escape)="cancelJobSwitch()">
         <h3>Switch Job</h3>
         <p class="job-switch-desc">
           This will close your current timecard as

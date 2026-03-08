@@ -390,7 +390,7 @@
 
 <!-- ==================== ITEM MODAL ==================== -->
 @if (showItemModal()) {
-  <div class="modal-overlay" (click)="showItemModal.set(false)" (keydown.escape)="showItemModal.set(false)">
+  <div class="modal-overlay" (click)="showItemModal.set(false)" (keydown.enter)="showItemModal.set(false)" (keydown.escape)="showItemModal.set(false)">
     <div class="modal-panel modal-lg" tabindex="0" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingItem() ? 'Edit Item' : 'New Item' }}</h3>
@@ -524,7 +524,7 @@
 
 <!-- ==================== CATEGORY MODAL ==================== -->
 @if (showCategoryModal()) {
-  <div class="modal-overlay" (click)="showCategoryModal.set(false)" (keydown.escape)="showCategoryModal.set(false)">
+  <div class="modal-overlay" (click)="showCategoryModal.set(false)" (keydown.enter)="showCategoryModal.set(false)" (keydown.escape)="showCategoryModal.set(false)">
     <div class="modal-panel" tabindex="0" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingCategory() ? 'Edit Category' : 'New Category' }}</h3>
@@ -557,7 +557,7 @@
 
 <!-- ==================== OPTION SET MODAL ==================== -->
 @if (showOptionSetModal()) {
-  <div class="modal-overlay" (click)="showOptionSetModal.set(false)" (keydown.escape)="showOptionSetModal.set(false)">
+  <div class="modal-overlay" (click)="showOptionSetModal.set(false)" (keydown.enter)="showOptionSetModal.set(false)" (keydown.escape)="showOptionSetModal.set(false)">
     <div class="modal-panel" tabindex="0" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingOptionSet() ? 'Edit Option Set' : 'New Option Set' }}</h3>
@@ -604,7 +604,7 @@
 
 <!-- ==================== COLLECTION MODAL ==================== -->
 @if (showCollectionModal()) {
-  <div class="modal-overlay" (click)="showCollectionModal.set(false)" (keydown.escape)="showCollectionModal.set(false)">
+  <div class="modal-overlay" (click)="showCollectionModal.set(false)" (keydown.enter)="showCollectionModal.set(false)" (keydown.escape)="showCollectionModal.set(false)">
     <div class="modal-panel" tabindex="0" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingCollection() ? 'Edit Collection' : 'New Collection' }}</h3>
@@ -667,7 +667,7 @@
 
 <!-- ==================== BUNDLE MODAL ==================== -->
 @if (showBundleModal()) {
-  <div class="modal-overlay" (click)="showBundleModal.set(false)" (keydown.escape)="showBundleModal.set(false)">
+  <div class="modal-overlay" (click)="showBundleModal.set(false)" (keydown.enter)="showBundleModal.set(false)" (keydown.escape)="showBundleModal.set(false)">
     <div class="modal-panel modal-lg" tabindex="0" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingBundle() ? 'Edit Bundle' : 'New Bundle' }}</h3>
@@ -759,7 +759,7 @@
 
 <!-- ==================== CSV IMPORT MODAL ==================== -->
 @if (showImportModal()) {
-  <div class="modal-overlay" (click)="showImportModal.set(false)" (keydown.escape)="showImportModal.set(false)">
+  <div class="modal-overlay" (click)="showImportModal.set(false)" (keydown.enter)="showImportModal.set(false)" (keydown.escape)="showImportModal.set(false)">
     <div class="modal-panel" tabindex="0" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Import from CSV</h3>

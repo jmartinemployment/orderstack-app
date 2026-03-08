@@ -51,8 +51,8 @@
 
 <!-- Checkout Modal -->
 @if (activeModal() === 'checkout') {
-  <div class="bottom-nav-overlay" (click)="closeModal()" (keydown.escape)="closeModal()">
-    <div class="bottom-nav-modal checkout-modal" (click)="$event.stopPropagation()" (keydown.escape)="closeModal()">
+  <div class="bottom-nav-overlay" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()" tabindex="0">
+    <div class="bottom-nav-modal checkout-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.escape)="closeModal()">
       <div class="modal-header">
         <h3>Checkout</h3>
         <button type="button" class="modal-close" (click)="closeModal()" aria-label="Close">
@@ -68,8 +68,8 @@
 
 <!-- Transactions Modal -->
 @if (activeModal() === 'transactions') {
-  <div class="bottom-nav-overlay" (click)="closeModal()" (keydown.escape)="closeModal()">
-    <div class="bottom-nav-modal transactions-modal" (click)="$event.stopPropagation()" (keydown.escape)="closeModal()">
+  <div class="bottom-nav-overlay" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()" tabindex="0">
+    <div class="bottom-nav-modal transactions-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.escape)="closeModal()">
       <div class="modal-header">
         <h3>Transactions</h3>
         <button type="button" class="modal-close" (click)="closeModal()" aria-label="Close">
@@ -83,8 +83,8 @@
 
 <!-- Notifications Modal -->
 @if (activeModal() === 'notifications') {
-  <div class="bottom-nav-overlay" (click)="closeModal()" (keydown.escape)="closeModal()">
-    <div class="bottom-nav-modal" (click)="$event.stopPropagation()" (keydown.escape)="closeModal()">
+  <div class="bottom-nav-overlay" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()" tabindex="0">
+    <div class="bottom-nav-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.escape)="closeModal()">
       <div class="modal-header">
         <h3>Notifications</h3>
         <button type="button" class="modal-close" (click)="closeModal()" aria-label="Close">
@@ -138,8 +138,8 @@
 
 <!-- More Modal -->
 @if (activeModal() === 'more') {
-  <div class="bottom-nav-overlay" (click)="closeModal()" (keydown.escape)="closeModal()">
-    <div class="bottom-nav-modal more-modal" (click)="$event.stopPropagation()" (keydown.escape)="closeModal()">
+  <div class="bottom-nav-overlay" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()" tabindex="0">
+    <div class="bottom-nav-modal more-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.escape)="closeModal()">
       <div class="modal-header">
         <h3>Modes</h3>
         <button type="button" class="modal-close" (click)="closeModal()" aria-label="Close">

@@ -377,7 +377,7 @@
     <!-- CREATE/EDIT CAMPAIGN FORM MODAL -->
     @if (showForm()) {
       <div class="modal-backdrop" (click)="closeForm()" (keydown.enter)="closeForm()" tabindex="0" role="button"></div>
-      <div class="form-modal" (click)="$event.stopPropagation()">
+      <div class="form-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">{{ editingCampaign() ? 'Edit Campaign' : 'New Campaign' }}</h4>
           <button type="button" class="btn-close" (click)="closeForm()"></button>
@@ -480,7 +480,7 @@
     <!-- CREATE/EDIT AUTOMATION FORM MODAL -->
     @if (showAutomationForm()) {
       <div class="modal-backdrop" (click)="closeAutomationForm()" (keydown.enter)="closeAutomationForm()" tabindex="0" role="button"></div>
-      <div class="form-modal" (click)="$event.stopPropagation()">
+      <div class="form-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">{{ editingAutomation() ? 'Edit Automation' : 'New Automation' }}</h4>
           <button type="button" class="btn-close" (click)="closeAutomationForm()"></button>

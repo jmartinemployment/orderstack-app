@@ -679,8 +679,8 @@
 
   <!-- ═══ WAITLIST FORM MODAL ═══ -->
   @if (showWaitlistForm()) {
-    <div class="modal-overlay" (click)="closeWaitlistForm()" (keydown.escape)="closeWaitlistForm()" role="presentation">
-      <div class="modal-content card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="closeWaitlistForm()" (keydown.enter)="closeWaitlistForm()" (keydown.escape)="closeWaitlistForm()" tabindex="0" role="presentation">
+      <div class="modal-content card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Add to Waitlist</h4>
           <button type="button" class="btn-close" (click)="closeWaitlistForm()"></button>
@@ -726,8 +726,8 @@
 
   <!-- ═══ NEW RESERVATION MODAL ═══ -->
   @if (showForm()) {
-    <div class="modal-overlay" (click)="closeForm()" (keydown.escape)="closeForm()" role="presentation">
-      <div class="modal-content card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="closeForm()" (keydown.enter)="closeForm()" (keydown.escape)="closeForm()" tabindex="0" role="presentation">
+      <div class="modal-content card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">New Booking</h4>
           <button type="button" class="btn-close" (click)="closeForm()"></button>
@@ -833,8 +833,8 @@
 
   <!-- ═══ NEW EVENT MODAL ═══ -->
   @if (showEventForm()) {
-    <div class="modal-overlay" (click)="closeEventForm()" (keydown.escape)="closeEventForm()" role="presentation">
-      <div class="modal-content card modal-wide" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="closeEventForm()" (keydown.enter)="closeEventForm()" (keydown.escape)="closeEventForm()" tabindex="0" role="presentation">
+      <div class="modal-content card modal-wide" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">New Event</h4>
           <button type="button" class="btn-close" (click)="closeEventForm()"></button>
@@ -914,8 +914,8 @@
 
   <!-- ═══ RESERVATION DETAIL MODAL ═══ -->
   @if (selectedBooking(); as res) {
-    <div class="modal-overlay" (click)="closeDetail()" (keydown.escape)="closeDetail()" role="presentation">
-      <div class="modal-content card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="closeDetail()" (keydown.enter)="closeDetail()" (keydown.escape)="closeDetail()" tabindex="0" role="presentation">
+      <div class="modal-content card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Booking Details</h4>
           <button type="button" class="btn-close" (click)="closeDetail()"></button>
@@ -1028,8 +1028,8 @@
 
   <!-- ═══ EVENT DETAIL MODAL ═══ -->
   @if (selectedEvent(); as evt) {
-    <div class="modal-overlay" (click)="closeEventDetail()" (keydown.escape)="closeEventDetail()" role="presentation">
-      <div class="modal-content card modal-wide" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="closeEventDetail()" (keydown.enter)="closeEventDetail()" (keydown.escape)="closeEventDetail()" tabindex="0" role="presentation">
+      <div class="modal-content card modal-wide" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">{{ evt.title }}</h4>
           <button type="button" class="btn-close" (click)="closeEventDetail()"></button>
@@ -1115,8 +1115,8 @@
 
   <!-- ═══ GUEST PREFERENCES MODAL ═══ -->
   @if (showPreferencesModal()) {
-    <div class="modal-overlay" (click)="closePreferences()" (keydown.escape)="closePreferences()" role="presentation">
-      <div class="modal-content card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="closePreferences()" (keydown.enter)="closePreferences()" (keydown.escape)="closePreferences()" tabindex="0" role="presentation">
+      <div class="modal-content card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Guest Preferences</h4>
           <button type="button" class="btn-close" (click)="closePreferences()"></button>
@@ -1187,8 +1187,8 @@
 
   <!-- ═══ SMS CONFIG MODAL ═══ -->
   @if (showSmsConfig()) {
-    <div class="modal-overlay" (click)="closeSmsConfig()" (keydown.escape)="closeSmsConfig()" role="presentation">
-      <div class="modal-content card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="closeSmsConfig()" (keydown.enter)="closeSmsConfig()" (keydown.escape)="closeSmsConfig()" tabindex="0" role="presentation">
+      <div class="modal-content card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Waitlist SMS Notifications</h4>
           <button type="button" class="btn-close" (click)="closeSmsConfig()"></button>
@@ -1246,8 +1246,8 @@
 
   <!-- ═══ VIRTUAL WAITLIST CONFIG MODAL ═══ -->
   @if (showVirtualConfig()) {
-    <div class="modal-overlay" (click)="closeVirtualConfig()" (keydown.escape)="closeVirtualConfig()" role="presentation">
-      <div class="modal-content card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="closeVirtualConfig()" (keydown.enter)="closeVirtualConfig()" (keydown.escape)="closeVirtualConfig()" tabindex="0" role="presentation">
+      <div class="modal-content card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Virtual Waitlist</h4>
           <button type="button" class="btn-close" (click)="closeVirtualConfig()"></button>
