@@ -267,57 +267,31 @@ export class BookingService {
   }
 
   async notifyWaitlistEntry(entryId: string): Promise<boolean> {
-    if (!this.merchantId) return false;
-
-    try {
-      const updated = await firstValueFrom(
-        this.http.patch<WaitlistEntry>(
-          `${this.apiUrl}/merchant/${this.merchantId}/waitlist/${entryId}`,
-          { status: 'notified' }
-        )
-      );
-      this._waitlist.update(list => list.map(e => e.id === entryId ? updated : e));
-      return true;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to notify guest';
-      this._error.set(message);
-      return false;
-    }
+    return this.patchWaitlistStatus(entryId, 'notified', 'Failed to notify guest');
   }
 
   async seatWaitlistEntry(entryId: string): Promise<boolean> {
-    if (!this.merchantId) return false;
-
-    try {
-      const updated = await firstValueFrom(
-        this.http.patch<WaitlistEntry>(
-          `${this.apiUrl}/merchant/${this.merchantId}/waitlist/${entryId}`,
-          { status: 'seated' }
-        )
-      );
-      this._waitlist.update(list => list.map(e => e.id === entryId ? updated : e));
-      return true;
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to seat guest';
-      this._error.set(message);
-      return false;
-    }
+    return this.patchWaitlistStatus(entryId, 'seated', 'Failed to seat guest');
   }
 
   async removeFromWaitlist(entryId: string): Promise<boolean> {
+    return this.patchWaitlistStatus(entryId, 'cancelled', 'Failed to remove from waitlist');
+  }
+
+  private async patchWaitlistStatus(entryId: string, status: string, errorMessage: string): Promise<boolean> {
     if (!this.merchantId) return false;
 
     try {
       const updated = await firstValueFrom(
         this.http.patch<WaitlistEntry>(
           `${this.apiUrl}/merchant/${this.merchantId}/waitlist/${entryId}`,
-          { status: 'cancelled' }
+          { status }
         )
       );
       this._waitlist.update(list => list.map(e => e.id === entryId ? updated : e));
       return true;
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to remove from waitlist';
+      const message = err instanceof Error ? err.message : errorMessage;
       this._error.set(message);
       return false;
     }

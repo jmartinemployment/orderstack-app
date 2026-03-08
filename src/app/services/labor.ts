@@ -1444,26 +1444,18 @@ export class LaborService {
   }
 
   async approvePtoRequest(id: string): Promise<boolean> {
-    if (!this.merchantId) return false;
-
-    this._error.set(null);
-
-    try {
-      const result = await firstValueFrom(
-        this.http.patch<PtoRequest>(
-          `${this.apiUrl}/merchant/${this.merchantId}/labor/pto/requests/${id}`,
-          { status: 'approved' }
-        )
-      );
-      this._ptoRequests.update(r => r.map(req => req.id === id ? result : req));
-      return true;
-    } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to approve PTO request');
-      return false;
-    }
+    return this.changePtoRequestStatus(id, 'approved', 'Failed to approve PTO request');
   }
 
   async denyPtoRequest(id: string): Promise<boolean> {
+    return this.changePtoRequestStatus(id, 'denied', 'Failed to deny PTO request');
+  }
+
+  private async changePtoRequestStatus(
+    id: string,
+    status: 'approved' | 'denied',
+    errorMessage: string
+  ): Promise<boolean> {
     if (!this.merchantId) return false;
 
     this._error.set(null);
@@ -1472,13 +1464,13 @@ export class LaborService {
       const result = await firstValueFrom(
         this.http.patch<PtoRequest>(
           `${this.apiUrl}/merchant/${this.merchantId}/labor/pto/requests/${id}`,
-          { status: 'denied' }
+          { status }
         )
       );
       this._ptoRequests.update(r => r.map(req => req.id === id ? result : req));
       return true;
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to deny PTO request');
+      this._error.set(err instanceof Error ? err.message : errorMessage);
       return false;
     }
   }
