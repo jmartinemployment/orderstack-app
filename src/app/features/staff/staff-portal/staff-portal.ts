@@ -248,7 +248,7 @@ export class StaffPortal {
       return sum;
     }, 0);
 
-    const paidBreakMinutes = tc.breaks.filter(b => b.isPaid && b.endAt).reduce((sum, b) => {
+    const paidBreakMinutes = tc.breaks.filter((b): b is typeof b & { endAt: string } => b.isPaid && b.endAt !== null && b.endAt !== undefined).reduce((sum, b) => {
       return sum + (b.actualMinutes ?? Math.floor((new Date(b.endAt).getTime() - new Date(b.startAt).getTime()) / 60000));
     }, 0);
 
