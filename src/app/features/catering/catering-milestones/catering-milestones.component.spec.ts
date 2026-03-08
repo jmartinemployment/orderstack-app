@@ -1,20 +1,34 @@
-import { describe, it, expect } from 'vitest';
+import '../../../../test-setup';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { CateringMilestonesComponent } from './catering-milestones.component';
 
+function createComponent(): CateringMilestonesComponent {
+  return TestBed.runInInjectionContext(() => new CateringMilestonesComponent());
+}
+
 describe('CateringMilestonesComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      providers: [provideRouter([]), provideHttpClient()],
+    }).compileComponents();
+  });
+
   it('filter defaults to all', () => {
-    const component = new CateringMilestonesComponent();
+    const component = createComponent();
     expect(component._filter()).toBe('all');
   });
 
   it('setFilter updates filter signal', () => {
-    const component = new CateringMilestonesComponent();
+    const component = createComponent();
     component.setFilter('overdue');
     expect(component._filter()).toBe('overdue');
   });
 
   it('getStatusBadge returns Paid for paid milestone', () => {
-    const component = new CateringMilestonesComponent();
+    const component = createComponent();
     const badge = component.getStatusBadge({
       id: 'm1', jobId: 'j1', jobTitle: 'Test', clientName: 'Client',
       label: 'Deposit', percent: 50, amountCents: 10000,
@@ -25,7 +39,7 @@ describe('CateringMilestonesComponent', () => {
   });
 
   it('getStatusBadge returns Overdue for past-due unpaid milestone', () => {
-    const component = new CateringMilestonesComponent();
+    const component = createComponent();
     const badge = component.getStatusBadge({
       id: 'm1', jobId: 'j1', jobTitle: 'Test', clientName: 'Client',
       label: 'Deposit', percent: 50, amountCents: 10000,
@@ -36,7 +50,7 @@ describe('CateringMilestonesComponent', () => {
   });
 
   it('getStatusBadge returns Pending for future unpaid milestone', () => {
-    const component = new CateringMilestonesComponent();
+    const component = createComponent();
     const badge = component.getStatusBadge({
       id: 'm1', jobId: 'j1', jobTitle: 'Test', clientName: 'Client',
       label: 'Final', percent: 50, amountCents: 10000,

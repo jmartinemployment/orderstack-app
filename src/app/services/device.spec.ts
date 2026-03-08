@@ -121,8 +121,8 @@ const staleTime = new Date(now - 2 * 60 * 60 * 1000).toISOString(); // 2 hours a
 const devices: Device[] = [
   { id: 'd-1', deviceName: 'POS 1', deviceType: 'pos', status: 'active', posMode: 'server', modeId: 'm-1', lastSeenAt: recentTime },
   { id: 'd-2', deviceName: 'KDS 1', deviceType: 'kds', status: 'active', posMode: null, modeId: null, lastSeenAt: staleTime },
-  { id: 'd-3', deviceName: 'Kiosk', deviceType: 'kiosk', status: 'active', posMode: null, modeId: null, lastSeenAt: null },
-  { id: 'd-4', deviceName: 'Register 1', deviceType: 'register', status: 'active', posMode: null, modeId: null, lastSeenAt: null },
+  { id: 'd-3', deviceName: 'Kiosk', deviceType: 'kiosk', status: 'pending', posMode: null, modeId: null, lastSeenAt: null },
+  { id: 'd-4', deviceName: 'Register 1', deviceType: 'register', status: 'revoked', posMode: null, modeId: null, lastSeenAt: null },
 ];
 
 describe('DeviceService — computed signals', () => {

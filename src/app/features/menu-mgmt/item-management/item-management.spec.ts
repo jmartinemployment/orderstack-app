@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { signal, computed } from '@angular/core';
 import { of } from 'rxjs';
+import { provideRouter } from '@angular/router';
 import { ItemManagement, SortField } from './item-management';
 import { MenuService } from '@services/menu';
 import { ModifierService } from '@services/modifier';
@@ -85,6 +86,7 @@ describe('ItemManagement', () => {
     TestBed.configureTestingModule({
       imports: [ItemManagement],
       providers: [
+        provideRouter([]),
         { provide: AuthService, useValue: createMockAuthService() },
         { provide: MenuService, useValue: menuService },
         { provide: ModifierService, useValue: createMockModifierService() },

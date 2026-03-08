@@ -1,6 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import '../../../../test-setup';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { CateringProposalsComponent } from './catering-proposals.component';
 import { CateringJob } from '@models/catering.model';
+
+function createComponent(): CateringProposalsComponent {
+  return TestBed.runInInjectionContext(() => new CateringProposalsComponent());
+}
 
 function makeJob(overrides: Partial<CateringJob> = {}): CateringJob {
   return {
@@ -29,8 +37,14 @@ function makeJob(overrides: Partial<CateringJob> = {}): CateringJob {
 }
 
 describe('CateringProposalsComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      providers: [provideRouter([]), provideHttpClient()],
+    }).compileComponents();
+  });
+
   it('proposals computed filters to proposal_sent only', () => {
-    const component = new CateringProposalsComponent();
+    const component = createComponent();
     const mockJobs = [
       makeJob({ id: 'j1', status: 'proposal_sent' }),
       makeJob({ id: 'j2', status: 'inquiry' }),
@@ -38,17 +52,16 @@ describe('CateringProposalsComponent', () => {
       makeJob({ id: 'j4', status: 'proposal_sent' }),
     ];
 
-    // Access private service to set jobs — testing the computed logic
     const service = (component as any).cateringService;
     if (service?._jobs) {
       service._jobs.set(mockJobs);
       expect(component.proposals().length).toBe(2);
-      expect(component.proposals().every(p => p.status === 'proposal_sent')).toBe(true);
+      expect(component.proposals().every((p: CateringJob) => p.status === 'proposal_sent')).toBe(true);
     }
   });
 
   it('daysSinceSent calculates correctly', () => {
-    const component = new CateringProposalsComponent();
+    const component = createComponent();
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
     const result = component.daysSinceSent(threeDaysAgo.toISOString().split('T')[0]);
@@ -57,7 +70,7 @@ describe('CateringProposalsComponent', () => {
   });
 
   it('daysSinceSent returns 0 for today', () => {
-    const component = new CateringProposalsComponent();
+    const component = createComponent();
     const today = new Date().toISOString().split('T')[0];
     expect(component.daysSinceSent(today)).toBe(0);
   });

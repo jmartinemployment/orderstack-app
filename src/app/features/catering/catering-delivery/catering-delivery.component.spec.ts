@@ -1,6 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import '../../../../test-setup';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { CateringDeliveryComponent } from './catering-delivery.component';
 import { CateringJob } from '@models/catering.model';
+
+function createComponent(): CateringDeliveryComponent {
+  return TestBed.runInInjectionContext(() => new CateringDeliveryComponent());
+}
 
 function makeJob(overrides: Partial<CateringJob> = {}): CateringJob {
   return {
@@ -29,8 +37,14 @@ function makeJob(overrides: Partial<CateringJob> = {}): CateringJob {
 }
 
 describe('CateringDeliveryComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      providers: [provideRouter([]), provideHttpClient()],
+    }).compileComponents();
+  });
+
   it('deliveryJobs excludes on_site jobs', () => {
-    const component = new CateringDeliveryComponent();
+    const component = createComponent();
     const service = (component as any).cateringService;
     if (service?._jobs) {
       service._jobs.set([
@@ -44,7 +58,7 @@ describe('CateringDeliveryComponent', () => {
   });
 
   it('deliveryJobs excludes cancelled jobs', () => {
-    const component = new CateringDeliveryComponent();
+    const component = createComponent();
     const service = (component as any).cateringService;
     if (service?._jobs) {
       service._jobs.set([
@@ -58,21 +72,21 @@ describe('CateringDeliveryComponent', () => {
   });
 
   it('setDateFilter updates the signal', () => {
-    const component = new CateringDeliveryComponent();
+    const component = createComponent();
     expect(component._dateFilter()).toBe('week');
     component.setDateFilter('month');
     expect(component._dateFilter()).toBe('month');
   });
 
   it('startEdit sets editing state and form', () => {
-    const component = new CateringDeliveryComponent();
+    const component = createComponent();
     component.startEdit('job-1', { driverName: 'Bob' });
     expect(component._editingJobId()).toBe('job-1');
     expect(component._editForm().driverName).toBe('Bob');
   });
 
   it('cancelEdit clears editing state', () => {
-    const component = new CateringDeliveryComponent();
+    const component = createComponent();
     component.startEdit('job-1');
     component.cancelEdit();
     expect(component._editingJobId()).toBeNull();
