@@ -52,25 +52,25 @@ export class CateringService {
 
   // --- Pipeline computed signals ---
 
-  readonly activeJobs = computed(() =>
-    this._jobs().filter(j =>
-      j.status !== 'completed' && j.status !== 'cancelled'
-    ).sort((a, b) => a.fulfillmentDate.localeCompare(b.fulfillmentDate))
-  );
+  readonly activeJobs = computed(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return this._jobs()
+      .filter(j => j.status !== 'completed' && j.status !== 'cancelled' && j.fulfillmentDate <= today)
+      .sort((a, b) => a.fulfillmentDate.localeCompare(b.fulfillmentDate));
+  });
 
   readonly upcomingJobs = computed(() => {
     const today = new Date().toISOString().split('T')[0];
     return this._jobs()
-      .filter(j => j.fulfillmentDate >= today && j.status !== 'cancelled')
+      .filter(j => j.status !== 'completed' && j.status !== 'cancelled' && j.fulfillmentDate > today)
       .sort((a, b) => a.fulfillmentDate.localeCompare(b.fulfillmentDate));
   });
 
-  readonly pastJobs = computed(() => {
-    const today = new Date().toISOString().split('T')[0];
-    return this._jobs()
-      .filter(j => j.fulfillmentDate < today || j.status === 'completed' || j.status === 'cancelled')
-      .sort((a, b) => b.fulfillmentDate.localeCompare(a.fulfillmentDate));
-  });
+  readonly pastJobs = computed(() =>
+    this._jobs()
+      .filter(j => j.status === 'completed' || j.status === 'cancelled')
+      .sort((a, b) => b.fulfillmentDate.localeCompare(a.fulfillmentDate))
+  );
 
   // Backward compat aliases
   readonly activeEvents = this.activeJobs;

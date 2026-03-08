@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 /**
  * BUG-15: Catering fulfillment date off-by-one.
@@ -67,5 +67,99 @@ describe('catering fulfillment date parsing (BUG-15)', () => {
     const d = new Date('2026-04-15' + 'T00:00:00');
     expect(d.getDate()).toBe(15);
     expect(d.getMonth()).toBe(3); // April
+  });
+});
+
+/**
+ * BUG-18: Job appears in both Active and Upcoming tabs.
+ *
+ * Replicas of the FIXED tab filter predicates from catering.service.ts.
+ * Tabs must be mutually exclusive — no job should match more than one.
+ */
+
+interface MockJob {
+  id: string;
+  status: string;
+  fulfillmentDate: string;
+}
+
+function isActive(j: MockJob, today: string): boolean {
+  return j.status !== 'completed' && j.status !== 'cancelled' && j.fulfillmentDate <= today;
+}
+
+function isUpcoming(j: MockJob, today: string): boolean {
+  return j.status !== 'completed' && j.status !== 'cancelled' && j.fulfillmentDate > today;
+}
+
+function isPast(j: MockJob): boolean {
+  return j.status === 'completed' || j.status === 'cancelled';
+}
+
+describe('catering tab filters — mutual exclusivity (BUG-18)', () => {
+  const TODAY = '2026-03-08';
+
+  const jobs: MockJob[] = [
+    { id: '1', status: 'inquiry', fulfillmentDate: '2026-04-15' },       // future + open → upcoming only
+    { id: '2', status: 'in_progress', fulfillmentDate: '2026-03-05' },   // past + open → active only
+    { id: '3', status: 'completed', fulfillmentDate: '2026-02-20' },     // completed → past only
+    { id: '4', status: 'cancelled', fulfillmentDate: '2026-04-10' },     // cancelled + future → past only
+    { id: '5', status: 'deposit_received', fulfillmentDate: '2026-03-08' }, // today + open → active only
+    { id: '6', status: 'inquiry', fulfillmentDate: '2026-03-08' },       // today + open → active only
+  ];
+
+  it('no job appears in more than one tab', () => {
+    for (const j of jobs) {
+      const tabs = [
+        isActive(j, TODAY) ? 'active' : null,
+        isUpcoming(j, TODAY) ? 'upcoming' : null,
+        isPast(j) ? 'past' : null,
+      ].filter(Boolean);
+      expect(tabs.length, `Job ${j.id} (${j.status}, ${j.fulfillmentDate}) in tabs: ${tabs.join(', ')}`).toBe(1);
+    }
+  });
+
+  it('every job appears in exactly one tab', () => {
+    for (const j of jobs) {
+      const inActive = isActive(j, TODAY);
+      const inUpcoming = isUpcoming(j, TODAY);
+      const inPast = isPast(j);
+      const count = [inActive, inUpcoming, inPast].filter(Boolean).length;
+      expect(count, `Job ${j.id} should be in exactly 1 tab but is in ${count}`).toBe(1);
+    }
+  });
+
+  it('future open job is only in upcoming', () => {
+    const j = jobs[0]; // inquiry, 2026-04-15
+    expect(isActive(j, TODAY)).toBe(false);
+    expect(isUpcoming(j, TODAY)).toBe(true);
+    expect(isPast(j)).toBe(false);
+  });
+
+  it('past open job is only in active', () => {
+    const j = jobs[1]; // in_progress, 2026-03-05
+    expect(isActive(j, TODAY)).toBe(true);
+    expect(isUpcoming(j, TODAY)).toBe(false);
+    expect(isPast(j)).toBe(false);
+  });
+
+  it('completed job is only in past', () => {
+    const j = jobs[2]; // completed, 2026-02-20
+    expect(isActive(j, TODAY)).toBe(false);
+    expect(isUpcoming(j, TODAY)).toBe(false);
+    expect(isPast(j)).toBe(true);
+  });
+
+  it('cancelled future job is only in past', () => {
+    const j = jobs[3]; // cancelled, 2026-04-10
+    expect(isActive(j, TODAY)).toBe(false);
+    expect(isUpcoming(j, TODAY)).toBe(false);
+    expect(isPast(j)).toBe(true);
+  });
+
+  it('today open job is in active (not upcoming)', () => {
+    const j = jobs[4]; // deposit_received, 2026-03-08 (same as TODAY)
+    expect(isActive(j, TODAY)).toBe(true);
+    expect(isUpcoming(j, TODAY)).toBe(false);
+    expect(isPast(j)).toBe(false);
   });
 });
