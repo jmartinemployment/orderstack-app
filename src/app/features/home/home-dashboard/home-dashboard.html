@@ -2,7 +2,7 @@
   <!-- Header -->
   <div class="home-header px-2">
     <div>
-      <h1 class="home-title">Administration</h1>
+      <h1 class="home-title">{{ pageTitle() }}</h1>
       <p class="home-date">{{ todayDate() | date:'EEEE, MMMM d, y' }}</p>
     </div>
   </div>
@@ -107,10 +107,31 @@
         </div>
       }
 
+      <!-- At-a-Glance Strip -->
+      @if (atAGlance().length > 0) {
+        <div class="glance-strip">
+          @for (chip of atAGlance(); track chip.label) {
+            @if (chip.route) {
+              <button type="button" class="glance-chip glance-chip--link" (click)="navigateTo(chip.route)">
+                <i class="bi {{ chip.icon }} glance-chip__icon"></i>
+                <span class="glance-chip__value">{{ chip.value }}</span>
+                <span class="glance-chip__label">{{ chip.label }}</span>
+              </button>
+            } @else {
+              <div class="glance-chip">
+                <i class="bi {{ chip.icon }} glance-chip__icon"></i>
+                <span class="glance-chip__value">{{ chip.value }}</span>
+                <span class="glance-chip__label">{{ chip.label }}</span>
+              </div>
+            }
+          }
+        </div>
+      }
+
       <!-- Performance Section -->
       <div class="performance-section">
         <div class="section-header">
-          <h3>Today's Performance</h3>
+          <h3>{{ performanceSectionTitle() }}</h3>
         </div>
 
         <div class="kpi-grid">

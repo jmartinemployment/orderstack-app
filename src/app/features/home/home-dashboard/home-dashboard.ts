@@ -7,6 +7,7 @@ import { MenuService } from '@services/menu';
 import { PwaInstallService } from '@services/pwa-install';
 import { CateringService } from '@services/catering.service';
 import { OrderService } from '@services/order';
+import { TableService } from '@services/table';
 
 interface SetupTask {
   id: string;
@@ -33,6 +34,13 @@ interface KpiCard {
   changePercent?: number;
 }
 
+interface AtAGlanceChip {
+  label: string;
+  value: number | string;
+  icon: string;
+  route?: string;
+}
+
 type DevicePosMode = 'quick_service' | 'full_service' | 'bar' | 'catering' | 'retail' | 'services';
 
 @Component({
@@ -50,11 +58,74 @@ export class HomeDashboard implements OnInit {
   private readonly menuService = inject(MenuService);
   private readonly cateringService = inject(CateringService);
   private readonly orderService = inject(OrderService);
+  private readonly tableService = inject(TableService);
   readonly pwaInstall = inject(PwaInstallService);
 
   readonly businessName = computed(() => this.platform.merchantProfile()?.businessName ?? 'Your Business');
   readonly todayDate = signal(new Date());
   readonly currentMode = computed(() => this.platform.currentDeviceMode());
+
+  readonly pageTitle = computed<string>(() => {
+    const titles: Record<string, string> = {
+      quick_service: 'Dashboard',
+      full_service: 'Dashboard',
+      bar: 'Bar Manager',
+      catering: 'Catering Admin',
+      retail: 'Store Manager',
+      services: 'Services Manager',
+    };
+    return titles[this.currentMode()] ?? 'Dashboard';
+  });
+
+  readonly performanceSectionTitle = computed<string>(() => {
+    const headings: Record<string, string> = {
+      quick_service: "Today's Performance",
+      full_service: "Today's Performance",
+      bar: "Today's Performance",
+      catering: 'Pipeline Overview',
+      retail: 'Store Performance',
+      services: 'Business Overview',
+    };
+    return headings[this.currentMode()] ?? "Today's Performance";
+  });
+
+  private readonly atAGlanceBuilders: Record<string, () => AtAGlanceChip[]> = {
+    catering: () => [
+      { label: 'Pending Inquiries',   value: this.cateringService.pendingJobsCount(),           icon: 'bi-inbox',         route: '/app/catering' },
+      { label: 'Awaiting Approval',   value: this.cateringService.proposalsAwaitingApproval(),  icon: 'bi-hourglass-split', route: '/app/catering' },
+      { label: 'Milestones Due',      value: this.cateringService.milestonesComingDue(),         icon: 'bi-calendar-check', route: '/app/catering' },
+    ],
+    quick_service: () => [
+      { label: 'Active Orders', value: this.orderService.activeOrderCount(),    icon: 'bi-receipt',    route: '/app/orders' },
+      { label: 'Avg. Ticket',   value: this.formatCurrency(this.todayAvgTicket()), icon: 'bi-cash-stack' },
+      { label: 'Menu Items',    value: this.menuService.categories().reduce((n, c) => n + (c.items?.length ?? 0), 0), icon: 'bi-book', route: '/app/menu' },
+    ],
+    full_service: () => [
+      { label: 'Active Orders',     value: this.orderService.activeOrderCount(),                                                                         icon: 'bi-receipt',      route: '/app/orders' },
+      { label: 'Tables Occupied',   value: this.tableService.tables().filter(t => t.status === 'occupied' || t.status === 'closing').length,             icon: 'bi-columns-gap',  route: '/app/floor-plan' },
+      { label: 'Tables Available',  value: this.tableService.tables().filter(t => t.status === 'available').length,                                      icon: 'bi-check-circle', route: '/app/floor-plan' },
+    ],
+    bar: () => [
+      { label: 'Open Tabs',     value: this.orderService.activeOrderCount(),    icon: 'bi-cup-straw',  route: '/app/orders' },
+      { label: 'Active Orders', value: this.orderService.activeOrderCount(),    icon: 'bi-receipt',    route: '/app/orders' },
+      { label: 'Avg. Ticket',   value: this.formatCurrency(this.todayAvgTicket()), icon: 'bi-cash-stack' },
+    ],
+    retail: () => [
+      { label: 'Active Orders', value: this.orderService.activeOrderCount(),    icon: 'bi-receipt',    route: '/app/orders' },
+      { label: 'Avg. Ticket',   value: this.formatCurrency(this.todayAvgTicket()), icon: 'bi-cash-stack' },
+      { label: 'Menu Items',    value: this.menuService.categories().reduce((n, c) => n + (c.items?.length ?? 0), 0), icon: 'bi-book', route: '/app/retail/catalog' },
+    ],
+    services: () => [
+      { label: 'Active Orders', value: this.orderService.activeOrderCount(),    icon: 'bi-receipt',    route: '/app/orders' },
+      { label: 'Avg. Ticket',   value: this.formatCurrency(this.todayAvgTicket()), icon: 'bi-cash-stack' },
+      { label: 'Menu Items',    value: this.menuService.categories().reduce((n, c) => n + (c.items?.length ?? 0), 0), icon: 'bi-book', route: '/app/menu' },
+    ],
+  };
+
+  readonly atAGlance = computed<AtAGlanceChip[]>(() => {
+    const builder = this.atAGlanceBuilders[this.currentMode()];
+    return builder ? builder() : [];
+  });
 
   readonly _todayNetSales = signal(0);
   readonly _todayOrderCount = signal(0);
