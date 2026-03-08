@@ -29,6 +29,8 @@ import {
   DeliveryDispatchStatus,
 } from '@models/index';
 
+type MarketplaceFilterValue = 'all' | 'marketplace' | 'native';
+
 interface PendingCourseGroup {
   course: Course | null;
   label: string;
@@ -74,9 +76,9 @@ export class PendingOrders implements OnInit, OnDestroy {
   private _approvalTimerRef: ReturnType<typeof setInterval> | null = null;
   private readonly _tick = signal(0);
   private readonly _autoRejectingIds = signal(new Set<string>());
-  private readonly _marketplaceFilter = signal<'all' | 'marketplace' | 'native'>('all');
+  private readonly _marketplaceFilter = signal<MarketplaceFilterValue>('all');
   readonly marketplaceFilter = this._marketplaceFilter.asReadonly();
-  readonly marketplaceFilterOptions: Array<{ value: 'all' | 'marketplace' | 'native'; label: string }> = [
+  readonly marketplaceFilterOptions: Array<{ value: MarketplaceFilterValue; label: string }> = [
     { value: 'all', label: 'All Sources' },
     { value: 'marketplace', label: 'Marketplace' },
     { value: 'native', label: 'Direct' },
@@ -519,7 +521,7 @@ export class PendingOrders implements OnInit, OnDestroy {
   }
 
   private checkAutoReject(): void {
-    const timeoutMs = this.approvalTimeoutHours() * 3600_000;
+    const timeoutMs = this.approvalTimeoutHours() * 3_600_000;
     for (const order of this.pendingApprovalOrders()) {
       const elapsed = Date.now() - order.timestamps.createdDate.getTime();
       if (elapsed >= timeoutMs) {
@@ -546,7 +548,7 @@ export class PendingOrders implements OnInit, OnDestroy {
   getApprovalRemainingMs(order: Order): number {
     // Force reactivity via _tick
     this._tick();
-    const timeoutMs = this.approvalTimeoutHours() * 3600_000;
+    const timeoutMs = this.approvalTimeoutHours() * 3_600_000;
     const elapsed = Date.now() - order.timestamps.createdDate.getTime();
     return Math.max(0, timeoutMs - elapsed);
   }
@@ -563,7 +565,7 @@ export class PendingOrders implements OnInit, OnDestroy {
 
   isApprovalUrgent(order: Order): boolean {
     const remainMs = this.getApprovalRemainingMs(order);
-    return remainMs > 0 && remainMs <= 3600_000;
+    return remainMs > 0 && remainMs <= 3_600_000;
   }
 
   isAutoRejecting(orderId: string): boolean {
@@ -905,7 +907,8 @@ export class PendingOrders implements OnInit, OnDestroy {
     const printWindow = globalThis.open('', '_blank', 'width=350,height=600');
     if (!printWindow) return;
 
-    // document.write is the standard approach for populating a new blank window for printing
+    // document.open/write/close is the standard approach for populating a new blank window for printing
+    printWindow.document.open();
     printWindow.document.write(html);
     printWindow.document.close();
     printWindow.onload = () => {

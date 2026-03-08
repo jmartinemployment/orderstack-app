@@ -409,7 +409,7 @@ export class LaborService {
       this._laborTargets.set(data.map(t => ({
         ...t,
         targetPercent: Number(t.targetPercent),
-        targetCost: t.targetCost !== null ? Number(t.targetCost) : null,
+        targetCost: t.targetCost === null ? null : Number(t.targetCost),
       })));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to load labor targets';

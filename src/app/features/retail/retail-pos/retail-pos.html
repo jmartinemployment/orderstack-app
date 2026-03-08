@@ -95,7 +95,7 @@
         @if (cartItemCount() > 0) {
           <span class="cart-count">{{ cartItemCount() }} item(s)</span>
         }
-        <button class="btn-icon-sm" title="Receipt Settings" (click)="openReceiptSettings()">
+        <button class="btn-icon-sm" aria-label="Receipt Settings" (click)="openReceiptSettings()">
           <i class="bi bi-gear"></i>
         </button>
       </div>
@@ -133,9 +133,9 @@
               </button>
             } @else {
               <div class="qty-stepper">
-                <button class="qty-btn" (click)="decrementQuantity($index)">−</button>
+                <button class="qty-btn" aria-label="Decrease quantity" (click)="decrementQuantity($index)">−</button>
                 <span class="qty-value">{{ item.quantity }}</span>
-                <button class="qty-btn" (click)="incrementQuantity($index)">+</button>
+                <button class="qty-btn" aria-label="Increase quantity" (click)="incrementQuantity($index)">+</button>
               </div>
             }
 
@@ -144,10 +144,10 @@
             </div>
 
             <div class="cart-item-actions">
-              <button class="btn-icon-sm" title="Override Price" (click)="openPriceOverride($index)">
+              <button class="btn-icon-sm" aria-label="Override Price" (click)="openPriceOverride($index)">
                 <i class="bi bi-tag"></i>
               </button>
-              <button class="btn-icon-sm btn-remove" title="Remove" (click)="removeCartItem($index)">
+              <button class="btn-icon-sm btn-remove" aria-label="Remove item" (click)="removeCartItem($index)">
                 <i class="bi bi-trash"></i>
               </button>
             </div>
@@ -198,7 +198,7 @@
 
         <div class="cart-actions">
           <button class="btn-clear" (click)="clearCart()">Clear Cart</button>
-          <button class="btn-layaway" (click)="openLayaway()" title="Create Layaway">
+          <button class="btn-layaway" (click)="openLayaway()" aria-label="Create Layaway">
             <i class="bi bi-safe"></i>
           </button>
           <button class="btn-pay" (click)="openPayment()" [disabled]="isProcessing()">
@@ -217,11 +217,11 @@
 
   <!-- Search Modal -->
   @if (activeModal() === 'search') {
-    <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
       <div class="modal-content modal-search" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Search Items</h3>
-          <button class="btn-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+          <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="modal-body">
           <input
@@ -258,11 +258,11 @@
 
   <!-- Variation Picker Modal -->
   @if (activeModal() === 'variation-picker' && pickerItem()) {
-    <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Select Variation — {{ pickerItem()!.name }}</h3>
-          <button class="btn-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+          <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="modal-body">
           <div class="variation-list">
@@ -288,7 +288,7 @@
         @if (paymentStep() === 'method') {
           <div class="modal-header">
             <h3>Payment — ${{ cartTotal() | number:'1.2-2' }}</h3>
-            <button class="btn-close" (click)="closePayment()"><i class="bi bi-x-lg"></i></button>
+            <button class="btn-close" aria-label="Close" (click)="closePayment()"><i class="bi bi-x-lg"></i></button>
           </div>
           <div class="modal-body">
             <div class="payment-methods">
@@ -319,7 +319,7 @@
         @if (paymentStep() === 'cash') {
           <div class="modal-header">
             <h3>Cash Payment</h3>
-            <button class="btn-close" (click)="closePayment()"><i class="bi bi-x-lg"></i></button>
+            <button class="btn-close" aria-label="Close" (click)="closePayment()"><i class="bi bi-x-lg"></i></button>
           </div>
           <div class="modal-body">
             <div class="cash-total">
@@ -367,7 +367,7 @@
         @if (paymentStep() === 'card') {
           <div class="modal-header">
             <h3>Card Payment</h3>
-            <button class="btn-close" (click)="closePayment()"><i class="bi bi-x-lg"></i></button>
+            <button class="btn-close" aria-label="Close" (click)="closePayment()"><i class="bi bi-x-lg"></i></button>
           </div>
           <div class="modal-body card-payment-body">
             @if (cardPaymentError()) {
@@ -393,7 +393,7 @@
         @if (paymentStep() === 'gift-card') {
           <div class="modal-header">
             <h3>Gift Card Payment</h3>
-            <button class="btn-close" (click)="closePayment()"><i class="bi bi-x-lg"></i></button>
+            <button class="btn-close" aria-label="Close" (click)="closePayment()"><i class="bi bi-x-lg"></i></button>
           </div>
           <div class="modal-body">
             <div class="cash-total">
@@ -468,7 +468,7 @@
         @if (paymentStep() === 'store-credit') {
           <div class="modal-header">
             <h3>Store Credit Payment</h3>
-            <button class="btn-close" (click)="closePayment()"><i class="bi bi-x-lg"></i></button>
+            <button class="btn-close" aria-label="Close" (click)="closePayment()"><i class="bi bi-x-lg"></i></button>
           </div>
           <div class="modal-body">
             <div class="cash-total">
@@ -543,7 +543,7 @@
         @if (paymentStep() === 'split') {
           <div class="modal-header">
             <h3>Split Payment</h3>
-            <button class="btn-close" (click)="closePayment()"><i class="bi bi-x-lg"></i></button>
+            <button class="btn-close" aria-label="Close" (click)="closePayment()"><i class="bi bi-x-lg"></i></button>
           </div>
           <div class="modal-body">
             <div class="split-summary">
@@ -566,7 +566,7 @@
                   <div class="split-payment-row">
                     <span class="split-payment-method">{{ getPaymentMethodLabel(payment.method) }}</span>
                     <span class="split-payment-amount">${{ payment.amount | number:'1.2-2' }}</span>
-                    <button class="btn-icon-sm btn-remove" (click)="removeSplitPayment($index)">
+                    <button class="btn-icon-sm btn-remove" aria-label="Remove payment" (click)="removeSplitPayment($index)">
                       <i class="bi bi-x"></i>
                     </button>
                   </div>
@@ -641,11 +641,11 @@
 
   <!-- Layaway Modal -->
   @if (activeModal() === 'layaway') {
-    <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Create Layaway</h3>
-          <button class="btn-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+          <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="modal-body">
           <div class="layaway-total">
@@ -696,11 +696,11 @@
 
   <!-- Layaway Payment Modal -->
   @if (activeModal() === 'layaway-payment' && selectedLayaway(); as layaway) {
-    <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Layaway Payment — LAY-{{ layaway.id.substring(0, 8) }}</h3>
-          <button class="btn-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+          <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="modal-body">
           <div class="layaway-detail">
@@ -758,11 +758,11 @@
 
   <!-- Receipt Settings Modal -->
   @if (activeModal() === 'receipt-settings') {
-    <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
       <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Receipt Settings</h3>
-          <button class="btn-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+          <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="modal-body">
           <div class="form-group">
@@ -838,11 +838,11 @@
 
   <!-- Price Override Modal -->
   @if (activeModal() === 'price-override') {
-    <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Price Override</h3>
-          <button class="btn-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+          <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="modal-body">
           <div class="form-group">
@@ -882,7 +882,7 @@
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Enter Weight</h3>
-          <button class="btn-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+          <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="modal-body">
           <div class="form-group">
@@ -911,7 +911,7 @@
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Configure Quick Key</h3>
-          <button class="btn-close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
+          <button class="btn-close" aria-label="Close" (click)="closeModal()"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="modal-body">
           <div class="form-group">

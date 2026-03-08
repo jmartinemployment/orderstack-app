@@ -547,6 +547,7 @@ export class FloorPlan implements OnInit {
     const printWindow = globalThis.open('', '_blank');
     if (!printWindow) return;
 
+    printWindow.document.open();
     printWindow.document.write(`
       <!DOCTYPE html>
       <html><head><title>QR Codes — All Areas</title>

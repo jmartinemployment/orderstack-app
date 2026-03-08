@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import type { NavItem } from '@shared/sidebar/sidebar';
-import type { AlertSeverity } from '@shared/sidebar/sidebar';
+import type { NavItem, AlertSeverity } from '@shared/sidebar/sidebar';
 
 /**
  * Tests the logout behavior pattern used by MainLayoutComponent.

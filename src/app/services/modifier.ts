@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { ModifierGroup, ModifierGroupFormData, Modifier, ModifierFormData } from '../models';
+import { ModifierGroup, ModifierGroupFormData, ModifierFormData } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
 

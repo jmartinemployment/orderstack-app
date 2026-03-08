@@ -272,5 +272,4 @@ export const CATERING_STATUS_TRANSITIONS: Record<CateringJobStatus, CateringJobS
 };
 
 // Backward compat alias
-export type CateringEventStatus = CateringJobStatus;
 export type CateringEvent = CateringJob;

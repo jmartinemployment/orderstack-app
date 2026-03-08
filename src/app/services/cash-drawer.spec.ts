@@ -12,9 +12,7 @@ import type {
   CashDrawerSession,
   CashDenomination,
   CashReconciliation,
-  EmployeeCashSummary,
   CashDiscrepancyAlert,
-  CashEventReportRow,
 } from '../models/cash-drawer.model';
 
 // --- Pure function replicas of CashDrawerService computed logic ---

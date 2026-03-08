@@ -78,7 +78,7 @@ export class CustomerService {
       ...c,
       totalOrders: Number(c.totalOrders) || 0,
       totalSpent: Number(c.totalSpent) || 0,
-      avgOrderValue: c.avgOrderValue !== null ? Number(c.avgOrderValue) || 0 : null,
+      avgOrderValue: c.avgOrderValue === null ? null : Number(c.avgOrderValue) || 0,
       loyaltyPoints: Number(c.loyaltyPoints) || 0,
       totalPointsEarned: Number(c.totalPointsEarned) || 0,
       totalPointsRedeemed: Number(c.totalPointsRedeemed) || 0,

@@ -123,21 +123,25 @@ function updateItemInstructions(items: CartItem[], itemId: string, instructions:
   });
 }
 
-function buildOrderPayload(
-  items: CartItem[],
-  orderType: string,
-  customer: unknown,
-  tableId: string | undefined,
-  specialInstructions: string | undefined,
-  deviceId: string | undefined,
-  subtotal: number,
-  tax: number,
-  tip: number,
-  total: number,
-  loyaltyPointsRedeemed: number,
-  discount: number,
-  surcharge: number,
-): Record<string, unknown> {
+interface BuildOrderPayloadOptions {
+  items: CartItem[];
+  orderType: string;
+  customer: unknown;
+  tableId: string | undefined;
+  specialInstructions: string | undefined;
+  deviceId: string | undefined;
+  subtotal: number;
+  tax: number;
+  tip: number;
+  total: number;
+  loyaltyPointsRedeemed: number;
+  discount: number;
+  surcharge: number;
+}
+
+function buildOrderPayload(opts: BuildOrderPayloadOptions): Record<string, unknown> {
+  const { items, orderType, customer, tableId, specialInstructions, deviceId,
+    subtotal, tax, tip, total, loyaltyPointsRedeemed, discount, surcharge } = opts;
   return {
     orderType,
     customer,
@@ -399,10 +403,11 @@ describe('CartService — buildOrderPayload', () => {
       specialInstructions: 'Well done',
     })];
 
-    const payload = buildOrderPayload(
-      items, 'dine-in', { name: 'John' }, 'table-1', 'Rush order',
-      'device-1', 29.98, 2.47, 5, 37.45, 100, 2, 1.05,
-    );
+    const payload = buildOrderPayload({
+      items, orderType: 'dine-in', customer: { name: 'John' }, tableId: 'table-1',
+      specialInstructions: 'Rush order', deviceId: 'device-1', subtotal: 29.98,
+      tax: 2.47, tip: 5, total: 37.45, loyaltyPointsRedeemed: 100, discount: 2, surcharge: 1.05,
+    });
 
     expect(payload.orderType).toBe('dine-in');
     expect(payload.tableId).toBe('table-1');
@@ -421,10 +426,11 @@ describe('CartService — buildOrderPayload', () => {
   });
 
   it('handles empty cart', () => {
-    const payload = buildOrderPayload(
-      [], 'pickup', undefined, undefined, undefined,
-      undefined, 0, 0, 0, 0, 0, 0, 0,
-    );
+    const payload = buildOrderPayload({
+      items: [], orderType: 'pickup', customer: undefined, tableId: undefined,
+      specialInstructions: undefined, deviceId: undefined, subtotal: 0,
+      tax: 0, tip: 0, total: 0, loyaltyPointsRedeemed: 0, discount: 0, surcharge: 0,
+    });
     expect((payload.items as any[]).length).toBe(0);
     expect(payload.subtotal).toBe(0);
   });

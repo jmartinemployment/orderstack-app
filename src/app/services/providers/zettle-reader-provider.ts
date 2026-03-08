@@ -90,7 +90,7 @@ export class ZettleReaderProvider implements PaymentProvider {
   }
 
   async requestRefund(orderId: string, context: PaymentContext, amount?: number): Promise<RefundResponse | null> {
-    const body = amount !== undefined ? JSON.stringify({ amount }) : '{}';
+    const body = amount === undefined ? '{}' : JSON.stringify({ amount });
     const response = await fetch(
       `${context.apiUrl}/merchant/${context.merchantId}/orders/${orderId}/refund`,
       { method: 'POST', headers: this.buildHeaders(context), body }

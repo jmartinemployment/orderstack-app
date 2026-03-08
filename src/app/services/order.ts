@@ -18,7 +18,6 @@ import {
   CourseFireStatus,
   CoursePacingMetrics,
   OrderThrottlingStatus,
-  getOrderIdentifier,
   PrintStatus,
   QueuedOrder,
   OrderActivityEvent,
@@ -106,7 +105,7 @@ function mapItemFulfillmentStatus(
   fallback: FulfillmentStatus,
   hasCourse: boolean
 ): FulfillmentStatus {
-  const normalized = String(rawItemStatus ?? '').toUpperCase();
+  const normalized = (rawItemStatus !== null && rawItemStatus !== undefined ? String(rawItemStatus) : '').toUpperCase();
   switch (normalized) {
     case 'NEW':
       return 'NEW';
@@ -128,7 +127,7 @@ function mapItemFulfillmentStatus(
 }
 
 function mapCourseFireStatus(rawStatus: unknown): CourseFireStatus {
-  switch (String(rawStatus ?? '').toUpperCase()) {
+  switch ((rawStatus !== null && rawStatus !== undefined ? String(rawStatus) : '').toUpperCase()) {
     case 'FIRED':
       return 'FIRED';
     case 'READY':
@@ -153,7 +152,7 @@ function courseFireStatusRank(status: CourseFireStatus): number {
 
 function parseDate(value: unknown): Date | undefined {
   if (!value) return undefined;
-  const date = new Date(String(value));
+  const date = new Date(value !== null && value !== undefined ? String(value) : '');
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
@@ -223,7 +222,7 @@ function mapSelections(raw: any, fulfillmentStatus: FulfillmentStatus): Selectio
       specialInstructions: item.specialInstructions,
       course,
       completedAt: parseDate(item.completedAt),
-      seatNumber: item.seatNumber != null ? Number(item.seatNumber) : undefined,
+      seatNumber: item.seatNumber == null ? undefined : Number(item.seatNumber),
       isComped: item.isComped ?? false,
       compReason: item.compReason ?? undefined,
       compBy: item.compBy ?? undefined,
@@ -383,7 +382,7 @@ function mapDeliveryInfo(raw: any): Order['deliveryInfo'] {
     deliveryTrackingUrl: raw.deliveryTrackingUrl ?? undefined,
     dispatchStatus: raw.dispatchStatus ?? undefined,
     estimatedDeliveryAt: raw.deliveryEstimatedAt ?? undefined,
-    deliveryFee: raw.deliveryFee != null ? Number(raw.deliveryFee) : undefined,
+    deliveryFee: raw.deliveryFee == null ? undefined : Number(raw.deliveryFee),
   };
 }
 
@@ -419,7 +418,7 @@ export class OrderService implements OnDestroy {
     if (this._isSyncing()) return 'syncing';
     const failed = this._queuedOrders().filter(q => q.retryCount >= 5);
     if (failed.length > 0) return 'has-failed';
-    return this._queuedOrders().length > 0 ? 'idle' : 'idle';
+    return 'idle';
   });
   private readonly _isSyncing = signal(false);
   private static readonly MAX_QUEUE_RETRIES = 5;
@@ -1617,6 +1616,7 @@ export class OrderService implements OnDestroy {
     const timestamps = mapTimestamps(raw);
     const throttle = mapThrottle(raw);
     const marketplace = mapMarketplace(raw);
+    const depositAmount = raw.depositAmount != null ? Number(raw.depositAmount) : undefined;
 
     return {
       guid: raw.id ?? crypto.randomUUID(),
@@ -1643,7 +1643,7 @@ export class OrderService implements OnDestroy {
       timestamps,
       deliveryInfo: mapDeliveryInfo(raw),
       curbsideInfo: raw.curbsideInfo ?? (raw.vehicleDescription ? { vehicleDescription: raw.vehicleDescription, arrivalNotified: raw.arrivalNotified ?? false } : undefined),
-      cateringInfo: raw.cateringInfo ?? (raw.eventDate || raw.headcount ? { eventDate: raw.eventDate, eventTime: raw.eventTime, headcount: raw.headcount, eventType: raw.eventType, setupRequired: raw.setupRequired ?? false, depositAmount: raw.depositAmount ? Number(raw.depositAmount) : undefined, depositPaid: raw.depositPaid ?? false, specialInstructions: raw.cateringInstructions } : undefined),
+      cateringInfo: raw.cateringInfo ?? (raw.eventDate || raw.headcount ? { eventDate: raw.eventDate, eventTime: raw.eventTime, headcount: raw.headcount, eventType: raw.eventType, setupRequired: raw.setupRequired ?? false, depositAmount, depositPaid: raw.depositPaid ?? false, specialInstructions: raw.cateringInstructions } : undefined),
       throttle,
       marketplace,
       loyaltyPointsEarned: raw.loyaltyPointsEarned ?? 0,

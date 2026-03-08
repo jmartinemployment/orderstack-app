@@ -106,7 +106,7 @@
     <!-- Loading -->
     @if (isLoading()) {
       <div class="loading-state">
-        <div class="spinner-border spinner-border-sm text-primary"></div>
+        <div class="spinner-border spinner-border-sm text-primary" role="status" aria-label="Loading catalog"></div>
         <span>Loading catalog...</span>
       </div>
     }
@@ -119,7 +119,7 @@
             <div class="item-card-select">
               <input type="checkbox" [checked]="selectedItemIds().has(item.id)" (change)="toggleItemSelection(item.id)" aria-label="Select {{ item.name }}" />
             </div>
-            <div class="item-card-image" (click)="openEditItem(item)" (keydown.enter)="openEditItem(item)" tabindex="0" role="button">
+            <div class="item-card-image" (click)="openEditItem(item)" (keydown.enter)="openEditItem(item)" tabindex="0" role="button" [attr.aria-label]="'View ' + item.name">
               @if (item.thumbnailUrl || item.imageUrl) {
                 <img [src]="item.thumbnailUrl ?? item.imageUrl" [alt]="item.name" />
               } @else {
@@ -128,7 +128,7 @@
                 </div>
               }
             </div>
-            <div class="item-card-body" (click)="openEditItem(item)" (keydown.enter)="openEditItem(item)" tabindex="0" role="button">
+            <div class="item-card-body" (click)="openEditItem(item)" (keydown.enter)="openEditItem(item)" tabindex="0" role="button" [attr.aria-label]="'Edit ' + item.name">
               <div class="item-name">{{ item.name }}</div>
               @if (item.sku) {
                 <div class="item-sku">SKU: {{ item.sku }}</div>
@@ -147,10 +147,10 @@
               </div>
             </div>
             <div class="item-card-actions">
-              <button class="btn btn-sm btn-outline-secondary" (click)="openEditItem(item)" title="Edit">
+              <button class="btn btn-sm btn-outline-secondary" (click)="openEditItem(item)" [attr.aria-label]="'Edit ' + item.name">
                 <i class="bi bi-pencil"></i>
               </button>
-              <button class="btn btn-sm btn-outline-danger" (click)="deleteItem(item)" title="Delete">
+              <button class="btn btn-sm btn-outline-danger" (click)="deleteItem(item)" [attr.aria-label]="'Delete ' + item.name">
                 <i class="bi bi-trash3"></i>
               </button>
             </div>
@@ -181,7 +181,7 @@
               <th>Price</th>
               <th>Variations</th>
               <th>Status</th>
-              <th></th>
+              <th><span class="visually-hidden">Actions</span></th>
             </tr>
           </thead>
           <tbody>
@@ -208,8 +208,8 @@
                   }
                 </td>
                 <td class="col-actions">
-                  <button class="btn btn-sm btn-ghost" (click)="openEditItem(item)"><i class="bi bi-pencil"></i></button>
-                  <button class="btn btn-sm btn-ghost text-danger" (click)="deleteItem(item)"><i class="bi bi-trash3"></i></button>
+                  <button class="btn btn-sm btn-ghost" (click)="openEditItem(item)" [attr.aria-label]="'Edit ' + item.name"><i class="bi bi-pencil"></i></button>
+                  <button class="btn btn-sm btn-ghost text-danger" (click)="deleteItem(item)" [attr.aria-label]="'Delete ' + item.name"><i class="bi bi-trash3"></i></button>
                 </td>
               </tr>
             }
@@ -232,11 +232,11 @@
             }
           </div>
           <div class="category-actions">
-            <button class="btn btn-sm btn-ghost" (click)="openCreateCategory(cat.id)" title="Add subcategory"><i class="bi bi-plus"></i></button>
-            <button class="btn btn-sm btn-ghost" (click)="moveCategoryUp(cat)" title="Move up"><i class="bi bi-chevron-up"></i></button>
-            <button class="btn btn-sm btn-ghost" (click)="moveCategoryDown(cat)" title="Move down"><i class="bi bi-chevron-down"></i></button>
-            <button class="btn btn-sm btn-ghost" (click)="openEditCategory(cat)" title="Edit"><i class="bi bi-pencil"></i></button>
-            <button class="btn btn-sm btn-ghost text-danger" (click)="deleteCategory(cat)" title="Delete"><i class="bi bi-trash3"></i></button>
+            <button class="btn btn-sm btn-ghost" (click)="openCreateCategory(cat.id)" aria-label="Add subcategory"><i class="bi bi-plus"></i></button>
+            <button class="btn btn-sm btn-ghost" (click)="moveCategoryUp(cat)" aria-label="Move up"><i class="bi bi-chevron-up"></i></button>
+            <button class="btn btn-sm btn-ghost" (click)="moveCategoryDown(cat)" aria-label="Move down"><i class="bi bi-chevron-down"></i></button>
+            <button class="btn btn-sm btn-ghost" (click)="openEditCategory(cat)" aria-label="Edit"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-ghost text-danger" (click)="deleteCategory(cat)" aria-label="Delete"><i class="bi bi-trash3"></i></button>
           </div>
         </div>
         @for (child of cat.children; track child.id) {
@@ -249,9 +249,9 @@
               }
             </div>
             <div class="category-actions">
-              <button class="btn btn-sm btn-ghost" (click)="openCreateCategory(child.id)" title="Add subcategory"><i class="bi bi-plus"></i></button>
-              <button class="btn btn-sm btn-ghost" (click)="openEditCategory(child)" title="Edit"><i class="bi bi-pencil"></i></button>
-              <button class="btn btn-sm btn-ghost text-danger" (click)="deleteCategory(child)" title="Delete"><i class="bi bi-trash3"></i></button>
+              <button class="btn btn-sm btn-ghost" (click)="openCreateCategory(child.id)" aria-label="Add subcategory"><i class="bi bi-plus"></i></button>
+              <button class="btn btn-sm btn-ghost" (click)="openEditCategory(child)" aria-label="Edit"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-ghost text-danger" (click)="deleteCategory(child)" aria-label="Delete"><i class="bi bi-trash3"></i></button>
             </div>
           </div>
           @for (sub of child.children; track sub.id) {
@@ -261,8 +261,8 @@
                 <span class="category-name">{{ sub.name }}</span>
               </div>
               <div class="category-actions">
-                <button class="btn btn-sm btn-ghost" (click)="openEditCategory(sub)" title="Edit"><i class="bi bi-pencil"></i></button>
-                <button class="btn btn-sm btn-ghost text-danger" (click)="deleteCategory(sub)" title="Delete"><i class="bi bi-trash3"></i></button>
+                <button class="btn btn-sm btn-ghost" (click)="openEditCategory(sub)" aria-label="Edit"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-sm btn-ghost text-danger" (click)="deleteCategory(sub)" aria-label="Delete"><i class="bi bi-trash3"></i></button>
               </div>
             </div>
           }
@@ -288,8 +288,8 @@
           <div class="option-set-header">
             <h4>{{ os.name }}</h4>
             <div class="option-set-actions">
-              <button class="btn btn-sm btn-ghost" (click)="openEditOptionSet(os)"><i class="bi bi-pencil"></i></button>
-              <button class="btn btn-sm btn-ghost text-danger" (click)="deleteOptionSet(os)"><i class="bi bi-trash3"></i></button>
+              <button class="btn btn-sm btn-ghost" (click)="openEditOptionSet(os)" [attr.aria-label]="'Edit ' + os.name"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-ghost text-danger" (click)="deleteOptionSet(os)" [attr.aria-label]="'Delete ' + os.name"><i class="bi bi-trash3"></i></button>
             </div>
           </div>
           <div class="option-set-values">
@@ -324,8 +324,8 @@
               </span>
             </div>
             <div class="collection-actions">
-              <button class="btn btn-sm btn-ghost" (click)="openEditCollection(col)"><i class="bi bi-pencil"></i></button>
-              <button class="btn btn-sm btn-ghost text-danger" (click)="deleteCollection(col)"><i class="bi bi-trash3"></i></button>
+              <button class="btn btn-sm btn-ghost" (click)="openEditCollection(col)" [attr.aria-label]="'Edit ' + col.name"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-ghost text-danger" (click)="deleteCollection(col)" [attr.aria-label]="'Delete ' + col.name"><i class="bi bi-trash3"></i></button>
             </div>
           </div>
           @if (col.type === 'smart' && col.rules.length > 0) {
@@ -370,8 +370,8 @@
             }
           </div>
           <div class="bundle-actions">
-            <button class="btn btn-sm btn-ghost" (click)="openEditBundle(bundle)"><i class="bi bi-pencil"></i></button>
-            <button class="btn btn-sm btn-ghost text-danger" (click)="deleteBundle(bundle)"><i class="bi bi-trash3"></i></button>
+            <button class="btn btn-sm btn-ghost" (click)="openEditBundle(bundle)" [attr.aria-label]="'Edit ' + bundle.name"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-ghost text-danger" (click)="deleteBundle(bundle)" [attr.aria-label]="'Delete ' + bundle.name"><i class="bi bi-trash3"></i></button>
           </div>
         </div>
       } @empty {
@@ -390,11 +390,11 @@
 
 <!-- ==================== ITEM MODAL ==================== -->
 @if (showItemModal()) {
-  <div class="modal-overlay" (click)="showItemModal.set(false)">
+  <div class="modal-overlay" (click)="showItemModal.set(false)" (keydown.escape)="showItemModal.set(false)">
     <div class="modal-panel modal-lg" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingItem() ? 'Edit Item' : 'New Item' }}</h3>
-        <button class="btn-close" (click)="showItemModal.set(false)"></button>
+        <button class="btn-close" aria-label="Close" (click)="showItemModal.set(false)"></button>
       </div>
       <div class="modal-body">
         <!-- Basic Info -->
@@ -524,11 +524,11 @@
 
 <!-- ==================== CATEGORY MODAL ==================== -->
 @if (showCategoryModal()) {
-  <div class="modal-overlay" (click)="showCategoryModal.set(false)">
+  <div class="modal-overlay" (click)="showCategoryModal.set(false)" (keydown.escape)="showCategoryModal.set(false)">
     <div class="modal-panel" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingCategory() ? 'Edit Category' : 'New Category' }}</h3>
-        <button class="btn-close" (click)="showCategoryModal.set(false)"></button>
+        <button class="btn-close" aria-label="Close" (click)="showCategoryModal.set(false)"></button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -557,11 +557,11 @@
 
 <!-- ==================== OPTION SET MODAL ==================== -->
 @if (showOptionSetModal()) {
-  <div class="modal-overlay" (click)="showOptionSetModal.set(false)">
+  <div class="modal-overlay" (click)="showOptionSetModal.set(false)" (keydown.escape)="showOptionSetModal.set(false)">
     <div class="modal-panel" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingOptionSet() ? 'Edit Option Set' : 'New Option Set' }}</h3>
-        <button class="btn-close" (click)="showOptionSetModal.set(false)"></button>
+        <button class="btn-close" aria-label="Close" (click)="showOptionSetModal.set(false)"></button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -586,7 +586,7 @@
             @for (val of optionSetForm().values; track val) {
               <span class="value-chip">
                 {{ val }}
-                <button class="chip-remove" (click)="removeOptionValue($index)">×</button>
+                <button class="chip-remove" aria-label="Remove" (click)="removeOptionValue($index)">×</button>
               </span>
             }
           </div>
@@ -604,11 +604,11 @@
 
 <!-- ==================== COLLECTION MODAL ==================== -->
 @if (showCollectionModal()) {
-  <div class="modal-overlay" (click)="showCollectionModal.set(false)">
+  <div class="modal-overlay" (click)="showCollectionModal.set(false)" (keydown.escape)="showCollectionModal.set(false)">
     <div class="modal-panel" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingCollection() ? 'Edit Collection' : 'New Collection' }}</h3>
-        <button class="btn-close" (click)="showCollectionModal.set(false)"></button>
+        <button class="btn-close" aria-label="Close" (click)="showCollectionModal.set(false)"></button>
       </div>
       <div class="modal-body">
         <div class="form-group">
@@ -648,7 +648,7 @@
               @for (rule of collectionForm().rules; track $index) {
                 <div class="rule-chip">
                   {{ rule.field }} {{ rule.operator }} {{ rule.value }}
-                  <button class="chip-remove" (click)="removeCollectionRule($index)">×</button>
+                  <button class="chip-remove" aria-label="Remove" (click)="removeCollectionRule($index)">×</button>
                 </div>
               }
             </div>
@@ -667,11 +667,11 @@
 
 <!-- ==================== BUNDLE MODAL ==================== -->
 @if (showBundleModal()) {
-  <div class="modal-overlay" (click)="showBundleModal.set(false)">
+  <div class="modal-overlay" (click)="showBundleModal.set(false)" (keydown.escape)="showBundleModal.set(false)">
     <div class="modal-panel modal-lg" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingBundle() ? 'Edit Bundle' : 'New Bundle' }}</h3>
-        <button class="btn-close" (click)="showBundleModal.set(false)"></button>
+        <button class="btn-close" aria-label="Close" (click)="showBundleModal.set(false)"></button>
       </div>
       <div class="modal-body">
         <div class="form-row">
@@ -741,7 +741,7 @@
                   <input type="checkbox" class="form-check-input" [checked]="comp.isRequired" />
                   Required
                 </label>
-                <button class="btn btn-sm btn-ghost text-danger" (click)="removeBundleComponent($index)"><i class="bi bi-x"></i></button>
+                <button class="btn btn-sm btn-ghost text-danger" (click)="removeBundleComponent($index)" aria-label="Remove component"><i class="bi bi-x"></i></button>
               </div>
             }
           </div>
@@ -759,11 +759,11 @@
 
 <!-- ==================== CSV IMPORT MODAL ==================== -->
 @if (showImportModal()) {
-  <div class="modal-overlay" (click)="showImportModal.set(false)">
+  <div class="modal-overlay" (click)="showImportModal.set(false)" (keydown.escape)="showImportModal.set(false)">
     <div class="modal-panel" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Import from CSV</h3>
-        <button class="btn-close" (click)="showImportModal.set(false)"></button>
+        <button class="btn-close" aria-label="Close" (click)="showImportModal.set(false)"></button>
       </div>
       <div class="modal-body">
         @if (!importResult()) {

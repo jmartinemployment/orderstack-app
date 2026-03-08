@@ -85,9 +85,11 @@ function buildNavItems(
 
   addPosItems(items, ctx);
   addCatalogItems(items, ctx);
-  items.push({ label: 'Customers', icon: 'bi-people', route: '/customers' });
-  items.push({ label: 'Reports', icon: 'bi-bar-chart-line', route: '/reports' });
-  items.push({ label: 'Staff', icon: 'bi-person-badge', route: '/scheduling' });
+  items.push(
+    { label: 'Customers', icon: 'bi-people', route: '/customers' },
+    { label: 'Reports', icon: 'bi-bar-chart-line', route: '/reports' },
+    { label: 'Staff', icon: 'bi-person-badge', route: '/scheduling' },
+  );
   addModeSpecificItems(items, ctx);
   items.push({ label: 'Settings', icon: 'bi-gear', route: '/settings' });
 

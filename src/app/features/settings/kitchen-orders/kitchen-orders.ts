@@ -71,7 +71,7 @@ export class KitchenOrders implements OnInit {
 
   readonly targetCourseGapDescription = computed(() => {
     const minutes = this.targetCourseServeGapMinutes();
-    return `Target gap between completed course and next course landing: ~${minutes} minute${minutes !== 1 ? 's' : ''}.`;
+    return `Target gap between completed course and next course landing: ~${minutes} minute${minutes === 1 ? '' : 's'}.`;
   });
 
   readonly throttlingDescription = computed(() => {
@@ -83,7 +83,7 @@ export class KitchenOrders implements OnInit {
 
   readonly timeoutDescription = computed(() => {
     const hours = this._approvalTimeoutHours();
-    return `Catering orders awaiting approval will be auto-rejected after ${hours} hour${hours !== 1 ? 's' : ''}.`;
+    return `Catering orders awaiting approval will be auto-rejected after ${hours} hour${hours === 1 ? '' : 's'}.`;
   });
 
   readonly isManagerOrAbove = computed(() => {

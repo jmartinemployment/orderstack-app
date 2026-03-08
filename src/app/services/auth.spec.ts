@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import type { User, UserRestaurant, LoginResponse } from '@models/auth.model';
 
 // --- Test constants (S2068: extract hard-coded credentials) ---

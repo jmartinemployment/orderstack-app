@@ -22,14 +22,14 @@ export class PwaInstallService {
     this.detectInstalled();
 
     // Chrome/Edge/Android fire beforeinstallprompt
-    window.addEventListener('beforeinstallprompt', (e: Event) => {
+    globalThis.window.addEventListener('beforeinstallprompt', (e: Event) => {
       e.preventDefault();
       this.deferredPrompt = e as BeforeInstallPromptEvent;
       this.canInstall.set(true);
     });
 
     // Detect app installed
-    window.addEventListener('appinstalled', () => {
+    globalThis.window.addEventListener('appinstalled', () => {
       this.isInstalled.set(true);
       this.canInstall.set(false);
       this.deferredPrompt = null;
@@ -84,7 +84,7 @@ export class PwaInstallService {
 
   private detectInstalled(): void {
     // display-mode: standalone means app is already installed as PWA
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    if (globalThis.window.matchMedia('(display-mode: standalone)').matches) {
       this.isInstalled.set(true);
     }
     // iOS: check navigator.standalone

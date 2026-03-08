@@ -30,8 +30,8 @@ import {
   defaultScanToPaySettings,
   SpecialHours,
   BusinessHoursCheck,
+  Order,
 } from '../models';
-import { Order } from '../models';
 import { AuthService } from './auth';
 import { environment } from '@environments/environment';
 
@@ -122,7 +122,7 @@ export class RestaurantSettingsService {
         ...this.migrateAISettings((aiFromServer ?? {}) as Record<string, unknown>),
       }));
       this._onlinePricingSettings.set({ ...defaultOnlinePricingSettings(), ...this.readLocalStorage('online-pricing-settings'), ...pricingFromServer });
-      this._cateringCapacitySettings.set({ ...{ maxEventsPerDay: 3, maxHeadcountPerDay: 200, conflictAlertsEnabled: true }, ...this.readLocalStorage('catering-capacity-settings'), ...cateringFromServer });
+      this._cateringCapacitySettings.set({ maxEventsPerDay: 3, maxHeadcountPerDay: 200, conflictAlertsEnabled: true, ...this.readLocalStorage('catering-capacity-settings'), ...cateringFromServer });
       this._paymentSettings.set({
         ...defaultPaymentSettings(),
         ...this.readLocalStorage('payment-settings'),
@@ -157,7 +157,7 @@ export class RestaurantSettingsService {
         ...this.migrateAISettings(this.readLocalStorage('ai-settings') ?? {}),
       }));
       this._onlinePricingSettings.set({ ...defaultOnlinePricingSettings(), ...this.readLocalStorage('online-pricing-settings') });
-      this._cateringCapacitySettings.set({ ...{ maxEventsPerDay: 3, maxHeadcountPerDay: 200, conflictAlertsEnabled: true }, ...this.readLocalStorage('catering-capacity-settings') });
+      this._cateringCapacitySettings.set({ maxEventsPerDay: 3, maxHeadcountPerDay: 200, conflictAlertsEnabled: true, ...this.readLocalStorage('catering-capacity-settings') });
       this._paymentSettings.set({ ...defaultPaymentSettings(), ...this.readLocalStorage('payment-settings') });
       this._tipManagementSettings.set({ ...defaultTipManagementSettings(), ...this.readLocalStorage('tip-management-settings') });
       this._deliverySettings.set({ ...defaultDeliverySettings(), ...this.readLocalStorage('delivery-settings') });

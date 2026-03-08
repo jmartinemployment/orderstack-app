@@ -257,7 +257,7 @@ export class DeviceService {
 
     const hardwareInfo: DeviceHardwareInfo = {
       platform: 'Browser',
-      osVersion: (navigator as any).userAgentData?.platform ?? navigator.platform ?? null,
+      osVersion: (navigator as any).userAgentData?.platform ?? null,
       appVersion: null,
       screenSize: `${window.screen.width}x${window.screen.height}`,
       serialNumber: null,

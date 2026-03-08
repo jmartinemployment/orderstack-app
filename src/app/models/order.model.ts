@@ -157,13 +157,13 @@ export interface CheckDiscount {
   id: string;
   type: DiscountType;
   value: number;
-  reason: DiscountReason | string;
+  reason: string;
   appliedBy: string;
   approvedBy?: string;
 }
 
 export interface VoidedSelection extends Selection {
-  voidReason: VoidReason | string;
+  voidReason: string;
   voidedBy: string;
   voidedAt: Date;
   managerApproval?: string;

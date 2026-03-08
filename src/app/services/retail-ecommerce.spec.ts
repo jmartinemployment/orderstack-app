@@ -1,9 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import type {
   ProductListing,
   EcommerceOrder,
   ShippingMethod,
-  EcommerceFulfillmentStatus,
   SalePricing,
   ChannelPriceOverride,
   ChannelVisibilitySetting,

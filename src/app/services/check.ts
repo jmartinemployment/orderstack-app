@@ -5,10 +5,7 @@ import {
   Order,
   Check,
   Selection,
-  CheckDiscount,
   DiscountType,
-  DiscountReason,
-  VoidReason,
 } from '../models';
 import { MenuItem, Modifier } from '../models/menu.model';
 import { AuthService } from './auth';
@@ -41,12 +38,12 @@ export interface TransferCheckRequest {
 export interface DiscountRequest {
   type: DiscountType;
   value: number;
-  reason: DiscountReason | string;
+  reason: string;
   managerPin?: string;
 }
 
 export interface VoidItemRequest {
-  reason: VoidReason | string;
+  reason: string;
   managerPin?: string;
 }
 
@@ -531,7 +528,7 @@ export class CheckService {
         name: m.name ?? '',
         priceAdjustment: Number(m.priceAdjustment) || 0,
       })),
-      seatNumber: raw.seatNumber != null ? Number(raw.seatNumber) : undefined,
+      seatNumber: raw.seatNumber == null ? undefined : Number(raw.seatNumber),
       specialInstructions: raw.specialInstructions,
       isComped: raw.isComped ?? false,
       compReason: raw.compReason ?? undefined,

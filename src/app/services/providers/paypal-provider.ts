@@ -108,7 +108,7 @@ export class PayPalPaymentProvider implements PaymentProvider {
         }
       },
       onError: (err: Record<string, unknown>) => {
-        const error = new Error(String(err['message'] ?? 'PayPal error'));
+        const error = new Error(err['message'] !== null && err['message'] !== undefined ? String(err['message']) : 'PayPal error');
         if (this.rejectConfirm) {
           this.rejectConfirm(error);
           this.resolveConfirm = null;
@@ -151,7 +151,7 @@ export class PayPalPaymentProvider implements PaymentProvider {
     const ctx = context ?? this.storedContext;
     if (!ctx) return null;
 
-    const body = amount !== undefined ? JSON.stringify({ amount }) : '{}';
+    const body = amount === undefined ? '{}' : JSON.stringify({ amount });
     const response = await fetch(
       `${ctx.apiUrl}/merchant/${ctx.merchantId}/orders/${orderId}/refund`,
       { method: 'POST', headers: this.buildHeaders(ctx), body }

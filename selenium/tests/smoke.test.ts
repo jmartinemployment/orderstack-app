@@ -113,8 +113,10 @@ async function testSettingsTabs(driver: WebDriver, browserName: string): Promise
 
 export async function runSmokeTests(driver: WebDriver, browserName: string): Promise<TestResult[]> {
   const results: TestResult[] = [];
-  results.push(await testLogin(driver, browserName));
-  results.push(await testPosTerminal(driver, browserName));
-  results.push(await testSettingsTabs(driver, browserName));
+  results.push(
+    await testLogin(driver, browserName),
+    await testPosTerminal(driver, browserName),
+    await testSettingsTabs(driver, browserName),
+  );
   return results;
 }

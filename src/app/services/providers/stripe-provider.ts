@@ -119,7 +119,7 @@ export class StripePaymentProvider implements PaymentProvider {
     const ctx = context ?? this.storedContext;
     if (!ctx) return null;
 
-    const body = amount !== undefined ? JSON.stringify({ amount }) : '{}';
+    const body = amount === undefined ? '{}' : JSON.stringify({ amount });
     const response = await fetch(
       `${ctx.apiUrl}/merchant/${ctx.merchantId}/orders/${orderId}/refund`,
       { method: 'POST', headers: this.buildHeaders(ctx), body }

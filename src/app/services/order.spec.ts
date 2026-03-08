@@ -73,7 +73,7 @@ function mapItemFulfillmentStatus(
   fallback: FulfillmentStatus,
   hasCourse: boolean,
 ): FulfillmentStatus {
-  const normalized = String(rawItemStatus ?? '').toUpperCase();
+  const normalized = String(rawItemStatus).toUpperCase();
   switch (normalized) {
     case 'NEW':
       return 'NEW';
@@ -94,7 +94,7 @@ function mapItemFulfillmentStatus(
 }
 
 function mapCourseFireStatus(rawStatus: unknown): CourseFireStatus {
-  switch (String(rawStatus ?? '').toUpperCase()) {
+  switch (String(rawStatus).toUpperCase()) {
     case 'FIRED':
       return 'FIRED';
     case 'READY':

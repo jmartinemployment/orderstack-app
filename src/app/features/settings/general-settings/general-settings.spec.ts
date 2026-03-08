@@ -1,10 +1,10 @@
 import '../../../../test-setup';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { signal } from '@angular/core';
 import { GeneralSettings } from './general-settings';
 import { PlatformService } from '@services/platform';
-import type { MerchantProfile, BusinessAddress } from '@models/index';
+import type { MerchantProfile } from '@models/index';
 
 function makeProfile(overrides: Partial<MerchantProfile> = {}): MerchantProfile {
   return {

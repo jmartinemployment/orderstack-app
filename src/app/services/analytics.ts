@@ -705,7 +705,7 @@ export class AnalyticsService {
         responseType: 'text',
         title: `${typeLabels[alert.type] ?? 'Alert'} Detected`,
         data: { text: alert.message },
-        trend: (alert.severity === 'critical' ? 'down' : 'flat') as 'down' | 'flat',
+        trend: alert.severity === 'critical' ? 'down' : 'flat',
         createdAt: now,
       }));
   }

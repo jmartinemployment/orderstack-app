@@ -162,13 +162,13 @@ export class MonitoringService {
       const revenue = salesReport.summary?.totalRevenue ?? 0;
       const revenueChange = salesReport.comparison?.revenueChange ?? 0;
       if (revenueChange < -30) {
-        alerts.push(this.createAlert(
-          'revenue', 'critical',
-          'Revenue Drop Detected',
-          `Current revenue ($${revenue.toFixed(0)}) is ${Math.abs(Math.round(revenueChange))}% below comparison period`,
-          'Review pricing, promotions, and staffing levels',
-          `$${revenue.toFixed(0)}`, revenue, 0,
-        ));
+        alerts.push(this.createAlert({
+          category: 'revenue', severity: 'critical',
+          title: 'Revenue Drop Detected',
+          message: `Current revenue ($${revenue.toFixed(0)}) is ${Math.abs(Math.round(revenueChange))}% below comparison period`,
+          suggestedAction: 'Review pricing, promotions, and staffing levels',
+          metric: `$${revenue.toFixed(0)}`, currentValue: revenue, threshold: 0,
+        }));
       }
     }
 
@@ -180,13 +180,13 @@ export class MonitoringService {
       const avgOrder = salesReport.summary?.averageOrderValue ?? 0;
       const baseline = this._baselineAov();
       if (baseline !== null && avgOrder > 0 && avgOrder < baseline * 0.8) {
-        alerts.push(this.createAlert(
-          'revenue', 'info',
-          'Average Order Value Low',
-          `Average order ($${avgOrder.toFixed(2)}) is below restaurant baseline ($${baseline.toFixed(2)})`,
-          'Consider upselling prompts or combo deals',
-          `$${avgOrder.toFixed(2)}`, avgOrder, baseline * 0.8,
-        ));
+        alerts.push(this.createAlert({
+          category: 'revenue', severity: 'info',
+          title: 'Average Order Value Low',
+          message: `Average order ($${avgOrder.toFixed(2)}) is below restaurant baseline ($${baseline.toFixed(2)})`,
+          suggestedAction: 'Consider upselling prompts or combo deals',
+          metric: `$${avgOrder.toFixed(2)}`, currentValue: avgOrder, threshold: baseline * 0.8,
+        }));
       }
     }
 
@@ -198,25 +198,25 @@ export class MonitoringService {
 
     if (this.isRuleEnabled(enabledRules, 'low-stock')) {
       for (const alert of invAlerts.filter(a => a.type === 'low_stock')) {
-        alerts.push(this.createAlert(
-          'inventory', 'warning',
-          `Low Stock: ${alert.itemName}`,
-          alert.message,
-          alert.suggestedAction,
-          `${alert.currentStock} units`, alert.currentStock, alert.threshold,
-        ));
+        alerts.push(this.createAlert({
+          category: 'inventory', severity: 'warning',
+          title: `Low Stock: ${alert.itemName}`,
+          message: alert.message,
+          suggestedAction: alert.suggestedAction,
+          metric: `${alert.currentStock} units`, currentValue: alert.currentStock, threshold: alert.threshold,
+        }));
       }
     }
 
     if (this.isRuleEnabled(enabledRules, 'out-stock')) {
       for (const alert of invAlerts.filter(a => a.type === 'out_of_stock')) {
-        alerts.push(this.createAlert(
-          'inventory', 'critical',
-          `Out of Stock: ${alert.itemName}`,
-          alert.message,
-          alert.suggestedAction ?? 'Reorder immediately',
-          '0 units', 0, alert.threshold,
-        ));
+        alerts.push(this.createAlert({
+          category: 'inventory', severity: 'critical',
+          title: `Out of Stock: ${alert.itemName}`,
+          message: alert.message,
+          suggestedAction: alert.suggestedAction ?? 'Reorder immediately',
+          metric: '0 units', currentValue: 0, threshold: alert.threshold,
+        }));
       }
     }
 
@@ -227,13 +227,13 @@ export class MonitoringService {
     if (!this.isRuleEnabled(enabledRules, 'restock-urgent')) return [];
     return predictions
       .filter(p => p.daysUntilEmpty <= 3 && p.reorderRecommended)
-      .map(pred => this.createAlert(
-        'inventory', 'critical',
-        `Urgent Restock: ${pred.itemName}`,
-        `Predicted to run out in ${pred.daysUntilEmpty} day${pred.daysUntilEmpty === 1 ? '' : 's'} (${pred.currentStock} ${pred.unit} remaining)`,
-        `Order ${pred.reorderQuantity} ${pred.unit} now`,
-        `${pred.daysUntilEmpty}d remaining`, pred.daysUntilEmpty, 3,
-      ));
+      .map(pred => this.createAlert({
+        category: 'inventory', severity: 'critical',
+        title: `Urgent Restock: ${pred.itemName}`,
+        message: `Predicted to run out in ${pred.daysUntilEmpty} day${pred.daysUntilEmpty === 1 ? '' : 's'} (${pred.currentStock} ${pred.unit} remaining)`,
+        suggestedAction: `Order ${pred.reorderQuantity} ${pred.unit} now`,
+        metric: `${pred.daysUntilEmpty}d remaining`, currentValue: pred.daysUntilEmpty, threshold: 3,
+      }));
   }
 
   private buildSnapshot(salesReport: any, newAlerts: MonitoringAlert[], invItems: any[]): MonitoringSnapshot {
@@ -253,26 +253,26 @@ export class MonitoringService {
     return rules.some(r => r.id === ruleId);
   }
 
-  private createAlert(
-    category: AlertCategory,
-    severity: AlertSeverity,
-    title: string,
-    message: string,
-    suggestedAction?: string,
-    metric?: string,
-    currentValue?: number,
-    threshold?: number,
-  ): MonitoringAlert {
+  private createAlert(opts: {
+    category: AlertCategory;
+    severity: AlertSeverity;
+    title: string;
+    message: string;
+    suggestedAction?: string;
+    metric?: string;
+    currentValue?: number;
+    threshold?: number;
+  }): MonitoringAlert {
     return {
       id: crypto.randomUUID(),
-      category,
-      severity,
-      title,
-      message,
-      metric,
-      currentValue,
-      threshold,
-      suggestedAction,
+      category: opts.category,
+      severity: opts.severity,
+      title: opts.title,
+      message: opts.message,
+      metric: opts.metric,
+      currentValue: opts.currentValue,
+      threshold: opts.threshold,
+      suggestedAction: opts.suggestedAction,
       timestamp: new Date(),
       acknowledged: false,
     };

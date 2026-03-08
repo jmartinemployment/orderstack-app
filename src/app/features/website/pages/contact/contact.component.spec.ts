@@ -33,7 +33,7 @@ function getEmailError(email: string): string | null {
 }
 
 function getInquiryError(type: string): string | null {
-  return !type ? CONTACT_VALIDATION.inquiryRequired : null;
+  return type ? null : CONTACT_VALIDATION.inquiryRequired;
 }
 
 function getMessageError(message: string): string | null {

@@ -249,7 +249,7 @@ export class StaffPortal {
     }, 0);
 
     const paidBreakMinutes = tc.breaks.filter(b => b.isPaid && b.endAt).reduce((sum, b) => {
-      return sum + (b.actualMinutes ?? Math.floor((new Date(b.endAt!).getTime() - new Date(b.startAt).getTime()) / 60000));
+      return sum + (b.actualMinutes ?? Math.floor((new Date(b.endAt).getTime() - new Date(b.startAt).getTime()) / 60000));
     }, 0);
 
     const unpaidBreakMinutes = breakMinutes - paidBreakMinutes;

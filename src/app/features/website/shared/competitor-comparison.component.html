@@ -24,9 +24,9 @@
             <td class="mkt-compare__cell mkt-compare__cell--os">
               @if (isBoolean(row.orderstack)) {
                 @if (row.orderstack) {
-                  <i class="bi bi-check-circle-fill mkt-icon--yes" aria-label="Yes"></i>
+                  <i class="bi bi-check-circle-fill mkt-icon--yes" role="img" aria-label="Yes"></i>
                 } @else {
-                  <i class="bi bi-x-circle mkt-icon--no" aria-label="No"></i>
+                  <i class="bi bi-x-circle mkt-icon--no" role="img" aria-label="No"></i>
                 }
               } @else {
                 {{ row.orderstack }}
@@ -35,9 +35,9 @@
             <td class="mkt-compare__cell">
               @if (isBoolean(row.toast)) {
                 @if (row.toast) {
-                  <i class="bi bi-check-circle-fill mkt-icon--yes" aria-label="Yes"></i>
+                  <i class="bi bi-check-circle-fill mkt-icon--yes" role="img" aria-label="Yes"></i>
                 } @else {
-                  <i class="bi bi-x-circle mkt-icon--no" aria-label="No"></i>
+                  <i class="bi bi-x-circle mkt-icon--no" role="img" aria-label="No"></i>
                 }
               } @else {
                 {{ row.toast }}
@@ -46,9 +46,9 @@
             <td class="mkt-compare__cell">
               @if (isBoolean(row.square)) {
                 @if (row.square) {
-                  <i class="bi bi-check-circle-fill mkt-icon--yes" aria-label="Yes"></i>
+                  <i class="bi bi-check-circle-fill mkt-icon--yes" role="img" aria-label="Yes"></i>
                 } @else {
-                  <i class="bi bi-x-circle mkt-icon--no" aria-label="No"></i>
+                  <i class="bi bi-x-circle mkt-icon--no" role="img" aria-label="No"></i>
                 }
               } @else {
                 {{ row.square }}

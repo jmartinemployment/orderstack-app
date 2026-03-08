@@ -54,8 +54,8 @@ export class PaymentConnectService {
       // Step 2: Get account link URL
       const linkRes = await firstValueFrom(
         this.http.post<{ url: string }>(`${this.apiUrl}/merchant/${rid}/connect/stripe/account-link`, {
-          returnUrl: `${window.location.origin}/setup?stripe=complete`,
-          refreshUrl: `${window.location.origin}/setup?stripe=refresh`,
+          returnUrl: `${globalThis.window.location.origin}/setup?stripe=complete`,
+          refreshUrl: `${globalThis.window.location.origin}/setup?stripe=refresh`,
         }),
       );
 

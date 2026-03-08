@@ -10,6 +10,8 @@
     <!-- Carousel -->
     <div
       class="mkt-testimonials__carousel"
+      role="region"
+      aria-label="Customer testimonials"
       (pointerdown)="onPointerDown($event)"
       (pointermove)="onPointerMove($event)"
       (pointerup)="onPointerUp($event)"
@@ -26,12 +28,14 @@
     </div>
 
     <!-- Navigation dots -->
-    <div class="mkt-testimonials__dots">
+    <div class="mkt-testimonials__dots" role="tablist" aria-label="Testimonial navigation">
       @for (t of testimonials; track t.id; let i = $index) {
         <button
           class="mkt-testimonials__dot"
           [class.mkt-testimonials__dot--active]="i === activeIndex()"
           (click)="goTo(i)"
+          role="tab"
+          [attr.aria-selected]="i === activeIndex()"
           [attr.aria-label]="'Go to testimonial ' + (i + 1)">
         </button>
       }

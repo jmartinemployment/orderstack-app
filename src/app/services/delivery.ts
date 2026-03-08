@@ -947,7 +947,7 @@ export class DeliveryService {
   private readonly _trackingOrders = signal<Map<string, DeliveryTrackingInfo>>(new Map());
   private readonly _deliveryAnalytics = signal<DeliveryAnalyticsReport | null>(null);
   private readonly _isLoadingAnalytics = signal(false);
-  private trackingPollingIntervals = new Map<string, ReturnType<typeof setInterval>>();
+  private readonly trackingPollingIntervals = new Map<string, ReturnType<typeof setInterval>>();
   private locationUnsubscribe: (() => void) | null = null;
 
   readonly trackingOrders = this._trackingOrders.asReadonly();
@@ -986,11 +986,9 @@ export class DeliveryService {
     });
 
     // Subscribe to socket location events if not already
-    if (!this.locationUnsubscribe) {
-      this.locationUnsubscribe = this.socketService.onDeliveryLocationEvent(
-        (event: DeliveryLocationEvent) => this.handleLocationUpdate(event)
-      );
-    }
+    this.locationUnsubscribe ??= this.socketService.onDeliveryLocationEvent(
+      (event: DeliveryLocationEvent) => this.handleLocationUpdate(event)
+    );
 
     // Poll delivery status every 30 seconds
     const interval = setInterval(() => {
@@ -1022,7 +1020,7 @@ export class DeliveryService {
   }
 
   stopAllTracking(): void {
-    for (const [orderId, interval] of this.trackingPollingIntervals) {
+    for (const [, interval] of this.trackingPollingIntervals) {
       clearInterval(interval);
     }
     this.trackingPollingIntervals.clear();

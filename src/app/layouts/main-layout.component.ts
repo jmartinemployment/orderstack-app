@@ -298,10 +298,8 @@ export class MainLayoutComponent {
       },
       { label: 'Discounts', icon: 'bi-tag', route: '/app/discounts' },
       { label: 'Gift Cards', icon: 'bi-gift', route: '/app/gift-cards' },
+      { label: 'Customers', icon: 'bi-people', route: '/app/customers', dividerBefore: true },
     );
-
-    // Guests
-    items.push({ label: 'Customers', icon: 'bi-people', route: '/app/customers', dividerBefore: true });
     if (hasModule(modules, 'loyalty')) {
       items.push({ label: 'Loyalty', icon: 'bi-star', route: '/app/loyalty' });
     }

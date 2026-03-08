@@ -1,14 +1,11 @@
 import '../../test-setup';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DeliveryService } from './delivery';
 import { AuthService } from './auth';
 import { SocketService } from './socket';
-import type {
-  DeliveryDispatchStatus,
-  DeliveryTrackingInfo,
-} from '@models/delivery.model';
+import type { DeliveryDispatchStatus } from '@models/delivery.model';
 
 function createHarness() {
   const authMock = {
@@ -85,7 +82,7 @@ describe('DeliveryService — tracking state', () => {
   });
 
   it('startTrackingDelivery adds order to tracking map', () => {
-    const { service, socketMock } = createHarness();
+    const { service } = createHarness();
 
     service.startTrackingDelivery('order-1', 'ext-123', 'doordash');
 

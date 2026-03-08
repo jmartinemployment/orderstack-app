@@ -268,7 +268,7 @@ export class StaffManagement {
     const colors = ['#7E5EF2', '#3632A6', '#1D3273', '#0d6efd', '#198754', '#dc3545', '#ffc107', '#6f42c1', '#20c997', '#fd7e14'];
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      hash = (name.codePointAt(i) ?? 0) + ((hash << 5) - hash);
     }
     return colors[Math.abs(hash) % colors.length];
   }

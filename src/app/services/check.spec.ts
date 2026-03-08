@@ -136,7 +136,7 @@ function mapSelection(raw: any): {
       name: m.name ?? '',
       priceAdjustment: Number(m.priceAdjustment) || 0,
     })),
-    seatNumber: raw.seatNumber != null ? Number(raw.seatNumber) : undefined,
+    seatNumber: raw.seatNumber == null ? undefined : Number(raw.seatNumber),
     specialInstructions: raw.specialInstructions,
     isComped: raw.isComped ?? false,
     compReason: raw.compReason ?? undefined,
@@ -464,13 +464,13 @@ describe('CheckService — request type shapes', () => {
 describe('CheckService — no-restaurant guard logic', () => {
   it('null merchantId should produce error', () => {
     const merchantId: string | null = null;
-    const error = !merchantId ? 'No restaurant selected' : null;
+    const error = merchantId ? null : 'No restaurant selected';
     expect(error).toBe('No restaurant selected');
   });
 
   it('valid merchantId passes guard', () => {
     const merchantId: string | null = 'r-1';
-    const error = !merchantId ? 'No restaurant selected' : null;
+    const error = merchantId ? null : 'No restaurant selected';
     expect(error).toBeNull();
   });
 });

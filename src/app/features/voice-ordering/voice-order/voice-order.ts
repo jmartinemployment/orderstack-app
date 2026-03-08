@@ -20,7 +20,7 @@ export class VoiceOrder implements OnDestroy {
   private readonly authService = inject(AuthService);
 
   private recognition: any = null;
-  private synthesis = globalThis.speechSynthesis;
+  private readonly synthesis = globalThis.speechSynthesis;
 
   readonly isAuthenticated = this.authService.isAuthenticated;
 
@@ -180,11 +180,11 @@ export class VoiceOrder implements OnDestroy {
       }
     }
     const count = this._matches().reduce((sum, m) => sum + m.quantity, 0);
-    this.speak(
-      this._language() === 'es'
-        ? `${count} artículo${count === 1 ? '' : 's'} agregado${count === 1 ? '' : 's'} al carrito`
-        : `Added ${count} item${count === 1 ? '' : 's'} to cart`
-    );
+    const plural = count === 1 ? '' : 's';
+    const message = this._language() === 'es'
+      ? `${count} artículo${plural} agregado${plural} al carrito`
+      : `Added ${count} item${plural} to cart`;
+    this.speak(message);
     this._matches.set([]);
     this._state.set('idle');
   }

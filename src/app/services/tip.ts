@@ -95,7 +95,7 @@ export class TipService {
       startDate: this._startDate(),
       endDate: this._endDate(),
       entries,
-      serverSummaries: summaries.sort((a, b) => b.netTips - a.netTips),
+      serverSummaries: summaries.toSorted((a, b) => b.netTips - a.netTips),
       totalTips,
       totalSales,
       averageTipPercent: totalSales > 0

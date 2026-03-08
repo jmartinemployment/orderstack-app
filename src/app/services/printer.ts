@@ -59,7 +59,7 @@ export class PrinterService {
         let updated = [...printers, response.printer];
         if (response.printer.isDefault) {
           updated = updated.map(p =>
-            p.id !== response.printer.id ? { ...p, isDefault: false } : p
+            p.id === response.printer.id ? p : { ...p, isDefault: false }
           );
         }
         return updated;
@@ -89,7 +89,7 @@ export class PrinterService {
         let list = printers.map(p => (p.id === printerId ? updated : p));
         if (updated.isDefault) {
           list = list.map(p =>
-            p.id !== printerId ? { ...p, isDefault: false } : p
+            p.id === printerId ? p : { ...p, isDefault: false }
           );
         }
         return list;
