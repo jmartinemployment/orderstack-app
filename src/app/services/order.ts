@@ -105,7 +105,7 @@ function mapItemFulfillmentStatus(
   fallback: FulfillmentStatus,
   hasCourse: boolean
 ): FulfillmentStatus {
-  const normalized = (rawItemStatus !== null && rawItemStatus !== undefined ? String(rawItemStatus) : '').toUpperCase();
+  const normalized = (rawItemStatus == null ? '' : String(rawItemStatus)).toUpperCase();
   switch (normalized) {
     case 'NEW':
       return 'NEW';
@@ -127,7 +127,7 @@ function mapItemFulfillmentStatus(
 }
 
 function mapCourseFireStatus(rawStatus: unknown): CourseFireStatus {
-  switch ((rawStatus !== null && rawStatus !== undefined ? String(rawStatus) : '').toUpperCase()) {
+  switch ((rawStatus == null ? '' : String(rawStatus)).toUpperCase()) {
     case 'FIRED':
       return 'FIRED';
     case 'READY':
@@ -152,7 +152,7 @@ function courseFireStatusRank(status: CourseFireStatus): number {
 
 function parseDate(value: unknown): Date | undefined {
   if (!value) return undefined;
-  const date = new Date(value !== null && value !== undefined ? String(value) : '');
+  const date = new Date(value == null ? '' : String(value));
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 

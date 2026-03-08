@@ -196,26 +196,23 @@ export class MonitoringService {
   private scanInventoryAlerts(enabledRules: AnomalyRule[], invAlerts: any[]): MonitoringAlert[] {
     const alerts: MonitoringAlert[] = [];
 
-    if (this.isRuleEnabled(enabledRules, 'low-stock')) {
-      for (const alert of invAlerts.filter(a => a.type === 'low_stock')) {
-        alerts.push(this.createAlert({
-          category: 'inventory', severity: 'warning',
-          title: `Low Stock: ${alert.itemName}`,
-          message: alert.message,
-          suggestedAction: alert.suggestedAction,
-          metric: `${alert.currentStock} units`, currentValue: alert.currentStock, threshold: alert.threshold,
-        }));
-      }
-    }
+    const stockAlertConfigs: Array<{ rule: string; type: string; severity: AlertSeverity; titlePrefix: string; defaultAction?: string }> = [
+      { rule: 'low-stock',  type: 'low_stock',    severity: 'warning',  titlePrefix: 'Low Stock' },
+      { rule: 'out-stock',  type: 'out_of_stock',  severity: 'critical', titlePrefix: 'Out of Stock', defaultAction: 'Reorder immediately' },
+    ];
 
-    if (this.isRuleEnabled(enabledRules, 'out-stock')) {
-      for (const alert of invAlerts.filter(a => a.type === 'out_of_stock')) {
+    for (const config of stockAlertConfigs) {
+      if (!this.isRuleEnabled(enabledRules, config.rule)) continue;
+      for (const alert of invAlerts.filter(a => a.type === config.type)) {
         alerts.push(this.createAlert({
-          category: 'inventory', severity: 'critical',
-          title: `Out of Stock: ${alert.itemName}`,
+          category: 'inventory',
+          severity: config.severity,
+          title: `${config.titlePrefix}: ${alert.itemName}`,
           message: alert.message,
-          suggestedAction: alert.suggestedAction ?? 'Reorder immediately',
-          metric: '0 units', currentValue: 0, threshold: alert.threshold,
+          suggestedAction: alert.suggestedAction ?? config.defaultAction,
+          metric: config.severity === 'critical' ? '0 units' : `${alert.currentStock} units`,
+          currentValue: config.severity === 'critical' ? 0 : alert.currentStock,
+          threshold: alert.threshold,
         }));
       }
     }
