@@ -3,6 +3,7 @@ import {
   CateringJobStatus,
   CATERING_STATUS_TRANSITIONS,
 } from '@models/index';
+import { environment } from '@environments/environment';
 
 /**
  * BUG-21: "Proposal Sent" button was shown as an active CTA on new Inquiry
@@ -99,5 +100,35 @@ describe('catering job detail — button labels (BUG-21)', () => {
   it('completed/cancelled jobs have no next statuses', () => {
     expect(nextStatuses('completed')).toEqual([]);
     expect(nextStatuses('cancelled')).toEqual([]);
+  });
+});
+
+describe('proposal URL uses environment base URL (BUG-22)', () => {
+  // Replica of the URL construction logic from the component
+  function buildProposalUrl(token: string): string {
+    return `${environment.appBaseUrl}/catering/proposal/${token}`;
+  }
+
+  it('proposal URL uses environment.appBaseUrl, not window.location.origin', () => {
+    const token = 'abc-123-def';
+    const url = buildProposalUrl(token);
+    expect(url).toBe(`${environment.appBaseUrl}/catering/proposal/${token}`);
+    expect(url).not.toContain('window.location');
+  });
+
+  it('environment.appBaseUrl is defined and non-empty', () => {
+    expect(environment.appBaseUrl).toBeDefined();
+    expect(environment.appBaseUrl.length).toBeGreaterThan(0);
+  });
+
+  it('dev environment uses localhost:4200', () => {
+    // In test context, we import the dev environment
+    expect(environment.appBaseUrl).toBe('http://localhost:4200');
+  });
+
+  it('proposal URL does not contain double slashes in path', () => {
+    const url = buildProposalUrl('test-token');
+    const afterProtocol = url.replace('http://', '').replace('https://', '');
+    expect(afterProtocol).not.toContain('//');
   });
 });

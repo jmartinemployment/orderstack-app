@@ -21,6 +21,7 @@ import {
   MenuItem,
   CateringPricingTier,
 } from '@models/index';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'os-catering-job-detail',
@@ -541,7 +542,7 @@ export class CateringJobDetailComponent implements OnInit {
     this.isSaving.set(true);
     const result = await this.cateringService.generateProposal(j.id);
     if (result) {
-      this.proposalUrl.set(`${window.location.origin}/catering/proposal/${result.token}`);
+      this.proposalUrl.set(`${environment.appBaseUrl}/catering/proposal/${result.token}`);
       const updated = await this.cateringService.getJob(j.id);
       if (updated) this.job.set(updated);
     }
