@@ -524,6 +524,9 @@ Execute: `cd .claude/skills/playwright-skill && node run.js /tmp/playwright-test
 - FEATURE-10 created: `docs/FEATURE-10-catering-completion.md` — delta audit consolidating all remaining work from FEATURE-02d, 05, 05b, 06, 07, and MASTER-IMPLEMENTATION-PLAN.md
   - Backend group: Steps 1–4 (menuType, branding, Resend email, milestone cron) + Step 17a (Zod closing status, check void revert)
   - Frontend group: Steps 5–16 (mode signals, wizard 4-card grid, home dashboard, catering components, stub upgrades, routes rewrite)
+- BUG-17 fixed: Send Proposal button silently disabled — root cause was `j.packages.length === 0` in `[disabled]` binding in `catering-job-detail.component.html`; removed that guard (the TS method has no such restriction)
+- BUG-13 verified already fixed: `onOverlayClick(event)` pattern with `event.target === event.currentTarget` was already in all 3 modal overlays; no code changes needed; doc deleted
+- BUG-14 fixed: Catering packages POST returning error — root cause was `CateringPackageTemplate` Prisma model existed locally in `schema.prisma` but was never committed; Render's `prisma generate` ran without it so `prisma.cateringPackageTemplate` was undefined at runtime; fix: ran `prisma db push` to create table in Supabase, committed schema + all other pending backend changes (milestone cron, email service, auth hardening, check void revert), pushed backend (commits 05de282, 8c9197e)
 - Next: implement FEATURE-10 (Step 17a backend validation is a good starting point; Step 8 home dashboard after Steps 5–6 verified)
 
-*Last Updated: Session 6*
+*Last Updated: Session 7 (March 7, 2026)*
