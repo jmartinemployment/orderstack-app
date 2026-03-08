@@ -97,19 +97,19 @@ export class CategoryManagement {
     this.categoryForm.reset();
   }
 
-  onCategoryOverlayClick(event: MouseEvent): void {
+  onCategoryOverlayClick(event: Event): void {
     if (event.target === event.currentTarget) this.closeForm();
   }
 
-  onReportingOverlayClick(event: MouseEvent): void {
+  onReportingOverlayClick(event: Event): void {
     if (event.target === event.currentTarget) this.closeReportingForm();
   }
 
-  onDeleteOverlayClick(event: MouseEvent): void {
+  onDeleteOverlayClick(event: Event): void {
     if (event.target === event.currentTarget) this.cancelDelete();
   }
 
-  onDeleteReportingOverlayClick(event: MouseEvent): void {
+  onDeleteReportingOverlayClick(event: Event): void {
     if (event.target === event.currentTarget) this.cancelDeleteReporting();
   }
 

@@ -27,7 +27,7 @@ import {
   isMarketplaceOrder,
 } from '@models/index';
 
-type MarketplaceFilterOption = 'all' | 'doordash' | 'ubereats' | 'grubhub';
+type MarketplaceFilterOption = 'all' | 'doordash' | 'ubereats' | 'grubhub' | 'marketplace' | 'native';
 
 const ACTIVE_DISPATCH_STATUSES = new Set([
   'DISPATCH_REQUESTED',

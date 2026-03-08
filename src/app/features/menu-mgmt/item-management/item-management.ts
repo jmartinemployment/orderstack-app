@@ -483,15 +483,15 @@ export class ItemManagement {
     this.itemForm.reset();
   }
 
-  onOverlayClick(event: MouseEvent): void {
+  onOverlayClick(event: Event): void {
     if (event.target === event.currentTarget) this.closeForm();
   }
 
-  onDeleteOverlayClick(event: MouseEvent): void {
+  onDeleteOverlayClick(event: Event): void {
     if (event.target === event.currentTarget) this.cancelDelete();
   }
 
-  onImportOverlayClick(event: MouseEvent): void {
+  onImportOverlayClick(event: Event): void {
     if (event.target === event.currentTarget) this.closeImportModal();
   }
 

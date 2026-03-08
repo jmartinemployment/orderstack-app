@@ -17,7 +17,7 @@ import {
 } from '@models/index';
 import { MarketplaceProviderType } from '@models/delivery.model';
 import { Router } from '@angular/router';
-import { PlatformService, OnboardingPayload } from '@services/platform';
+import { PlatformService, OnboardingPayload, OnboardingResult } from '@services/platform';
 import { AuthService } from '@services/auth';
 import { DeviceService } from '@services/device';
 import { MenuService } from '@services/menu';
@@ -1042,7 +1042,7 @@ export class SetupWizard implements OnInit {
     };
   }
 
-  private async handleOnboardingSuccess(result: Record<string, unknown>, payload: OnboardingPayload, detectedMode: DevicePosMode): Promise<void> {
+  private async handleOnboardingSuccess(result: OnboardingResult, payload: OnboardingPayload, detectedMode: DevicePosMode): Promise<void> {
     const resolvedMerchantId: string | undefined =
       (result['merchantId'] as string | undefined) ||
       (result['restaurant'] as Record<string, unknown> | undefined)?.['id'] as string | undefined ||
