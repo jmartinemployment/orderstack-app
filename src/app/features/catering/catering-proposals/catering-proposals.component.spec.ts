@@ -60,18 +60,26 @@ describe('CateringProposalsComponent', () => {
     }
   });
 
-  it('daysSinceSent calculates correctly', () => {
+  it('daysSinceSent returns 0 for today (local date)', () => {
     const component = createComponent();
-    const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-    const result = component.daysSinceSent(threeDaysAgo.toISOString().split('T')[0]);
-    expect(result).toBeGreaterThanOrEqual(2);
-    expect(result).toBeLessThanOrEqual(4);
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    expect(component.daysSinceSent(today)).toBe(0);
   });
 
-  it('daysSinceSent returns 0 for today', () => {
+  it('daysSinceSent returns 1 for yesterday (local date — tests UTC off-by-one fix)', () => {
     const component = createComponent();
-    const today = new Date().toISOString().split('T')[0];
-    expect(component.daysSinceSent(today)).toBe(0);
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    const yesterday = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    expect(component.daysSinceSent(yesterday)).toBe(1);
+  });
+
+  it('daysSinceSent returns 7 for one week ago (local date)', () => {
+    const component = createComponent();
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    const weekAgo = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    expect(component.daysSinceSent(weekAgo)).toBe(7);
   });
 });
