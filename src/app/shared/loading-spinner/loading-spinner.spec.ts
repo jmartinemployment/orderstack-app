@@ -46,9 +46,9 @@ describe('LoadingSpinner', () => {
     expect(msg).toBeNull();
   });
 
-  it('has aria role status', () => {
-    const spinner = fixture.nativeElement.querySelector('[role="status"]');
-    expect(spinner).toBeTruthy();
+  it('uses native output element for status', () => {
+    const output = fixture.nativeElement.querySelector('output');
+    expect(output).toBeTruthy();
   });
 
   it('has visually-hidden loading text', () => {

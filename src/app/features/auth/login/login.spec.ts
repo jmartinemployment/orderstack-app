@@ -90,9 +90,9 @@ describe('Login', () => {
     expect(input.getAttribute('autocomplete')).toBe('off');
   });
 
-  it('password input has autocomplete="new-password"', () => {
+  it('password input has autocomplete="current-password"', () => {
     const input: HTMLInputElement = fixture.nativeElement.querySelector('#password');
-    expect(input.getAttribute('autocomplete')).toBe('new-password');
+    expect(input.getAttribute('autocomplete')).toBe('current-password');
   });
 
   // --- Password visibility ---
