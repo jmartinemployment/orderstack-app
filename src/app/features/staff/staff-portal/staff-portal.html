@@ -531,7 +531,7 @@
 
         <!-- Manager Override Modal -->
         @if (showManagerOverride()) {
-          <div class="modal-overlay" (click)="cancelManagerOverride()" (keydown.enter)="cancelManagerOverride()" tabindex="0">
+          <div class="modal-overlay" (click)="cancelManagerOverride()" aria-hidden="true">
             <div class="manager-override-modal" (click)="$event.stopPropagation()">
               <h4><i class="bi bi-shield-lock"></i> Manager Override Required</h4>
               <p class="text-muted">{{ scheduleBlockMessage() }}</p>
@@ -635,7 +635,7 @@
 
         <!-- Timecard Edit Request Modal -->
         @if (showEditForm()) {
-          <div class="modal-overlay" (click)="closeEditRequest()" (keydown.enter)="closeEditRequest()" tabindex="0">
+          <div class="modal-overlay" (click)="closeEditRequest()" aria-hidden="true">
             <div class="edit-request-modal" (click)="$event.stopPropagation()">
               <h3>Request Timecard Edit</h3>
               <div class="edit-form-group">
@@ -674,7 +674,7 @@
 
         <!-- Clock Out Confirmation Modal -->
         @if (showClockOutConfirm()) {
-          <div class="modal-overlay" (click)="cancelClockOut()" (keydown.enter)="cancelClockOut()" tabindex="0">
+          <div class="modal-overlay" (click)="cancelClockOut()" aria-hidden="true">
             <div class="clock-out-modal" (click)="$event.stopPropagation()">
               <h3>Shift Summary</h3>
 
@@ -777,7 +777,7 @@
 
         <!-- Job Switch Modal -->
         @if (showJobSwitcher()) {
-          <div class="modal-overlay" (click)="cancelJobSwitch()" (keydown.enter)="cancelJobSwitch()" tabindex="0">
+          <div class="modal-overlay" (click)="cancelJobSwitch()" aria-hidden="true">
             <div class="job-switch-modal" (click)="$event.stopPropagation()">
               <h3>Switch Job</h3>
               <p class="job-switch-desc">

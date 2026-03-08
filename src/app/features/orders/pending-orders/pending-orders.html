@@ -515,7 +515,7 @@
 
   <!-- Cancel Order Confirmation Modal -->
   @if (cancelTarget(); as target) {
-    <div class="modal-overlay" tabindex="0" (click)="dismissCancel()" (keydown.enter)="dismissCancel()">
+    <div class="modal-overlay" (click)="dismissCancel()" aria-hidden="true">
       <div class="delete-confirm-modal card" (click)="$event.stopPropagation()">
         <div class="card-header">
           <h5 class="mb-0">Cancel Order</h5>
@@ -534,7 +534,7 @@
 
   <!-- Bulk Action Confirmation Modal -->
   @if (showBulkConfirm()) {
-    <div class="modal-overlay" tabindex="0" (click)="dismissBulkConfirm()" (keydown.enter)="dismissBulkConfirm()">
+    <div class="modal-overlay" (click)="dismissBulkConfirm()" aria-hidden="true">
       <div class="delete-confirm-modal card" (click)="$event.stopPropagation()">
         <div class="card-header">
           <h5 class="mb-0">{{ getBulkActionLabel() }}</h5>
@@ -557,7 +557,7 @@
 
   <!-- Reject Catering Order Confirmation Modal -->
   @if (rejectTarget(); as target) {
-    <div class="modal-overlay" tabindex="0" (click)="dismissReject()" (keydown.enter)="dismissReject()">
+    <div class="modal-overlay" (click)="dismissReject()" aria-hidden="true">
       <div class="delete-confirm-modal card" (click)="$event.stopPropagation()">
         <div class="card-header">
           <h5 class="mb-0">Reject Catering Order</h5>
@@ -576,8 +576,8 @@
 
   <!-- Order Detail Modal -->
   @if (_selectedOrder()) {
-    <div class="modal-overlay" tabindex="0" (click)="closeOrderDetail()" (keydown.enter)="closeOrderDetail()" (keydown.escape)="closeOrderDetail()">
-      <div class="order-detail-modal card" tabindex="0" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="closeOrderDetail()" (keydown.escape)="closeOrderDetail()" aria-hidden="true">
+      <div class="order-detail-modal card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Order #{{ getOrderNumber(_selectedOrder()!) }}</h4>
           <button type="button" class="btn-close" (click)="closeOrderDetail()"></button>

@@ -221,40 +221,40 @@
           <h6 class="panel-title">Add Inventory Item</h6>
           <div class="row g-2">
             <div class="col-12 col-md-4">
-              <label class="form-label small">Name</label>
-              <input type="text" class="form-control form-control-sm" placeholder="Item name"
+              <label class="form-label small" for="inv-item-name">Name</label>
+              <input id="inv-item-name" type="text" class="form-control form-control-sm" placeholder="Item name"
                 [ngModel]="newItemName()" (ngModelChange)="setNewItemName($event)" />
             </div>
             <div class="col-6 col-md-2">
-              <label class="form-label small">Unit</label>
-              <input type="text" class="form-control form-control-sm"
+              <label class="form-label small" for="inv-item-unit">Unit</label>
+              <input id="inv-item-unit" type="text" class="form-control form-control-sm"
                 [ngModel]="newItemUnit()" (ngModelChange)="setNewItemUnit($event)" />
             </div>
             <div class="col-6 col-md-2">
-              <label class="form-label small">Category</label>
-              <input type="text" class="form-control form-control-sm" placeholder="e.g. Produce"
+              <label class="form-label small" for="inv-item-category">Category</label>
+              <input id="inv-item-category" type="text" class="form-control form-control-sm" placeholder="e.g. Produce"
                 [ngModel]="newItemCategory()" (ngModelChange)="setNewItemCategory($event)" />
             </div>
             <div class="col-4 col-md-1">
-              <label class="form-label small">Min</label>
-              <input type="number" class="form-control form-control-sm"
+              <label class="form-label small" for="inv-item-min-stock">Min</label>
+              <input id="inv-item-min-stock" type="number" class="form-control form-control-sm"
                 [ngModel]="newItemMinStock()" (ngModelChange)="setNewItemMinStock($event)" />
             </div>
             <div class="col-4 col-md-1">
-              <label class="form-label small">Max</label>
-              <input type="number" class="form-control form-control-sm"
+              <label class="form-label small" for="inv-item-max-stock">Max</label>
+              <input id="inv-item-max-stock" type="number" class="form-control form-control-sm"
                 [ngModel]="newItemMaxStock()" (ngModelChange)="setNewItemMaxStock($event)" />
             </div>
             <div class="col-4 col-md-2">
-              <label class="form-label small">Cost/Unit</label>
-              <input type="number" class="form-control form-control-sm" step="0.01"
+              <label class="form-label small" for="inv-item-cost-per-unit">Cost/Unit</label>
+              <input id="inv-item-cost-per-unit" type="number" class="form-control form-control-sm" step="0.01"
                 [ngModel]="newItemCostPerUnit()" (ngModelChange)="setNewItemCostPerUnit($event)" />
             </div>
           </div>
           <div class="row g-2 mt-1">
             <div class="col-12 col-md-4">
-              <label class="form-label small">Supplier (optional)</label>
-              <input type="text" class="form-control form-control-sm" placeholder="Supplier name"
+              <label class="form-label small" for="inv-item-supplier">Supplier (optional)</label>
+              <input id="inv-item-supplier" type="text" class="form-control form-control-sm" placeholder="Supplier name"
                 [ngModel]="newItemSupplier()" (ngModelChange)="setNewItemSupplier($event)" />
             </div>
             <div class="col-12 col-md-8 d-flex align-items-end">
@@ -446,8 +446,8 @@
           <h5 class="panel-title">Start Cycle Count</h5>
           <div class="d-flex gap-2 align-items-end">
             <div>
-              <label class="form-label small">Category (optional)</label>
-              <select class="form-select form-select-sm filter-select"
+              <label class="form-label small" for="inv-cycle-count-category">Category (optional)</label>
+              <select id="inv-cycle-count-category" class="form-select form-select-sm filter-select"
                 aria-label="Cycle count category"
                 [ngModel]="cycleCountCategory()"
                 (ngModelChange)="setCycleCountCategory($event)">
@@ -499,19 +499,19 @@
         @if (showConversionForm()) {
           <div class="d-flex gap-2 align-items-end mb-3">
             <div>
-              <label class="form-label small">From</label>
-              <input type="text" class="form-control form-control-sm" placeholder="e.g. lb"
+              <label class="form-label small" for="inv-conv-from-unit">From</label>
+              <input id="inv-conv-from-unit" type="text" class="form-control form-control-sm" placeholder="e.g. lb"
                 [ngModel]="convFromUnit()" (ngModelChange)="setConvFromUnit($event)" />
             </div>
             <span class="text-muted align-self-center pb-1">=</span>
             <div>
-              <label class="form-label small">Factor</label>
-              <input type="number" class="form-control form-control-sm" step="0.01" min="0"
+              <label class="form-label small" for="inv-conv-factor">Factor</label>
+              <input id="inv-conv-factor" type="number" class="form-control form-control-sm" step="0.01" min="0"
                 [ngModel]="convFactor()" (ngModelChange)="setConvFactor($event)" />
             </div>
             <div>
-              <label class="form-label small">To</label>
-              <input type="text" class="form-control form-control-sm" placeholder="e.g. oz"
+              <label class="form-label small" for="inv-conv-to-unit">To</label>
+              <input id="inv-conv-to-unit" type="text" class="form-control form-control-sm" placeholder="e.g. oz"
                 [ngModel]="convToUnit()" (ngModelChange)="setConvToUnit($event)" />
             </div>
             <button type="button" class="btn btn-sm btn-primary"
@@ -538,7 +538,7 @@
 
 <!-- Stock Action Modal -->
 @if (showStockModal() && selectedItem(); as item) {
-  <div class="modal-backdrop" role="button" tabindex="0" (click)="closeStockModal()" (keydown.enter)="closeStockModal()"></div>
+  <button type="button" class="modal-backdrop" aria-label="Close modal" (click)="closeStockModal()"></button>
   <div class="stock-modal">
     <div class="modal-header-custom d-flex justify-content-between align-items-center mb-3">
       <h5 class="mb-0">{{ getStockActionLabel() }}: {{ item.name }}</h5>
@@ -546,7 +546,7 @@
     </div>
     <div class="modal-body-custom">
       <div class="mb-3">
-        <label class="form-label small">
+        <label class="form-label small" for="inv-stock-quantity">
           @switch (stockActionType()) {
             @case ('restock') { Quantity to add }
             @case ('usage') { Quantity used }
@@ -554,6 +554,7 @@
           }
         </label>
         <input
+          id="inv-stock-quantity"
           type="number"
           class="form-control"
           min="0"
@@ -566,8 +567,9 @@
       </div>
       @if (stockActionType() === 'restock') {
         <div class="mb-3">
-          <label class="form-label small">Invoice # (optional)</label>
+          <label class="form-label small" for="inv-invoice-number">Invoice # (optional)</label>
           <input
+            id="inv-invoice-number"
             type="text"
             class="form-control"
             [ngModel]="invoiceNumber()"
@@ -576,8 +578,9 @@
         </div>
       } @else {
         <div class="mb-3">
-          <label class="form-label small">Reason</label>
+          <label class="form-label small" for="inv-stock-reason">Reason</label>
           <input
+            id="inv-stock-reason"
             type="text"
             class="form-control"
             placeholder="e.g. Dinner service, Inventory count"

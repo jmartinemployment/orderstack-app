@@ -83,7 +83,7 @@
 
   <!-- Vendor Detail Panel -->
   @if (detailVendor(); as vendor) {
-    <div class="detail-panel-backdrop" (click)="closeVendorDetail()" (keydown.enter)="closeVendorDetail()" tabindex="0" role="button">
+    <div class="detail-panel-backdrop" (click)="closeVendorDetail()" (keydown.enter)="closeVendorDetail()">
       <div class="detail-panel" (click)="$event.stopPropagation()">
         <div class="detail-header">
           <h2>{{ vendor.name }}</h2>
@@ -126,7 +126,7 @@
 
   <!-- Vendor Modal -->
   @if (showVendorModal()) {
-    <div class="modal-backdrop" (click)="closeVendorModal()" (keydown.enter)="closeVendorModal()" tabindex="0" role="button">
+    <div class="modal-backdrop" (click)="closeVendorModal()" (keydown.enter)="closeVendorModal()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>{{ editingVendorId() ? 'Edit Vendor' : 'Add Vendor' }}</h3>

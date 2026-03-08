@@ -357,7 +357,7 @@
     <h3 class="section-title">Count History</h3>
     <div class="card-list">
       @for (count of activeCounts(); track count.id) {
-        <div class="count-card" [class.active]="activeCountId() === count.id" (click)="selectCount(count.id)" (keydown.enter)="selectCount(count.id)" tabindex="0" role="button">
+        <button type="button" class="count-card" [class.active]="activeCountId() === count.id" (click)="selectCount(count.id)">
           <div class="count-card-header">
             <span class="count-type">{{ count.type === 'full' ? 'Full Count' : 'Cycle Count' }}</span>
             <span class="badge" [class]="getCountStatusClass(count.status)">
@@ -368,7 +368,7 @@
             <span>{{ count.entries.length }} items</span>
             <span>{{ count.createdAt | date:'short' }}</span>
           </div>
-        </div>
+        </button>
       } @empty {
         <div class="empty-state">
           <i class="bi bi-clipboard-check"></i>

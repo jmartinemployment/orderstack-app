@@ -256,28 +256,28 @@
         <table class="data-table sortable">
           <thead>
             <tr>
-              <th (click)="sortItems('itemName')" (keydown.enter)="sortItems('itemName')" tabindex="0" role="button">
+              <th (click)="sortItems('itemName')" (keydown.enter)="sortItems('itemName')">
                 Item <i [class]="getSortIcon('itemName')"></i>
               </th>
-              <th class="text-end" (click)="sortItems('sku')" (keydown.enter)="sortItems('sku')" tabindex="0" role="button">
+              <th class="text-end" (click)="sortItems('sku')" (keydown.enter)="sortItems('sku')">
                 SKU <i [class]="getSortIcon('sku')"></i>
               </th>
-              <th class="text-end" (click)="sortItems('unitsSold')" (keydown.enter)="sortItems('unitsSold')" tabindex="0" role="button">
+              <th class="text-end" (click)="sortItems('unitsSold')" (keydown.enter)="sortItems('unitsSold')">
                 Units <i [class]="getSortIcon('unitsSold')"></i>
               </th>
-              <th class="text-end" (click)="sortItems('revenue')" (keydown.enter)="sortItems('revenue')" tabindex="0" role="button">
+              <th class="text-end" (click)="sortItems('revenue')" (keydown.enter)="sortItems('revenue')">
                 Revenue <i [class]="getSortIcon('revenue')"></i>
               </th>
-              <th class="text-end" (click)="sortItems('cogs')" (keydown.enter)="sortItems('cogs')" tabindex="0" role="button">
+              <th class="text-end" (click)="sortItems('cogs')" (keydown.enter)="sortItems('cogs')">
                 COGS <i [class]="getSortIcon('cogs')"></i>
               </th>
-              <th class="text-end" (click)="sortItems('profit')" (keydown.enter)="sortItems('profit')" tabindex="0" role="button">
+              <th class="text-end" (click)="sortItems('profit')" (keydown.enter)="sortItems('profit')">
                 Profit <i [class]="getSortIcon('profit')"></i>
               </th>
-              <th class="text-end" (click)="sortItems('marginPercent')" (keydown.enter)="sortItems('marginPercent')" tabindex="0" role="button">
+              <th class="text-end" (click)="sortItems('marginPercent')" (keydown.enter)="sortItems('marginPercent')">
                 Margin <i [class]="getSortIcon('marginPercent')"></i>
               </th>
-              <th class="text-end" (click)="sortItems('discountAmount')" (keydown.enter)="sortItems('discountAmount')" tabindex="0" role="button">
+              <th class="text-end" (click)="sortItems('discountAmount')" (keydown.enter)="sortItems('discountAmount')">
                 Discounts <i [class]="getSortIcon('discountAmount')"></i>
               </th>
             </tr>
@@ -611,7 +611,7 @@
       <div class="vendor-cards">
         @for (vendor of vendorSalesData(); track vendor.vendorId) {
           <div class="vendor-card" [class.expanded]="expandedVendorId() === vendor.vendorId">
-            <div class="vendor-header" (click)="toggleVendorExpand(vendor.vendorId)" (keydown.enter)="toggleVendorExpand(vendor.vendorId)" tabindex="0" role="button">
+            <button type="button" class="vendor-header" (click)="toggleVendorExpand(vendor.vendorId)">
               <div class="vendor-info">
                 <div class="vendor-name">{{ vendor.vendorName }}</div>
                 <div class="vendor-meta">{{ vendor.itemCount }} items · {{ vendor.unitsSold | number }} units</div>
@@ -623,7 +623,7 @@
                 </span>
               </div>
               <i class="bi" [class.bi-chevron-down]="expandedVendorId() !== vendor.vendorId" [class.bi-chevron-up]="expandedVendorId() === vendor.vendorId"></i>
-            </div>
+            </button>
 
             <div class="vendor-bar">
               <div class="vendor-bar-fill" [style.width.%]="getVendorShareWidth(vendor.revenue)"></div>
@@ -701,28 +701,28 @@
           <table class="data-table sortable">
             <thead>
               <tr>
-                <th (click)="sortProfit('itemName')" (keydown.enter)="sortProfit('itemName')" tabindex="0" role="button">
+                <th (click)="sortProfit('itemName')" (keydown.enter)="sortProfit('itemName')">
                   Item <i [class]="getProfitSortIcon('itemName')"></i>
                 </th>
-                <th class="text-end" (click)="sortProfit('sku')" (keydown.enter)="sortProfit('sku')" tabindex="0" role="button">
+                <th class="text-end" (click)="sortProfit('sku')" (keydown.enter)="sortProfit('sku')">
                   SKU <i [class]="getProfitSortIcon('sku')"></i>
                 </th>
-                <th class="text-end" (click)="sortProfit('quantityOnHand')" (keydown.enter)="sortProfit('quantityOnHand')" tabindex="0" role="button">
+                <th class="text-end" (click)="sortProfit('quantityOnHand')" (keydown.enter)="sortProfit('quantityOnHand')">
                   On Hand <i [class]="getProfitSortIcon('quantityOnHand')"></i>
                 </th>
-                <th class="text-end" (click)="sortProfit('unitCost')" (keydown.enter)="sortProfit('unitCost')" tabindex="0" role="button">
+                <th class="text-end" (click)="sortProfit('unitCost')" (keydown.enter)="sortProfit('unitCost')">
                   Cost <i [class]="getProfitSortIcon('unitCost')"></i>
                 </th>
-                <th class="text-end" (click)="sortProfit('unitPrice')" (keydown.enter)="sortProfit('unitPrice')" tabindex="0" role="button">
+                <th class="text-end" (click)="sortProfit('unitPrice')" (keydown.enter)="sortProfit('unitPrice')">
                   Price <i [class]="getProfitSortIcon('unitPrice')"></i>
                 </th>
-                <th class="text-end" (click)="sortProfit('projectedRevenue')" (keydown.enter)="sortProfit('projectedRevenue')" tabindex="0" role="button">
+                <th class="text-end" (click)="sortProfit('projectedRevenue')" (keydown.enter)="sortProfit('projectedRevenue')">
                   Proj. Revenue <i [class]="getProfitSortIcon('projectedRevenue')"></i>
                 </th>
-                <th class="text-end" (click)="sortProfit('projectedProfit')" (keydown.enter)="sortProfit('projectedProfit')" tabindex="0" role="button">
+                <th class="text-end" (click)="sortProfit('projectedProfit')" (keydown.enter)="sortProfit('projectedProfit')">
                   Proj. Profit <i [class]="getProfitSortIcon('projectedProfit')"></i>
                 </th>
-                <th class="text-end" (click)="sortProfit('marginPercent')" (keydown.enter)="sortProfit('marginPercent')" tabindex="0" role="button">
+                <th class="text-end" (click)="sortProfit('marginPercent')" (keydown.enter)="sortProfit('marginPercent')">
                   Margin <i [class]="getProfitSortIcon('marginPercent')"></i>
                 </th>
               </tr>

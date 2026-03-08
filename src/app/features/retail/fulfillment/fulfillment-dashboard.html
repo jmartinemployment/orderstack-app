@@ -9,26 +9,26 @@
 } @else {
   <!-- KPI Bar -->
   <div class="kpi-bar">
-    <div class="kpi-chip" [class.active]="activeTab() === 'pending'" (click)="setTab('pending')" (keydown.enter)="setTab('pending')" tabindex="0" role="button">
+    <button type="button" class="kpi-chip" [class.active]="activeTab() === 'pending'" (click)="setTab('pending')">
       <span class="kpi-count">{{ pendingCount() }}</span>
       <span class="kpi-label">Pending</span>
-    </div>
-    <div class="kpi-chip" [class.active]="activeTab() === 'processing'" (click)="setTab('processing')" (keydown.enter)="setTab('processing')" tabindex="0" role="button">
+    </button>
+    <button type="button" class="kpi-chip" [class.active]="activeTab() === 'processing'" (click)="setTab('processing')">
       <span class="kpi-count">{{ processingCount() }}</span>
       <span class="kpi-label">Processing</span>
-    </div>
-    <div class="kpi-chip" [class.active]="activeTab() === 'pickup'" (click)="setTab('pickup')" (keydown.enter)="setTab('pickup')" tabindex="0" role="button">
+    </button>
+    <button type="button" class="kpi-chip" [class.active]="activeTab() === 'pickup'" (click)="setTab('pickup')">
       <span class="kpi-count">{{ pickupCount() }}</span>
       <span class="kpi-label">Ready</span>
-    </div>
-    <div class="kpi-chip" [class.active]="activeTab() === 'shipped'" (click)="setTab('shipped')" (keydown.enter)="setTab('shipped')" tabindex="0" role="button">
+    </button>
+    <button type="button" class="kpi-chip" [class.active]="activeTab() === 'shipped'" (click)="setTab('shipped')">
       <span class="kpi-count">{{ shippedCount() }}</span>
       <span class="kpi-label">Shipped</span>
-    </div>
-    <div class="kpi-chip" [class.active]="activeTab() === 'completed'" (click)="setTab('completed')" (keydown.enter)="setTab('completed')" tabindex="0" role="button">
+    </button>
+    <button type="button" class="kpi-chip" [class.active]="activeTab() === 'completed'" (click)="setTab('completed')">
       <span class="kpi-count">{{ completedCount() }}</span>
       <span class="kpi-label">Completed</span>
-    </div>
+    </button>
   </div>
 
   <!-- Orders + Detail Panel -->
@@ -42,13 +42,11 @@
         </div>
       } @else {
         @for (order of filteredOrders(); track order.id) {
-          <div
+          <button
+            type="button"
             class="order-card"
             [class.selected]="selectedOrder()?.id === order.id"
             (click)="selectOrder(order)"
-            (keydown.enter)="selectOrder(order)"
-            tabindex="0"
-            role="button"
           >
             <div class="order-card-header">
               <span class="order-number">#{{ order.orderNumber }}</span>
@@ -70,7 +68,7 @@
               </span>
               <span class="order-total">{{ order.total | currency }}</span>
             </div>
-          </div>
+          </button>
         }
       }
     </div>

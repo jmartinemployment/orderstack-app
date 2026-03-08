@@ -38,7 +38,7 @@
   <div class="po-list">
     @for (po of filteredOrders(); track po.id) {
       <div class="po-card">
-        <div class="po-header" (click)="toggleExpanded(po.id)" (keydown.enter)="toggleExpanded(po.id)" tabindex="0" role="button">
+        <button type="button" class="po-header" (click)="toggleExpanded(po.id)">
           <div class="po-info">
             <span class="po-id">PO-{{ po.id.substring(0, 8) }}</span>
             <span class="po-vendor">{{ getVendorName(po.vendorId) }}</span>
@@ -50,7 +50,7 @@
             </span>
             <i class="bi" [class.bi-chevron-down]="expandedPOId() !== po.id" [class.bi-chevron-up]="expandedPOId() === po.id"></i>
           </div>
-        </div>
+        </button>
 
         <div class="po-meta">
           <span>{{ po.lineItems.length }} items</span>

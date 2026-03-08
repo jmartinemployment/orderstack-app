@@ -78,7 +78,7 @@
               </td>
 
               <!-- SKU -->
-              <td class="col-editable" (click)="startEdit(v.id, 'sku', v.sku)" (keydown.enter)="startEdit(v.id, 'sku', v.sku)" tabindex="0" role="button">
+              <td class="col-editable" (click)="startEdit(v.id, 'sku', v.sku)" (keydown.enter)="startEdit(v.id, 'sku', v.sku)">
                 @if (isEditing(v.id, 'sku')) {
                   <input
                     type="text"
@@ -97,7 +97,7 @@
               </td>
 
               <!-- Barcode -->
-              <td class="col-editable" (click)="startEdit(v.id, 'barcode', v.barcode)" (keydown.enter)="startEdit(v.id, 'barcode', v.barcode)" tabindex="0" role="button">
+              <td class="col-editable" (click)="startEdit(v.id, 'barcode', v.barcode)" (keydown.enter)="startEdit(v.id, 'barcode', v.barcode)">
                 @if (isEditing(v.id, 'barcode')) {
                   <div class="inline-input-group">
                     <input
@@ -125,7 +125,7 @@
               </td>
 
               <!-- Price -->
-              <td class="col-editable col-number" (click)="startEdit(v.id, 'price', v.price)" (keydown.enter)="startEdit(v.id, 'price', v.price)" tabindex="0" role="button">
+              <td class="col-editable col-number" (click)="startEdit(v.id, 'price', v.price)" (keydown.enter)="startEdit(v.id, 'price', v.price)">
                 @if (isEditing(v.id, 'price')) {
                   <input
                     type="number"
@@ -145,7 +145,7 @@
               </td>
 
               <!-- Cost -->
-              <td class="col-editable col-number" (click)="startEdit(v.id, 'cost', v.cost)" (keydown.enter)="startEdit(v.id, 'cost', v.cost)" tabindex="0" role="button">
+              <td class="col-editable col-number" (click)="startEdit(v.id, 'cost', v.cost)" (keydown.enter)="startEdit(v.id, 'cost', v.cost)">
                 @if (isEditing(v.id, 'cost')) {
                   <input
                     type="number"
@@ -165,7 +165,7 @@
               </td>
 
               <!-- Stock -->
-              <td class="col-editable col-number" (click)="startEdit(v.id, 'stockQuantity', v.stockQuantity)" (keydown.enter)="startEdit(v.id, 'stockQuantity', v.stockQuantity)" tabindex="0" role="button">
+              <td class="col-editable col-number" (click)="startEdit(v.id, 'stockQuantity', v.stockQuantity)" (keydown.enter)="startEdit(v.id, 'stockQuantity', v.stockQuantity)">
                 @if (isEditing(v.id, 'stockQuantity')) {
                   <input
                     type="number"

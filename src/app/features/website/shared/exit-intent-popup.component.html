@@ -1,5 +1,5 @@
 @if (visible()) {
-  <div class="mkt-exit-backdrop" (click)="onBackdropClick($event)" (keydown.escape)="close()" (keydown.enter)="close()" tabindex="0">
+  <div class="mkt-exit-backdrop" (click)="onBackdropClick($event)" (keydown.escape)="close()" aria-hidden="true">
     <div class="mkt-exit-modal" role="dialog" aria-modal="true" aria-label="Special offer">
       <button class="mkt-exit-modal__close" (click)="close()" aria-label="Close popup">
         <i class="bi bi-x-lg" aria-hidden="true"></i>

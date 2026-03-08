@@ -33,11 +33,11 @@
   </header>
 
   @if (error()) {
-    <div class="error-banner" (click)="dismissError()" (keydown.enter)="dismissError()" tabindex="0" role="button">
+    <button type="button" class="error-banner" (click)="dismissError()">
       <i class="bi bi-exclamation-triangle"></i>
       {{ error() }}
       <i class="bi bi-x"></i>
-    </div>
+    </button>
   }
 
   @if (restaurants().length < 2) {
@@ -275,25 +275,25 @@
           <table class="comparison-table">
             <thead>
               <tr>
-                <th (click)="toggleSort('restaurantName')" (keydown.enter)="toggleSort('restaurantName')" tabindex="0" role="button" class="sortable">
+                <th (click)="toggleSort('restaurantName')" (keydown.enter)="toggleSort('restaurantName')" class="sortable">
                   Location <i class="bi" [class]="getSortIcon('restaurantName')"></i>
                 </th>
-                <th (click)="toggleSort('revenue')" (keydown.enter)="toggleSort('revenue')" tabindex="0" role="button" class="sortable">
+                <th (click)="toggleSort('revenue')" (keydown.enter)="toggleSort('revenue')" class="sortable">
                   Revenue <i class="bi" [class]="getSortIcon('revenue')"></i>
                 </th>
-                <th (click)="toggleSort('orderCount')" (keydown.enter)="toggleSort('orderCount')" tabindex="0" role="button" class="sortable">
+                <th (click)="toggleSort('orderCount')" (keydown.enter)="toggleSort('orderCount')" class="sortable">
                   Orders <i class="bi" [class]="getSortIcon('orderCount')"></i>
                 </th>
-                <th (click)="toggleSort('averageOrderValue')" (keydown.enter)="toggleSort('averageOrderValue')" tabindex="0" role="button" class="sortable">
+                <th (click)="toggleSort('averageOrderValue')" (keydown.enter)="toggleSort('averageOrderValue')" class="sortable">
                   Avg Order <i class="bi" [class]="getSortIcon('averageOrderValue')"></i>
                 </th>
-                <th (click)="toggleSort('laborCostPercent')" (keydown.enter)="toggleSort('laborCostPercent')" tabindex="0" role="button" class="sortable">
+                <th (click)="toggleSort('laborCostPercent')" (keydown.enter)="toggleSort('laborCostPercent')" class="sortable">
                   Labor % <i class="bi" [class]="getSortIcon('laborCostPercent')"></i>
                 </th>
-                <th (click)="toggleSort('foodCostPercent')" (keydown.enter)="toggleSort('foodCostPercent')" tabindex="0" role="button" class="sortable">
+                <th (click)="toggleSort('foodCostPercent')" (keydown.enter)="toggleSort('foodCostPercent')" class="sortable">
                   Food Cost % <i class="bi" [class]="getSortIcon('foodCostPercent')"></i>
                 </th>
-                <th (click)="toggleSort('customerCount')" (keydown.enter)="toggleSort('customerCount')" tabindex="0" role="button" class="sortable">
+                <th (click)="toggleSort('customerCount')" (keydown.enter)="toggleSort('customerCount')" class="sortable">
                   Customers <i class="bi" [class]="getSortIcon('customerCount')"></i>
                 </th>
               </tr>
@@ -341,7 +341,7 @@
       <div class="group-list">
         @for (group of groups(); track group.id) {
           <div class="group-card" [class.expanded]="expandedGroupId() === group.id">
-            <div class="group-card-header" (click)="toggleGroupExpand(group.id)" (keydown.enter)="toggleGroupExpand(group.id)" tabindex="0" role="button">
+            <div class="group-card-header" (click)="toggleGroupExpand(group.id)" (keydown.enter)="toggleGroupExpand(group.id)">
               <div class="group-info">
                 <span class="group-name">{{ group.name }}</span>
                 @if (group.description) {
@@ -400,8 +400,8 @@
         <div class="sync-step">
           <span class="step-number">1</span>
           <div class="step-content">
-            <label>Source Location (copy FROM)</label>
-            <select class="form-select" aria-label="Source location" [value]="syncSourceId()" (change)="syncSourceId.set($any($event.target).value)">
+            <label for="ml-sync-source">Source Location (copy FROM)</label>
+            <select id="ml-sync-source" class="form-select" aria-label="Source location" [value]="syncSourceId()" (change)="syncSourceId.set($any($event.target).value)">
               <option value="">Select source...</option>
               @for (r of restaurants(); track r.id) {
                 <option [value]="r.id">{{ r.name }}</option>
@@ -416,7 +416,7 @@
             <label>Target Locations (copy TO)</label>
             <div class="target-checkboxes">
               @for (r of getSyncTargetRestaurants(); track r.id) {
-                <label class="checkbox-label" (click)="toggleSyncTarget(r.id)" (keydown.enter)="toggleSyncTarget(r.id)" tabindex="0" role="button">
+                <label class="checkbox-label" (click)="toggleSyncTarget(r.id)" (keydown.enter)="toggleSyncTarget(r.id)">
                   <span class="checkbox" [class.checked]="isSyncTarget(r.id)">
                     @if (isSyncTarget(r.id)) { <i class="bi bi-check"></i> }
                   </span>
@@ -612,7 +612,7 @@
       } @else {
         <div class="inventory-filters">
           <input type="text" class="form-input filter-input" aria-label="Search inventory items" placeholder="Search items..." [value]="inventorySearch()" (input)="inventorySearch.set($any($event.target).value)">
-          <label class="checkbox-label low-stock-toggle" (click)="inventoryLowStockOnly.set(!inventoryLowStockOnly())" (keydown.enter)="inventoryLowStockOnly.set(!inventoryLowStockOnly())" tabindex="0" role="button">
+          <label class="checkbox-label low-stock-toggle" (click)="inventoryLowStockOnly.set(!inventoryLowStockOnly())" (keydown.enter)="inventoryLowStockOnly.set(!inventoryLowStockOnly())">
             <span class="checkbox" [class.checked]="inventoryLowStockOnly()">
               @if (inventoryLowStockOnly()) { <i class="bi bi-check"></i> }
             </span>
@@ -734,7 +734,7 @@
             <option value="hours">Hours</option>
             <option value="branding">Branding</option>
           </select>
-          <label class="checkbox-label" (click)="showResolvedCompliance.set(!showResolvedCompliance())" (keydown.enter)="showResolvedCompliance.set(!showResolvedCompliance())" tabindex="0" role="button">
+          <label class="checkbox-label" (click)="showResolvedCompliance.set(!showResolvedCompliance())" (keydown.enter)="showResolvedCompliance.set(!showResolvedCompliance())">
             <span class="checkbox" [class.checked]="showResolvedCompliance()">
               @if (showResolvedCompliance()) { <i class="bi bi-check"></i> }
             </span>
@@ -746,7 +746,7 @@
         <div class="compliance-list">
           @for (loc of filteredCompliance(); track loc.merchantId) {
             <div class="compliance-card" [class.compliance-failing]="loc.failingChecks > 0">
-              <div class="compliance-card-header" (click)="toggleComplianceExpand(loc.merchantId)" (keydown.enter)="toggleComplianceExpand(loc.merchantId)" tabindex="0" role="button">
+              <div class="compliance-card-header" (click)="toggleComplianceExpand(loc.merchantId)" (keydown.enter)="toggleComplianceExpand(loc.merchantId)">
                 <div class="compliance-card-info">
                   <span class="compliance-card-name">{{ loc.restaurantName }}</span>
                   <div class="compliance-card-stats">
@@ -834,8 +834,8 @@
 
       <div class="propagate-form">
         <div class="form-group">
-          <label>Setting Type</label>
-          <select class="form-select" aria-label="Setting type" [value]="propagateType()" (change)="propagateType.set($any($event.target).value)">
+          <label for="ml-propagate-type">Setting Type</label>
+          <select id="ml-propagate-type" class="form-select" aria-label="Setting type" [value]="propagateType()" (change)="propagateType.set($any($event.target).value)">
             <option value="">Select type...</option>
             <option value="ai">AI Settings</option>
             <option value="pricing">Pricing Rules</option>
@@ -853,8 +853,8 @@
         </div>
 
         <div class="form-group">
-          <label>Source Location</label>
-          <select class="form-select" aria-label="Source location" [value]="propagateSourceId()" (change)="propagateSourceId.set($any($event.target).value)">
+          <label for="ml-propagate-source">Source Location</label>
+          <select id="ml-propagate-source" class="form-select" aria-label="Source location" [value]="propagateSourceId()" (change)="propagateSourceId.set($any($event.target).value)">
             <option value="">Select source...</option>
             @for (r of restaurants(); track r.id) {
               <option [value]="r.id">{{ r.name }}</option>
@@ -866,7 +866,7 @@
           <label>Target Locations</label>
           <div class="target-checkboxes">
             @for (r of getPropagateTargetRestaurants(); track r.id) {
-              <label class="checkbox-label" (click)="togglePropagateTarget(r.id)" (keydown.enter)="togglePropagateTarget(r.id)" tabindex="0" role="button">
+              <label class="checkbox-label" (click)="togglePropagateTarget(r.id)" (keydown.enter)="togglePropagateTarget(r.id)">
                 <span class="checkbox" [class.checked]="isPropagateTarget(r.id)">
                   @if (isPropagateTarget(r.id)) { <i class="bi bi-check"></i> }
                 </span>
@@ -876,7 +876,7 @@
           </div>
         </div>
 
-        <label class="checkbox-label override-toggle" (click)="propagateOverride.set(!propagateOverride())" (keydown.enter)="propagateOverride.set(!propagateOverride())" tabindex="0" role="button">
+        <label class="checkbox-label override-toggle" (click)="propagateOverride.set(!propagateOverride())" (keydown.enter)="propagateOverride.set(!propagateOverride())">
           <span class="checkbox" [class.checked]="propagateOverride()">
             @if (propagateOverride()) { <i class="bi bi-check"></i> }
           </span>
@@ -896,7 +896,7 @@
 
   <!-- ═══ GROUP FORM MODAL ═══ -->
   @if (showGroupForm()) {
-    <div class="modal-overlay" (click)="closeGroupForm()" (keydown.enter)="closeGroupForm()" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="closeGroupForm()" (keydown.enter)="closeGroupForm()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>{{ editingGroup() ? 'Edit' : 'Create' }} Location Group</h3>
@@ -904,18 +904,18 @@
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label>Group Name *</label>
-            <input type="text" class="form-input" aria-label="Group name" [value]="groupName()" (input)="groupName.set($any($event.target).value)" placeholder="e.g., South Florida, Fast Casual Concept">
+            <label for="ml-group-name">Group Name *</label>
+            <input id="ml-group-name" type="text" class="form-input" aria-label="Group name" [value]="groupName()" (input)="groupName.set($any($event.target).value)" placeholder="e.g., South Florida, Fast Casual Concept">
           </div>
           <div class="form-group">
-            <label>Description</label>
-            <textarea class="form-input" aria-label="Group description" rows="2" [value]="groupDescription()" (input)="groupDescription.set($any($event.target).value)"></textarea>
+            <label for="ml-group-description">Description</label>
+            <textarea id="ml-group-description" class="form-input" aria-label="Group description" rows="2" [value]="groupDescription()" (input)="groupDescription.set($any($event.target).value)"></textarea>
           </div>
           <div class="form-group">
             <label>Member Locations</label>
             <div class="target-checkboxes">
               @for (r of restaurants(); track r.id) {
-                <label class="checkbox-label" (click)="toggleMemberId(r.id)" (keydown.enter)="toggleMemberId(r.id)" tabindex="0" role="button">
+                <label class="checkbox-label" (click)="toggleMemberId(r.id)" (keydown.enter)="toggleMemberId(r.id)">
                   <span class="checkbox" [class.checked]="isMemberSelected(r.id)">
                     @if (isMemberSelected(r.id)) { <i class="bi bi-check"></i> }
                   </span>
@@ -937,7 +937,7 @@
 
   <!-- ═══ STAFF TRANSFER MODAL ═══ -->
   @if (showTransferModal()) {
-    <div class="modal-overlay" (click)="closeTransferModal()" (keydown.enter)="closeTransferModal()" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="closeTransferModal()" (keydown.enter)="closeTransferModal()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Transfer Staff Member</h3>
@@ -956,8 +956,8 @@
               </div>
             </div>
             <div class="form-group">
-              <label>Transfer To</label>
-              <select class="form-select" aria-label="Transfer to location" [value]="transferTargetId()" (change)="transferTargetId.set($any($event.target).value)">
+              <label for="ml-transfer-to">Transfer To</label>
+              <select id="ml-transfer-to" class="form-select" aria-label="Transfer to location" [value]="transferTargetId()" (change)="transferTargetId.set($any($event.target).value)">
                 <option value="">Select destination...</option>
                 @for (r of getTransferTargetRestaurants(); track r.id) {
                   <option [value]="r.id">{{ r.name }}</option>
@@ -978,7 +978,7 @@
 
   <!-- ═══ INVENTORY TRANSFER FORM MODAL ═══ -->
   @if (showInventoryTransferForm()) {
-    <div class="modal-overlay" (click)="closeInventoryTransferForm()" (keydown.enter)="closeInventoryTransferForm()" tabindex="0" role="button">
+    <div class="modal-overlay" (click)="closeInventoryTransferForm()" (keydown.enter)="closeInventoryTransferForm()">
       <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>New Inventory Transfer</h3>
@@ -987,8 +987,8 @@
         <div class="modal-body">
           <div class="transfer-form-row">
             <div class="form-group">
-              <label>From Location</label>
-              <select class="form-select" aria-label="From location" [value]="invTransferFromId()" (change)="invTransferFromId.set($any($event.target).value)">
+              <label for="ml-inv-from">From Location</label>
+              <select id="ml-inv-from" class="form-select" aria-label="From location" [value]="invTransferFromId()" (change)="invTransferFromId.set($any($event.target).value)">
                 <option value="">Select source...</option>
                 @for (r of restaurants(); track r.id) {
                   <option [value]="r.id">{{ r.name }}</option>
@@ -997,8 +997,8 @@
             </div>
             <div class="transfer-arrow"><i class="bi bi-arrow-right"></i></div>
             <div class="form-group">
-              <label>To Location</label>
-              <select class="form-select" aria-label="To location" [value]="invTransferToId()" (change)="invTransferToId.set($any($event.target).value)">
+              <label for="ml-inv-to">To Location</label>
+              <select id="ml-inv-to" class="form-select" aria-label="To location" [value]="invTransferToId()" (change)="invTransferToId.set($any($event.target).value)">
                 <option value="">Select destination...</option>
                 @for (r of getInvTransferTargetRestaurants(); track r.id) {
                   <option [value]="r.id">{{ r.name }}</option>

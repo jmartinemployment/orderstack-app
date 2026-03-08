@@ -56,45 +56,45 @@
             <div class="delivery-edit-form">
               <div class="form-grid">
                 <div class="form-field">
-                  <label>Driver</label>
-                  <input type="text" [value]="_editForm().driverName ?? ''" (input)="updateFormField('driverName', $any($event.target).value)" placeholder="Driver name" aria-label="Driver name">
+                  <label for="del-driver-name">Driver</label>
+                  <input id="del-driver-name" type="text" [value]="_editForm().driverName ?? ''" (input)="updateFormField('driverName', $any($event.target).value)" placeholder="Driver name" aria-label="Driver name">
                 </div>
                 <div class="form-field">
-                  <label>Phone</label>
-                  <input type="tel" [value]="_editForm().driverPhone ?? ''" (input)="updateFormField('driverPhone', $any($event.target).value)" placeholder="Driver phone" aria-label="Driver phone">
+                  <label for="del-driver-phone">Phone</label>
+                  <input id="del-driver-phone" type="tel" [value]="_editForm().driverPhone ?? ''" (input)="updateFormField('driverPhone', $any($event.target).value)" placeholder="Driver phone" aria-label="Driver phone">
                 </div>
                 <div class="form-field">
-                  <label>Load Time</label>
-                  <input type="time" [value]="_editForm().loadTime ?? ''" (input)="updateFormField('loadTime', $any($event.target).value)" aria-label="Load time">
+                  <label for="del-load-time">Load Time</label>
+                  <input id="del-load-time" type="time" [value]="_editForm().loadTime ?? ''" (input)="updateFormField('loadTime', $any($event.target).value)" aria-label="Load time">
                 </div>
                 <div class="form-field">
-                  <label>Departure</label>
-                  <input type="time" [value]="_editForm().departureTime ?? ''" (input)="updateFormField('departureTime', $any($event.target).value)" aria-label="Departure time">
+                  <label for="del-departure-time">Departure</label>
+                  <input id="del-departure-time" type="time" [value]="_editForm().departureTime ?? ''" (input)="updateFormField('departureTime', $any($event.target).value)" aria-label="Departure time">
                 </div>
                 <div class="form-field">
-                  <label>Arrival</label>
-                  <input type="time" [value]="_editForm().arrivalTime ?? ''" (input)="updateFormField('arrivalTime', $any($event.target).value)" aria-label="Arrival time">
+                  <label for="del-arrival-time">Arrival</label>
+                  <input id="del-arrival-time" type="time" [value]="_editForm().arrivalTime ?? ''" (input)="updateFormField('arrivalTime', $any($event.target).value)" aria-label="Arrival time">
                 </div>
                 <div class="form-field">
-                  <label>Vehicle</label>
-                  <input type="text" [value]="_editForm().vehicleDescription ?? ''" (input)="updateFormField('vehicleDescription', $any($event.target).value)" placeholder="Vehicle description" aria-label="Vehicle description">
+                  <label for="del-vehicle">Vehicle</label>
+                  <input id="del-vehicle" type="text" [value]="_editForm().vehicleDescription ?? ''" (input)="updateFormField('vehicleDescription', $any($event.target).value)" placeholder="Vehicle description" aria-label="Vehicle description">
                 </div>
                 <div class="form-field">
-                  <label>Setup Time</label>
-                  <input type="time" [value]="_editForm().setupTime ?? ''" (input)="updateFormField('setupTime', $any($event.target).value)" aria-label="Setup time">
+                  <label for="del-setup-time">Setup Time</label>
+                  <input id="del-setup-time" type="time" [value]="_editForm().setupTime ?? ''" (input)="updateFormField('setupTime', $any($event.target).value)" aria-label="Setup time">
                 </div>
                 <div class="form-field">
-                  <label>Breakdown Time</label>
-                  <input type="time" [value]="_editForm().breakdownTime ?? ''" (input)="updateFormField('breakdownTime', $any($event.target).value)" aria-label="Breakdown time">
+                  <label for="del-breakdown-time">Breakdown Time</label>
+                  <input id="del-breakdown-time" type="time" [value]="_editForm().breakdownTime ?? ''" (input)="updateFormField('breakdownTime', $any($event.target).value)" aria-label="Breakdown time">
                 </div>
               </div>
               <div class="form-field form-field-wide">
-                <label>Route Notes</label>
-                <textarea rows="2" [value]="_editForm().routeNotes ?? ''" (input)="updateFormField('routeNotes', $any($event.target).value)" placeholder="Parking, access codes, delivery entrance..." aria-label="Route notes"></textarea>
+                <label for="del-route-notes">Route Notes</label>
+                <textarea id="del-route-notes" rows="2" [value]="_editForm().routeNotes ?? ''" (input)="updateFormField('routeNotes', $any($event.target).value)" placeholder="Parking, access codes, delivery entrance..." aria-label="Route notes"></textarea>
               </div>
               <div class="form-field form-field-wide">
-                <label>Equipment (comma-separated)</label>
-                <input type="text" [value]="(_editForm().equipmentChecklist ?? []).join(', ')" (input)="updateEquipment($any($event.target).value)" placeholder="Chafing dishes, serving utensils, tablecloths..." aria-label="Equipment checklist">
+                <label for="del-equipment">Equipment (comma-separated)</label>
+                <input id="del-equipment" type="text" [value]="(_editForm().equipmentChecklist ?? []).join(', ')" (input)="updateEquipment($any($event.target).value)" placeholder="Chafing dishes, serving utensils, tablecloths..." aria-label="Equipment checklist">
               </div>
               <div class="form-actions">
                 <button type="button" class="btn-cancel" (click)="cancelEdit()">Cancel</button>

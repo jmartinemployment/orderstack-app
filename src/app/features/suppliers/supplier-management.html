@@ -107,7 +107,7 @@
     <h2 class="section-title">My Suppliers</h2>
     <div class="vendor-grid">
       @for (vendor of filteredVendors(); track vendor.id) {
-        <div class="vendor-card" [class.inactive]="!vendor.isActive" (click)="openEditVendor(vendor)" (keydown.enter)="openEditVendor(vendor)" tabindex="0" role="button">
+        <div class="vendor-card" [class.inactive]="!vendor.isActive" (click)="openEditVendor(vendor)" (keydown.enter)="openEditVendor(vendor)">
           <div class="vendor-card-header">
             <div class="vendor-name">{{ vendor.name }}</div>
             <div class="vendor-actions">
@@ -283,35 +283,35 @@
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label>Name *</label>
-            <input type="text" [ngModel]="formName()" (ngModelChange)="updateFormName($event)" placeholder="Supplier name" aria-label="Supplier name" />
+            <label for="supp-name">Name *</label>
+            <input id="supp-name" type="text" [ngModel]="formName()" (ngModelChange)="updateFormName($event)" placeholder="Supplier name" aria-label="Supplier name" />
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Contact Name</label>
-              <input type="text" [ngModel]="formContactName()" (ngModelChange)="updateFormContact($event)" aria-label="Contact name" />
+              <label for="supp-contact-name">Contact Name</label>
+              <input id="supp-contact-name" type="text" [ngModel]="formContactName()" (ngModelChange)="updateFormContact($event)" aria-label="Contact name" />
             </div>
             <div class="form-group">
-              <label>Phone</label>
-              <input type="tel" [ngModel]="formPhone()" (ngModelChange)="updateFormPhone($event)" aria-label="Phone" />
+              <label for="supp-phone">Phone</label>
+              <input id="supp-phone" type="tel" [ngModel]="formPhone()" (ngModelChange)="updateFormPhone($event)" aria-label="Phone" />
             </div>
           </div>
           <div class="form-group">
-            <label>Email</label>
-            <input type="email" [ngModel]="formEmail()" (ngModelChange)="updateFormEmail($event)" aria-label="Email" />
+            <label for="supp-email">Email</label>
+            <input id="supp-email" type="email" [ngModel]="formEmail()" (ngModelChange)="updateFormEmail($event)" aria-label="Email" />
           </div>
           <div class="form-group">
-            <label>Website / Catalog URL</label>
-            <input type="text" [ngModel]="formWebsite()" (ngModelChange)="updateFormWebsite($event)" placeholder="https://..." aria-label="Website or catalog URL" />
+            <label for="supp-website">Website / Catalog URL</label>
+            <input id="supp-website" type="text" [ngModel]="formWebsite()" (ngModelChange)="updateFormWebsite($event)" placeholder="https://..." aria-label="Website or catalog URL" />
           </div>
           <div class="form-group">
-            <label>Address</label>
-            <textarea [ngModel]="formAddress()" (ngModelChange)="updateFormAddress($event)" rows="2" aria-label="Address"></textarea>
+            <label for="supp-address">Address</label>
+            <textarea id="supp-address" [ngModel]="formAddress()" (ngModelChange)="updateFormAddress($event)" rows="2" aria-label="Address"></textarea>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Payment Terms</label>
-              <select [ngModel]="formPaymentTerms()" (ngModelChange)="updateFormTerms($event)" aria-label="Payment terms">
+              <label for="supp-payment-terms">Payment Terms</label>
+              <select id="supp-payment-terms" [ngModel]="formPaymentTerms()" (ngModelChange)="updateFormTerms($event)" aria-label="Payment terms">
                 <option value="">Select...</option>
                 <option value="Net 15">Net 15</option>
                 <option value="Net 30">Net 30</option>
@@ -322,13 +322,13 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Lead Time (days)</label>
-              <input type="number" min="0" [ngModel]="formLeadTimeDays()" (ngModelChange)="updateFormLeadTime($event)" aria-label="Lead time in days" />
+              <label for="supp-lead-time">Lead Time (days)</label>
+              <input id="supp-lead-time" type="number" min="0" [ngModel]="formLeadTimeDays()" (ngModelChange)="updateFormLeadTime($event)" aria-label="Lead time in days" />
             </div>
           </div>
           <div class="form-group">
-            <label>Notes</label>
-            <textarea [ngModel]="formNotes()" (ngModelChange)="updateFormNotes($event)" rows="3" placeholder="Internal notes..." aria-label="Notes"></textarea>
+            <label for="supp-notes">Notes</label>
+            <textarea id="supp-notes" [ngModel]="formNotes()" (ngModelChange)="updateFormNotes($event)" rows="3" placeholder="Internal notes..." aria-label="Notes"></textarea>
           </div>
         </div>
         <div class="modal-footer">

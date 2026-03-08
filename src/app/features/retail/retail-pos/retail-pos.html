@@ -878,7 +878,7 @@
 
   <!-- Weight Entry Modal -->
   @if (activeModal() === 'weight-entry') {
-    <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" tabindex="0">
+    <div class="modal-backdrop" (click)="closeModal()" aria-hidden="true">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Enter Weight</h3>
@@ -907,7 +907,7 @@
 
   <!-- Quick Key Config Modal -->
   @if (activeModal() === 'quick-key-config') {
-    <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" tabindex="0">
+    <div class="modal-backdrop" (click)="closeModal()" aria-hidden="true">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Configure Quick Key</h3>

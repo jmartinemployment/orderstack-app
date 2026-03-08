@@ -88,7 +88,7 @@
       } @else {
         <div class="campaign-list">
           @for (campaign of filteredCampaigns(); track campaign.id) {
-            <div class="campaign-card" (click)="selectCampaign(campaign)" (keydown.enter)="selectCampaign(campaign)" tabindex="0" role="button">
+            <div class="campaign-card" (click)="selectCampaign(campaign)" (keydown.enter)="selectCampaign(campaign)">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                   <div class="campaign-name">{{ campaign.name }}</div>
@@ -281,7 +281,7 @@
 
     <!-- CAMPAIGN DETAIL MODAL -->
     @if (selectedCampaign(); as detail) {
-      <div class="modal-backdrop" (click)="closeDetail()" (keydown.enter)="closeDetail()" tabindex="0" role="button"></div>
+      <div class="modal-backdrop" (click)="closeDetail()" (keydown.enter)="closeDetail()"></div>
       <div class="detail-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-start mb-3">
           <div>
@@ -376,7 +376,7 @@
 
     <!-- CREATE/EDIT CAMPAIGN FORM MODAL -->
     @if (showForm()) {
-      <div class="modal-backdrop" (click)="closeForm()" (keydown.enter)="closeForm()" tabindex="0" role="button"></div>
+      <div class="modal-backdrop" (click)="closeForm()" (keydown.enter)="closeForm()"></div>
       <div class="form-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">{{ editingCampaign() ? 'Edit Campaign' : 'New Campaign' }}</h4>
@@ -384,22 +384,22 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Campaign Name *</label>
-          <input type="text" class="form-control" [value]="formName()" (input)="onFormField('name', $event)" placeholder="e.g., Weekend Special Offer" aria-label="Campaign Name" />
+          <label class="form-label" for="mkt-campaign-name">Campaign Name *</label>
+          <input id="mkt-campaign-name" type="text" class="form-control" [value]="formName()" (input)="onFormField('name', $event)" placeholder="e.g., Weekend Special Offer" aria-label="Campaign Name" />
         </div>
 
         <div class="row mb-3">
           <div class="col-6">
-            <label class="form-label">Type</label>
-            <select class="form-select" [value]="formType()" (change)="onFormField('type', $event)" aria-label="Campaign Type">
+            <label class="form-label" for="mkt-campaign-type">Type</label>
+            <select id="mkt-campaign-type" class="form-select" [value]="formType()" (change)="onFormField('type', $event)" aria-label="Campaign Type">
               @for (t of campaignTypes; track t.key) {
                 <option [value]="t.key">{{ t.label }}</option>
               }
             </select>
           </div>
           <div class="col-6">
-            <label class="form-label">Channel</label>
-            <select class="form-select" [value]="formChannel()" (change)="onFormField('channel', $event)" aria-label="Campaign Channel">
+            <label class="form-label" for="mkt-campaign-channel">Channel</label>
+            <select id="mkt-campaign-channel" class="form-select" [value]="formChannel()" (change)="onFormField('channel', $event)" aria-label="Campaign Channel">
               <option value="email">Email</option>
               <option value="sms">SMS</option>
               <option value="both">Email + SMS</option>
@@ -442,26 +442,26 @@
 
         @if (formChannel() === 'email' || formChannel() === 'both') {
           <div class="mb-3">
-            <label class="form-label">Email Subject *</label>
-            <input type="text" class="form-control" [value]="formSubject()" (input)="onFormField('subject', $event)" placeholder="Subject line" aria-label="Email Subject" />
+            <label class="form-label" for="mkt-email-subject">Email Subject *</label>
+            <input id="mkt-email-subject" type="text" class="form-control" [value]="formSubject()" (input)="onFormField('subject', $event)" placeholder="Subject line" aria-label="Email Subject" />
           </div>
           <div class="mb-3">
-            <label class="form-label">Email Body *</label>
-            <textarea class="form-control" rows="6" [value]="formBody()" (input)="onFormField('body', $event)" [placeholder]="'Email content... Use {' + '{firstName}' + '}, {' + '{restaurant}' + '} for personalization.'" aria-label="Email Body"></textarea>
+            <label class="form-label" for="mkt-email-body">Email Body *</label>
+            <textarea id="mkt-email-body" class="form-control" rows="6" [value]="formBody()" (input)="onFormField('body', $event)" [placeholder]="'Email content... Use {' + '{firstName}' + '}, {' + '{restaurant}' + '} for personalization.'" aria-label="Email Body"></textarea>
           </div>
         }
 
         @if (formChannel() === 'sms' || formChannel() === 'both') {
           <div class="mb-3">
-            <label class="form-label">SMS Body *</label>
-            <textarea class="form-control" rows="3" [value]="formSmsBody()" (input)="onFormField('smsBody', $event)" placeholder="SMS message (160 char recommended)" aria-label="SMS Body"></textarea>
+            <label class="form-label" for="mkt-sms-body">SMS Body *</label>
+            <textarea id="mkt-sms-body" class="form-control" rows="3" [value]="formSmsBody()" (input)="onFormField('smsBody', $event)" placeholder="SMS message (160 char recommended)" aria-label="SMS Body"></textarea>
             <small class="form-text text-muted">{{ formSmsBody().length }} / 160 characters</small>
           </div>
         }
 
         <div class="mb-3">
-          <label class="form-label">Schedule (optional)</label>
-          <input type="datetime-local" class="form-control" [value]="formScheduledAt()" (input)="onFormField('scheduledAt', $event)" aria-label="Schedule" />
+          <label class="form-label" for="mkt-campaign-scheduled-at">Schedule (optional)</label>
+          <input id="mkt-campaign-scheduled-at" type="datetime-local" class="form-control" [value]="formScheduledAt()" (input)="onFormField('scheduledAt', $event)" aria-label="Schedule" />
           <small class="form-text text-muted">Leave empty to save as draft</small>
         </div>
 
@@ -479,7 +479,7 @@
 
     <!-- CREATE/EDIT AUTOMATION FORM MODAL -->
     @if (showAutomationForm()) {
-      <div class="modal-backdrop" (click)="closeAutomationForm()" (keydown.enter)="closeAutomationForm()" tabindex="0" role="button"></div>
+      <div class="modal-backdrop" (click)="closeAutomationForm()" (keydown.enter)="closeAutomationForm()"></div>
       <div class="form-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">{{ editingAutomation() ? 'Edit Automation' : 'New Automation' }}</h4>
@@ -487,8 +487,8 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Automation Name *</label>
-          <input type="text" class="form-control" [value]="autoName()" (input)="onAutoField('name', $event)" placeholder="e.g., Welcome Series" aria-label="Automation Name" />
+          <label class="form-label" for="mkt-auto-name">Automation Name *</label>
+          <input id="mkt-auto-name" type="text" class="form-control" [value]="autoName()" (input)="onAutoField('name', $event)" placeholder="e.g., Welcome Series" aria-label="Automation Name" />
         </div>
 
         <div class="mb-3">
@@ -511,8 +511,9 @@
 
         @if (triggerConfigLabel(); as configLabel) {
           <div class="mb-3">
-            <label class="form-label">{{ configLabel }}</label>
+            <label class="form-label" for="mkt-auto-trigger-config">{{ configLabel }}</label>
             <input
+              id="mkt-auto-trigger-config"
               type="number"
               class="form-control"
               min="1"
@@ -525,23 +526,23 @@
 
         <div class="row mb-3">
           <div class="col-6">
-            <label class="form-label">Channel</label>
-            <select class="form-select" [value]="autoChannel()" (change)="onAutoField('channel', $event)" aria-label="Automation Channel">
+            <label class="form-label" for="mkt-auto-channel">Channel</label>
+            <select id="mkt-auto-channel" class="form-select" [value]="autoChannel()" (change)="onAutoField('channel', $event)" aria-label="Automation Channel">
               <option value="email">Email</option>
               <option value="sms">SMS</option>
               <option value="both">Email + SMS</option>
             </select>
           </div>
           <div class="col-6">
-            <label class="form-label">Delay (minutes)</label>
-            <input type="number" class="form-control" min="0" [value]="autoDelayMinutes()" (input)="onAutoField('delayMinutes', $event)" aria-label="Delay in minutes" />
+            <label class="form-label" for="mkt-auto-delay">Delay (minutes)</label>
+            <input id="mkt-auto-delay" type="number" class="form-control" min="0" [value]="autoDelayMinutes()" (input)="onAutoField('delayMinutes', $event)" aria-label="Delay in minutes" />
             <small class="form-text text-muted">{{ formatDelay(autoDelayMinutes()) }} after trigger</small>
           </div>
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Template (optional)</label>
-          <select class="form-select" [value]="autoTemplateId() ?? ''" (change)="onAutoField('templateId', $event)" aria-label="Template">
+          <label class="form-label" for="mkt-auto-template">Template (optional)</label>
+          <select id="mkt-auto-template" class="form-select" [value]="autoTemplateId() ?? ''" (change)="onAutoField('templateId', $event)" aria-label="Template">
             <option value="">No template</option>
             @for (template of templates; track template.id) {
               <option [value]="template.id">{{ template.name }}</option>
@@ -551,8 +552,8 @@
 
         <div class="mb-3 d-flex align-items-center gap-2">
           <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" [checked]="autoIsActive()" (change)="onAutoActiveToggle()" aria-label="Active immediately" />
-            <label class="form-check-label">Active immediately</label>
+            <input id="mkt-auto-active" class="form-check-input" type="checkbox" [checked]="autoIsActive()" (change)="onAutoActiveToggle()" aria-label="Active immediately" />
+            <label class="form-check-label" for="mkt-auto-active">Active immediately</label>
           </div>
         </div>
 

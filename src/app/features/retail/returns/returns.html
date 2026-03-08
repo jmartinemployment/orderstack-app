@@ -120,7 +120,7 @@
       @if (searchResults().length > 0) {
         <div class="results-list">
           @for (tx of searchResults(); track tx.id) {
-            <div class="result-card" (click)="selectTransaction(tx)" (keydown.enter)="selectTransaction(tx)" tabindex="0" role="button">
+            <button type="button" class="result-card" (click)="selectTransaction(tx)">
               <div class="result-card-header">
                 <span class="receipt-num">Receipt #{{ tx.receiptNumber }}</span>
                 <span class="result-date">{{ tx.createdAt | date:'medium' }}</span>
@@ -139,7 +139,7 @@
                   <i class="bi bi-exclamation-triangle"></i> Outside return window
                 </div>
               }
-            </div>
+            </button>
           }
         </div>
       } @else if (!isSearching() && lookupReceiptNumber()) {
