@@ -156,23 +156,91 @@ Build gate: `ng build`.
 
 ---
 
-**Step 8 — Home dashboard mode-aware content**
+**Step 8 — Home dashboard catering mode content**
 
 Depends on: Step 5.
 
-Sub-step 8a: `src/app/services/catering.service.ts` — read first, full rewrite. Add `pipelineStats` computed signal.
+This step wires the Administration home dashboard (`os-home-dashboard`) to render
+catering-specific content when the device is in catering mode. Non-catering modes
+(quick_service, full_service, bar, retail, services) are handled separately in FEATURE-03.
+
+Sub-step 8a: `src/app/services/catering.service.ts` — read first, full rewrite only if
+`totalPipeline`, `outstandingBalance`, and `eventsThisMonth` computed signals are absent.
+Verify first with `grep`. If they exist, skip this sub-step.
 
 Sub-step 8b: `src/app/features/home/home-dashboard/home-dashboard.ts` — read first, full rewrite.
-Builder map pattern for `setupTasks` keyed by mode. `kpiConfig()` computed:
-- Catering → Pipeline Value, Outstanding, Jobs This Month
-- Bar → Net Sales, Open Tabs, Avg Ticket
-- All others → Net Sales, Orders, Avg Ticket
+
+Changes specific to catering mode:
+- Remove local `type DevicePosMode = ...` redeclaration (line ~36); import `DevicePosMode`
+  from `'@models/platform.model'`
+- Inject `TableService`
+- Add `readonly pageTitle = computed(...)` — catering mode returns `'Catering Admin'`;
+  all non-catering modes return their existing labels (see FEATURE-03 for those values;
+  do not guess — read FEATURE-03 before implementing)
+- Add `readonly performanceSectionTitle = computed(...)` — catering returns
+  `'Pipeline Overview'`; all others return `'Today's Performance'` for now (FEATURE-03
+  will refine retail and services later)
+- Add `readonly atAGlance = computed<AtAGlanceChip[]>(...)` — catering returns:
+  ```
+  [
+    { label: 'Pending Inquiries',    value: cateringService.pendingJobsCount(),           icon: 'bi-inbox',  route: '/app/catering' },
+    { label: 'Awaiting Approval',    value: cateringService.proposalsAwaitingApproval(),  icon: 'bi-send',   route: '/app/catering' },
+    { label: 'Milestones Due',       value: cateringService.milestonesComingDue(),        icon: 'bi-alarm',  route: '/app/catering' },
+  ]
+  ```
+  Non-catering modes return `[]` for now (FEATURE-03 fills them in later).
+- Existing `kpiConfig()` catering branch (Pipeline Value / Outstanding / Jobs This Month)
+  is already correct — do not change it.
+- Existing `setupTasks` catering builder is already correct — do not change it.
+
+New interface at top of file:
+```typescript
+interface AtAGlanceChip {
+  label: string;
+  value: number | string;
+  icon: string;
+  route?: string;
+}
+```
 
 Sub-step 8c: `src/app/features/home/home-dashboard/home-dashboard.html` — read first, full rewrite.
-`{{ setupSubtitle() }}`, `@for (kpi of kpiConfig())` loop, `@for (task of setupTasks())` loop.
 
-Mode subtitles and per-mode task lists are specified in `docs/FEATURE-03-administration-dashboard-by-mode.md`.
-Do not archive FEATURE-03 until Step 8 is live and verified.
+Changes:
+- Replace `<h1 class="home-title">Administration</h1>` with `<h1 class="home-title">{{ pageTitle() }}</h1>`
+- Replace `<h3>Today's Performance</h3>` with `<h3>{{ performanceSectionTitle() }}</h3>`
+- Add At-a-Glance strip between setup guide card and performance section
+  (only renders when `atAGlance().length > 0`):
+
+```html
+@if (atAGlance().length > 0) {
+  <div class="glance-strip">
+    @for (chip of atAGlance(); track chip.label) {
+      @if (chip.route) {
+        <button type="button" class="glance-chip" (click)="navigateTo(chip.route)">
+          <i class="bi {{ chip.icon }} glance-chip-icon"></i>
+          <span class="glance-chip-value">{{ chip.value }}</span>
+          <span class="glance-chip-label">{{ chip.label }}</span>
+        </button>
+      } @else {
+        <div class="glance-chip">
+          <i class="bi {{ chip.icon }} glance-chip-icon"></i>
+          <span class="glance-chip-value">{{ chip.value }}</span>
+          <span class="glance-chip-label">{{ chip.label }}</span>
+        </div>
+      }
+    }
+  </div>
+}
+```
+
+Sub-step 8d: `src/app/features/home/home-dashboard/home-dashboard.scss` — edit only.
+Add `.glance-strip` and `.glance-chip` styles:
+- `.glance-strip` — `display: flex; gap: 0.75rem; margin-bottom: 1.25rem;`
+- `.glance-chip` — `flex: 1; min-width: 0; border: 1px solid var(--bs-border-color); border-radius: 10px; padding: 0.75rem 1rem; display: flex; flex-direction: column;`
+- `button.glance-chip:hover` — `background: var(--bs-light);`
+- `.glance-chip-icon` — `font-size: 1.1rem; color: var(--bs-secondary); margin-bottom: 0.25rem;`
+- `.glance-chip-value` — `font-size: 1.5rem; font-weight: 700; line-height: 1;`
+- `.glance-chip-label` — `font-size: 0.72rem; color: var(--bs-secondary); margin-top: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;`
 
 Build gate: `ng build`.
 
@@ -349,9 +417,10 @@ After all steps are complete, every item below must be true:
 - [ ] Backend Prisma migrations applied to production DB
 - [ ] `RESEND_API_KEY` added to `render.yaml` secret variable references
 - [ ] DNS verification for `noreply@getorderstack.com` added to deployment checklist
+- [ ] Home dashboard catering mode: page title "Catering Admin", section heading "Pipeline Overview"
+- [ ] Home dashboard catering mode: at-a-glance strip shows Pending Inquiries / Awaiting Approval / Milestones Due
 - [ ] Home dashboard catering mode: Pipeline Value / Outstanding / Jobs This Month KPIs
-- [ ] Home dashboard bar mode: Open Tabs KPI
-- [ ] Home dashboard all modes: setup tasks match FEATURE-03 spec per mode
+- [ ] Home dashboard bar mode: Open Tabs KPI (already implemented — verify not broken)
 - [ ] Setup wizard Step 2: 4 mode cards, no search list
 - [ ] `/app/catering/proposals` renders proposal cards (not "Coming soon.")
 - [ ] `/app/catering/delivery` renders delivery board (not "Coming soon.")
@@ -365,4 +434,4 @@ After all steps are complete, every item below must be true:
 - [ ] Backend: `GET /api/merchant/:id/catering/packages` returns templates
 - [ ] Backend: table PATCH accepts `closing` status
 - [ ] Backend: check void reverts `closing` table to `occupied`
-- [ ] FEATURE-03 archived after Step 8 content is verified live
+- [ ] Non-catering dashboard modes (FEATURE-03) implemented separately after this feature ships
