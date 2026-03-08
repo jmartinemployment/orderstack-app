@@ -29,7 +29,7 @@ import { Testimonial } from '../marketing.config';
       </div>
     </div>
   `,
-  styles: [String.raw`
+  styles: [`
     .mkt-testimonial {
       background: var(--os-bg-card);
       border: 1px solid var(--os-border);
@@ -42,7 +42,7 @@ import { Testimonial } from '../marketing.config';
       transition: box-shadow 0.2s ease, transform 0.2s ease;
 
       &::before {
-        content: '\201C';
+        content: '\\201C';
         position: absolute;
         top: 12px;
         left: 16px;

@@ -151,6 +151,7 @@
               [checked]="isOrderSelected(order.guid)"
               (change)="toggleOrderSelection(order.guid)"
               (click)="$event.stopPropagation()"
+              (keydown.enter)="$event.stopPropagation()"
             />
             <div>
               <h5 class="mb-0">#{{ getOrderNumber(order) }}</h5>
@@ -575,8 +576,8 @@
 
   <!-- Order Detail Modal -->
   @if (_selectedOrder()) {
-    <div class="modal-overlay" tabindex="0" (click)="closeOrderDetail()" (keydown.enter)="closeOrderDetail()">
-      <div class="order-detail-modal card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" tabindex="0" (click)="closeOrderDetail()" (keydown.enter)="closeOrderDetail()" (keydown.escape)="closeOrderDetail()">
+      <div class="order-detail-modal card" tabindex="0" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Order #{{ getOrderNumber(_selectedOrder()!) }}</h4>
           <button type="button" class="btn-close" (click)="closeOrderDetail()"></button>

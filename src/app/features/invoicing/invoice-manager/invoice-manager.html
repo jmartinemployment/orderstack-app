@@ -151,7 +151,7 @@
 
     <!-- INVOICE DETAIL MODAL -->
     @if (selectedInvoice(); as detail) {
-      <div class="modal-backdrop" (click)="closeDetail()"></div>
+      <div class="modal-backdrop" (click)="closeDetail()" (keydown.escape)="closeDetail()" role="presentation"></div>
       <div class="detail-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-start mb-3">
           <div>
@@ -277,7 +277,7 @@
 
     <!-- CREATE INVOICE FORM MODAL -->
     @if (showInvoiceForm()) {
-      <div class="modal-backdrop" (click)="closeInvoiceForm()"></div>
+      <div class="modal-backdrop" (click)="closeInvoiceForm()" (keydown.escape)="closeInvoiceForm()" role="presentation"></div>
       <div class="form-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">New Invoice</h4>
@@ -388,7 +388,7 @@
 
     <!-- CREATE HOUSE ACCOUNT FORM MODAL -->
     @if (showAccountForm()) {
-      <div class="modal-backdrop" (click)="closeAccountForm()"></div>
+      <div class="modal-backdrop" (click)="closeAccountForm()" (keydown.escape)="closeAccountForm()" role="presentation"></div>
       <div class="form-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">New House Account</h4>

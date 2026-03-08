@@ -879,8 +879,8 @@
 
   <!-- Adjust Stock Modal -->
   @if (showAdjustModal()) {
-    <div class="modal-backdrop" (click)="closeAdjustModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-backdrop" tabindex="0" (click)="closeAdjustModal()" (keydown.escape)="closeAdjustModal()">
+      <div class="modal-content" tabindex="0" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Adjust Stock</h3>
           <button class="btn-close" (click)="closeAdjustModal()">
@@ -950,8 +950,8 @@
 
   <!-- Transfer Modal -->
   @if (showTransferModal()) {
-    <div class="modal-backdrop" (click)="closeTransferModal()">
-      <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
+    <div class="modal-backdrop" tabindex="0" (click)="closeTransferModal()" (keydown.escape)="closeTransferModal()">
+      <div class="modal-content modal-wide" tabindex="0" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>New Stock Transfer</h3>
           <button class="btn-close" (click)="closeTransferModal()">
@@ -1041,8 +1041,8 @@
 
   <!-- Start Count Modal -->
   @if (showStartCountModal()) {
-    <div class="modal-backdrop" (click)="closeStartCountModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-backdrop" tabindex="0" (click)="closeStartCountModal()" (keydown.escape)="closeStartCountModal()">
+      <div class="modal-content" tabindex="0" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Start Inventory Count</h3>
           <button class="btn-close" (click)="closeStartCountModal()">

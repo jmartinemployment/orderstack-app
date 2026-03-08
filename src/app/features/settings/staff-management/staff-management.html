@@ -325,7 +325,8 @@
                       type="checkbox"
                       aria-label="{{ perm.label }}"
                       [checked]="psFormPermissions()[perm.key]"
-                      (click)="$event.stopPropagation()">
+                      (click)="$event.stopPropagation()"
+                      (keydown.enter)="$event.stopPropagation()">
                     <div class="perm-info">
                       <span class="perm-label">{{ perm.label }}</span>
                       <span class="perm-desc">{{ perm.description }}</span>

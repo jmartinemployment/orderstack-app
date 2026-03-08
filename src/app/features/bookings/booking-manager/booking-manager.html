@@ -679,7 +679,7 @@
 
   <!-- ═══ WAITLIST FORM MODAL ═══ -->
   @if (showWaitlistForm()) {
-    <div class="modal-overlay" (click)="closeWaitlistForm()">
+    <div class="modal-overlay" (click)="closeWaitlistForm()" (keydown.escape)="closeWaitlistForm()" role="presentation">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Add to Waitlist</h4>
@@ -726,7 +726,7 @@
 
   <!-- ═══ NEW RESERVATION MODAL ═══ -->
   @if (showForm()) {
-    <div class="modal-overlay" (click)="closeForm()">
+    <div class="modal-overlay" (click)="closeForm()" (keydown.escape)="closeForm()" role="presentation">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">New Booking</h4>
@@ -833,7 +833,7 @@
 
   <!-- ═══ NEW EVENT MODAL ═══ -->
   @if (showEventForm()) {
-    <div class="modal-overlay" (click)="closeEventForm()">
+    <div class="modal-overlay" (click)="closeEventForm()" (keydown.escape)="closeEventForm()" role="presentation">
       <div class="modal-content card modal-wide" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">New Event</h4>
@@ -914,7 +914,7 @@
 
   <!-- ═══ RESERVATION DETAIL MODAL ═══ -->
   @if (selectedBooking(); as res) {
-    <div class="modal-overlay" (click)="closeDetail()">
+    <div class="modal-overlay" (click)="closeDetail()" (keydown.escape)="closeDetail()" role="presentation">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Booking Details</h4>
@@ -1028,7 +1028,7 @@
 
   <!-- ═══ EVENT DETAIL MODAL ═══ -->
   @if (selectedEvent(); as evt) {
-    <div class="modal-overlay" (click)="closeEventDetail()">
+    <div class="modal-overlay" (click)="closeEventDetail()" (keydown.escape)="closeEventDetail()" role="presentation">
       <div class="modal-content card modal-wide" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">{{ evt.title }}</h4>
@@ -1115,7 +1115,7 @@
 
   <!-- ═══ GUEST PREFERENCES MODAL ═══ -->
   @if (showPreferencesModal()) {
-    <div class="modal-overlay" (click)="closePreferences()">
+    <div class="modal-overlay" (click)="closePreferences()" (keydown.escape)="closePreferences()" role="presentation">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Guest Preferences</h4>
@@ -1187,7 +1187,7 @@
 
   <!-- ═══ SMS CONFIG MODAL ═══ -->
   @if (showSmsConfig()) {
-    <div class="modal-overlay" (click)="closeSmsConfig()">
+    <div class="modal-overlay" (click)="closeSmsConfig()" (keydown.escape)="closeSmsConfig()" role="presentation">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Waitlist SMS Notifications</h4>
@@ -1246,7 +1246,7 @@
 
   <!-- ═══ VIRTUAL WAITLIST CONFIG MODAL ═══ -->
   @if (showVirtualConfig()) {
-    <div class="modal-overlay" (click)="closeVirtualConfig()">
+    <div class="modal-overlay" (click)="closeVirtualConfig()" (keydown.escape)="closeVirtualConfig()" role="presentation">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Virtual Waitlist</h4>
