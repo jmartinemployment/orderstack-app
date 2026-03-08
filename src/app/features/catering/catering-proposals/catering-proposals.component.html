@@ -54,7 +54,7 @@
                 }
               </div>
               <div class="text-muted small d-flex gap-3">
-                <span><i class="bi bi-calendar3 me-1"></i>{{ job.fulfillmentDate | date:'mediumDate' }}</span>
+                <span><i class="bi bi-calendar3 me-1"></i>{{ job.fulfillmentDate | date:'mediumDate':'UTC' }}</span>
                 <span><i class="bi bi-people-fill me-1"></i>{{ job.headcount }} guests</span>
               </div>
             </div>

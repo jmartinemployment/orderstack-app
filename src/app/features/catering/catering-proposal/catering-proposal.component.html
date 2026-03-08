@@ -58,7 +58,7 @@
         </div>
         <div class="detail-item">
           <span class="detail-label">Date</span>
-          <span class="detail-value">{{ job()!.fulfillmentDate | date:'fullDate' }}</span>
+          <span class="detail-value">{{ job()!.fulfillmentDate | date:'fullDate':'UTC' }}</span>
         </div>
         @if (job()!.startTime) {
           <div class="detail-item">

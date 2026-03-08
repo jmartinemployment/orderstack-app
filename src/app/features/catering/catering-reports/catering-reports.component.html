@@ -52,7 +52,7 @@
               @for (entry of deferredEntries(); track entry.jobId) {
                 <tr>
                   <td class="fw-medium">{{ entry.title }}</td>
-                  <td>{{ entry.fulfillmentDate | date:'mediumDate' }}</td>
+                  <td>{{ entry.fulfillmentDate | date:'mediumDate':'UTC' }}</td>
                   <td class="text-end">${{ formatCents(entry.totalCents) }}</td>
                   <td class="text-end">${{ formatCents(entry.paidCents) }}</td>
                   <td class="text-end">${{ formatCents(entry.recognizedCents) }}</td>

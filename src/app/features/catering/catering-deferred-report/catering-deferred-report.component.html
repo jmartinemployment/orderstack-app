@@ -62,7 +62,7 @@
               <td>
                 <button type="button" class="link-btn" (click)="viewJob(entry.jobId)">{{ entry.title }}</button>
               </td>
-              <td>{{ entry.fulfillmentDate | date:'mediumDate' }}</td>
+              <td>{{ entry.fulfillmentDate | date:'mediumDate':'UTC' }}</td>
               <td class="text-end">{{ entry.totalCents / 100 | currency:'USD' }}</td>
               <td class="text-end">{{ entry.paidCents / 100 | currency:'USD' }}</td>
               <td class="text-end">{{ entry.recognizedCents / 100 | currency:'USD' }}</td>

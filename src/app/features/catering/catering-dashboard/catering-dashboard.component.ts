@@ -69,7 +69,7 @@ export class CateringDashboardComponent implements OnInit {
   readonly nextJobDaysAway = computed(() => {
     const j = this.nextJob();
     if (!j) return 0;
-    const diff = new Date(j.fulfillmentDate).getTime() - new Date().getTime();
+    const diff = new Date(j.fulfillmentDate + 'T00:00:00').getTime() - new Date().getTime();
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   });
 

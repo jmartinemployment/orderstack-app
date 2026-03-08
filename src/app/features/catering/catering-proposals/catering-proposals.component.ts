@@ -29,7 +29,7 @@ export class CateringProposalsComponent {
   readonly hasAnyJobs = computed(() => this.cateringService.jobs().length > 0);
 
   daysSinceSent(bookingDate: string): number {
-    const sent = new Date(bookingDate);
+    const sent = new Date(bookingDate + 'T00:00:00');
     const now = new Date();
     return Math.floor((now.getTime() - sent.getTime()) / (1000 * 60 * 60 * 24));
   }

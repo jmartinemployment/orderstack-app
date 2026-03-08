@@ -68,7 +68,7 @@
               <td class="text-end">{{ m.amountCents / 100 | currency:'USD' }}</td>
               <td>
                 @if (m.dueDate) {
-                  {{ m.dueDate | date:'mediumDate' }}
+                  {{ m.dueDate | date:'mediumDate':'UTC' }}
                 } @else {
                   <span class="text-muted">—</span>
                 }

@@ -27,7 +27,7 @@
       <div class="detail-grid">
         <div class="detail-item">
           <span class="detail-label">Date</span>
-          <span class="detail-value">{{ j.fulfillmentDate | date:'fullDate' }}</span>
+          <span class="detail-value">{{ j.fulfillmentDate | date:'fullDate':'UTC' }}</span>
         </div>
         @if (j.startTime) {
           <div class="detail-item">
@@ -136,7 +136,7 @@
                 @if (m.paidAt) {
                   <div class="text-success small">Paid {{ m.paidAt | date:'shortDate' }}</div>
                 } @else if (m.dueDate) {
-                  <div class="text-muted small">Due {{ m.dueDate | date:'shortDate' }}</div>
+                  <div class="text-muted small">Due {{ m.dueDate | date:'shortDate':'UTC' }}</div>
                 }
               </div>
             </div>

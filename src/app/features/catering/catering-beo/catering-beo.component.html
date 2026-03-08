@@ -38,7 +38,7 @@
           </tr>
           <tr>
             <th>Date</th>
-            <td>{{ j.fulfillmentDate | date:'fullDate' }}</td>
+            <td>{{ j.fulfillmentDate | date:'fullDate':'UTC' }}</td>
             <th>Headcount</th>
             <td>{{ j.headcount }} guests</td>
           </tr>
@@ -291,7 +291,7 @@
                 <td>{{ m.label }}</td>
                 <td class="text-end">{{ m.percent }}%</td>
                 <td class="text-end">${{ formatCents(m.amountCents) }}</td>
-                <td>{{ m.dueDate ? (m.dueDate | date:'mediumDate') : '--' }}</td>
+                <td>{{ m.dueDate ? (m.dueDate | date:'mediumDate':'UTC') : '--' }}</td>
                 <td>
                   @if (m.paidAt) {
                     <span class="badge bg-success">Paid {{ m.paidAt | date:'shortDate' }}</span>

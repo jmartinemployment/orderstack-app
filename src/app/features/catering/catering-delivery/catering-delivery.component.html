@@ -41,7 +41,7 @@
           </div>
 
           <div class="card-meta">
-            <span><i class="bi bi-calendar3"></i> {{ job.fulfillmentDate | date:'mediumDate' }}</span>
+            <span><i class="bi bi-calendar3"></i> {{ job.fulfillmentDate | date:'mediumDate':'UTC' }}</span>
             @if (job.startTime && job.endTime) {
               <span><i class="bi bi-clock"></i> {{ job.startTime }} – {{ job.endTime }}</span>
             }
