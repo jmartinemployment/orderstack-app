@@ -66,11 +66,13 @@ export class CateringDashboardComponent implements OnInit {
 
   // Next event banner
   readonly nextJob = computed(() => this.cateringService.nextUpcomingJob());
-  readonly nextJobDaysAway = computed(() => {
+  readonly nextJobDaysAway = computed<number | null>(() => {
     const j = this.nextJob();
-    if (!j) return 0;
-    const diff = new Date(j.fulfillmentDate + 'T00:00:00').getTime() - new Date().getTime();
-    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+    if (!j?.fulfillmentDate) return null;
+    const target = new Date(j.fulfillmentDate + 'T00:00:00');
+    if (Number.isNaN(target.getTime())) return null;
+    const diff = target.getTime() - new Date().setHours(0, 0, 0, 0);
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
   });
 
   readonly hasJobs = computed(() => this.cateringService.events().length > 0);

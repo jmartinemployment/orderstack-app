@@ -107,8 +107,8 @@ export class CateringService {
     const year = now.getFullYear();
     const month = now.getMonth();
     return this._jobs().filter(j => {
-      const d = new Date(j.fulfillmentDate);
-      return d.getFullYear() === year && d.getMonth() === month && j.status !== 'cancelled';
+      const [y, m] = j.fulfillmentDate.split('-').map(Number);
+      return y === year && (m - 1) === month && j.status !== 'cancelled';
     }).length;
   });
 

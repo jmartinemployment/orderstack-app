@@ -56,14 +56,19 @@
         <div class="flex-grow-1">
           <div class="fw-semibold">{{ nj.title }}</div>
           <div class="small text-muted">
-            @if (nextJobDaysAway() === 0) {
-              Today
-            } @else if (nextJobDaysAway() === 1) {
-              Tomorrow
-            } @else {
-              In {{ nextJobDaysAway() }} days
+            @if (nextJobDaysAway() !== null) {
+              @if (nextJobDaysAway() === 0) {
+                Today
+              } @else if (nextJobDaysAway() === 1) {
+                Tomorrow
+              } @else if ((nextJobDaysAway() ?? 0) < 0) {
+                {{ -(nextJobDaysAway() ?? 0) }} {{ (nextJobDaysAway() ?? 0) === -1 ? 'day' : 'days' }} ago
+              } @else {
+                In {{ nextJobDaysAway() }} days
+              }
+              &middot;
             }
-            &middot; {{ nj.headcount }} guests
+            {{ nj.headcount }} {{ nj.headcount === 1 ? 'guest' : 'guests' }}
             @if (nj.totalCents - nj.paidCents > 0) {
               &middot; {{ formatCents(nj.totalCents - nj.paidCents) }} outstanding
             }
