@@ -5,9 +5,10 @@ import {
   output,
   signal,
   computed,
+  OnInit,
 } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
-import { MenuItem, ModifierGroup, Modifier } from '@models/menu.model';
+import { MenuItem, Modifier } from '@models/menu.model';
 
 export interface ModifierSelection {
   groupId: string;
@@ -37,13 +38,13 @@ export interface ModifierPromptResult {
   styleUrl: './modifier-prompt.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ModifierPrompt {
+export class ModifierPrompt implements OnInit {
   readonly menuItem = input.required<MenuItem>();
   readonly defaultQuantity = input(1);
   readonly defaultSeatNumber = input<number | undefined>(undefined);
 
   readonly confirmed = output<ModifierPromptResult>();
-  readonly cancel = output<void>();
+  readonly cancelled = output<void>();
 
   private readonly _currentGroupIndex = signal(0);
   private readonly _selections = signal<Map<string, Modifier[]>>(new Map());
@@ -221,7 +222,7 @@ export class ModifierPrompt {
   }
 
   onCancel(): void {
-    this.cancel.emit();
+    this.cancelled.emit();
   }
 
   private emitResult(): void {

@@ -38,15 +38,15 @@ export class CateringBeoComponent implements OnInit {
   }
 
   print(): void {
-    window.print();
+    globalThis.print();
   }
 
   goBack(): void {
     const j = this.job();
     if (j) {
-      this.router.navigate(['/catering', j.id]);
+      this.router.navigate(['/app/catering/job', j.id]);
     } else {
-      this.router.navigate(['/catering']);
+      this.router.navigate(['/app/catering']);
     }
   }
 
@@ -56,7 +56,13 @@ export class CateringBeoComponent implements OnInit {
 
   formatTime(time: string | undefined): string {
     if (!time) return '--';
-    return time;
+    const [hourStr, minuteStr] = time.split(':');
+    const hour = Number.parseInt(hourStr, 10);
+    if (Number.isNaN(hour)) return time;
+    const minute = minuteStr ?? '00';
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minute} ${period}`;
   }
 
   get selectedPackage() {

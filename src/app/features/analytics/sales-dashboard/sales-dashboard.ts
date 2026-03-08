@@ -16,20 +16,12 @@ import { AuthService } from '@services/auth';
 import { ReportService } from '@services/report';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
-import {
-  createBarChart,
-  createLineChart,
-  destroyChart,
-  CHART_COLORS,
-} from '@shared/utils/chart-helpers';
+import { destroyChart } from '@shared/utils/chart-helpers';
 import { Chart } from 'chart.js';
 import {
   GoalPeriodType,
   SalesGoalFormData,
-  GoalProgress,
-  TeamMemberSales,
   FunnelStep,
-  SalesAlert,
   RealTimeKpi,
 } from '@models/index';
 
@@ -49,7 +41,7 @@ export class SalesDashboard implements OnInit, OnDestroy {
 
   readonly teamChartCanvas = viewChild<ElementRef<HTMLCanvasElement>>('teamChart');
 
-  private teamChart: Chart | null = null;
+  private readonly teamChart: Chart | null = null;
   private kpiRefreshInterval: ReturnType<typeof setInterval> | null = null;
 
   readonly isAuthenticated = this.authService.isAuthenticated;

@@ -132,7 +132,7 @@
               id="password"
               formControlName="password"
               placeholder="Min 6 characters"
-              autocomplete="new-password"
+              autocomplete="current-password"
               [class.is-invalid]="passwordControl?.touched && passwordControl?.invalid"
               (keydown.enter)="onSignIn()"
             />
@@ -197,7 +197,7 @@
 
 <!-- Forgot Password Modal -->
 @if (showForgotModal()) {
-  <div class="modal-backdrop" (click)="closeForgotPassword()"></div>
+  <div class="modal-backdrop" (click)="closeForgotPassword()" (keydown.enter)="closeForgotPassword()" tabindex="0" role="button"></div>
   <div class="modal-dialog" role="dialog" aria-labelledby="forgotModalTitle">
     <div class="modal-content">
       <div class="modal-header">

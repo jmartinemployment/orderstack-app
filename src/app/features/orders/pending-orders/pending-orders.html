@@ -37,6 +37,7 @@
         type="text"
         class="form-control"
         placeholder="Search by order #, customer name, or item..."
+        aria-label="Search pending orders"
         [value]="searchQuery()"
         (input)="setSearchQuery($any($event.target).value)"
       />
@@ -146,6 +147,7 @@
             <input
               type="checkbox"
               class="form-check-input bulk-check me-2"
+              aria-label="Select order"
               [checked]="isOrderSelected(order.guid)"
               (change)="toggleOrderSelection(order.guid)"
               (click)="$event.stopPropagation()"
@@ -233,6 +235,7 @@
                   <div class="d-flex align-items-center gap-2">
                     <select
                       class="form-select form-select-sm driver-select"
+                      aria-label="Assign driver"
                       [disabled]="isAssigningDriver(order.guid)"
                       (change)="onDriverSelect(order.guid, $event)"
                     >
@@ -511,7 +514,7 @@
 
   <!-- Cancel Order Confirmation Modal -->
   @if (cancelTarget(); as target) {
-    <div class="modal-overlay" (click)="dismissCancel()">
+    <div class="modal-overlay" role="button" tabindex="0" (click)="dismissCancel()" (keydown.enter)="dismissCancel()">
       <div class="delete-confirm-modal card" (click)="$event.stopPropagation()">
         <div class="card-header">
           <h5 class="mb-0">Cancel Order</h5>
@@ -530,7 +533,7 @@
 
   <!-- Bulk Action Confirmation Modal -->
   @if (showBulkConfirm()) {
-    <div class="modal-overlay" (click)="dismissBulkConfirm()">
+    <div class="modal-overlay" role="button" tabindex="0" (click)="dismissBulkConfirm()" (keydown.enter)="dismissBulkConfirm()">
       <div class="delete-confirm-modal card" (click)="$event.stopPropagation()">
         <div class="card-header">
           <h5 class="mb-0">{{ getBulkActionLabel() }}</h5>
@@ -553,7 +556,7 @@
 
   <!-- Reject Catering Order Confirmation Modal -->
   @if (rejectTarget(); as target) {
-    <div class="modal-overlay" (click)="dismissReject()">
+    <div class="modal-overlay" role="button" tabindex="0" (click)="dismissReject()" (keydown.enter)="dismissReject()">
       <div class="delete-confirm-modal card" (click)="$event.stopPropagation()">
         <div class="card-header">
           <h5 class="mb-0">Reject Catering Order</h5>
@@ -572,7 +575,7 @@
 
   <!-- Order Detail Modal -->
   @if (_selectedOrder()) {
-    <div class="modal-overlay" (click)="closeOrderDetail()">
+    <div class="modal-overlay" role="button" tabindex="0" (click)="closeOrderDetail()" (keydown.enter)="closeOrderDetail()">
       <div class="order-detail-modal card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Order #{{ getOrderNumber(_selectedOrder()!) }}</h4>

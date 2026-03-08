@@ -1,5 +1,5 @@
 @if (visible) {
-  <div class="offcanvas-backdrop" (click)="close()"></div>
+  <div class="offcanvas-backdrop" (click)="close()" (keydown.enter)="close()" tabindex="0" role="button"></div>
   <div class="offcanvas-panel">
     <div class="offcanvas-header d-flex justify-content-between align-items-center px-3 py-3 border-bottom">
       <h5 class="mb-0">{{ isEditMode ? 'Edit Job' : 'New Catering Job' }}</h5>
@@ -17,13 +17,13 @@
 
       <div class="mb-3">
         <label class="form-label">Job Title <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" [(ngModel)]="title" placeholder="e.g. Johnson Wedding Reception">
+        <input type="text" class="form-control" [(ngModel)]="title" placeholder="e.g. Johnson Wedding Reception" aria-label="Job title">
       </div>
 
       <div class="row mb-3">
         <div class="col-6">
           <label class="form-label">Event Type <span class="text-danger">*</span></label>
-          <select class="form-select" [(ngModel)]="eventType">
+          <select class="form-select" [(ngModel)]="eventType" aria-label="Event type">
             @for (t of eventTypes; track t.value) {
               <option [value]="t.value">{{ t.label }}</option>
             }
@@ -31,7 +31,7 @@
         </div>
         <div class="col-6">
           <label class="form-label">Status <span class="text-danger">*</span></label>
-          <select class="form-select" [(ngModel)]="status">
+          <select class="form-select" [(ngModel)]="status" aria-label="Status">
             @for (s of statuses; track s.value) {
               <option [value]="s.value">{{ s.label }}</option>
             }
@@ -41,23 +41,23 @@
 
       <div class="mb-3">
         <label class="form-label">Fulfillment Date <span class="text-danger">*</span></label>
-        <input type="date" class="form-control" [(ngModel)]="fulfillmentDate">
+        <input type="date" class="form-control" [(ngModel)]="fulfillmentDate" aria-label="Fulfillment date">
       </div>
 
       <div class="row mb-3">
         <div class="col-6">
           <label class="form-label">Start Time <span class="text-danger">*</span></label>
-          <input type="time" class="form-control" [(ngModel)]="startTime">
+          <input type="time" class="form-control" [(ngModel)]="startTime" aria-label="Start time">
         </div>
         <div class="col-6">
           <label class="form-label">End Time <span class="text-danger">*</span></label>
-          <input type="time" class="form-control" [(ngModel)]="endTime">
+          <input type="time" class="form-control" [(ngModel)]="endTime" aria-label="End time">
         </div>
       </div>
 
       <div class="mb-3">
         <label class="form-label">Headcount <span class="text-danger">*</span></label>
-        <input type="number" class="form-control" [(ngModel)]="headcount" min="1">
+        <input type="number" class="form-control" [(ngModel)]="headcount" min="1" aria-label="Headcount">
       </div>
 
       <div class="mb-3">
@@ -77,7 +77,7 @@
       @if (locationType === 'off_site') {
         <div class="mb-3">
           <label class="form-label">Location Address <span class="text-danger">*</span></label>
-          <input type="text" class="form-control" [(ngModel)]="locationAddress" placeholder="123 Main St, City, State">
+          <input type="text" class="form-control" [(ngModel)]="locationAddress" placeholder="123 Main St, City, State" aria-label="Location address">
         </div>
       }
 
@@ -85,28 +85,28 @@
 
       <div class="mb-3">
         <label class="form-label">Client Name <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" [(ngModel)]="clientName">
+        <input type="text" class="form-control" [(ngModel)]="clientName" aria-label="Client name">
       </div>
 
       <div class="mb-3">
         <label class="form-label">Company</label>
-        <input type="text" class="form-control" [(ngModel)]="companyName" placeholder="e.g. Acme Corp">
+        <input type="text" class="form-control" [(ngModel)]="companyName" placeholder="e.g. Acme Corp" aria-label="Company name">
       </div>
 
       <div class="row mb-3">
         <div class="col-6">
           <label class="form-label">Client Phone</label>
-          <input type="tel" class="form-control" [(ngModel)]="clientPhone">
+          <input type="tel" class="form-control" [(ngModel)]="clientPhone" aria-label="Client phone">
         </div>
         <div class="col-6">
           <label class="form-label">Client Email</label>
-          <input type="email" class="form-control" [(ngModel)]="clientEmail">
+          <input type="email" class="form-control" [(ngModel)]="clientEmail" aria-label="Client email">
         </div>
       </div>
 
       <div class="mb-3">
         <label class="form-label">Notes</label>
-        <textarea class="form-control" rows="3" [(ngModel)]="notes" placeholder="Special requests, dietary needs, setup instructions..."></textarea>
+        <textarea class="form-control" rows="3" [(ngModel)]="notes" placeholder="Special requests, dietary needs, setup instructions..." aria-label="Notes"></textarea>
       </div>
     </div>
 

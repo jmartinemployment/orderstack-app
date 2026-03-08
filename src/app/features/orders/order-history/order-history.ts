@@ -97,68 +97,14 @@ export class OrderHistory implements OnInit {
     const dateTo = this._dateTo();
     const employeeQuery = this._employeeFilter().toLowerCase().trim();
 
-    return this.orders().filter(order => {
-      // Status filter
-      if (statusFilter !== 'all' && order.guestOrderStatus !== statusFilter) return false;
-
-      // Channel filter
-      if (channelFilter !== 'all') {
-        const source = order.orderSource ?? 'pos';
-        if (channelFilter === 'delivery') {
-          if (source !== 'delivery' && !source.startsWith('marketplace_')) return false;
-        } else if (source !== channelFilter) {
-          return false;
-        }
-      }
-
-      // Payment status filter
-      if (paymentFilter !== 'all') {
-        const paymentStatus = order.checks[0]?.paymentStatus ?? 'OPEN';
-        if (paymentFilter === 'paid' && paymentStatus !== 'PAID') return false;
-        if (paymentFilter === 'unpaid' && paymentStatus !== 'OPEN') return false;
-        if (paymentFilter === 'partial' && paymentStatus !== 'PARTIAL') return false;
-        if (paymentFilter === 'refunded' && paymentStatus !== 'CLOSED') return false;
-      }
-
-      // Date range
-      if (dateFrom) {
-        const orderDate = order.timestamps.createdDate;
-        if (orderDate < new Date(dateFrom)) return false;
-      }
-      if (dateTo) {
-        const orderDate = order.timestamps.createdDate;
-        const toDate = new Date(dateTo);
-        toDate.setHours(23, 59, 59, 999);
-        if (orderDate > toDate) return false;
-      }
-
-      // Employee filter
-      if (employeeQuery) {
-        const serverName = order.server?.name?.toLowerCase() ?? '';
-        if (!serverName.includes(employeeQuery)) return false;
-      }
-
-      // Text search (order #, customer name, item names, phone, receipt/payment last 4)
-      if (query) {
-        const orderNum = getOrderIdentifier(order).toLowerCase();
-        const customerName = getCustomerDisplayName(order).toLowerCase();
-        const items = order.checks.flatMap(c => c.selections).map(s => s.menuItemName.toLowerCase());
-        const phone = order.customer?.phone?.toLowerCase() ?? '';
-        const serverName = order.server?.name?.toLowerCase() ?? '';
-
-        if (
-          !orderNum.includes(query) &&
-          !customerName.includes(query) &&
-          !items.some(n => n.includes(query)) &&
-          !phone.includes(query) &&
-          !serverName.includes(query)
-        ) {
-          return false;
-        }
-      }
-
-      return true;
-    });
+    return this.orders().filter(order =>
+      this.matchesStatusFilter(order, statusFilter)
+      && this.matchesChannelFilter(order, channelFilter)
+      && this.matchesPaymentFilter(order, paymentFilter)
+      && this.matchesDateRange(order, dateFrom, dateTo)
+      && this.matchesEmployeeFilter(order, employeeQuery)
+      && this.matchesSearchQuery(order, query)
+    );
   });
 
   readonly statusOptions: { value: GuestOrderStatus | 'all'; label: string }[] = [
@@ -187,6 +133,62 @@ export class OrderHistory implements OnInit {
     { value: 'partial', label: 'Partial' },
     { value: 'refunded', label: 'Refunded' },
   ];
+
+  private matchesStatusFilter(order: Order, statusFilter: GuestOrderStatus | 'all'): boolean {
+    return statusFilter === 'all' || order.guestOrderStatus === statusFilter;
+  }
+
+  private matchesChannelFilter(order: Order, channelFilter: ChannelFilter): boolean {
+    if (channelFilter === 'all') return true;
+    const source = order.orderSource ?? 'pos';
+    if (channelFilter === 'delivery') {
+      return source === 'delivery' || source.startsWith('marketplace_');
+    }
+    return source === channelFilter;
+  }
+
+  private matchesPaymentFilter(order: Order, paymentFilter: PaymentStatusFilter): boolean {
+    if (paymentFilter === 'all') return true;
+    const paymentStatus = order.checks[0]?.paymentStatus ?? 'OPEN';
+    switch (paymentFilter) {
+      case 'paid': return paymentStatus === 'PAID';
+      case 'unpaid': return paymentStatus === 'OPEN';
+      case 'partial': return paymentStatus === 'PARTIAL';
+      case 'refunded': return paymentStatus === 'CLOSED';
+      default: return true;
+    }
+  }
+
+  private matchesDateRange(order: Order, dateFrom: string | null, dateTo: string | null): boolean {
+    const orderDate = order.timestamps.createdDate;
+    if (dateFrom && orderDate < new Date(dateFrom)) return false;
+    if (dateTo) {
+      const toDate = new Date(dateTo);
+      toDate.setHours(23, 59, 59, 999);
+      if (orderDate > toDate) return false;
+    }
+    return true;
+  }
+
+  private matchesEmployeeFilter(order: Order, employeeQuery: string): boolean {
+    if (!employeeQuery) return true;
+    const serverName = order.server?.name?.toLowerCase() ?? '';
+    return serverName.includes(employeeQuery);
+  }
+
+  private matchesSearchQuery(order: Order, query: string): boolean {
+    if (!query) return true;
+    const orderNum = getOrderIdentifier(order).toLowerCase();
+    const customerName = getCustomerDisplayName(order).toLowerCase();
+    const items = order.checks.flatMap(c => c.selections).map(s => s.menuItemName.toLowerCase());
+    const phone = order.customer?.phone?.toLowerCase() ?? '';
+    const serverName = order.server?.name?.toLowerCase() ?? '';
+    return orderNum.includes(query)
+      || customerName.includes(query)
+      || items.some(n => n.includes(query))
+      || phone.includes(query)
+      || serverName.includes(query);
+  }
 
   ngOnInit(): void {
     this.orderService.loadOrders();

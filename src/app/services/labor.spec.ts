@@ -623,3 +623,189 @@ describe('LaborService — no-restaurant guard', () => {
     expect(!merchantId).toBe(false);
   });
 });
+
+// --- BUG-29: Timecards, Timecard Edits, PTO Requests 404 tolerance ---
+
+describe('BUG-29 — loadTimecards 404 tolerance', () => {
+  // Mirrors the updated loadTimecards catch block: 404 → empty array, others → error
+  function handleTimecardError(status: number, err: unknown): { timecards: Timecard[]; error: string | null } {
+    if (status === 404) {
+      return { timecards: [], error: null };
+    }
+    return { timecards: [], error: err instanceof Error ? err.message : 'Failed to load timecards' };
+  }
+
+  it('returns empty array on 404 (no error)', () => {
+    const result = handleTimecardError(404, new Error('Not Found'));
+    expect(result.timecards).toEqual([]);
+    expect(result.error).toBeNull();
+  });
+
+  it('returns error on 500', () => {
+    const result = handleTimecardError(500, new Error('Server Error'));
+    expect(result.timecards).toEqual([]);
+    expect(result.error).toBe('Server Error');
+  });
+
+  it('returns fallback error for non-Error throwable', () => {
+    const result = handleTimecardError(500, 'unexpected');
+    expect(result.error).toBe('Failed to load timecards');
+  });
+});
+
+describe('BUG-29 — loadTimecardEdits 404 tolerance', () => {
+  function handleTimecardEditError(status: number, err: unknown): { edits: TimecardEdit[]; error: string | null } {
+    if (status === 404) {
+      return { edits: [], error: null };
+    }
+    return { edits: [], error: err instanceof Error ? err.message : 'Failed to load timecard edits' };
+  }
+
+  it('returns empty array on 404 (no error)', () => {
+    const result = handleTimecardEditError(404, new Error('Not Found'));
+    expect(result.edits).toEqual([]);
+    expect(result.error).toBeNull();
+  });
+
+  it('returns error on 403', () => {
+    const result = handleTimecardEditError(403, new Error('Forbidden'));
+    expect(result.edits).toEqual([]);
+    expect(result.error).toBe('Forbidden');
+  });
+});
+
+describe('BUG-29 — loadPtoRequests 404 tolerance', () => {
+  function handlePtoError(status: number, err: unknown): { requests: PtoRequest[]; error: string | null } {
+    if (status === 404) {
+      return { requests: [], error: null };
+    }
+    return { requests: [], error: err instanceof Error ? err.message : 'Failed to load PTO requests' };
+  }
+
+  it('returns empty array on 404 (no error)', () => {
+    const result = handlePtoError(404, new Error('Not Found'));
+    expect(result.requests).toEqual([]);
+    expect(result.error).toBeNull();
+  });
+
+  it('returns error on 500', () => {
+    const result = handlePtoError(500, new Error('Internal'));
+    expect(result.requests).toEqual([]);
+    expect(result.error).toBe('Internal');
+  });
+
+  it('returns fallback error for non-Error throwable', () => {
+    const result = handlePtoError(500, null);
+    expect(result.error).toBe('Failed to load PTO requests');
+  });
+});
+
+describe('BUG-29 — PTO request filter builder', () => {
+  function buildPtoFilterParams(status?: string): Record<string, string> {
+    const params: Record<string, string> = {};
+    if (status) params['status'] = status;
+    return params;
+  }
+
+  it('includes status when provided', () => {
+    expect(buildPtoFilterParams('pending')).toEqual({ status: 'pending' });
+  });
+
+  it('returns empty for no status', () => {
+    expect(buildPtoFilterParams()).toEqual({});
+  });
+
+  it('returns empty for undefined', () => {
+    expect(buildPtoFilterParams(undefined)).toEqual({});
+  });
+});
+
+describe('BUG-29 — timecard response mapping', () => {
+  // Mirrors the backend's TimeEntry → Timecard mapping logic
+  function mapTimeEntryToTimecard(entry: {
+    id: string;
+    staffPinId: string;
+    staffName: string;
+    staffRole: string;
+    clockIn: string;
+    clockOut: string | null;
+    breakMinutes: number;
+  }): { id: string; teamMemberId: string; teamMemberName: string; status: string; totalBreakMinutes: number } {
+    return {
+      id: entry.id,
+      teamMemberId: entry.staffPinId,
+      teamMemberName: entry.staffName,
+      status: entry.clockOut ? 'CLOSED' : 'OPEN',
+      totalBreakMinutes: entry.breakMinutes,
+    };
+  }
+
+  it('maps OPEN entry (no clockOut)', () => {
+    const result = mapTimeEntryToTimecard({
+      id: 'te-1', staffPinId: 'sp-1', staffName: 'Alice', staffRole: 'server',
+      clockIn: '2026-03-08T08:00:00Z', clockOut: null, breakMinutes: 0,
+    });
+    expect(result.status).toBe('OPEN');
+    expect(result.teamMemberId).toBe('sp-1');
+    expect(result.teamMemberName).toBe('Alice');
+  });
+
+  it('maps CLOSED entry (has clockOut)', () => {
+    const result = mapTimeEntryToTimecard({
+      id: 'te-2', staffPinId: 'sp-2', staffName: 'Bob', staffRole: 'cook',
+      clockIn: '2026-03-08T08:00:00Z', clockOut: '2026-03-08T16:00:00Z', breakMinutes: 30,
+    });
+    expect(result.status).toBe('CLOSED');
+    expect(result.totalBreakMinutes).toBe(30);
+  });
+});
+
+describe('BUG-29 — timecard edit response mapping', () => {
+  // Mirrors the backend's TimecardEditRequest → TimecardEdit field mapping
+  function mapEditRequestToTimecardEdit(raw: {
+    id: string;
+    timeEntryId: string;
+    staffPinId: string;
+    staffName: string;
+    editType: string;
+    originalValue: string;
+    newValue: string;
+    reason: string;
+    status: string;
+    respondedBy: string | null;
+    respondedAt: string | null;
+    createdAt: string;
+  }): { id: string; timecardId: string; requestedBy: string; requestedByName: string; approvedBy: string | null; resolvedAt: string | null } {
+    return {
+      id: raw.id,
+      timecardId: raw.timeEntryId,
+      requestedBy: raw.staffPinId,
+      requestedByName: raw.staffName,
+      approvedBy: raw.respondedBy,
+      resolvedAt: raw.respondedAt,
+    };
+  }
+
+  it('maps timeEntryId to timecardId', () => {
+    const result = mapEditRequestToTimecardEdit({
+      id: 'e-1', timeEntryId: 'te-1', staffPinId: 'sp-1', staffName: 'Alice',
+      editType: 'clock_in', originalValue: '08:00', newValue: '07:45', reason: 'Forgot',
+      status: 'pending', respondedBy: null, respondedAt: null, createdAt: '2026-03-08T10:00:00Z',
+    });
+    expect(result.timecardId).toBe('te-1');
+    expect(result.requestedBy).toBe('sp-1');
+    expect(result.requestedByName).toBe('Alice');
+    expect(result.approvedBy).toBeNull();
+    expect(result.resolvedAt).toBeNull();
+  });
+
+  it('maps respondedBy to approvedBy when approved', () => {
+    const result = mapEditRequestToTimecardEdit({
+      id: 'e-2', timeEntryId: 'te-1', staffPinId: 'sp-1', staffName: 'Alice',
+      editType: 'clock_out', originalValue: '17:00', newValue: '16:30', reason: 'Left early',
+      status: 'approved', respondedBy: 'mgr-1', respondedAt: '2026-03-08T12:00:00Z', createdAt: '2026-03-08T10:00:00Z',
+    });
+    expect(result.approvedBy).toBe('mgr-1');
+    expect(result.resolvedAt).toBe('2026-03-08T12:00:00Z');
+  });
+});

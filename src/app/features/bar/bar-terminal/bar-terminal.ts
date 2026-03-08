@@ -334,8 +334,8 @@ export class BarTerminal implements OnInit, OnDestroy {
       this._barMode.set(barSettings.defaultMode);
     }
 
-    void this.stationService.loadStations();
-    void this.stationService.loadCategoryMappings();
+    this.stationService.loadStations();
+    this.stationService.loadCategoryMappings();
 
     const merchantId = this.authService.selectedMerchantId();
     if (merchantId) {
@@ -357,7 +357,7 @@ export class BarTerminal implements OnInit, OnDestroy {
 
   // --- Tab navigation ---
 
-  selectTopTab(tab: TopTab | string): void {
+  selectTopTab(tab: string): void {
     this._activeTopTab.set(tab as TopTab);
   }
 
@@ -391,7 +391,7 @@ export class BarTerminal implements OnInit, OnDestroy {
       await this.orderService.updateOrderStatus(event.orderId, event.status);
     };
 
-    void doUpdate();
+    doUpdate();
   }
 
   // --- Incoming Orders: Payment Modal ---

@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { RetailEcommerceService } from '@services/retail-ecommerce';
 import { RetailItem, RetailCategory } from '@models/retail.model';
-import { ProductFilterState, ProductSortOption, StoreConfig, EcommerceCartItem } from '@models/retail-ecommerce.model';
+import { ProductFilterState, ProductSortOption, EcommerceCartItem } from '@models/retail-ecommerce.model';
 
 @Component({
   selector: 'os-product-list',
@@ -48,13 +48,6 @@ export class ProductList implements OnInit {
 
   // Categories extracted from items
   readonly categories = computed<RetailCategory[]>(() => {
-    const items = this.ecommerceService.publicItems();
-    const catMap = new Map<string, string>();
-    for (const item of items) {
-      if (item.categoryId) {
-        catMap.set(item.categoryId, item.categoryId);
-      }
-    }
     return [];
   });
 

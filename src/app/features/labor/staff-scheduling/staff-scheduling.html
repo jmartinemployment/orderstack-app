@@ -141,7 +141,8 @@
                 <div class="template-dropdown-label">Apply Template</div>
                 @for (tpl of scheduleTemplates(); track tpl.id) {
                   <div class="template-dropdown-item d-flex justify-content-between align-items-center"
-                    (click)="applyTemplate(tpl)">
+                    role="button" tabindex="0" (click)="applyTemplate(tpl)"
+                    (keydown.enter)="applyTemplate(tpl)">
                     <span><i class="bi bi-calendar-check"></i> {{ tpl.name }}</span>
                     <button class="btn-template-delete" (click)="deleteTemplate(tpl, $event)" title="Delete">
                       <i class="bi bi-trash3"></i>
@@ -162,6 +163,7 @@
           <div class="d-flex gap-2 align-items-center">
             <input type="text" class="form-control form-control-sm"
               placeholder="Template name (e.g. 'Standard Week')"
+              aria-label="Template name"
               [ngModel]="templateName()" (ngModelChange)="setTemplateName($event)"
               (keydown.enter)="saveCurrentWeekAsTemplate()">
             <button class="btn btn-sm btn-primary" (click)="saveCurrentWeekAsTemplate()"
@@ -221,11 +223,15 @@
               <small class="text-muted">{{ staff.role }}</small>
             </div>
             @for (day of weekDays(); track day) {
-              <div class="grid-cell" (click)="openNewShift(staff.id, day)">
+              <div class="grid-cell" role="button" tabindex="0"
+                (click)="openNewShift(staff.id, day)"
+                (keydown.enter)="openNewShift(staff.id, day)">
                 @for (shift of getShiftsForCell(staff.id, day); track shift.id) {
                   <div class="shift-block"
                     [style.border-left-color]="getPositionColor(shift.position)"
-                    (click)="openEditShift(shift); $event.stopPropagation()">
+                    role="button" tabindex="0"
+                    (click)="openEditShift(shift); $event.stopPropagation()"
+                    (keydown.enter)="openEditShift(shift); $event.stopPropagation()">
                     <div class="shift-time">{{ formatTime(shift.startTime) }}-{{ formatTime(shift.endTime) }}</div>
                     <div class="shift-position">{{ getPositionLabel(shift.position) }}</div>
                   </div>
@@ -261,6 +267,7 @@
           <h6 class="mb-3"><i class="bi bi-box-arrow-in-right"></i> Clock In</h6>
           <div class="d-flex gap-2">
             <select class="form-select form-select-sm"
+              aria-label="Select staff to clock in"
               [ngModel]="clockInPin()" (ngModelChange)="setClockInPin($event)">
               <option value="">Select staff...</option>
               @for (member of staffRows(); track member.id) {
@@ -292,7 +299,8 @@
               </div>
               <div class="d-flex align-items-center gap-2">
                 <input type="number" class="form-control form-control-sm"
-                  style="width: 80px" placeholder="Break" min="0" max="120"
+                  style="width: 80px" placeholder="Break" aria-label="Break minutes"
+                  min="0" max="120"
                   [ngModel]="clockOutBreak()" (ngModelChange)="setClockOutBreak($event)">
                 <span class="text-muted small">min</span>
                 <button class="btn btn-sm btn-danger" (click)="clockOut(entry.id)">
@@ -404,12 +412,16 @@
           <table class="table table-sm table-hover">
             <thead>
               <tr>
-                <th class="sortable" (click)="sortReport('name')">Name</th>
+                <th class="sortable" role="button" tabindex="0"
+                  (click)="sortReport('name')" (keydown.enter)="sortReport('name')">Name</th>
                 <th>Role</th>
-                <th class="sortable" (click)="sortReport('hours')">Reg Hours</th>
+                <th class="sortable" role="button" tabindex="0"
+                  (click)="sortReport('hours')" (keydown.enter)="sortReport('hours')">Reg Hours</th>
                 <th>OT Hours</th>
-                <th class="sortable" (click)="sortReport('hours')">Total</th>
-                <th class="sortable" (click)="sortReport('cost')">Cost</th>
+                <th class="sortable" role="button" tabindex="0"
+                  (click)="sortReport('hours')" (keydown.enter)="sortReport('hours')">Total</th>
+                <th class="sortable" role="button" tabindex="0"
+                  (click)="sortReport('cost')" (keydown.enter)="sortReport('cost')">Cost</th>
                 <th>Shifts</th>
               </tr>
             </thead>
@@ -674,13 +686,13 @@
           <h6 class="mb-2">Generate Payroll Period</h6>
           <div class="row g-2 mb-2">
             <div class="col-md-5">
-              <label class="form-label small text-muted">Start Date</label>
-              <input type="date" class="form-control form-control-sm"
+              <label class="form-label small text-muted" for="payroll-start-date">Start Date</label>
+              <input type="date" class="form-control form-control-sm" id="payroll-start-date"
                 [ngModel]="payrollStartDate()" (ngModelChange)="setPayrollStartDate($event)">
             </div>
             <div class="col-md-5">
-              <label class="form-label small text-muted">End Date</label>
-              <input type="date" class="form-control form-control-sm"
+              <label class="form-label small text-muted" for="payroll-end-date">End Date</label>
+              <input type="date" class="form-control form-control-sm" id="payroll-end-date"
                 [ngModel]="payrollEndDate()" (ngModelChange)="setPayrollEndDate($event)">
             </div>
             <div class="col-md-2 d-flex align-items-end gap-2">
@@ -714,7 +726,8 @@
       @for (period of payrollPeriods(); track period.id) {
         <div class="payroll-period-card mb-2" [class.expanded]="expandedPayrollId() === period.id">
           <!-- Period Header -->
-          <div class="payroll-period-header" (click)="expandPayroll(period)">
+          <div class="payroll-period-header" role="button" tabindex="0"
+            (click)="expandPayroll(period)" (keydown.enter)="expandPayroll(period)">
             <div class="d-flex align-items-center gap-2">
               <i class="bi" [class.bi-chevron-right]="expandedPayrollId() !== period.id"
                 [class.bi-chevron-down]="expandedPayrollId() === period.id"></i>
@@ -775,19 +788,24 @@
                 <table class="table table-dark table-sm table-hover mb-0">
                   <thead>
                     <tr>
-                      <th class="sortable" (click)="sortPayroll('name')">Employee</th>
-                      <th class="sortable text-end" (click)="sortPayroll('hours')">Reg Hrs</th>
+                      <th class="sortable" role="button" tabindex="0"
+                        (click)="sortPayroll('name')" (keydown.enter)="sortPayroll('name')">Employee</th>
+                      <th class="sortable text-end" role="button" tabindex="0"
+                        (click)="sortPayroll('hours')" (keydown.enter)="sortPayroll('hours')">Reg Hrs</th>
                       <th class="text-end">OT Hrs</th>
                       <th class="text-end">Reg Pay</th>
                       <th class="text-end">OT Pay</th>
                       <th class="text-end">Tips</th>
                       <th class="text-end">Commissions</th>
-                      <th class="sortable text-end" (click)="sortPayroll('gross')">Gross Pay</th>
+                      <th class="sortable text-end" role="button" tabindex="0"
+                        (click)="sortPayroll('gross')" (keydown.enter)="sortPayroll('gross')">Gross Pay</th>
                     </tr>
                   </thead>
                   <tbody>
                     @for (member of sortedPayrollMembers(); track member.teamMemberId) {
-                      <tr class="payroll-member-row" (click)="toggleMemberExpand(member.teamMemberId)"
+                      <tr class="payroll-member-row" role="button" tabindex="0"
+                        (click)="toggleMemberExpand(member.teamMemberId)"
+                        (keydown.enter)="toggleMemberExpand(member.teamMemberId)"
                         [class.overtime-row]="member.overtimeHours > 0">
                         <td>
                           <i class="bi me-1" style="font-size: 0.7rem;"
@@ -881,34 +899,34 @@
           </h6>
           <div class="row g-2 mb-2">
             <div class="col-md-4">
-              <label class="form-label small text-muted">Rule Name</label>
-              <input type="text" class="form-control form-control-sm"
+              <label class="form-label small text-muted" for="commission-rule-name">Rule Name</label>
+              <input type="text" class="form-control form-control-sm" id="commission-rule-name"
                 placeholder="e.g. Server Sales Bonus"
                 [ngModel]="commissionForm().name" (ngModelChange)="updateCommissionForm('name', $event)">
             </div>
             <div class="col-md-3">
-              <label class="form-label small text-muted">Job Title</label>
-              <input type="text" class="form-control form-control-sm"
+              <label class="form-label small text-muted" for="commission-job-title">Job Title</label>
+              <input type="text" class="form-control form-control-sm" id="commission-job-title"
                 placeholder="e.g. Server"
                 [ngModel]="commissionForm().jobTitle" (ngModelChange)="updateCommissionForm('jobTitle', $event)">
             </div>
             <div class="col-md-2">
-              <label class="form-label small text-muted">Type</label>
-              <select class="form-select form-select-sm"
+              <label class="form-label small text-muted" for="commission-type">Type</label>
+              <select class="form-select form-select-sm" id="commission-type"
                 [ngModel]="commissionForm().type" (ngModelChange)="updateCommissionForm('type', $event)">
                 <option value="percentage">Percentage</option>
                 <option value="flat_per_order">Flat per Order</option>
               </select>
             </div>
             <div class="col-md-1">
-              <label class="form-label small text-muted">Rate</label>
-              <input type="number" class="form-control form-control-sm"
+              <label class="form-label small text-muted" for="commission-rate">Rate</label>
+              <input type="number" class="form-control form-control-sm" id="commission-rate"
                 [ngModel]="commissionForm().rate" (ngModelChange)="updateCommissionForm('rate', +$event)"
                 min="0" step="0.5">
             </div>
             <div class="col-md-2">
-              <label class="form-label small text-muted">Min. Sales ($)</label>
-              <input type="number" class="form-control form-control-sm"
+              <label class="form-label small text-muted" for="commission-min-sales">Min. Sales ($)</label>
+              <input type="number" class="form-control form-control-sm" id="commission-min-sales"
                 [ngModel]="commissionForm().minimumSales" (ngModelChange)="updateCommissionForm('minimumSales', +$event)"
                 min="0" step="50">
             </div>
@@ -1081,7 +1099,8 @@
 
     <!-- ==================== SHIFT MODAL ==================== -->
     @if (showShiftModal()) {
-      <div class="modal-backdrop" (click)="closeShiftModal()"></div>
+      <div class="modal-backdrop" role="button" tabindex="0"
+        (click)="closeShiftModal()" (keydown.enter)="closeShiftModal()"></div>
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header border-secondary">
@@ -1096,8 +1115,8 @@
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <label class="form-label">Staff</label>
-              <select class="form-select"
+              <label class="form-label" for="shift-staff">Staff</label>
+              <select class="form-select" id="shift-staff"
                 [ngModel]="shiftForm().staffPinId" (ngModelChange)="updateShiftForm('staffPinId', $event)">
                 <option value="">Select staff...</option>
                 @for (member of staffRows(); track member.id) {
@@ -1106,25 +1125,25 @@
               </select>
             </div>
             <div class="mb-3">
-              <label class="form-label">Date</label>
-              <input type="date" class="form-control"
+              <label class="form-label" for="shift-date">Date</label>
+              <input type="date" class="form-control" id="shift-date"
                 [ngModel]="shiftForm().date" (ngModelChange)="updateShiftForm('date', $event)">
             </div>
             <div class="row mb-3">
               <div class="col-6">
-                <label class="form-label">Start Time</label>
-                <input type="time" class="form-control"
+                <label class="form-label" for="shift-start-time">Start Time</label>
+                <input type="time" class="form-control" id="shift-start-time"
                   [ngModel]="shiftForm().startTime" (ngModelChange)="updateShiftForm('startTime', $event)">
               </div>
               <div class="col-6">
-                <label class="form-label">End Time</label>
-                <input type="time" class="form-control"
+                <label class="form-label" for="shift-end-time">End Time</label>
+                <input type="time" class="form-control" id="shift-end-time"
                   [ngModel]="shiftForm().endTime" (ngModelChange)="updateShiftForm('endTime', $event)">
               </div>
             </div>
             <div class="mb-3">
-              <label class="form-label">Position</label>
-              <select class="form-select"
+              <label class="form-label" for="shift-position">Position</label>
+              <select class="form-select" id="shift-position"
                 [ngModel]="shiftForm().position" (ngModelChange)="updateShiftForm('position', $event)">
                 <option value="server">Server</option>
                 <option value="cook">Cook</option>
@@ -1135,14 +1154,14 @@
               </select>
             </div>
             <div class="mb-3">
-              <label class="form-label">Break (minutes)</label>
-              <input type="number" class="form-control"
+              <label class="form-label" for="shift-break">Break (minutes)</label>
+              <input type="number" class="form-control" id="shift-break"
                 min="0" max="120"
                 [ngModel]="shiftForm().breakMinutes" (ngModelChange)="updateShiftForm('breakMinutes', +$event)">
             </div>
             <div class="mb-3">
-              <label class="form-label">Notes</label>
-              <textarea class="form-control" rows="2"
+              <label class="form-label" for="shift-notes">Notes</label>
+              <textarea class="form-control" id="shift-notes" rows="2"
                 [ngModel]="shiftForm().notes" (ngModelChange)="updateShiftForm('notes', $event)"></textarea>
             </div>
           </div>

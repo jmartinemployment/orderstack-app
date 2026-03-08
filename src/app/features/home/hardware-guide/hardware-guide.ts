@@ -387,7 +387,6 @@ export class HardwareGuide {
 
   readonly checklist = computed<HardwareChecklist[]>(() => {
     const retail = this.isRetailMode();
-    const service = this.isServiceMode();
     const restaurant = this.isRestaurantMode();
     const mode = this.platform.currentDeviceMode();
 
@@ -402,8 +401,10 @@ export class HardwareGuide {
     }
 
     if (restaurant && (mode === 'full_service' || mode === 'bar')) {
-      list.push({ category: 'kitchen_display', label: 'Kitchen display', icon: 'bi-display', required: false });
-      list.push({ category: 'customer_display', label: 'Customer display', icon: 'bi-tv', required: false });
+      list.push(
+        { category: 'kitchen_display', label: 'Kitchen display', icon: 'bi-display', required: false },
+        { category: 'customer_display', label: 'Customer display', icon: 'bi-tv', required: false }
+      );
     }
 
     if (mode === 'quick_service') {
@@ -411,8 +412,10 @@ export class HardwareGuide {
     }
 
     if (retail) {
-      list.push({ category: 'barcode_scanner', label: 'Barcode scanner', icon: 'bi-upc-scan', required: false });
-      list.push({ category: 'label_printer', label: 'Label printer', icon: 'bi-tag', required: false });
+      list.push(
+        { category: 'barcode_scanner', label: 'Barcode scanner', icon: 'bi-upc-scan', required: false },
+        { category: 'label_printer', label: 'Label printer', icon: 'bi-tag', required: false }
+      );
     }
 
     return list;
@@ -495,7 +498,9 @@ export class HardwareGuide {
   }
 
   getTierLabel(tier: HardwareTier): string {
-    return tier === 'good' ? 'Good' : tier === 'better' ? 'Better' : 'Best';
+    if (tier === 'good') return 'Good';
+    if (tier === 'better') return 'Better';
+    return 'Best';
   }
 
   getTierClass(tier: HardwareTier): string {

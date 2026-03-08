@@ -5,15 +5,12 @@ import { RetailInventoryService } from '@services/retail-inventory';
 import { RetailCatalogService } from '@services/retail-catalog';
 import type {
   RetailStockRecord,
-  StockAdjustment,
   StockAdjustmentFormData,
   StockAdjustmentType,
   StockTransfer,
   StockTransferFormData,
-  StockAlert,
   StockAlertType,
   RetailCycleCount,
-  CostLayer,
   LabelSize,
   LabelTemplate,
   LabelPrintJob,

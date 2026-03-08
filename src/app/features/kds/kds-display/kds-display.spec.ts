@@ -317,7 +317,7 @@ describe('KdsDisplay Auto-Dispatch', () => {
       .mockImplementationOnce(async (): Promise<DeliveryQuote> => ({
         provider: 'doordash',
         quoteId: 'quote-fresh',
-        fee: 8.0,
+        fee: 8,
         estimatedPickupAt: '2026-02-13T12:05:00.000Z',
         estimatedDeliveryAt: '2026-02-13T12:50:00.000Z',
         expiresAt: '2026-02-13T12:10:00.000Z',

@@ -98,6 +98,8 @@
   background: var(--os-border);
   transition: background 0.3s;
   cursor: pointer;
+  border: none;
+  padding: 0;
 
   &.active {
     background: var(--os-primary);

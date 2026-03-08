@@ -674,111 +674,119 @@ export class AnalyticsService {
       this._proactiveInsights.set(cards);
     } catch {
       // Generate proactive insights locally from existing data
-      const insights: AiInsightCard[] = [];
       const now = new Date().toISOString();
-
-      // From sales alerts
-      const alerts = this._salesAlerts();
-      for (const alert of alerts.filter(a => !a.acknowledged).slice(0, 5)) {
-        const typeLabels: Record<string, string> = {
-          revenue_anomaly: 'Revenue Anomaly',
-          aov_anomaly: 'AOV Anomaly',
-          volume_spike: 'Volume Spike',
-          volume_drop: 'Volume Drop',
-          new_customer_surge: 'New Customer Surge',
-          channel_shift: 'Channel Shift',
-        };
-        insights.push({
-          id: `proactive-alert-${alert.id}`,
-          query: 'proactive',
-          responseType: 'text',
-          title: `${typeLabels[alert.type] ?? 'Alert'} Detected`,
-          data: { text: alert.message },
-          trend: alert.severity === 'critical' ? 'down' : 'flat',
-          createdAt: now,
-        });
-      }
-
-      // From menu engineering — underperformers
-      const engineering = this._menuEngineering();
-      if (engineering) {
-        const dogs = engineering.items.filter(i => i.classification === 'dog');
-        if (dogs.length > 2) {
-          insights.push({
-            id: 'proactive-dogs',
-            query: 'proactive',
-            responseType: 'kpi',
-            title: 'Underperforming Items',
-            data: {},
-            value: dogs.length,
-            unit: 'items',
-            trend: 'down',
-            createdAt: now,
-          });
-        }
-
-        if (engineering.summary.averageMargin < 30) {
-          insights.push({
-            id: 'proactive-low-margin',
-            query: 'proactive',
-            responseType: 'text',
-            title: 'Low Profit Margin',
-            data: { text: `Average menu profit margin is ${engineering.summary.averageMargin.toFixed(1)}%, below the 30% target. Consider reviewing pricing or food costs.` },
-            trend: 'down',
-            createdAt: now,
-          });
-        }
-      }
-
-      // From sales report — revenue anomaly
-      const sales = this._salesReport();
-      if (sales?.comparison) {
-        if (sales.comparison.revenueChange < -15) {
-          insights.push({
-            id: 'proactive-revenue-drop',
-            query: 'proactive',
-            responseType: 'kpi',
-            title: 'Revenue Declining',
-            data: {},
-            value: sales.comparison.revenueChange,
-            unit: '%',
-            trend: 'down',
-            createdAt: now,
-          });
-        }
-        if (sales.comparison.revenueChange > 20) {
-          insights.push({
-            id: 'proactive-revenue-surge',
-            query: 'proactive',
-            responseType: 'kpi',
-            title: 'Revenue Surge',
-            data: {},
-            value: sales.comparison.revenueChange,
-            unit: '%',
-            trend: 'up',
-            createdAt: now,
-          });
-        }
-      }
-
-      // From prep time accuracy — flagged items
-      const flagged = this.flaggedPrepItems();
-      if (flagged.length > 0) {
-        insights.push({
-          id: 'proactive-prep-accuracy',
-          query: 'proactive',
-          responseType: 'text',
-          title: 'Prep Time Inaccuracies',
-          data: { text: `${flagged.length} menu item(s) have prep time estimates that deviate significantly from actual times. Review in Menu Engineering > Prep Time tab.` },
-          trend: 'flat',
-          createdAt: now,
-        });
-      }
-
+      const insights: AiInsightCard[] = [
+        ...this.insightsFromAlerts(now),
+        ...this.insightsFromEngineering(now),
+        ...this.insightsFromSales(now),
+        ...this.insightsFromPrepTime(now),
+      ];
       this._proactiveInsights.set(insights);
     } finally {
       this._isLoadingProactiveInsights.set(false);
     }
+  }
+
+  private insightsFromAlerts(now: string): AiInsightCard[] {
+    const typeLabels: Record<string, string> = {
+      revenue_anomaly: 'Revenue Anomaly',
+      aov_anomaly: 'AOV Anomaly',
+      volume_spike: 'Volume Spike',
+      volume_drop: 'Volume Drop',
+      new_customer_surge: 'New Customer Surge',
+      channel_shift: 'Channel Shift',
+    };
+    return this._salesAlerts()
+      .filter(a => !a.acknowledged)
+      .slice(0, 5)
+      .map(alert => ({
+        id: `proactive-alert-${alert.id}`,
+        query: 'proactive',
+        responseType: 'text' as const,
+        title: `${typeLabels[alert.type] ?? 'Alert'} Detected`,
+        data: { text: alert.message },
+        trend: (alert.severity === 'critical' ? 'down' : 'flat') as 'down' | 'flat',
+        createdAt: now,
+      }));
+  }
+
+  private insightsFromEngineering(now: string): AiInsightCard[] {
+    const engineering = this._menuEngineering();
+    if (!engineering) return [];
+    const cards: AiInsightCard[] = [];
+    const dogs = engineering.items.filter(i => i.classification === 'dog');
+    if (dogs.length > 2) {
+      cards.push({
+        id: 'proactive-dogs',
+        query: 'proactive',
+        responseType: 'kpi',
+        title: 'Underperforming Items',
+        data: {},
+        value: dogs.length,
+        unit: 'items',
+        trend: 'down',
+        createdAt: now,
+      });
+    }
+    if (engineering.summary.averageMargin < 30) {
+      cards.push({
+        id: 'proactive-low-margin',
+        query: 'proactive',
+        responseType: 'text',
+        title: 'Low Profit Margin',
+        data: { text: `Average menu profit margin is ${engineering.summary.averageMargin.toFixed(1)}%, below the 30% target. Consider reviewing pricing or food costs.` },
+        trend: 'down',
+        createdAt: now,
+      });
+    }
+    return cards;
+  }
+
+  private insightsFromSales(now: string): AiInsightCard[] {
+    const sales = this._salesReport();
+    if (!sales?.comparison) return [];
+    const cards: AiInsightCard[] = [];
+    if (sales.comparison.revenueChange < -15) {
+      cards.push({
+        id: 'proactive-revenue-drop',
+        query: 'proactive',
+        responseType: 'kpi',
+        title: 'Revenue Declining',
+        data: {},
+        value: sales.comparison.revenueChange,
+        unit: '%',
+        trend: 'down',
+        createdAt: now,
+      });
+    }
+    if (sales.comparison.revenueChange > 20) {
+      cards.push({
+        id: 'proactive-revenue-surge',
+        query: 'proactive',
+        responseType: 'kpi',
+        title: 'Revenue Surge',
+        data: {},
+        value: sales.comparison.revenueChange,
+        unit: '%',
+        trend: 'up',
+        createdAt: now,
+      });
+    }
+    return cards;
+  }
+
+  private insightsFromPrepTime(now: string): AiInsightCard[] {
+    const flagged = this.flaggedPrepItems();
+    if (flagged.length === 0) return [];
+    return [{
+      id: 'proactive-prep-accuracy',
+      query: 'proactive',
+      responseType: 'text',
+      title: 'Prep Time Inaccuracies',
+      data: { text: `${flagged.length} menu item(s) have prep time estimates that deviate significantly from actual times. Review in Menu Engineering > Prep Time tab.` },
+      trend: 'flat' as const,
+      createdAt: now,
+    }];
   }
 
   dismissInsight(cardId: string): void {

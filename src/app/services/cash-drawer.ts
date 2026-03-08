@@ -101,60 +101,8 @@ export class CashDrawerService {
     const employeeMap = new Map<string, EmployeeCashSummary>();
 
     for (const session of history) {
-      for (const event of session.events) {
-        if (event.type === 'opening_float') continue;
-        const name = event.performedBy;
-        let summary = employeeMap.get(name);
-        if (!summary) {
-          summary = {
-            employeeName: name,
-            totalCashHandled: 0,
-            totalCashIn: 0,
-            totalCashOut: 0,
-            eventCount: 0,
-            sessionCount: 0,
-            avgVariance: 0,
-            totalVariance: 0,
-            discrepancyCount: 0,
-          };
-          employeeMap.set(name, summary);
-        }
-        summary.eventCount++;
-        summary.totalCashHandled += event.amount;
-        if (isCashInflow(event.type)) {
-          summary.totalCashIn += event.amount;
-        } else {
-          summary.totalCashOut += event.amount;
-        }
-      }
-
-      // Session-level variance tracking (only for closed sessions)
-      if (session.closedAt && session.closedBy && session.overShort !== undefined) {
-        const closer = session.closedBy;
-        let summary = employeeMap.get(closer);
-        if (!summary) {
-          summary = {
-            employeeName: closer,
-            totalCashHandled: 0,
-            totalCashIn: 0,
-            totalCashOut: 0,
-            eventCount: 0,
-            sessionCount: 0,
-            avgVariance: 0,
-            totalVariance: 0,
-            discrepancyCount: 0,
-          };
-          employeeMap.set(closer, summary);
-        }
-        summary.sessionCount++;
-        summary.totalVariance += session.overShort;
-        if (Math.abs(session.overShort) > this._discrepancyThreshold()) {
-          summary.discrepancyCount++;
-        }
-        summary.avgVariance = summary.sessionCount > 0
-          ? Math.round(summary.totalVariance / summary.sessionCount * 100) / 100
-          : 0;
-      }
+      this.accumulateEventSummaries(session, employeeMap);
+      this.accumulateSessionVariance(session, employeeMap);
     }
 
     return Array.from(employeeMap.values())
@@ -200,23 +148,9 @@ export class CashDrawerService {
 
     for (const session of history) {
       for (const event of session.events) {
-        if (event.type === 'opening_float') continue;
-
-        const ts = new Date(event.timestamp);
-        if (dateFrom && ts < dateFrom) continue;
-        if (dateTo) {
-          const endOfDay = new Date(dateTo);
-          endOfDay.setHours(23, 59, 59, 999);
-          if (ts > endOfDay) continue;
+        if (this.matchesReportFilters(event, dateFrom, dateTo, employeeFilter, typeFilter)) {
+          rows.push({ event, sessionId: session.id, sessionOpenedAt: session.openedAt });
         }
-        if (employeeFilter && event.performedBy !== employeeFilter) continue;
-        if (typeFilter && event.type !== typeFilter) continue;
-
-        rows.push({
-          event,
-          sessionId: session.id,
-          sessionOpenedAt: session.openedAt,
-        });
       }
     }
 
@@ -248,8 +182,74 @@ export class CashDrawerService {
         }
       }
     }
-    return Array.from(names).sort();
+    return Array.from(names).sort((a, b) => a.localeCompare(b));
   });
+
+  private getOrCreateSummary(map: Map<string, EmployeeCashSummary>, name: string): EmployeeCashSummary {
+    let summary = map.get(name);
+    if (!summary) {
+      summary = {
+        employeeName: name,
+        totalCashHandled: 0,
+        totalCashIn: 0,
+        totalCashOut: 0,
+        eventCount: 0,
+        sessionCount: 0,
+        avgVariance: 0,
+        totalVariance: 0,
+        discrepancyCount: 0,
+      };
+      map.set(name, summary);
+    }
+    return summary;
+  }
+
+  private accumulateEventSummaries(session: CashDrawerSession, map: Map<string, EmployeeCashSummary>): void {
+    for (const event of session.events) {
+      if (event.type === 'opening_float') continue;
+      const summary = this.getOrCreateSummary(map, event.performedBy);
+      summary.eventCount++;
+      summary.totalCashHandled += event.amount;
+      if (isCashInflow(event.type)) {
+        summary.totalCashIn += event.amount;
+      } else {
+        summary.totalCashOut += event.amount;
+      }
+    }
+  }
+
+  private accumulateSessionVariance(session: CashDrawerSession, map: Map<string, EmployeeCashSummary>): void {
+    if (!session.closedAt || !session.closedBy || session.overShort === undefined) return;
+    const summary = this.getOrCreateSummary(map, session.closedBy);
+    summary.sessionCount++;
+    summary.totalVariance += session.overShort;
+    if (Math.abs(session.overShort) > this._discrepancyThreshold()) {
+      summary.discrepancyCount++;
+    }
+    summary.avgVariance = summary.sessionCount > 0
+      ? Math.round(summary.totalVariance / summary.sessionCount * 100) / 100
+      : 0;
+  }
+
+  private matchesReportFilters(
+    event: CashEvent,
+    dateFrom: Date | null,
+    dateTo: Date | null,
+    employeeFilter: string | null,
+    typeFilter: CashEventType | null,
+  ): boolean {
+    if (event.type === 'opening_float') return false;
+    const ts = new Date(event.timestamp);
+    if (dateFrom && ts < dateFrom) return false;
+    if (dateTo) {
+      const endOfDay = new Date(dateTo);
+      endOfDay.setHours(23, 59, 59, 999);
+      if (ts > endOfDay) return false;
+    }
+    if (employeeFilter && event.performedBy !== employeeFilter) return false;
+    if (typeFilter && event.type !== typeFilter) return false;
+    return true;
+  }
 
   setDiscrepancyThreshold(value: number): void {
     this._discrepancyThreshold.set(Math.max(0, value));

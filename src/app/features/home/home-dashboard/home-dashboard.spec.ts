@@ -24,8 +24,10 @@ function buildSetupTasks(
   isRetail: boolean,
   isService: boolean,
 ): SetupTask[] {
-  const itemsLabel = isRetail ? 'Add your first products' : isService ? 'Create your first services' : 'Create your first menu items';
-  const itemsDesc = isRetail ? 'Add products to your catalog' : isService ? 'Set up your service offerings' : 'Add items, categories, and modifiers';
+  let itemsLabel = 'Create your first menu items';
+  let itemsDesc = 'Add items, categories, and modifiers';
+  if (isRetail) { itemsLabel = 'Add your first products'; itemsDesc = 'Add products to your catalog'; }
+  else if (isService) { itemsLabel = 'Create your first services'; itemsDesc = 'Set up your service offerings'; }
   const itemsRoute = isRetail ? '/retail/catalog' : '/menu';
   const itemsIcon = isRetail ? 'bi-grid-3x3-gap' : 'bi-book';
 

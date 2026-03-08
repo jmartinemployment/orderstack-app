@@ -61,23 +61,23 @@
     @if (deepDiveTab() === 'overview') {
       <!-- Summary Cards -->
       <div class="summary-cards d-flex flex-wrap gap-3 mb-4">
-        <div class="summary-card" (click)="setFilter('all')" [class.active]="filterQuadrant() === 'all'">
+        <div class="summary-card" (click)="setFilter('all')" (keydown.enter)="setFilter('all')" tabindex="0" role="button" [class.active]="filterQuadrant() === 'all'">
           <span class="count">{{ engineering.summary.totalItems }}</span>
           <span class="label">Total Items</span>
         </div>
-        <div class="summary-card quadrant-star" (click)="setFilter('star')" [class.active]="filterQuadrant() === 'star'">
+        <div class="summary-card quadrant-star" (click)="setFilter('star')" (keydown.enter)="setFilter('star')" tabindex="0" role="button" [class.active]="filterQuadrant() === 'star'">
           <span class="count">{{ engineering.summary.stars }}</span>
           <span class="label">Stars</span>
         </div>
-        <div class="summary-card quadrant-cash-cow" (click)="setFilter('cash-cow')" [class.active]="filterQuadrant() === 'cash-cow'">
+        <div class="summary-card quadrant-cash-cow" (click)="setFilter('cash-cow')" (keydown.enter)="setFilter('cash-cow')" tabindex="0" role="button" [class.active]="filterQuadrant() === 'cash-cow'">
           <span class="count">{{ engineering.summary.cashCows }}</span>
           <span class="label">Cash Cows</span>
         </div>
-        <div class="summary-card quadrant-puzzle" (click)="setFilter('puzzle')" [class.active]="filterQuadrant() === 'puzzle'">
+        <div class="summary-card quadrant-puzzle" (click)="setFilter('puzzle')" (keydown.enter)="setFilter('puzzle')" tabindex="0" role="button" [class.active]="filterQuadrant() === 'puzzle'">
           <span class="count">{{ engineering.summary.puzzles }}</span>
           <span class="label">Puzzles</span>
         </div>
-        <div class="summary-card quadrant-dog" (click)="setFilter('dog')" [class.active]="filterQuadrant() === 'dog'">
+        <div class="summary-card quadrant-dog" (click)="setFilter('dog')" (keydown.enter)="setFilter('dog')" tabindex="0" role="button" [class.active]="filterQuadrant() === 'dog'">
           <span class="count">{{ engineering.summary.dogs }}</span>
           <span class="label">Dogs</span>
         </div>

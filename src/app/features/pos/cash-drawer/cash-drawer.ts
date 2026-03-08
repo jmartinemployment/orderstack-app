@@ -34,7 +34,7 @@ const DENOMINATION_ROWS: DenominationRow[] = [
   { key: 'fives', label: '$5', value: 5 },
   { key: 'ones', label: '$1', value: 1 },
   { key: 'quarters', label: '25¢', value: 0.25 },
-  { key: 'dimes', label: '10¢', value: 0.10 },
+  { key: 'dimes', label: '10¢', value: 0.1 },
   { key: 'nickels', label: '5¢', value: 0.05 },
   { key: 'pennies', label: '1¢', value: 0.01 },
 ];
@@ -230,7 +230,14 @@ export class CashDrawer {
 
   formatVariance(value: number): string {
     const abs = Math.abs(value);
-    const prefix = value > 0 ? '+$' : value < 0 ? '-$' : '$';
+    let prefix: string;
+    if (value > 0) {
+      prefix = '+$';
+    } else if (value < 0) {
+      prefix = '-$';
+    } else {
+      prefix = '$';
+    }
     return `${prefix}${abs.toFixed(2)}`;
   }
 }

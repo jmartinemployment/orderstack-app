@@ -795,43 +795,31 @@ export class MenuService {
   }
 
   async assignItemsToDaypart(itemIds: string[], daypartId: string): Promise<void> {
+    const addDaypart = (item: MenuItem): MenuItem => {
+      if (!itemIds.includes(item.id)) return item;
+      const existing = item.daypartIds ?? [];
+      if (existing.includes(daypartId)) return item;
+      return { ...item, daypartIds: [...existing, daypartId] };
+    };
     this._categories.update(cats =>
       cats.map(cat => ({
         ...cat,
-        items: cat.items?.map(item => {
-          if (!itemIds.includes(item.id)) return item;
-          const existing = item.daypartIds ?? [];
-          if (existing.includes(daypartId)) return item;
-          return { ...item, daypartIds: [...existing, daypartId] };
-        }),
-        subcategories: cat.subcategories?.map(sub => ({
-          ...sub,
-          items: sub.items?.map(item => {
-            if (!itemIds.includes(item.id)) return item;
-            const existing = item.daypartIds ?? [];
-            if (existing.includes(daypartId)) return item;
-            return { ...item, daypartIds: [...existing, daypartId] };
-          }),
-        })),
+        items: cat.items?.map(addDaypart),
+        subcategories: cat.subcategories?.map(sub => ({ ...sub, items: sub.items?.map(addDaypart) })),
       }))
     );
   }
 
   async removeItemsFromDaypart(itemIds: string[], daypartId: string): Promise<void> {
+    const removeDaypart = (item: MenuItem): MenuItem => {
+      if (!itemIds.includes(item.id)) return item;
+      return { ...item, daypartIds: (item.daypartIds ?? []).filter(id => id !== daypartId) };
+    };
     this._categories.update(cats =>
       cats.map(cat => ({
         ...cat,
-        items: cat.items?.map(item => {
-          if (!itemIds.includes(item.id)) return item;
-          return { ...item, daypartIds: (item.daypartIds ?? []).filter(id => id !== daypartId) };
-        }),
-        subcategories: cat.subcategories?.map(sub => ({
-          ...sub,
-          items: sub.items?.map(item => {
-            if (!itemIds.includes(item.id)) return item;
-            return { ...item, daypartIds: (item.daypartIds ?? []).filter(id => id !== daypartId) };
-          }),
-        })),
+        items: cat.items?.map(removeDaypart),
+        subcategories: cat.subcategories?.map(sub => ({ ...sub, items: sub.items?.map(removeDaypart) })),
       }))
     );
   }

@@ -262,7 +262,14 @@ export class CustomerDashboard {
     const tier = customer.loyaltyTier;
     if (tier === 'platinum') return 100;
     const thresholds = { bronze: 0, silver: config.tierSilverMin, gold: config.tierGoldMin, platinum: config.tierPlatinumMin };
-    const nextTier = tier === 'bronze' ? 'silver' : tier === 'silver' ? 'gold' : 'platinum';
+    let nextTier: 'silver' | 'gold' | 'platinum';
+    if (tier === 'bronze') {
+      nextTier = 'silver';
+    } else if (tier === 'silver') {
+      nextTier = 'gold';
+    } else {
+      nextTier = 'platinum';
+    }
     const current = thresholds[tier];
     const next = thresholds[nextTier];
     if (next <= current) return 100;
@@ -272,7 +279,9 @@ export class CustomerDashboard {
   getNextTierLabel(customer: Customer): string {
     const tier = customer.loyaltyTier;
     if (tier === 'platinum') return '';
-    return tier === 'bronze' ? 'Silver' : tier === 'silver' ? 'Gold' : 'Platinum';
+    if (tier === 'bronze') return 'Silver';
+    if (tier === 'silver') return 'Gold';
+    return 'Platinum';
   }
 
   onAdjustPointsInput(event: Event): void {

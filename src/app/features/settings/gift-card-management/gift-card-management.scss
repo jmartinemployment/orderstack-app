@@ -115,7 +115,7 @@
 // Status badges
 .gc-status-active { background-color: var(--os-success); color: #fff; }
 .gc-status-redeemed { background-color: #6c757d; color: #fff; }
-.gc-status-expired { background-color: #fd7e14; color: #fff; }
+.gc-status-expired { background-color: #fd7e14; color: #000; }
 .gc-status-disabled { background-color: var(--os-danger); color: #fff; }
 
 // Amount buttons

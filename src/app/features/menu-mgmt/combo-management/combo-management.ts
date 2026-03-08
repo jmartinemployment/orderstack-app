@@ -4,7 +4,7 @@ import { ComboService } from '@services/combo';
 import { MenuService } from '@services/menu';
 import { AuthService } from '@services/auth';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
-import { Combo, ComboFormData, ComboItem, MenuItem } from '@models/index';
+import { Combo, ComboFormData, MenuItem } from '@models/index';
 
 @Component({
   selector: 'os-combo-management',
@@ -53,7 +53,10 @@ export class ComboManagement {
   readonly regularPrice = computed(() =>
     this._formItems().reduce((sum, fi) => {
       const item = this.menuItems().find(m => m.id === fi.menuItemId);
-      const price = item ? (typeof item.price === 'string' ? Number.parseFloat(item.price) : item.price) : 0;
+      let price = 0;
+      if (item) {
+        price = typeof item.price === 'string' ? Number.parseFloat(item.price) : item.price;
+      }
       return sum + (price * fi.quantity);
     }, 0)
   );

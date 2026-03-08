@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import {
   LocationGroup,
@@ -96,12 +96,16 @@ export class MultiLocationService {
     try {
       const groups = await firstValueFrom(
         this.http.get<LocationGroup[]>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups`
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups`
         )
       );
       this._groups.set(groups);
-    } catch {
-      this._error.set('Failed to load location groups');
+    } catch (err: unknown) {
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._groups.set([]);
+      } else {
+        this._error.set('Failed to load location groups');
+      }
     } finally {
       this._isLoading.set(false);
     }
@@ -113,7 +117,7 @@ export class MultiLocationService {
     try {
       const group = await firstValueFrom(
         this.http.post<LocationGroup>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups`,
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups`,
           data
         )
       );
@@ -131,7 +135,7 @@ export class MultiLocationService {
     try {
       const updated = await firstValueFrom(
         this.http.patch<LocationGroup>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${id}`,
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${id}`,
           data
         )
       );
@@ -147,7 +151,7 @@ export class MultiLocationService {
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${id}`
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${id}`
         )
       );
       this._groups.update(list => list.filter(g => g.id !== id));
@@ -162,7 +166,7 @@ export class MultiLocationService {
     try {
       const members = await firstValueFrom(
         this.http.get<LocationGroupMember[]>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${groupId}/members`
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${groupId}/members`
         )
       );
       this._groupMembers.update(map => {
@@ -181,7 +185,7 @@ export class MultiLocationService {
     try {
       const member = await firstValueFrom(
         this.http.post<LocationGroupMember>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${groupId}/members`,
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${groupId}/members`,
           { merchantId }
         )
       );
@@ -202,7 +206,7 @@ export class MultiLocationService {
     try {
       await firstValueFrom(
         this.http.delete(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${groupId}/members/${memberId}`
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${groupId}/members/${memberId}`
         )
       );
       this._groupMembers.update(map => {
@@ -225,7 +229,7 @@ export class MultiLocationService {
     try {
       const report = await firstValueFrom(
         this.http.get<CrossLocationReport>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/cross-location-report`,
+          `${this.apiUrl}/merchant-groups/${this.groupId}/cross-location-report`,
           { params: { days: days.toString() } }
         )
       );
@@ -240,8 +244,12 @@ export class MultiLocationService {
           avgFoodCostPercent: 0,
         },
       });
-    } catch {
-      this._error.set('Failed to load cross-location report');
+    } catch (err: unknown) {
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._crossLocationReport.set(null);
+      } else {
+        this._error.set('Failed to load cross-location report');
+      }
     } finally {
       this._isLoading.set(false);
     }
@@ -256,7 +264,7 @@ export class MultiLocationService {
     try {
       const preview = await firstValueFrom(
         this.http.post<MenuSyncPreview>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/sync-menu/preview`,
+          `${this.apiUrl}/merchant-groups/${this.groupId}/sync-menu/preview`,
           { sourceRestaurantId, targetRestaurantIds }
         )
       );
@@ -275,7 +283,7 @@ export class MultiLocationService {
     try {
       const result = await firstValueFrom(
         this.http.post<MenuSyncResult>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/sync-menu`,
+          `${this.apiUrl}/merchant-groups/${this.groupId}/sync-menu`,
           { sourceRestaurantId, targetRestaurantIds }
         )
       );
@@ -296,12 +304,16 @@ export class MultiLocationService {
     try {
       const history = await firstValueFrom(
         this.http.get<MenuSyncHistory>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/sync-menu/history`
+          `${this.apiUrl}/merchant-groups/${this.groupId}/sync-menu/history`
         )
       );
       this._syncHistory.set(history.syncs);
-    } catch {
-      this._error.set('Failed to load sync history');
+    } catch (err: unknown) {
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._syncHistory.set([]);
+      } else {
+        this._error.set('Failed to load sync history');
+      }
     }
   }
 
@@ -318,7 +330,7 @@ export class MultiLocationService {
     try {
       await firstValueFrom(
         this.http.post(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/propagate-settings`,
+          `${this.apiUrl}/merchant-groups/${this.groupId}/propagate-settings`,
           data
         )
       );
@@ -342,12 +354,16 @@ export class MultiLocationService {
     try {
       const staff = await firstValueFrom(
         this.http.get<CrossLocationStaffMember[]>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/staff`
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${lgId}/staff`
         )
       );
       this._crossLocationStaff.set(staff);
-    } catch {
-      this._error.set('Failed to load cross-location staff');
+    } catch (err: unknown) {
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._crossLocationStaff.set([]);
+      } else {
+        this._error.set('Failed to load cross-location staff');
+      }
     } finally {
       this._isLoadingStaff.set(false);
     }
@@ -359,7 +375,7 @@ export class MultiLocationService {
     try {
       const transfer = await firstValueFrom(
         this.http.post<StaffTransfer>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/staff/transfer`,
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${lgId}/staff/transfer`,
           { teamMemberId, fromRestaurantId: fromId, toRestaurantId: toId }
         )
       );
@@ -384,12 +400,16 @@ export class MultiLocationService {
     try {
       const inventory = await firstValueFrom(
         this.http.get<CrossLocationInventoryItem[]>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/inventory`
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${lgId}/inventory`
         )
       );
       this._crossLocationInventory.set(inventory);
-    } catch {
-      this._error.set('Failed to load cross-location inventory');
+    } catch (err: unknown) {
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._crossLocationInventory.set([]);
+      } else {
+        this._error.set('Failed to load cross-location inventory');
+      }
     } finally {
       this._isLoadingInventory.set(false);
     }
@@ -401,7 +421,7 @@ export class MultiLocationService {
     try {
       const transfer = await firstValueFrom(
         this.http.post<InventoryTransfer>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/inventory/transfer`,
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${lgId}/inventory/transfer`,
           data
         )
       );
@@ -417,12 +437,16 @@ export class MultiLocationService {
     try {
       const transfers = await firstValueFrom(
         this.http.get<InventoryTransfer[]>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/inventory/transfers`
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${lgId}/inventory/transfers`
         )
       );
       this._inventoryTransfers.set(transfers);
-    } catch {
-      this._error.set('Failed to load inventory transfers');
+    } catch (err: unknown) {
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._inventoryTransfers.set([]);
+      } else {
+        this._error.set('Failed to load inventory transfers');
+      }
     }
   }
 
@@ -435,12 +459,16 @@ export class MultiLocationService {
     try {
       const health = await firstValueFrom(
         this.http.get<LocationHealth[]>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/health`
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${lgId}/health`
         )
       );
       this._locationHealth.set(health);
-    } catch {
-      this._error.set('Failed to load location health');
+    } catch (err: unknown) {
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._locationHealth.set([]);
+      } else {
+        this._error.set('Failed to load location health');
+      }
     } finally {
       this._isLoadingHealth.set(false);
     }
@@ -454,12 +482,16 @@ export class MultiLocationService {
     try {
       const campaigns = await firstValueFrom(
         this.http.get<GroupCampaign[]>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/campaigns`
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${lgId}/campaigns`
         )
       );
       this._groupCampaigns.set(campaigns);
-    } catch {
-      this._error.set('Failed to load group campaigns');
+    } catch (err: unknown) {
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._groupCampaigns.set([]);
+      } else {
+        this._error.set('Failed to load group campaigns');
+      }
     }
   }
 
@@ -469,7 +501,7 @@ export class MultiLocationService {
     try {
       const campaign = await firstValueFrom(
         this.http.post<GroupCampaign>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/campaigns`,
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${lgId}/campaigns`,
           data
         )
       );
@@ -512,12 +544,16 @@ export class MultiLocationService {
     try {
       const data = await firstValueFrom(
         this.http.get<LocationBenchmark[]>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/benchmarks`
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${lgId}/benchmarks`
         )
       );
       this._benchmarks.set(data);
-    } catch {
-      this._error.set('Failed to load benchmarks');
+    } catch (err: unknown) {
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._benchmarks.set([]);
+      } else {
+        this._error.set('Failed to load benchmarks');
+      }
     } finally {
       this._isLoadingBenchmarks.set(false);
     }
@@ -530,12 +566,16 @@ export class MultiLocationService {
     try {
       const data = await firstValueFrom(
         this.http.get<LocationCompliance[]>(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/compliance`
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${lgId}/compliance`
         )
       );
       this._compliance.set(data);
-    } catch {
-      this._error.set('Failed to load compliance data');
+    } catch (err: unknown) {
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._compliance.set([]);
+      } else {
+        this._error.set('Failed to load compliance data');
+      }
     } finally {
       this._isLoadingCompliance.set(false);
     }
@@ -547,7 +587,7 @@ export class MultiLocationService {
     try {
       await firstValueFrom(
         this.http.patch(
-          `${this.apiUrl}/restaurant-groups/${this.groupId}/location-groups/${lgId}/compliance/${merchantId}/resolve`,
+          `${this.apiUrl}/merchant-groups/${this.groupId}/location-groups/${lgId}/compliance/${merchantId}/resolve`,
           { checkId }
         )
       );

@@ -33,11 +33,11 @@
     @if (!orderConfirmed()) {
       <div class="steps d-flex gap-1 mt-2">
         @if (isMultiLocation()) {
-          <div class="step-dot" [class.active]="step() === 'location'" (click)="changeLocation()"></div>
+          <button type="button" class="step-dot" aria-label="Go to location selection" [class.active]="step() === 'location'" (click)="changeLocation()"></button>
         }
-        <div class="step-dot" [class.active]="step() === 'menu'" (click)="setStep('menu')"></div>
-        <div class="step-dot" [class.active]="step() === 'cart'"></div>
-        <div class="step-dot" [class.active]="step() === 'info'"></div>
+        <button type="button" class="step-dot" aria-label="Go to menu" [class.active]="step() === 'menu'" (click)="setStep('menu')"></button>
+        <button type="button" class="step-dot" aria-label="Go to cart" [class.active]="step() === 'cart'" (click)="setStep('cart')"></button>
+        <button type="button" class="step-dot" aria-label="Go to checkout" [class.active]="step() === 'info'" (click)="setStep('info')"></button>
       </div>
     }
   </div>
@@ -143,6 +143,7 @@
           type="text"
           class="form-control search-input"
           placeholder="Search menu..."
+          aria-label="Search menu"
           [value]="searchTerm()"
           (input)="onSearch($event)"
         />
@@ -189,7 +190,7 @@
               <img [src]="item.thumbnailUrl || item.imageUrl || item.image" [alt]="item.name"
                 class="menu-item-image" loading="lazy" />
             }
-            <div class="item-info" (click)="toggleItemExpanded(item.id)">
+            <div class="item-info" (click)="toggleItemExpanded(item.id)" (keydown.enter)="toggleItemExpanded(item.id)" tabindex="0" role="button">
               <div class="item-name">{{ item.name }}</div>
               @if (item.description) {
                 <div class="item-desc">{{ item.description }}</div>
@@ -252,14 +253,14 @@
                 <span class="unavailable-label">Unavailable</span>
               } @else if (getItemQuantity(item.id) > 0) {
                 <div class="qty-control">
-                  <button type="button" class="qty-btn" (click)="decrementItem(item.id)">-</button>
+                  <button type="button" class="qty-btn" aria-label="Decrease quantity" (click)="decrementItem(item.id)">-</button>
                   <span class="qty-value">{{ getItemQuantity(item.id) }}</span>
-                  <button type="button" class="qty-btn" (click)="incrementItem(item.id)">+</button>
+                  <button type="button" class="qty-btn" aria-label="Increase quantity" (click)="incrementItem(item.id)">+</button>
                 </div>
               } @else {
                 <div class="d-flex align-items-center gap-1">
                   <button type="button" class="add-btn" (click)="addToCart(item)">Add</button>
-                  <button type="button" class="share-btn" (click)="shareItem(item); $event.stopPropagation()">
+                  <button type="button" class="share-btn" aria-label="Share item" (click)="shareItem(item); $event.stopPropagation()">
                     @if (isItemCopied(item.id)) {
                       <i class="bi bi-check-lg"></i>
                     } @else {
@@ -279,7 +280,7 @@
 
       <!-- Floating Cart Bar -->
       @if (cartItemCount() > 0) {
-        <div class="floating-cart" (click)="goToCart()">
+        <div class="floating-cart" (click)="goToCart()" (keydown.enter)="goToCart()" tabindex="0" role="button">
           <span>View Cart ({{ cartItemCount() }} items)</span>
           <span class="fw-bold">{{ cartTotal() | currency }}</span>
         </div>
@@ -309,9 +310,9 @@
                 </div>
                 <div class="cart-item-controls">
                   <div class="qty-control">
-                    <button type="button" class="qty-btn" (click)="decrementItem(item.menuItem.id)">-</button>
+                    <button type="button" class="qty-btn" aria-label="Decrease quantity" (click)="decrementItem(item.menuItem.id)">-</button>
                     <span class="qty-value">{{ item.quantity }}</span>
-                    <button type="button" class="qty-btn" (click)="incrementItem(item.menuItem.id)">+</button>
+                    <button type="button" class="qty-btn" aria-label="Increase quantity" (click)="incrementItem(item.menuItem.id)">+</button>
                   </div>
                   <button type="button" class="remove-btn" (click)="removeFromCart(item.id)">Remove</button>
                 </div>
@@ -473,26 +474,26 @@
         @if (!isTableside()) {
           <div class="row mb-3">
             <div class="col-6">
-              <label class="form-label">First Name *</label>
-              <input type="text" class="form-control" [value]="customerFirstName()" (input)="onFieldInput('firstName', $event)" placeholder="First name" />
+              <label class="form-label" for="oop-first-name">First Name *</label>
+              <input id="oop-first-name" type="text" class="form-control" [value]="customerFirstName()" (input)="onFieldInput('firstName', $event)" placeholder="First name" />
             </div>
             <div class="col-6">
-              <label class="form-label">Last Name *</label>
-              <input type="text" class="form-control" [value]="customerLastName()" (input)="onFieldInput('lastName', $event)" placeholder="Last name" />
+              <label class="form-label" for="oop-last-name">Last Name *</label>
+              <input id="oop-last-name" type="text" class="form-control" [value]="customerLastName()" (input)="onFieldInput('lastName', $event)" placeholder="Last name" />
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Phone *</label>
-            <input type="tel" class="form-control" [value]="customerPhone()" (input)="onFieldInput('phone', $event)" placeholder="(555) 123-4567" />
+            <label class="form-label" for="oop-phone">Phone *</label>
+            <input id="oop-phone" type="tel" class="form-control" [value]="customerPhone()" (input)="onFieldInput('phone', $event)" placeholder="(555) 123-4567" />
           </div>
           <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input type="email" class="form-control" [value]="customerEmail()" (input)="onFieldInput('email', $event)" placeholder="you@email.com" />
+            <label class="form-label" for="oop-email">Email</label>
+            <input id="oop-email" type="email" class="form-control" [value]="customerEmail()" (input)="onFieldInput('email', $event)" placeholder="you@email.com" />
           </div>
         } @else {
           <div class="mb-3">
-            <label class="form-label">Phone (for loyalty rewards)</label>
-            <input type="tel" class="form-control" [value]="customerPhone()" (input)="onFieldInput('phone', $event)" placeholder="(555) 123-4567" />
+            <label class="form-label" for="oop-phone-loyalty">Phone (for loyalty rewards)</label>
+            <input id="oop-phone-loyalty" type="tel" class="form-control" [value]="customerPhone()" (input)="onFieldInput('phone', $event)" placeholder="(555) 123-4567" />
           </div>
         }
 
@@ -506,7 +507,7 @@
             @if (showRecentOrders()) {
               <div class="recent-orders-list">
                 @for (order of recentOrders(); track order.guid) {
-                  <div class="recent-order-card" (click)="reorderFromPast(order)">
+                  <div class="recent-order-card" (click)="reorderFromPast(order)" (keydown.enter)="reorderFromPast(order)" tabindex="0" role="button">
                     <div class="recent-order-header">
                       <span class="recent-order-date">{{ order.timestamps.createdDate | date:'MMM d' }}</span>
                       <span class="recent-order-total">{{ order.totalAmount | currency }}</span>
@@ -573,26 +574,26 @@
           @if (!selectedAddressId()) {
             <div class="mb-3">
               @if (savedAddresses().length === 0) {
-                <label class="form-label">Street Address *</label>
+                <label class="form-label" for="oop-address">Street Address *</label>
               }
-              <input type="text" class="form-control" [value]="deliveryAddress()" (input)="onFieldInput('address', $event)" placeholder="123 Main St" />
+              <input id="oop-address" type="text" class="form-control" [value]="deliveryAddress()" (input)="onFieldInput('address', $event)" placeholder="123 Main St" />
             </div>
             <div class="mb-3">
-              <label class="form-label">Apt / Suite</label>
-              <input type="text" class="form-control" [value]="deliveryAddress2()" (input)="onFieldInput('address2', $event)" placeholder="Apt 4B" />
+              <label class="form-label" for="oop-address2">Apt / Suite</label>
+              <input id="oop-address2" type="text" class="form-control" [value]="deliveryAddress2()" (input)="onFieldInput('address2', $event)" placeholder="Apt 4B" />
             </div>
             <div class="row mb-3">
               <div class="col-5">
-                <label class="form-label">City *</label>
-                <input type="text" class="form-control" [value]="deliveryCity()" (input)="onFieldInput('city', $event)" placeholder="City" />
+                <label class="form-label" for="oop-city">City *</label>
+                <input id="oop-city" type="text" class="form-control" [value]="deliveryCity()" (input)="onFieldInput('city', $event)" placeholder="City" />
               </div>
               <div class="col-3">
-                <label class="form-label">State *</label>
-                <input type="text" class="form-control" [value]="deliveryStateUS()" (input)="onFieldInput('stateUS', $event)" placeholder="FL" maxlength="2" />
+                <label class="form-label" for="oop-state">State *</label>
+                <input id="oop-state" type="text" class="form-control" [value]="deliveryStateUS()" (input)="onFieldInput('stateUS', $event)" placeholder="FL" maxlength="2" />
               </div>
               <div class="col-4">
-                <label class="form-label">ZIP *</label>
-                <input type="text" class="form-control" [value]="deliveryZip()" (input)="onFieldInput('zip', $event)" placeholder="33301" maxlength="10" />
+                <label class="form-label" for="oop-zip">ZIP *</label>
+                <input id="oop-zip" type="text" class="form-control" [value]="deliveryZip()" (input)="onFieldInput('zip', $event)" placeholder="33301" maxlength="10" />
               </div>
             </div>
 
@@ -608,6 +609,7 @@
                     <input
                       type="text"
                       class="form-control form-control-sm"
+                      aria-label="Address label"
                       [value]="newAddressLabel()"
                       (input)="onFieldInput('addressLabel', $event)"
                       placeholder="Label (Home, Work, etc.)"
@@ -620,22 +622,22 @@
           }
 
           <div class="mb-3">
-            <label class="form-label">Delivery Notes</label>
-            <input type="text" class="form-control" [value]="deliveryNotes()" (input)="onFieldInput('deliveryNotes', $event)" placeholder="Gate code, building entrance, etc." />
+            <label class="form-label" for="oop-delivery-notes">Delivery Notes</label>
+            <input id="oop-delivery-notes" type="text" class="form-control" [value]="deliveryNotes()" (input)="onFieldInput('deliveryNotes', $event)" placeholder="Gate code, building entrance, etc." />
           </div>
         }
 
         @if (orderType() === 'curbside') {
           <div class="mb-3">
-            <label class="form-label">Vehicle Description *</label>
-            <input type="text" class="form-control" [value]="vehicleDescription()" (input)="onFieldInput('vehicle', $event)" placeholder="Red Toyota Camry" />
+            <label class="form-label" for="oop-vehicle">Vehicle Description *</label>
+            <input id="oop-vehicle" type="text" class="form-control" [value]="vehicleDescription()" (input)="onFieldInput('vehicle', $event)" placeholder="Red Toyota Camry" />
             <small class="form-text text-muted">Help us find you — color, make, and model</small>
           </div>
         }
 
         <div class="mb-3">
-          <label class="form-label">Special Instructions</label>
-          <textarea class="form-control" rows="2" [value]="specialInstructions()" (input)="onFieldInput('instructions', $event)" placeholder="Any special requests..."></textarea>
+          <label class="form-label" for="oop-instructions">Special Instructions</label>
+          <textarea id="oop-instructions" class="form-control" rows="2" [value]="specialInstructions()" (input)="onFieldInput('instructions', $event)" placeholder="Any special requests..."></textarea>
         </div>
 
         <!-- Loyalty Program -->
@@ -665,6 +667,7 @@
                     <input
                       type="number"
                       class="form-control form-control-sm redeem-input"
+                      aria-label="Points to redeem"
                       [value]="pointsToRedeem()"
                       (input)="onPointsToRedeemInput($event)"
                       min="0"
@@ -717,6 +720,7 @@
               type="text"
               class="form-control form-control-sm"
               placeholder="Enter gift card code"
+              aria-label="Gift card code"
               [value]="giftCardCode()"
               (input)="onGiftCardCodeInput($event)"
             />
@@ -748,6 +752,7 @@
                       type="number"
                       class="form-control form-control-sm"
                       style="max-width: 80px;"
+                      aria-label="Gift card amount to apply"
                       [value]="giftCardAmount()"
                       (input)="onGiftCardAmountInput($event)"
                       min="0"
@@ -801,6 +806,7 @@
                 class="form-control form-control-sm"
                 min="0"
                 step="0.01"
+                aria-label="Custom tip amount"
                 [value]="customTipAmount()"
                 (input)="onCustomTipInput($event)"
                 placeholder="0.00"
@@ -886,7 +892,7 @@
 
     <!-- AGE VERIFICATION MODAL -->
     @if (showAgeVerification()) {
-      <div class="modal-backdrop" (click)="cancelAgeVerification()"></div>
+      <div class="modal-backdrop" (click)="cancelAgeVerification()" (keydown.enter)="cancelAgeVerification()" tabindex="0" role="button"></div>
       <div class="age-modal">
         <div class="age-modal-icon"><i class="bi bi-shield-check"></i></div>
         <h3>Age Verification</h3>

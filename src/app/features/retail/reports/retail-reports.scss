@@ -470,12 +470,12 @@
 
   &.high {
     background: #dcfce7;
-    color: #16a34a;
+    color: #15803d;
   }
 
   &.low {
     background: #fef2f2;
-    color: #dc2626;
+    color: #b91c1c;
   }
 }
 
@@ -635,7 +635,7 @@
   &.alert-danger {
     background: #fef2f2;
     border: 1px solid #fecaca;
-    color: #dc2626;
+    color: #b91c1c;
   }
 }
 
@@ -912,17 +912,17 @@
 
   &.confidence-high {
     background: #dcfce7;
-    color: #16a34a;
+    color: #15803d;
   }
 
   &.confidence-medium {
     background: #fef3c7;
-    color: #d97706;
+    color: #b45309;
   }
 
   &.confidence-low {
     background: #fef2f2;
-    color: #dc2626;
+    color: #b91c1c;
   }
 }
 
@@ -963,17 +963,17 @@
 
   &.stockout-critical {
     background: #fef2f2;
-    color: #dc2626;
+    color: #b91c1c;
   }
 
   &.stockout-warning {
     background: #fff7ed;
-    color: #ea580c;
+    color: #c2410c;
   }
 
   &.stockout-caution {
     background: #fef3c7;
-    color: #d97706;
+    color: #b45309;
   }
 }
 
@@ -987,7 +987,7 @@
 
   &.season-peak {
     background: #dcfce7;
-    color: #16a34a;
+    color: #15803d;
   }
 
   &.season-normal {

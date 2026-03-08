@@ -8,9 +8,7 @@ import {
   BusinessCategory,
   BUSINESS_CATEGORIES,
   REVENUE_RANGES,
-  BUSINESS_VERTICAL_CATALOG,
   DEVICE_POS_MODE_CATALOG,
-  defaultBusinessAddress,
   defaultTaxLocaleConfig,
   defaultBusinessHours,
   PLAN_TIERS,
@@ -804,7 +802,7 @@ export class SetupWizard implements OnInit {
   });
 
   // --- Popstate listener for browser back ---
-  private popstateHandler = (event: PopStateEvent): void => {
+  private readonly popstateHandler = (event: PopStateEvent): void => {
     const step = this._currentStep();
     if (step > 1) {
       event.preventDefault();
@@ -832,9 +830,9 @@ export class SetupWizard implements OnInit {
     }
 
     history.pushState({ step: this._currentStep() }, '');
-    window.addEventListener('popstate', this.popstateHandler);
+    globalThis.addEventListener('popstate', this.popstateHandler);
     this.destroyRef.onDestroy(() => {
-      window.removeEventListener('popstate', this.popstateHandler);
+      globalThis.removeEventListener('popstate', this.popstateHandler);
     });
   }
 
@@ -935,7 +933,8 @@ export class SetupWizard implements OnInit {
 
   setProviderCredential(providerId: string, fieldKey: string, value: string): void {
     this._providerCredentials.update(creds => {
-      const providerCreds = { ...(creds[providerId] ?? {}), [fieldKey]: value };
+      const existing = creds[providerId] ?? Object.create(null) as Record<string, string>;
+      const providerCreds = { ...existing, [fieldKey]: value };
       return { ...creds, [providerId]: providerCreds };
     });
   }
@@ -987,39 +986,41 @@ export class SetupWizard implements OnInit {
     this._submitError.set(null);
 
     const detectedMode = this.autoDetectedMode();
-    const user = this.authService.user();
+    const bizAddress = this.buildBusinessAddress();
+    const payload = this.buildOnboardingPayload(detectedMode, bizAddress);
 
-    // Build business address
-    let bizAddress: BusinessAddress;
-    if (this._bizNoPhysical()) {
-      bizAddress = {
-        street: '',
-        street2: null,
-        city: '',
-        state: '',
-        zip: '',
-        country: 'US',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        phone: null,
-        lat: null,
-        lng: null,
-      };
+    const result = await this.platformService.completeOnboarding(payload);
+    this._isSubmitting.set(false);
+
+    if (result) {
+      await this.handleOnboardingSuccess(result, payload, detectedMode);
     } else {
-      bizAddress = {
-        street: this._bizStreet(),
-        street2: this._bizStreet2() || null,
-        city: this._bizCity(),
-        state: this._bizState(),
-        zip: this._bizZip(),
-        country: 'US',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        phone: null,
-        lat: null,
-        lng: null,
-      };
+      this._submitError.set(this.platformService.error() ?? 'Something went wrong');
     }
+  }
 
-    const payload: OnboardingPayload = {
+  private buildBusinessAddress(): BusinessAddress {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (this._bizNoPhysical()) {
+      return { street: '', street2: null, city: '', state: '', zip: '', country: 'US', timezone: tz, phone: null, lat: null, lng: null };
+    }
+    return {
+      street: this._bizStreet(),
+      street2: this._bizStreet2() || null,
+      city: this._bizCity(),
+      state: this._bizState(),
+      zip: this._bizZip(),
+      country: 'US',
+      timezone: tz,
+      phone: null,
+      lat: null,
+      lng: null,
+    };
+  }
+
+  private buildOnboardingPayload(detectedMode: DevicePosMode, bizAddress: BusinessAddress): OnboardingPayload {
+    const user = this.authService.user();
+    return {
       businessName: this._businessName(),
       address: bizAddress,
       verticals: this.selectedVerticals(),
@@ -1039,69 +1040,61 @@ export class SetupWizard implements OnInit {
       ownerEmail: user?.email ?? '',
       ownerPassword: '',
     };
+  }
 
-    const result = await this.platformService.completeOnboarding(payload);
+  private async handleOnboardingSuccess(result: Record<string, unknown>, payload: OnboardingPayload, detectedMode: DevicePosMode): Promise<void> {
+    const resolvedMerchantId: string | undefined =
+      (result['merchantId'] as string | undefined) ||
+      (result['restaurant'] as Record<string, unknown> | undefined)?.['id'] as string | undefined ||
+      (result['restaurant'] as Record<string, unknown> | undefined)?.['merchantId'] as string | undefined;
 
-    this._isSubmitting.set(false);
+    if (!resolvedMerchantId || resolvedMerchantId === 'undefined') {
+      console.error('[SetupWizard] completeOnboarding returned no valid merchantId. Full result:', result);
+      this._submitError.set('Onboarding completed but merchant ID was not returned. Please refresh and try again.');
+      this._isSubmitting.set(false);
+      return;
+    }
 
-    if (result) {
-      const resolvedMerchantId: string | undefined =
-        result.merchantId ||
-        (result.restaurant?.['id'] as string | undefined) ||
-        (result.restaurant?.['merchantId'] as string | undefined);
+    this.authService.selectMerchant(resolvedMerchantId, payload.businessName);
+    this.platformService.persistCurrentProfile();
+    this._onboardingDone.set(true);
 
-      if (!resolvedMerchantId || resolvedMerchantId === 'undefined') {
-        console.error('[SetupWizard] completeOnboarding returned no valid merchantId. Full result:', result);
-        this._submitError.set('Onboarding completed but merchant ID was not returned. Please refresh and try again.');
-        this._isSubmitting.set(false);
-        return;
-      }
+    const device = await this.deviceService.registerBrowserDevice(detectedMode);
+    if (device) {
+      this.platformService.setDeviceModeFromDevice(detectedMode);
+    }
 
-      this.authService.selectMerchant(resolvedMerchantId, payload.businessName);
-      // Re-persist the merchant profile now that selectedMerchantId is set
-      // (buildProfileFromPayload ran before selectMerchant, so persistProfile
-      // silently skipped due to empty merchantId)
-      this.platformService.persistCurrentProfile();
-      this._onboardingDone.set(true);
+    await this.seedFoodAndDrinkDefaults();
+  }
 
-      // Register device in background
-      const device = await this.deviceService.registerBrowserDevice(detectedMode);
-      if (device) {
-        this.platformService.setDeviceModeFromDevice(detectedMode);
-      }
+  private async seedFoodAndDrinkDefaults(): Promise<void> {
+    if (this.effectivePrimaryVertical() !== 'food_and_drink') return;
 
-      // Seed default menu schedule for food & drink businesses
-      if (this.effectivePrimaryVertical() === 'food_and_drink') {
-        await this.menuService.createMenuSchedule({
-          name: 'Default Schedule',
-          isDefault: true,
-          dayparts: [
-            { name: 'Breakfast', startTime: '06:00', endTime: '11:00', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], isActive: true, displayOrder: 0 },
-            { name: 'Lunch', startTime: '11:00', endTime: '16:00', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], isActive: true, displayOrder: 1 },
-            { name: 'Dinner', startTime: '16:00', endTime: '23:00', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], isActive: true, displayOrder: 2 },
-          ],
+    await this.menuService.createMenuSchedule({
+      name: 'Default Schedule',
+      isDefault: true,
+      dayparts: [
+        { name: 'Breakfast', startTime: '06:00', endTime: '11:00', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], isActive: true, displayOrder: 0 },
+        { name: 'Lunch', startTime: '11:00', endTime: '16:00', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], isActive: true, displayOrder: 1 },
+        { name: 'Dinner', startTime: '16:00', endTime: '23:00', daysOfWeek: [0, 1, 2, 3, 4, 5, 6], isActive: true, displayOrder: 2 },
+      ],
+    });
+
+    const cuisine = this._selectedCuisine();
+    if (cuisine) {
+      const templates = CUISINE_INVENTORY_MAP[cuisine] ?? [];
+      for (const tmpl of templates) {
+        await this.inventoryService.createItem({
+          name: tmpl.name,
+          unit: tmpl.unit,
+          category: tmpl.category,
+          currentStock: 0,
+          minStock: tmpl.minStock,
+          maxStock: tmpl.minStock * 3,
+          costPerUnit: 0,
+          supplier: null,
         });
-
-        // Seed inventory items based on selected cuisine
-        const cuisine = this._selectedCuisine();
-        if (cuisine) {
-          const templates = CUISINE_INVENTORY_MAP[cuisine] ?? [];
-          for (const tmpl of templates) {
-            await this.inventoryService.createItem({
-              name: tmpl.name,
-              unit: tmpl.unit,
-              category: tmpl.category,
-              currentStock: 0,
-              minStock: tmpl.minStock,
-              maxStock: tmpl.minStock * 3,
-              costPerUnit: 0,
-              supplier: null,
-            });
-          }
-        }
       }
-    } else {
-      this._submitError.set(this.platformService.error() ?? 'Something went wrong');
     }
   }
 

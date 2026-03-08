@@ -77,8 +77,8 @@
               <table class="table table-sm table-bordered mb-0">
                 <thead>
                   <tr>
-                    <th>Requirement</th>
-                    <th class="text-end">Count</th>
+                    <th scope="col">Requirement</th>
+                    <th scope="col" class="text-end">Count</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -107,25 +107,25 @@
                 <tbody>
                   @if (dd.loadTime) {
                     <tr>
-                      <th><i class="bi bi-box-seam me-1"></i> Load</th>
+                      <th scope="row"><i class="bi bi-box-seam me-1"></i> Load</th>
                       <td>{{ dd.loadTime }}</td>
                     </tr>
                   }
                   @if (dd.departureTime) {
                     <tr>
-                      <th><i class="bi bi-truck me-1"></i> Depart</th>
+                      <th scope="row"><i class="bi bi-truck me-1"></i> Depart</th>
                       <td>{{ dd.departureTime }}</td>
                     </tr>
                   }
                   @if (dd.arrivalTime) {
                     <tr>
-                      <th><i class="bi bi-geo-alt me-1"></i> Arrive</th>
+                      <th scope="row"><i class="bi bi-geo-alt me-1"></i> Arrive</th>
                       <td>{{ dd.arrivalTime }}</td>
                     </tr>
                   }
                   @if (dd.setupTime) {
                     <tr>
-                      <th><i class="bi bi-tools me-1"></i> Setup</th>
+                      <th scope="row"><i class="bi bi-tools me-1"></i> Setup</th>
                       <td>{{ dd.setupTime }}</td>
                     </tr>
                   }

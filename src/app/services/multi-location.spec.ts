@@ -117,3 +117,144 @@ describe('MultiLocationService — member mutations', () => {
     expect(removeMember(members, 'm-1')).toHaveLength(0);
   });
 });
+
+// --- BUG-30: API route path mismatch (restaurant-groups → merchant-groups) ---
+
+describe('MultiLocationService — API route paths (BUG-30)', () => {
+  // Read the service source to verify all API paths use merchant-groups
+  const { readFileSync } = require('node:fs');
+  const { resolve } = require('node:path');
+  const serviceSource = readFileSync(
+    resolve(__dirname, 'multi-location.ts'),
+    'utf-8',
+  );
+
+  it('uses /merchant-groups/ in all API URLs (not /restaurant-groups/)', () => {
+    expect(serviceSource).not.toContain('/restaurant-groups/');
+  });
+
+  it('location-groups endpoint uses merchant-groups prefix', () => {
+    expect(serviceSource).toContain('/merchant-groups/${this.groupId}/location-groups');
+  });
+
+  it('cross-location-report endpoint uses merchant-groups prefix', () => {
+    expect(serviceSource).toContain('/merchant-groups/${this.groupId}/cross-location-report');
+  });
+
+  it('sync-menu/history endpoint uses merchant-groups prefix', () => {
+    expect(serviceSource).toContain('/merchant-groups/${this.groupId}/sync-menu/history');
+  });
+
+  it('sync-menu/preview endpoint uses merchant-groups prefix', () => {
+    expect(serviceSource).toContain('/merchant-groups/${this.groupId}/sync-menu/preview');
+  });
+
+  it('sync-menu (execute) endpoint uses merchant-groups prefix', () => {
+    expect(serviceSource).toContain('/merchant-groups/${this.groupId}/sync-menu`');
+  });
+
+  it('propagate-settings endpoint uses merchant-groups prefix', () => {
+    expect(serviceSource).toContain('/merchant-groups/${this.groupId}/propagate-settings');
+  });
+
+  it('staff endpoints use merchant-groups prefix', () => {
+    expect(serviceSource).toContain('/merchant-groups/${this.groupId}/location-groups/${lgId}/staff');
+  });
+
+  it('inventory endpoints use merchant-groups prefix', () => {
+    expect(serviceSource).toContain('/merchant-groups/${this.groupId}/location-groups/${lgId}/inventory');
+  });
+
+  it('health endpoint uses merchant-groups prefix', () => {
+    expect(serviceSource).toContain('/merchant-groups/${this.groupId}/location-groups/${lgId}/health');
+  });
+
+  it('campaigns endpoint uses merchant-groups prefix', () => {
+    expect(serviceSource).toContain('/merchant-groups/${this.groupId}/location-groups/${lgId}/campaigns');
+  });
+
+  it('benchmarks endpoint uses merchant-groups prefix', () => {
+    expect(serviceSource).toContain('/merchant-groups/${this.groupId}/location-groups/${lgId}/benchmarks');
+  });
+
+  it('compliance endpoint uses merchant-groups prefix', () => {
+    expect(serviceSource).toContain('/merchant-groups/${this.groupId}/location-groups/${lgId}/compliance');
+  });
+
+  it('all group-scoped API calls use merchant-groups (not restaurant-groups)', () => {
+    // Extract all URL template literals from the source
+    const urlMatches = serviceSource.match(/`\$\{this\.apiUrl\}\/[^`]+`/g) ?? [];
+    // Exclude /online/locations/ which is a separate public endpoint
+    const groupUrls = urlMatches.filter(u => !u.includes('/online/'));
+    for (const url of groupUrls) {
+      expect(url, `URL should use merchant-groups: ${url}`).toContain('merchant-groups');
+      expect(url, `URL should NOT use restaurant-groups: ${url}`).not.toContain('restaurant-groups');
+    }
+  });
+});
+
+// --- BUG-33: 404-tolerant error handling for all multi-location methods ---
+
+describe('MultiLocationService — 404 tolerance (BUG-33)', () => {
+  const { readFileSync } = require('node:fs');
+  const { resolve } = require('node:path');
+  const serviceSource = readFileSync(
+    resolve(__dirname, 'multi-location.ts'),
+    'utf-8',
+  );
+
+  it('imports HttpErrorResponse', () => {
+    expect(serviceSource).toContain('HttpErrorResponse');
+  });
+
+  const methods = [
+    { name: 'loadGroups', signal: '_groups', emptyValue: '[]' },
+    { name: 'loadCrossLocationReport', signal: '_crossLocationReport', emptyValue: 'null' },
+    { name: 'loadSyncHistory', signal: '_syncHistory', emptyValue: '[]' },
+    { name: 'loadCrossLocationStaff', signal: '_crossLocationStaff', emptyValue: '[]' },
+    { name: 'loadCrossLocationInventory', signal: '_crossLocationInventory', emptyValue: '[]' },
+    { name: 'loadInventoryTransfers', signal: '_inventoryTransfers', emptyValue: '[]' },
+    { name: 'loadLocationHealth', signal: '_locationHealth', emptyValue: '[]' },
+    { name: 'loadGroupCampaigns', signal: '_groupCampaigns', emptyValue: '[]' },
+    { name: 'loadBenchmarks', signal: '_benchmarks', emptyValue: '[]' },
+    { name: 'loadCompliance', signal: '_compliance', emptyValue: '[]' },
+  ];
+
+  for (const { name, signal, emptyValue } of methods) {
+    it(`${name} handles 404 by setting ${signal} to ${emptyValue}`, () => {
+      // Extract the method body
+      const methodStart = serviceSource.indexOf(`async ${name}(`);
+      expect(methodStart, `Method ${name} should exist`).toBeGreaterThan(-1);
+      // Get ~80 lines of the method body
+      const methodBody = serviceSource.slice(methodStart, methodStart + 1500);
+      expect(methodBody).toContain('err instanceof HttpErrorResponse');
+      expect(methodBody).toContain('err.status === 404');
+      expect(methodBody).toContain(`this.${signal}.set(${emptyValue})`);
+    });
+  }
+
+  it('no Phase 2/3 load method uses bare catch without 404 check', () => {
+    const phase2Methods = [
+      'loadCrossLocationStaff',
+      'loadCrossLocationInventory',
+      'loadInventoryTransfers',
+      'loadLocationHealth',
+      'loadGroupCampaigns',
+      'loadBenchmarks',
+      'loadCompliance',
+    ];
+    for (const method of phase2Methods) {
+      const methodStart = serviceSource.indexOf(`async ${method}(`);
+      // Find end of this method by locating the next async method or end of class
+      const nextMethodStart = serviceSource.indexOf('\n  async ', methodStart + 1);
+      const methodEnd = nextMethodStart > -1 ? nextMethodStart : methodStart + 800;
+      const methodBody = serviceSource.slice(methodStart, methodEnd);
+      // Should NOT have a bare catch (without err parameter)
+      const hasBareLoadCatch = /\} catch \{/.exec(methodBody);
+      expect(
+        hasBareLoadCatch,
+        `${method} should not have bare catch — must check for 404`,
+      ).toBeNull();
+    }
+  });
+});

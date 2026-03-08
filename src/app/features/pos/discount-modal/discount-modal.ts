@@ -11,7 +11,7 @@ import { DiscountType, DiscountReason } from '@models/index';
 export interface DiscountResult {
   type: DiscountType;
   value: number;
-  reason: DiscountReason | string;
+  reason: string;
 }
 
 @Component({
@@ -25,7 +25,7 @@ export class DiscountModal {
   readonly checkSubtotal = input(0);
 
   readonly discountApply = output<DiscountResult>();
-  readonly cancel = output<void>();
+  readonly cancelled = output<void>();
 
   private readonly _type = signal<DiscountType>('percentage');
   private readonly _value = signal('');
@@ -117,6 +117,6 @@ export class DiscountModal {
   }
 
   onCancel(): void {
-    this.cancel.emit();
+    this.cancelled.emit();
   }
 }

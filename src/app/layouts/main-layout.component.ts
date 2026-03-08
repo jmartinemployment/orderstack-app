@@ -352,6 +352,22 @@ export class MainLayoutComponent {
       { label: 'Administration', icon: 'bi-speedometer2', route: '/app/administration' },
     ];
 
+    this.addCoreNavItems(items, retail, service, modules);
+    this.addOnlineAndCustomerItems(items, retail, service, restaurant, modules);
+    this.addModeSpecificItems(items, retail, service, mode, flags, modules);
+
+    items.push({ label: 'Settings', icon: 'bi-gear', route: '/app/settings' });
+
+    return items;
+  }
+
+  /** Adds orders, POS, items, and inventory nav items based on business mode. */
+  private addCoreNavItems(
+    items: NavItem[],
+    retail: boolean,
+    service: boolean,
+    modules: readonly string[],
+  ): void {
     if (!service) {
       items.push({ label: 'Orders', icon: 'bi-receipt', route: '/app/orders' });
     }
@@ -369,7 +385,16 @@ export class MainLayoutComponent {
     } else if (hasModule(modules, 'menu_management')) {
       items.push({ label: 'Items', icon: 'bi-book', route: '/app/menu' });
     }
+  }
 
+  /** Adds online ordering, customers, reports, staff, inventory, and suppliers. */
+  private addOnlineAndCustomerItems(
+    items: NavItem[],
+    retail: boolean,
+    service: boolean,
+    restaurant: boolean,
+    modules: readonly string[],
+  ): void {
     if (retail) {
       items.push({ label: 'Online Store', icon: 'bi-globe', route: '/app/retail/ecommerce' });
     } else if (restaurant && hasModule(modules, 'online_ordering')) {
@@ -396,7 +421,17 @@ export class MainLayoutComponent {
     if (!retail && !service && hasModule(modules, 'inventory')) {
       items.push({ label: 'Suppliers', icon: 'bi-truck', route: '/app/suppliers' });
     }
+  }
 
+  /** Adds floor plan, bookings, vendors, fulfillment, and invoicing for specific modes. */
+  private addModeSpecificItems(
+    items: NavItem[],
+    retail: boolean,
+    service: boolean,
+    mode: string,
+    flags: ModeFeatureFlags,
+    modules: readonly string[],
+  ): void {
     if (mode === 'full_service' || mode === 'bar') {
       if (flags['enableFloorPlan']) {
         items.push({ label: 'Floor Plan', icon: 'bi-columns-gap', route: '/app/floor-plan' });
@@ -418,10 +453,6 @@ export class MainLayoutComponent {
     if (mode === 'services' && hasModule(modules, 'invoicing')) {
       items.push({ label: 'Invoices', icon: 'bi-file-earmark-text', route: '/app/invoicing' });
     }
-
-    items.push({ label: 'Settings', icon: 'bi-gear', route: '/app/settings' });
-
-    return items;
   }
 
   toggleSidebar(): void {

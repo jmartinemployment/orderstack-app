@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { Check, Selection } from '@models/index';
+import { Check } from '@models/index';
 import { environment } from '@environments/environment';
 
 interface GuestCheckData {

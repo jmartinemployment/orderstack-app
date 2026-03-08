@@ -6,13 +6,12 @@ import {
   ChangeDetectionStrategy,
   ElementRef,
   viewChild,
-  AfterViewInit,
 } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { ChatService } from '@services/chat';
 import { AuthService } from '@services/auth';
 import { AnalyticsService } from '@services/analytics';
-import { ChatMessage, AiInsightCard, AiQueryResponse } from '@models/index';
+import { AiInsightCard } from '@models/index';
 
 interface WidgetMessage {
   id: string;
@@ -162,13 +161,11 @@ export class ChatAssistant {
   }
 
   getCardChartLabels(card: AiInsightCard): string[] {
-    const data = card.data as Record<string, unknown>;
-    return (data['labels'] as string[]) ?? [];
+    return (card.data['labels'] as string[]) ?? [];
   }
 
   getCardChartValues(card: AiInsightCard): number[] {
-    const data = card.data as Record<string, unknown>;
-    return (data['values'] as number[]) ?? [];
+    return (card.data['values'] as number[]) ?? [];
   }
 
   getCardChartMax(card: AiInsightCard): number {
@@ -177,13 +174,11 @@ export class ChatAssistant {
   }
 
   getCardTableRows(card: AiInsightCard): Record<string, unknown>[] {
-    const data = card.data as Record<string, unknown>;
-    return (data['rows'] as Record<string, unknown>[]) ?? [];
+    return (card.data['rows'] as Record<string, unknown>[]) ?? [];
   }
 
   getCardText(card: AiInsightCard): string {
-    const data = card.data as Record<string, unknown>;
-    return (data['text'] as string) ?? '';
+    return (card.data['text'] as string) ?? '';
   }
 
   formatTime(date: Date): string {

@@ -22,10 +22,11 @@
     <div class="settings-fields">
       <div class="row g-3 mb-3">
         <div class="col-6">
-          <label class="form-label small">Minimum Party Size</label>
+          <label class="form-label small" for="minPartySize">Minimum Party Size</label>
           <input
             type="number"
             class="form-control"
+            id="minPartySize"
             [value]="minPartySize()"
             (input)="onMinPartySizeInput($event)"
             min="2"
@@ -34,11 +35,12 @@
           <div class="form-text small">Parties of this size or larger</div>
         </div>
         <div class="col-6">
-          <label class="form-label small">Gratuity Percentage</label>
+          <label class="form-label small" for="gratuityPercent">Gratuity Percentage</label>
           <div class="input-group">
             <input
               type="number"
               class="form-control"
+              id="gratuityPercent"
               [value]="gratuityPercent()"
               (input)="onGratuityPercentInput($event)"
               min="5"

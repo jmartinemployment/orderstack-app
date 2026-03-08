@@ -429,15 +429,7 @@ export class OrderCard implements OnInit, OnDestroy {
 
   private updateAutoFireCountdowns(): void {
     if (this.coursePacingMode() !== 'auto_fire_timed') {
-      if (this._autoFireCountdowns().size > 0) {
-        this._autoFireCountdowns.set(new Map());
-      }
-      if (this._autoFireDelayBreakdowns().size > 0) {
-        this._autoFireDelayBreakdowns.set(new Map());
-      }
-      if (this._autoFiredCourses().size > 0) {
-        this._autoFiredCourses.set(new Set());
-      }
+      this.resetAutoFireState();
       return;
     }
 
@@ -445,20 +437,8 @@ export class OrderCard implements OnInit, OnDestroy {
     const currentCountdowns = this._autoFireCountdowns();
     const countdowns = new Map<string, number>();
     const breakdowns = new Map<string, AutoFireDelayBreakdown>();
-    const pendingCourseGuids = new Set(
-      groups
-        .filter(group => group.fireStatus === 'PENDING' && group.course)
-        .map(group => group.course!.guid)
-    );
 
-    // Keep fired markers only for courses still pending on the ticket.
-    this._autoFiredCourses.update(existing => {
-      const next = new Set<string>();
-      for (const guid of existing) {
-        if (pendingCourseGuids.has(guid)) next.add(guid);
-      }
-      return next;
-    });
+    this.pruneAutoFiredCourses(groups);
 
     for (let i = 1; i < groups.length; i++) {
       const group = groups[i];
@@ -468,32 +448,72 @@ export class OrderCard implements OnInit, OnDestroy {
         const adaptive = this.calculateAdaptiveAutoFireDelay(prevGroup, group);
         breakdowns.set(group.course.guid, adaptive.breakdown);
 
-        // Previous course is done — countdown to auto-fire.
         if (this.isCourseReadyForAutoFire(prevGroup)) {
-          const existing = currentCountdowns.get(group.course.guid);
-          if (existing !== undefined && existing > 0) {
-            const next = existing - 1;
-            if (next <= 0) {
-              this.triggerAutoFire(group.course.guid);
-            } else {
-              countdowns.set(group.course.guid, next);
-            }
-          } else if (existing === undefined) {
-            const initialDelay = adaptive.delaySeconds;
-            if (initialDelay <= 0) {
-              this.triggerAutoFire(group.course.guid);
-            } else {
-              countdowns.set(group.course.guid, initialDelay);
-            }
-          } else if (existing <= 0) {
-            this.triggerAutoFire(group.course.guid);
-          }
+          this.tickCourseCountdown(group.course.guid, currentCountdowns, countdowns, adaptive.delaySeconds);
         }
       }
     }
 
     this._autoFireCountdowns.set(countdowns);
     this._autoFireDelayBreakdowns.set(breakdowns);
+  }
+
+  private resetAutoFireState(): void {
+    if (this._autoFireCountdowns().size > 0) {
+      this._autoFireCountdowns.set(new Map());
+    }
+    if (this._autoFireDelayBreakdowns().size > 0) {
+      this._autoFireDelayBreakdowns.set(new Map());
+    }
+    if (this._autoFiredCourses().size > 0) {
+      this._autoFiredCourses.set(new Set());
+    }
+  }
+
+  private pruneAutoFiredCourses(groups: CourseGroup[]): void {
+    const pendingCourseGuids = new Set(
+      groups
+        .filter(group => group.fireStatus === 'PENDING' && group.course)
+        .map(group => group.course!.guid)
+    );
+
+    this._autoFiredCourses.update(existing => {
+      const next = new Set<string>();
+      for (const guid of existing) {
+        if (pendingCourseGuids.has(guid)) next.add(guid);
+      }
+      return next;
+    });
+  }
+
+  private tickCourseCountdown(
+    courseGuid: string,
+    currentCountdowns: Map<string, number>,
+    countdowns: Map<string, number>,
+    initialDelay: number
+  ): void {
+    const existing = currentCountdowns.get(courseGuid);
+
+    if (existing === undefined) {
+      if (initialDelay <= 0) {
+        this.triggerAutoFire(courseGuid);
+      } else {
+        countdowns.set(courseGuid, initialDelay);
+      }
+      return;
+    }
+
+    if (existing <= 0) {
+      this.triggerAutoFire(courseGuid);
+      return;
+    }
+
+    const next = existing - 1;
+    if (next <= 0) {
+      this.triggerAutoFire(courseGuid);
+    } else {
+      countdowns.set(courseGuid, next);
+    }
   }
 
   private isCourseReadyForAutoFire(group: CourseGroup): boolean {
@@ -526,9 +546,9 @@ export class OrderCard implements OnInit, OnDestroy {
     const baselineTablePaceSeconds = this.normalizeTablePaceSeconds(this.coursePacingBaselineSeconds());
     const observedTablePaceSeconds = this.getObservedTablePaceSeconds(previousGroup);
     const tablePaceSeconds = observedTablePaceSeconds ?? baselineTablePaceSeconds;
-    const tablePaceSource: TablePaceSource = observedTablePaceSeconds !== null
-      ? 'observed_order'
-      : 'historical_baseline';
+    const tablePaceSource: TablePaceSource = observedTablePaceSeconds === null
+      ? 'historical_baseline'
+      : 'observed_order';
     const confidence = this.coursePacingConfidence();
     const confidenceWeight = this.getConfidenceWeight(confidence, tablePaceSource);
     const paceDeltaSeconds = tablePaceSeconds - baselineTablePaceSeconds;
@@ -578,7 +598,7 @@ export class OrderCard implements OnInit, OnDestroy {
     const readyAtFromItems = previousGroup.selections.reduce((latest, item) => {
       const completed = item.selection.completedAt?.getTime();
       if (!completed) return latest;
-      return completed > latest ? completed : latest;
+      return Math.max(completed, latest);
     }, 0);
 
     const readyAt = Math.max(readyAtFromCourse ?? 0, readyAtFromItems);

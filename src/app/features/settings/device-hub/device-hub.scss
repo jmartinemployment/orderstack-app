@@ -431,7 +431,7 @@
   padding: 8px 16px;
   border-radius: 20px;
   background: var(--kiosk-accent, #22c55e);
-  color: #fff;
+  color: #000;
   font-size: 0.875rem;
   font-weight: 500;
 }
@@ -682,17 +682,17 @@
 
   &.tier-good {
     background: #f0f0f0;
-    color: #6b7280;
+    color: #595f66;
   }
 
   &.tier-better {
-    background: rgba(0, 106, 255, 0.1);
-    color: #006aff;
+    background: rgba(0, 106, 255, 0.15);
+    color: #4d94ff;
   }
 
   &.tier-best {
-    background: rgba(124, 58, 237, 0.1);
-    color: #7c3aed;
+    background: rgba(124, 58, 237, 0.15);
+    color: #9b6ff0;
   }
 }
 

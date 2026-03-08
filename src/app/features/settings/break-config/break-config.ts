@@ -2,8 +2,8 @@ import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } 
 import { LaborService } from '@services/labor';
 import { AuthService } from '@services/auth';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
-import { BreakType, WorkweekConfig } from '@models/labor.model';
-import { TimeclockSettings, AutoClockOutMode, defaultTimeclockSettings } from '@models/settings.model';
+import { BreakType } from '@models/labor.model';
+import { TimeclockSettings, AutoClockOutMode } from '@models/settings.model';
 
 @Component({
   selector: 'os-break-config',

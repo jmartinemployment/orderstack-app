@@ -6,7 +6,7 @@
         <i class="bi bi-truck"></i>
         <span>Looking to restock <strong>{{ itemName }}</strong>? Browse your suppliers or add a new one below.</span>
       </div>
-      <button class="btn-close-banner" (click)="dismissRestockBanner()">
+      <button class="btn-close-banner" (click)="dismissRestockBanner()" aria-label="Dismiss restock banner">
         <i class="bi bi-x-lg"></i>
       </button>
     </div>
@@ -95,6 +95,7 @@
       <input
         type="text"
         placeholder="Search suppliers..."
+        aria-label="Search suppliers"
         [ngModel]="searchQuery()"
         (ngModelChange)="updateSearch($event)"
       />
@@ -106,7 +107,7 @@
     <h2 class="section-title">My Suppliers</h2>
     <div class="vendor-grid">
       @for (vendor of filteredVendors(); track vendor.id) {
-        <div class="vendor-card" [class.inactive]="!vendor.isActive" (click)="openEditVendor(vendor)">
+        <div class="vendor-card" [class.inactive]="!vendor.isActive" (click)="openEditVendor(vendor)" (keydown.enter)="openEditVendor(vendor)" tabindex="0" role="button">
           <div class="vendor-card-header">
             <div class="vendor-name">{{ vendor.name }}</div>
             <div class="vendor-actions">
@@ -254,7 +255,7 @@
       <div class="ai-response-panel">
         <div class="ai-response-header">
           <span class="ai-response-label"><i class="bi bi-stars"></i> AI Response</span>
-          <button class="btn-close-panel" (click)="closeAiPanel()">
+          <button class="btn-close-panel" (click)="closeAiPanel()" aria-label="Close AI panel">
             <i class="bi bi-x-lg"></i>
           </button>
         </div>
@@ -278,39 +279,39 @@
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>{{ editingVendorId() ? 'Edit Supplier' : 'Add Supplier' }}</h3>
-          <button class="btn-close" (click)="closeVendorModal()"><i class="bi bi-x-lg"></i></button>
+          <button class="btn-close" (click)="closeVendorModal()" aria-label="Close modal"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="modal-body">
           <div class="form-group">
             <label>Name *</label>
-            <input type="text" [ngModel]="formName()" (ngModelChange)="updateFormName($event)" placeholder="Supplier name" />
+            <input type="text" [ngModel]="formName()" (ngModelChange)="updateFormName($event)" placeholder="Supplier name" aria-label="Supplier name" />
           </div>
           <div class="form-row">
             <div class="form-group">
               <label>Contact Name</label>
-              <input type="text" [ngModel]="formContactName()" (ngModelChange)="updateFormContact($event)" />
+              <input type="text" [ngModel]="formContactName()" (ngModelChange)="updateFormContact($event)" aria-label="Contact name" />
             </div>
             <div class="form-group">
               <label>Phone</label>
-              <input type="tel" [ngModel]="formPhone()" (ngModelChange)="updateFormPhone($event)" />
+              <input type="tel" [ngModel]="formPhone()" (ngModelChange)="updateFormPhone($event)" aria-label="Phone" />
             </div>
           </div>
           <div class="form-group">
             <label>Email</label>
-            <input type="email" [ngModel]="formEmail()" (ngModelChange)="updateFormEmail($event)" />
+            <input type="email" [ngModel]="formEmail()" (ngModelChange)="updateFormEmail($event)" aria-label="Email" />
           </div>
           <div class="form-group">
             <label>Website / Catalog URL</label>
-            <input type="text" [ngModel]="formWebsite()" (ngModelChange)="updateFormWebsite($event)" placeholder="https://..." />
+            <input type="text" [ngModel]="formWebsite()" (ngModelChange)="updateFormWebsite($event)" placeholder="https://..." aria-label="Website or catalog URL" />
           </div>
           <div class="form-group">
             <label>Address</label>
-            <textarea [ngModel]="formAddress()" (ngModelChange)="updateFormAddress($event)" rows="2"></textarea>
+            <textarea [ngModel]="formAddress()" (ngModelChange)="updateFormAddress($event)" rows="2" aria-label="Address"></textarea>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label>Payment Terms</label>
-              <select [ngModel]="formPaymentTerms()" (ngModelChange)="updateFormTerms($event)">
+              <select [ngModel]="formPaymentTerms()" (ngModelChange)="updateFormTerms($event)" aria-label="Payment terms">
                 <option value="">Select...</option>
                 <option value="Net 15">Net 15</option>
                 <option value="Net 30">Net 30</option>
@@ -322,12 +323,12 @@
             </div>
             <div class="form-group">
               <label>Lead Time (days)</label>
-              <input type="number" min="0" [ngModel]="formLeadTimeDays()" (ngModelChange)="updateFormLeadTime($event)" />
+              <input type="number" min="0" [ngModel]="formLeadTimeDays()" (ngModelChange)="updateFormLeadTime($event)" aria-label="Lead time in days" />
             </div>
           </div>
           <div class="form-group">
             <label>Notes</label>
-            <textarea [ngModel]="formNotes()" (ngModelChange)="updateFormNotes($event)" rows="3" placeholder="Internal notes..."></textarea>
+            <textarea [ngModel]="formNotes()" (ngModelChange)="updateFormNotes($event)" rows="3" placeholder="Internal notes..." aria-label="Notes"></textarea>
           </div>
         </div>
         <div class="modal-footer">

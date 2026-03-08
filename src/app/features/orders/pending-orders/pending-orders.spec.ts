@@ -1,13 +1,13 @@
 import '../../../../test-setup';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { signal, computed } from '@angular/core';
+import { signal } from '@angular/core';
 import { PendingOrders } from './pending-orders';
 import { OrderService } from '@services/order';
 import { AuthService } from '@services/auth';
 import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { DeliveryService } from '@services/delivery';
-import type { Order, GuestOrderStatus, Selection, Course, CourseFireStatus } from '@models/order.model';
+import type { Order, GuestOrderStatus } from '@models/order.model';
 import { getDiningOption } from '@models/dining-option.model';
 
 const NOW = new Date('2026-02-25T12:00:00Z');

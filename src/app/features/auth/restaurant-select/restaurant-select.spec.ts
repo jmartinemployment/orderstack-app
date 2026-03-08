@@ -13,8 +13,8 @@ function createMockAuthService(opts: {
   merchantIds?: string[];
   user?: { firstName: string } | null;
 } = {}) {
-  const _token = signal(opts.authenticated !== false ? 'tok' : null);
-  const _user = signal(opts.user ?? (opts.authenticated !== false ? { firstName: 'Jeff' } : null));
+  const _token = signal(opts.authenticated === false ? null : 'tok');
+  const _user = signal(opts.user ?? (opts.authenticated === false ? null : { firstName: 'Jeff' }));
   const _merchants = signal((opts.merchantIds ?? []).map(id => ({ id })));
 
   return {

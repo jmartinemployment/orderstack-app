@@ -38,7 +38,7 @@
 
   <!-- Error banner -->
   @if (error()) {
-    <div class="error-banner" (click)="dismissError()">
+    <div class="error-banner" (click)="dismissError()" (keydown.enter)="dismissError()" tabindex="0" role="button">
       <i class="bi bi-exclamation-triangle"></i>
       {{ error() }}
       <i class="bi bi-x"></i>
@@ -99,7 +99,7 @@
       <!-- Invoice list -->
       <div class="invoice-list">
         @for (inv of filteredInvoices(); track inv.id) {
-          <div class="invoice-card" [class.selected]="selectedInvoice()?.id === inv.id" (click)="selectInvoice(inv)">
+          <div class="invoice-card" [class.selected]="selectedInvoice()?.id === inv.id" (click)="selectInvoice(inv)" (keydown.enter)="selectInvoice(inv)" tabindex="0" role="button">
             <div class="invoice-card-header">
               <span class="invoice-number">#{{ inv.invoiceNumber }}</span>
               <span class="invoice-status {{ getStatusClass(inv.status) }}">{{ getStatusLabel(inv.status) }}</span>
@@ -196,7 +196,7 @@
 
       <div class="vendor-list">
         @for (vendor of vendors(); track vendor.id) {
-          <div class="vendor-card" [class.inactive]="!vendor.isActive" [class.selected]="selectedVendor()?.id === vendor.id" (click)="selectVendor(vendor)">
+          <div class="vendor-card" [class.inactive]="!vendor.isActive" [class.selected]="selectedVendor()?.id === vendor.id" (click)="selectVendor(vendor)" (keydown.enter)="selectVendor(vendor)" tabindex="0" role="button">
             <div class="vendor-card-header">
               <span class="vendor-name">{{ vendor.name }}</span>
               <span class="vendor-status-dot" [class.active]="vendor.isActive"></span>
@@ -286,7 +286,7 @@
       <div class="section-header">
         <div class="section-title">
           <h3>Recipe Costing</h3>
-          <input type="text" class="search-input" placeholder="Search recipes..." [value]="recipeSearch()" (input)="recipeSearch.set($any($event.target).value)">
+          <input type="text" class="search-input" placeholder="Search recipes..." aria-label="Search recipes" [value]="recipeSearch()" (input)="recipeSearch.set($any($event.target).value)">
         </div>
         <button class="btn-add" (click)="openRecipeForm()">
           <i class="bi bi-plus-lg"></i> New Recipe
@@ -386,7 +386,7 @@
       <!-- Recipe list -->
       <div class="recipe-list">
         @for (recipe of filteredRecipes(); track recipe.id) {
-          <div class="recipe-card" [class.selected]="selectedRecipe()?.id === recipe.id" (click)="selectRecipe(recipe)">
+          <div class="recipe-card" [class.selected]="selectedRecipe()?.id === recipe.id" (click)="selectRecipe(recipe)" (keydown.enter)="selectRecipe(recipe)" tabindex="0" role="button">
             <div class="recipe-card-header">
               <span class="recipe-name">{{ recipe.name }}</span>
               <span class="recipe-menu-item">{{ getMenuItemName(recipe.menuItemId) }}</span>
@@ -499,7 +499,7 @@
       @if (filteredPurchaseOrders().length > 0) {
         <div class="data-list">
           @for (po of filteredPurchaseOrders(); track po.id) {
-            <div class="data-card" [class.selected]="selectedPo()?.id === po.id" (click)="selectPo(po)">
+            <div class="data-card" [class.selected]="selectedPo()?.id === po.id" (click)="selectPo(po)" (keydown.enter)="selectPo(po)" tabindex="0" role="button">
               <div class="data-card-header">
                 <div>
                   <strong>{{ po.poNumber }}</strong>
@@ -575,29 +575,29 @@
         <div class="modal-body">
           <div class="form-group">
             <label>Vendor Name *</label>
-            <input type="text" class="form-input" [value]="vendorName()" (input)="vendorName.set($any($event.target).value)" placeholder="e.g., Sysco, US Foods">
+            <input type="text" class="form-input" aria-label="Vendor name" [value]="vendorName()" (input)="vendorName.set($any($event.target).value)" placeholder="e.g., Sysco, US Foods">
           </div>
           <div class="form-row">
             <div class="form-group">
               <label>Contact Name</label>
-              <input type="text" class="form-input" [value]="vendorContactName()" (input)="vendorContactName.set($any($event.target).value)">
+              <input type="text" class="form-input" aria-label="Contact name" [value]="vendorContactName()" (input)="vendorContactName.set($any($event.target).value)">
             </div>
             <div class="form-group">
               <label>Phone</label>
-              <input type="tel" class="form-input" [value]="vendorPhone()" (input)="vendorPhone.set($any($event.target).value)">
+              <input type="tel" class="form-input" aria-label="Vendor phone" [value]="vendorPhone()" (input)="vendorPhone.set($any($event.target).value)">
             </div>
           </div>
           <div class="form-group">
             <label>Email</label>
-            <input type="email" class="form-input" [value]="vendorContactEmail()" (input)="vendorContactEmail.set($any($event.target).value)">
+            <input type="email" class="form-input" aria-label="Vendor email" [value]="vendorContactEmail()" (input)="vendorContactEmail.set($any($event.target).value)">
           </div>
           <div class="form-group">
             <label>Address</label>
-            <input type="text" class="form-input" [value]="vendorAddress()" (input)="vendorAddress.set($any($event.target).value)">
+            <input type="text" class="form-input" aria-label="Vendor address" [value]="vendorAddress()" (input)="vendorAddress.set($any($event.target).value)">
           </div>
           <div class="form-group">
             <label>Notes</label>
-            <textarea class="form-input" rows="2" [value]="vendorNotes()" (input)="vendorNotes.set($any($event.target).value)"></textarea>
+            <textarea class="form-input" rows="2" aria-label="Vendor notes" [value]="vendorNotes()" (input)="vendorNotes.set($any($event.target).value)"></textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -622,7 +622,7 @@
           <div class="form-row">
             <div class="form-group">
               <label>Vendor *</label>
-              <select class="form-select" (change)="invoiceVendorId.set($any($event.target).value)">
+              <select class="form-select" aria-label="Invoice vendor" (change)="invoiceVendorId.set($any($event.target).value)">
                 <option value="">Select vendor...</option>
                 @for (v of activeVendors(); track v.id) {
                   <option [value]="v.id">{{ v.name }}</option>
@@ -631,11 +631,11 @@
             </div>
             <div class="form-group">
               <label>Invoice # *</label>
-              <input type="text" class="form-input" [value]="invoiceNumber()" (input)="invoiceNumber.set($any($event.target).value)">
+              <input type="text" class="form-input" aria-label="Invoice number" [value]="invoiceNumber()" (input)="invoiceNumber.set($any($event.target).value)">
             </div>
             <div class="form-group">
               <label>Date</label>
-              <input type="date" class="form-input" [value]="invoiceDate()" (input)="invoiceDate.set($any($event.target).value)">
+              <input type="date" class="form-input" aria-label="Invoice date" [value]="invoiceDate()" (input)="invoiceDate.set($any($event.target).value)">
             </div>
           </div>
 
@@ -654,16 +654,16 @@
             <tbody>
               @for (item of invoiceLineItems(); track $index) {
                 <tr>
-                  <td><input type="text" class="form-input-sm" [value]="item.ingredientName" (input)="updateLineItem($index, 'ingredientName', $any($event.target).value)"></td>
-                  <td><input type="number" class="form-input-sm num" [value]="item.quantity" (input)="updateLineItem($index, 'quantity', +$any($event.target).value)" min="0" step="0.01"></td>
+                  <td><input type="text" class="form-input-sm" aria-label="Ingredient name" [value]="item.ingredientName" (input)="updateLineItem($index, 'ingredientName', $any($event.target).value)"></td>
+                  <td><input type="number" class="form-input-sm num" aria-label="Quantity" [value]="item.quantity" (input)="updateLineItem($index, 'quantity', +$any($event.target).value)" min="0" step="0.01"></td>
                   <td>
-                    <select class="form-select-sm" (change)="updateLineItem($index, 'unit', $any($event.target).value)">
+                    <select class="form-select-sm" aria-label="Unit" (change)="updateLineItem($index, 'unit', $any($event.target).value)">
                       @for (u of ['lb','oz','kg','g','ea','cs','gal','qt','pt','dz']; track u) {
                         <option [value]="u" [selected]="item.unit === u">{{ u }}</option>
                       }
                     </select>
                   </td>
-                  <td><input type="number" class="form-input-sm num" [value]="item.unitCost" (input)="updateLineItem($index, 'unitCost', +$any($event.target).value)" min="0" step="0.01"></td>
+                  <td><input type="number" class="form-input-sm num" aria-label="Unit cost" [value]="item.unitCost" (input)="updateLineItem($index, 'unitCost', +$any($event.target).value)" min="0" step="0.01"></td>
                   <td class="line-total">{{ item.totalCost | currency }}</td>
                   <td><button class="btn-icon btn-icon-danger" (click)="removeInvoiceLineItem($index)"><i class="bi bi-x"></i></button></td>
                 </tr>
@@ -699,7 +699,7 @@
           <div class="form-row">
             <div class="form-group">
               <label>Menu Item *</label>
-              <select class="form-select" [value]="recipeMenuItemId()" (change)="recipeMenuItemId.set($any($event.target).value)">
+              <select class="form-select" aria-label="Menu item" [value]="recipeMenuItemId()" (change)="recipeMenuItemId.set($any($event.target).value)">
                 <option value="">Select item...</option>
                 @for (item of menuItems(); track item.id) {
                   <option [value]="item.id">{{ item.name }} ({{ item.price | currency }})</option>
@@ -708,17 +708,17 @@
             </div>
             <div class="form-group">
               <label>Recipe Name *</label>
-              <input type="text" class="form-input" [value]="recipeName()" (input)="recipeName.set($any($event.target).value)" placeholder="e.g., Chicken Alfredo">
+              <input type="text" class="form-input" aria-label="Recipe name" [value]="recipeName()" (input)="recipeName.set($any($event.target).value)" placeholder="e.g., Chicken Alfredo">
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label>Yield Quantity</label>
-              <input type="number" class="form-input" [value]="recipeYieldQty()" (input)="recipeYieldQty.set(+$any($event.target).value)" min="1">
+              <input type="number" class="form-input" aria-label="Yield quantity" [value]="recipeYieldQty()" (input)="recipeYieldQty.set(+$any($event.target).value)" min="1">
             </div>
             <div class="form-group">
               <label>Yield Unit</label>
-              <select class="form-select" [value]="recipeYieldUnit()" (change)="recipeYieldUnit.set($any($event.target).value)">
+              <select class="form-select" aria-label="Yield unit" [value]="recipeYieldUnit()" (change)="recipeYieldUnit.set($any($event.target).value)">
                 @for (u of ['serving','portion','batch','piece','plate']; track u) {
                   <option [value]="u">{{ u | titlecase }}</option>
                 }
@@ -741,16 +741,16 @@
             <tbody>
               @for (ing of recipeIngredients(); track $index) {
                 <tr>
-                  <td><input type="text" class="form-input-sm" [value]="ing.ingredientName" (input)="updateIngredient($index, 'ingredientName', $any($event.target).value)"></td>
-                  <td><input type="number" class="form-input-sm num" [value]="ing.quantity" (input)="updateIngredient($index, 'quantity', +$any($event.target).value)" min="0" step="0.01"></td>
+                  <td><input type="text" class="form-input-sm" aria-label="Ingredient name" [value]="ing.ingredientName" (input)="updateIngredient($index, 'ingredientName', $any($event.target).value)"></td>
+                  <td><input type="number" class="form-input-sm num" aria-label="Ingredient quantity" [value]="ing.quantity" (input)="updateIngredient($index, 'quantity', +$any($event.target).value)" min="0" step="0.01"></td>
                   <td>
-                    <select class="form-select-sm" (change)="updateIngredient($index, 'unit', $any($event.target).value)">
+                    <select class="form-select-sm" aria-label="Ingredient unit" (change)="updateIngredient($index, 'unit', $any($event.target).value)">
                       @for (u of ['oz','lb','g','kg','ea','cup','tbsp','tsp','fl oz','gal','qt','pt','ml','l']; track u) {
                         <option [value]="u" [selected]="ing.unit === u">{{ u }}</option>
                       }
                     </select>
                   </td>
-                  <td><input type="number" class="form-input-sm num" [value]="ing.estimatedUnitCost" (input)="updateIngredient($index, 'estimatedUnitCost', +$any($event.target).value)" min="0" step="0.01"></td>
+                  <td><input type="number" class="form-input-sm num" aria-label="Estimated unit cost" [value]="ing.estimatedUnitCost" (input)="updateIngredient($index, 'estimatedUnitCost', +$any($event.target).value)" min="0" step="0.01"></td>
                   <td class="line-total">{{ (ing.quantity * ing.estimatedUnitCost) | currency }}</td>
                   <td><button class="btn-icon btn-icon-danger" (click)="removeRecipeIngredient($index)"><i class="bi bi-x"></i></button></td>
                 </tr>

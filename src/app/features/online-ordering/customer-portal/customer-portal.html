@@ -32,8 +32,9 @@
           }
 
           <div class="mb-3">
-            <label class="form-label small">Phone Number</label>
+            <label class="form-label small" for="cp-phone">Phone Number</label>
             <input
+              id="cp-phone"
               type="tel"
               class="form-control"
               placeholder="(555) 123-4567"
@@ -69,8 +70,9 @@
           }
 
           <div class="mb-3">
-            <label class="form-label small">Verification Code</label>
+            <label class="form-label small" for="cp-otp">Verification Code</label>
             <input
+              id="cp-otp"
               type="text"
               class="form-control text-center otp-input"
               placeholder="000000"
@@ -268,24 +270,24 @@
                   <div class="profile-form">
                     <div class="row g-3 mb-3">
                       <div class="col-6">
-                        <label class="form-label small">First Name</label>
-                        <input type="text" class="form-control" [value]="editFirstName()"
+                        <label class="form-label small" for="cp-first-name">First Name</label>
+                        <input id="cp-first-name" type="text" class="form-control" [value]="editFirstName()"
                           (input)="onProfileField('firstName', $event)" />
                       </div>
                       <div class="col-6">
-                        <label class="form-label small">Last Name</label>
-                        <input type="text" class="form-control" [value]="editLastName()"
+                        <label class="form-label small" for="cp-last-name">Last Name</label>
+                        <input id="cp-last-name" type="text" class="form-control" [value]="editLastName()"
                           (input)="onProfileField('lastName', $event)" />
                       </div>
                     </div>
                     <div class="mb-3">
-                      <label class="form-label small">Email</label>
-                      <input type="email" class="form-control" [value]="editEmail()"
+                      <label class="form-label small" for="cp-email">Email</label>
+                      <input id="cp-email" type="email" class="form-control" [value]="editEmail()"
                         (input)="onProfileField('email', $event)" />
                     </div>
                     <div class="mb-3">
-                      <label class="form-label small">Birthday</label>
-                      <input type="date" class="form-control" [value]="editBirthday()"
+                      <label class="form-label small" for="cp-birthday">Birthday</label>
+                      <input id="cp-birthday" type="date" class="form-control" [value]="editBirthday()"
                         (input)="onProfileField('birthday', $event)" />
                     </div>
                     <div class="d-flex gap-2">
@@ -358,9 +360,9 @@
             <div class="tab-content">
               <h5 class="fw-bold mb-3">Gift Card Balance</h5>
               <div class="gc-check-section">
-                <label class="form-label small">Enter your gift card code</label>
+                <label class="form-label small" for="cp-gc-code">Enter your gift card code</label>
                 <div class="d-flex gap-2">
-                  <input type="text" class="form-control" placeholder="Gift card code"
+                  <input id="cp-gc-code" type="text" class="form-control" placeholder="Gift card code"
                     [value]="gcCode()"
                     (input)="onGcCodeInput($event)"
                     (keydown.enter)="checkGcBalance()" />

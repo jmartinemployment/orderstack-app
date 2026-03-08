@@ -24,9 +24,10 @@ import {
   DeliveryQuote,
   DeliveryProviderType,
   DispatchState,
-  KdsStation,
   isMarketplaceOrder,
 } from '@models/index';
+
+type MarketplaceFilterOption = 'all' | 'doordash' | 'ubereats' | 'grubhub';
 
 const ACTIVE_DISPATCH_STATUSES = new Set([
   'DISPATCH_REQUESTED',
@@ -57,7 +58,7 @@ export class KdsDisplay implements OnInit, OnDestroy {
   private readonly paymentService = inject(PaymentService);
 
   private readonly _selectedStationId = signal<string | null>(
-    typeof localStorage !== 'undefined' ? localStorage.getItem('kds-station-id') : null
+    typeof localStorage === 'undefined' ? null : localStorage.getItem('kds-station-id')
   );
   private readonly _deliveryQuotes = signal<Map<string, DeliveryQuote>>(new Map());
   private readonly _dispatchStates = signal<Map<string, DispatchState>>(new Map());
@@ -77,7 +78,7 @@ export class KdsDisplay implements OnInit, OnDestroy {
   private readonly _orderThrottlingStatusLoading = signal(false);
   private readonly _prepTimeFiringEnabled = signal(false);
   private readonly _defaultPrepMinutes = signal(10);
-  private readonly _marketplaceFilter = signal<'all' | 'marketplace' | 'native'>('all');
+  private readonly _marketplaceFilter = signal<MarketplaceFilterOption>('all');
   private readonly _paymentOrderId = signal<string | null>(null);
   private readonly _paymentError = signal<string | null>(null);
   private readonly _showPaymentModal = signal(false);
@@ -103,7 +104,7 @@ export class KdsDisplay implements OnInit, OnDestroy {
   readonly prepTimeFiringEnabled = this._prepTimeFiringEnabled.asReadonly();
   readonly defaultPrepMinutes = this._defaultPrepMinutes.asReadonly();
   readonly marketplaceFilter = this._marketplaceFilter.asReadonly();
-  readonly marketplaceFilterOptions: Array<{ value: 'all' | 'marketplace' | 'native'; label: string }> = [
+  readonly marketplaceFilterOptions: Array<{ value: MarketplaceFilterOption; label: string }> = [
     { value: 'all', label: 'All Sources' },
     { value: 'marketplace', label: 'Marketplace' },
     { value: 'native', label: 'Direct' },
@@ -162,13 +163,13 @@ export class KdsDisplay implements OnInit, OnDestroy {
       const mode = this._coursePacingMode();
       if (!merchantId) return;
       if (mode !== 'auto_fire_timed') return;
-      void this.loadCoursePacingMetrics();
+      this.loadCoursePacingMetrics();
     });
     effect(() => {
       const provider = this.settingsService.deliverySettings().provider;
       this.deliveryService.setProviderType(provider);
       if (this.isDaaSProvider(provider)) {
-        void this.deliveryService.loadConfigStatus();
+        this.deliveryService.loadConfigStatus();
       }
     });
     effect(() => {
@@ -318,12 +319,12 @@ export class KdsDisplay implements OnInit, OnDestroy {
       this.connectSocket();
       this.menuService.loadMenu();
       this.settingsService.loadSettings();
-      void this.stationService.loadStations();
-      void this.stationService.loadCategoryMappings();
+      this.stationService.loadStations();
+      this.stationService.loadCategoryMappings();
       if (this.isDaaSProvider(this.settingsService.deliverySettings().provider)) {
-        void this.deliveryService.loadConfigStatus();
+        this.deliveryService.loadConfigStatus();
       }
-      void this.loadOrderThrottlingStatus();
+      this.loadOrderThrottlingStatus();
       this.startThrottlingPolling();
     }
   }
@@ -371,7 +372,7 @@ export class KdsDisplay implements OnInit, OnDestroy {
       clearInterval(this.throttlingPollTimer);
     }
     this.throttlingPollTimer = setInterval(() => {
-      void this.loadOrderThrottlingStatus();
+      this.loadOrderThrottlingStatus();
     }, 30_000);
   }
 
@@ -402,7 +403,7 @@ export class KdsDisplay implements OnInit, OnDestroy {
     });
   }
 
-  setMarketplaceFilter(filter: 'all' | 'marketplace' | 'native'): void {
+  setMarketplaceFilter(filter: MarketplaceFilterOption): void {
     this._marketplaceFilter.set(filter);
   }
 
@@ -438,12 +439,12 @@ export class KdsDisplay implements OnInit, OnDestroy {
 
       if (event.status === 'READY_FOR_PICKUP' && this.settingsService.deliverySettings().autoDispatch) {
         this.maybeAutoDispatch(event.orderId);
-        void this.loadOrderThrottlingStatus();
+        this.loadOrderThrottlingStatus();
         return;
       }
 
       this.clearOrderDispatchRuntime(event.orderId);
-      void this.loadOrderThrottlingStatus();
+      this.loadOrderThrottlingStatus();
     };
 
     void doUpdate();
@@ -500,7 +501,7 @@ export class KdsDisplay implements OnInit, OnDestroy {
   }
 
   onFireItemNow(event: { orderId: string; selectionGuid: string }): void {
-    void this.orderService.fireItemNow(event.orderId, event.selectionGuid);
+    this.orderService.fireItemNow(event.orderId, event.selectionGuid);
   }
 
   getPrintStatus(orderId: string): PrintStatus {
@@ -516,18 +517,18 @@ export class KdsDisplay implements OnInit, OnDestroy {
   }
 
   onRemakeItem(event: { orderId: string; checkGuid: string; selectionGuid: string }): void {
-    void this.orderService.remakeItem(event.orderId, event.checkGuid, event.selectionGuid, 'Remake requested from KDS');
+    this.orderService.remakeItem(event.orderId, event.checkGuid, event.selectionGuid, 'Remake requested from KDS');
   }
 
   onReleaseThrottle(orderId: string): void {
-    void this.orderService.releaseOrderFromThrottling(orderId).then(success => {
-      if (success) void this.loadOrderThrottlingStatus();
+    this.orderService.releaseOrderFromThrottling(orderId).then(success => {
+      if (success) this.loadOrderThrottlingStatus();
     });
   }
 
   onManualThrottleHold(orderId: string): void {
-    void this.orderService.holdOrderForThrottling(orderId).then(success => {
-      if (success) void this.loadOrderThrottlingStatus();
+    this.orderService.holdOrderForThrottling(orderId).then(success => {
+      if (success) this.loadOrderThrottlingStatus();
     });
   }
 
@@ -610,7 +611,7 @@ export class KdsDisplay implements OnInit, OnDestroy {
       return next;
     });
 
-    void this.dispatchDriver(orderId, { autoAcceptQuote: true });
+    this.dispatchDriver(orderId, { autoAcceptQuote: true });
   }
 
   async dispatchDriver(orderId: string, options?: { autoAcceptQuote?: boolean }): Promise<void> {
@@ -636,37 +637,15 @@ export class KdsDisplay implements OnInit, OnDestroy {
     try {
       this.setDispatchError(orderId, null);
 
-      let quote = this.getDeliveryQuote(orderId);
-      let quoteRequested = false;
-      if (!quote) {
-        this.setDispatchState(orderId, 'quoting');
-        quote = await this.deliveryService.requestQuote(orderId);
-        if (!quote) {
-          this.setDispatchFailure(orderId, this.deliveryService.error() ?? 'Failed to request delivery quote.');
-          return;
-        }
-        this.setDeliveryQuote(orderId, quote);
-        quoteRequested = true;
-      }
+      const { quote, quoteRequested } = await this.ensureDeliveryQuote(orderId);
+      if (!quote) return;
 
       if (!autoAcceptQuote && quoteRequested && this.getDispatchState(orderId) !== 'failed') {
         this.setDispatchState(orderId, 'idle');
         return;
       }
 
-      let accepted = await this.acceptQuote(orderId, quote.quoteId);
-
-      // One retry when provider reports quote expiration.
-      if (!accepted && this.isQuoteExpiredError(this.deliveryService.error())) {
-        this.clearDeliveryQuote(orderId);
-        this.setDispatchState(orderId, 'quoting');
-        quote = await this.deliveryService.requestQuote(orderId);
-        if (quote) {
-          this.setDeliveryQuote(orderId, quote);
-          accepted = await this.acceptQuote(orderId, quote.quoteId);
-        }
-      }
-
+      const accepted = await this.acceptQuoteWithRetry(orderId, quote);
       if (!accepted) {
         this.setDispatchFailure(orderId, this.deliveryService.error() ?? 'Driver dispatch failed.');
         return;
@@ -680,18 +659,49 @@ export class KdsDisplay implements OnInit, OnDestroy {
     }
   }
 
+  private async ensureDeliveryQuote(orderId: string): Promise<{ quote: DeliveryQuote | null; quoteRequested: boolean }> {
+    const existing = this.getDeliveryQuote(orderId);
+    if (existing) return { quote: existing, quoteRequested: false };
+
+    this.setDispatchState(orderId, 'quoting');
+    const quote = await this.deliveryService.requestQuote(orderId);
+    if (!quote) {
+      this.setDispatchFailure(orderId, this.deliveryService.error() ?? 'Failed to request delivery quote.');
+      return { quote: null, quoteRequested: true };
+    }
+    this.setDeliveryQuote(orderId, quote);
+    return { quote, quoteRequested: true };
+  }
+
+  private async acceptQuoteWithRetry(orderId: string, initialQuote: DeliveryQuote): Promise<boolean> {
+    let accepted = await this.acceptQuote(orderId, initialQuote.quoteId);
+    if (accepted) return true;
+
+    // One retry when provider reports quote expiration.
+    if (!this.isQuoteExpiredError(this.deliveryService.error())) return false;
+
+    this.clearDeliveryQuote(orderId);
+    this.setDispatchState(orderId, 'quoting');
+    const freshQuote = await this.deliveryService.requestQuote(orderId);
+    if (!freshQuote) return false;
+
+    this.setDeliveryQuote(orderId, freshQuote);
+    accepted = await this.acceptQuote(orderId, freshQuote.quoteId);
+    return accepted;
+  }
+
   onDispatchDriver(orderId: string): void {
-    void this.dispatchDriver(orderId, { autoAcceptQuote: false });
+    this.dispatchDriver(orderId, { autoAcceptQuote: false });
   }
 
   refresh(): void {
     this.loadOrders();
-    void this.loadOrderThrottlingStatus();
+    this.loadOrderThrottlingStatus();
     if (this._coursePacingMode() === 'auto_fire_timed') {
-      void this.loadCoursePacingMetrics();
+      this.loadCoursePacingMetrics();
     }
     if (this.isDaaSProvider(this.settingsService.deliverySettings().provider)) {
-      void this.deliveryService.loadConfigStatus();
+      this.deliveryService.loadConfigStatus();
     }
   }
 

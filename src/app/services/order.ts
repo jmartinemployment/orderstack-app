@@ -169,6 +169,221 @@ function mapOrderType(orderType: string): DiningOptionType {
   }
 }
 
+// --- mapOrder helper functions (extracted for S3776 cognitive complexity) ---
+
+function mapItemCourse(item: any): Course | undefined {
+  const rawCourse = item.course;
+  if (rawCourse) {
+    return {
+      guid: rawCourse.guid ?? rawCourse.id ?? item.courseGuid ?? crypto.randomUUID(),
+      name: rawCourse.name ?? item.courseName ?? '',
+      sortOrder: Number(rawCourse.sortOrder ?? item.courseSortOrder) || 0,
+      fireStatus: mapCourseFireStatus(rawCourse.fireStatus ?? item.courseFireStatus),
+      firedDate: parseDate(rawCourse.firedDate) ?? parseDate(item.courseFiredAt),
+      readyDate: parseDate(rawCourse.readyDate) ?? parseDate(item.courseReadyAt),
+    };
+  }
+  if (item.courseGuid) {
+    return {
+      guid: item.courseGuid,
+      name: item.courseName ?? item.courseGuid,
+      sortOrder: Number(item.courseSortOrder) || 0,
+      fireStatus: mapCourseFireStatus(item.courseFireStatus),
+      firedDate: parseDate(item.courseFiredAt),
+      readyDate: parseDate(item.courseReadyAt),
+    };
+  }
+  return undefined;
+}
+
+function mapSelections(raw: any, fulfillmentStatus: FulfillmentStatus): Selection[] {
+  const rawItems: any[] = raw.orderItems || raw.items || [];
+  return rawItems.map((item: any) => {
+    const course = mapItemCourse(item);
+    return {
+      guid: item.id ?? crypto.randomUUID(),
+      menuItemGuid: item.menuItemId ?? '',
+      menuItemName: item.menuItemName || item.name || '',
+      quantity: Number(item.quantity) || 1,
+      unitPrice: Number(item.unitPrice) || 0,
+      totalPrice: Number(item.totalPrice) || 0,
+      fulfillmentStatus: mapItemFulfillmentStatus(item.fulfillmentStatus ?? item.status, fulfillmentStatus, Boolean(course)),
+      modifiers: (item.orderItemModifiers || item.modifiers || []).map((m: any): SelectionModifier => ({
+        guid: m.id ?? crypto.randomUUID(),
+        name: m.modifierName || m.name || '',
+        priceAdjustment: Number(m.priceAdjustment) || 0,
+        isTextModifier: m.isTextModifier ?? false,
+        textValue: m.textValue ?? undefined,
+      })),
+      specialInstructions: item.specialInstructions,
+      course,
+      completedAt: parseDate(item.completedAt),
+      seatNumber: item.seatNumber != null ? Number(item.seatNumber) : undefined,
+      isComped: item.isComped ?? false,
+      compReason: item.compReason ?? undefined,
+      compBy: item.compBy ?? undefined,
+    };
+  });
+}
+
+function deriveCourseListFromSelections(selections: Selection[]): Course[] {
+  const byGuid = new Map<string, Course>();
+  for (const sel of selections) {
+    if (!sel.course) continue;
+    const existing = byGuid.get(sel.course.guid);
+    if (!existing) {
+      byGuid.set(sel.course.guid, { ...sel.course });
+      continue;
+    }
+    if (courseFireStatusRank(sel.course.fireStatus) > courseFireStatusRank(existing.fireStatus)) {
+      existing.fireStatus = sel.course.fireStatus;
+    }
+    if (!existing.readyDate && sel.course.readyDate) {
+      existing.readyDate = sel.course.readyDate;
+    } else if (existing.readyDate && sel.course.readyDate && sel.course.readyDate > existing.readyDate) {
+      existing.readyDate = sel.course.readyDate;
+    }
+  }
+  return [...byGuid.values()].sort((a, b) => a.sortOrder - b.sortOrder);
+}
+
+function mapCourseList(raw: any, selections: Selection[]): Course[] {
+  const rawCourses: any[] = raw.courses || [];
+  const courses: Course[] = rawCourses.map((c: any) => ({
+    guid: c.guid ?? c.id ?? crypto.randomUUID(),
+    name: c.name ?? '',
+    sortOrder: Number(c.sortOrder) || 0,
+    fireStatus: mapCourseFireStatus(c.fireStatus),
+    firedDate: parseDate(c.firedDate),
+    readyDate: parseDate(c.readyDate),
+  }));
+  if (courses.length === 0) {
+    courses.push(...deriveCourseListFromSelections(selections));
+  }
+  return courses;
+}
+
+function mapFinancials(raw: any): { subtotal: number; taxAmount: number; tipAmount: number; totalAmount: number } {
+  return {
+    subtotal: Number(raw.subtotal) || 0,
+    taxAmount: Number(raw.tax) || 0,
+    tipAmount: Number(raw.tip) || 0,
+    totalAmount: Number(raw.total) || 0,
+  };
+}
+
+function mapPayments(raw: any, totalAmount: number, tipAmount: number, checkPaymentStatus: 'OPEN' | 'PAID' | 'CLOSED'): Payment[] {
+  if (!raw.paymentMethod && !raw.stripePaymentIntentId && !raw.paypalOrderId) return [];
+  return [{
+    guid: raw.stripePaymentIntentId ?? raw.paypalOrderId ?? crypto.randomUUID(),
+    paymentMethod: raw.paymentMethod ?? 'unknown',
+    amount: totalAmount,
+    tipAmount,
+    status: checkPaymentStatus,
+    paymentProcessor: raw.stripePaymentIntentId ? 'stripe' : (raw.paypalOrderId ? 'paypal' : undefined),
+    paymentProcessorId: raw.stripePaymentIntentId ?? raw.paypalOrderId,
+    paidDate: checkPaymentStatus === 'PAID' ? new Date() : undefined,
+  }];
+}
+
+function mapDiscounts(raw: any): CheckDiscount[] {
+  return (raw.discounts || []).map((d: any) => ({
+    id: d.id ?? crypto.randomUUID(),
+    type: d.type ?? 'flat',
+    value: Number(d.value) || 0,
+    reason: d.reason ?? '',
+    appliedBy: d.appliedBy ?? '',
+    approvedBy: d.approvedBy ?? undefined,
+  }));
+}
+
+function mapVoidedSelections(raw: any): VoidedSelection[] {
+  return (raw.voidedItems || []).map((item: any) => ({
+    guid: item.id ?? crypto.randomUUID(),
+    menuItemGuid: item.menuItemId ?? '',
+    menuItemName: item.menuItemName || item.name || '',
+    quantity: Number(item.quantity) || 1,
+    unitPrice: Number(item.unitPrice) || 0,
+    totalPrice: Number(item.totalPrice) || 0,
+    fulfillmentStatus: 'SENT' as FulfillmentStatus,
+    modifiers: [],
+    voidReason: item.voidReason ?? 'other',
+    voidedBy: item.voidedBy ?? '',
+    voidedAt: parseDate(item.voidedAt) ?? new Date(),
+    managerApproval: item.managerApproval ?? undefined,
+  }));
+}
+
+function mapTimestamps(raw: any): OrderTimestamps {
+  return {
+    createdDate: raw.createdAt ? new Date(raw.createdAt) : new Date(),
+    confirmedDate: raw.confirmedAt ? new Date(raw.confirmedAt) : undefined,
+    sentDate: raw.sentAt ? new Date(raw.sentAt) : undefined,
+    prepStartDate: raw.prepStartAt ? new Date(raw.prepStartAt) : undefined,
+    preparingDate: raw.preparingAt ? new Date(raw.preparingAt) : undefined,
+    readyDate: raw.readyAt ? new Date(raw.readyAt) : undefined,
+    closedDate: raw.completedAt ? new Date(raw.completedAt) : undefined,
+    voidedDate: raw.cancelledAt ? new Date(raw.cancelledAt) : undefined,
+    lastModifiedDate: raw.updatedAt ? new Date(raw.updatedAt) : new Date(),
+  };
+}
+
+function mapThrottle(raw: any): Order['throttle'] {
+  const rawThrottle = raw.throttle ?? raw;
+  const throttleStateRaw = String(rawThrottle.state ?? raw.throttleState ?? '').toUpperCase();
+  const throttleState: 'NONE' | 'HELD' | 'RELEASED' =
+    throttleStateRaw === 'HELD' || throttleStateRaw === 'RELEASED' ? throttleStateRaw : 'NONE';
+  const throttleSourceRaw = String(rawThrottle.source ?? raw.throttleSource ?? '').toUpperCase();
+  const throttleSource: 'AUTO' | 'MANUAL' | undefined =
+    throttleSourceRaw === 'AUTO' || throttleSourceRaw === 'MANUAL' ? throttleSourceRaw : undefined;
+  if (throttleState === 'NONE' && !rawThrottle.reason && !rawThrottle.throttleReason) return undefined;
+  return {
+    state: throttleState,
+    reason: rawThrottle.reason ?? rawThrottle.throttleReason ?? undefined,
+    heldAt: parseDate(rawThrottle.heldAt ?? rawThrottle.throttleHeldAt),
+    releasedAt: parseDate(rawThrottle.releasedAt ?? rawThrottle.throttleReleasedAt),
+    source: throttleSource,
+    releaseReason: rawThrottle.releaseReason ?? rawThrottle.throttleReleaseReason ?? undefined,
+  };
+}
+
+function mapMarketplace(raw: any): Order['marketplace'] {
+  const rawMarketplace = raw.marketplaceOrder ?? raw.marketplace;
+  if (!rawMarketplace) return undefined;
+  return {
+    provider: rawMarketplace.provider,
+    externalOrderId: rawMarketplace.externalOrderId,
+    externalStoreId: rawMarketplace.externalStoreId ?? undefined,
+    status: rawMarketplace.status ?? undefined,
+    lastPushedStatus: rawMarketplace.lastPushedStatus ?? undefined,
+    lastPushResult: rawMarketplace.lastPushResult ?? undefined,
+    lastPushError: rawMarketplace.lastPushError ?? undefined,
+    lastPushAt: parseDate(rawMarketplace.lastPushAt),
+  };
+}
+
+function mapDeliveryInfo(raw: any): Order['deliveryInfo'] {
+  if (raw.deliveryInfo) return raw.deliveryInfo;
+  if (!raw.deliveryAddress) return undefined;
+  return {
+    address: raw.deliveryAddress,
+    address2: raw.deliveryAddress2 ?? undefined,
+    city: raw.deliveryCity ?? undefined,
+    state: raw.deliveryStateUs ?? undefined,
+    zip: raw.deliveryZip ?? undefined,
+    deliveryNotes: raw.deliveryNotes ?? undefined,
+    deliveryState: raw.deliveryStatus ?? 'PREPARING',
+    dispatchedDate: raw.dispatchedAt ? new Date(raw.dispatchedAt) : undefined,
+    deliveredDate: raw.deliveredAt ? new Date(raw.deliveredAt) : undefined,
+    deliveryProvider: raw.deliveryProvider ?? undefined,
+    deliveryExternalId: raw.deliveryExternalId ?? undefined,
+    deliveryTrackingUrl: raw.deliveryTrackingUrl ?? undefined,
+    dispatchStatus: raw.dispatchStatus ?? undefined,
+    estimatedDeliveryAt: raw.deliveryEstimatedAt ?? undefined,
+    deliveryFee: raw.deliveryFee != null ? Number(raw.deliveryFee) : undefined,
+  };
+}
+
 // --- Mapped order event callbacks ---
 
 export interface MappedOrderEvent {
@@ -1376,145 +1591,14 @@ export class OrderService implements OnDestroy {
     const guestOrderStatus = mapBackendToGuestStatus(rawStatus);
     const fulfillmentStatus = deriveFulfillmentStatus(rawStatus);
 
-    // Map items → selections
-    const rawItems: any[] = raw.orderItems || raw.items || [];
-    const selections: Selection[] = rawItems.map((item: any) => {
-      const rawCourse = item.course;
-      const hasFlatCourse = Boolean(item.courseGuid);
-
-      const course: Course | undefined = rawCourse ? {
-        guid: rawCourse.guid ?? rawCourse.id ?? item.courseGuid ?? crypto.randomUUID(),
-        name: rawCourse.name ?? item.courseName ?? '',
-        sortOrder: Number(rawCourse.sortOrder ?? item.courseSortOrder) || 0,
-        fireStatus: mapCourseFireStatus(rawCourse.fireStatus ?? item.courseFireStatus),
-        firedDate: parseDate(rawCourse.firedDate) ?? parseDate(item.courseFiredAt),
-        readyDate: parseDate(rawCourse.readyDate) ?? parseDate(item.courseReadyAt),
-      } : (hasFlatCourse ? {
-        guid: item.courseGuid,
-        name: item.courseName ?? item.courseGuid,
-        sortOrder: Number(item.courseSortOrder) || 0,
-        fireStatus: mapCourseFireStatus(item.courseFireStatus),
-        firedDate: parseDate(item.courseFiredAt),
-        readyDate: parseDate(item.courseReadyAt),
-      } : undefined);
-
-      const itemFulfillmentStatus = mapItemFulfillmentStatus(
-        item.fulfillmentStatus ?? item.status,
-        fulfillmentStatus,
-        Boolean(course)
-      );
-
-      return {
-        guid: item.id ?? crypto.randomUUID(),
-        menuItemGuid: item.menuItemId ?? '',
-        menuItemName: item.menuItemName || item.name || '',
-        quantity: Number(item.quantity) || 1,
-        unitPrice: Number(item.unitPrice) || 0,
-        totalPrice: Number(item.totalPrice) || 0,
-        fulfillmentStatus: itemFulfillmentStatus,
-        modifiers: (item.orderItemModifiers || item.modifiers || []).map((m: any): SelectionModifier => ({
-          guid: m.id ?? crypto.randomUUID(),
-          name: m.modifierName || m.name || '',
-          priceAdjustment: Number(m.priceAdjustment) || 0,
-          isTextModifier: m.isTextModifier ?? false,
-          textValue: m.textValue ?? undefined,
-        })),
-        specialInstructions: item.specialInstructions,
-        course,
-        completedAt: parseDate(item.completedAt),
-        seatNumber: item.seatNumber != null ? Number(item.seatNumber) : undefined,
-        isComped: item.isComped ?? false,
-        compReason: item.compReason ?? undefined,
-        compBy: item.compBy ?? undefined,
-      };
-    });
-
-    // Map order-level courses
-    const rawCourses: any[] = raw.courses || [];
-    const courses: Course[] = rawCourses.map((c: any) => ({
-      guid: c.guid ?? c.id ?? crypto.randomUUID(),
-      name: c.name ?? '',
-      sortOrder: Number(c.sortOrder) || 0,
-      fireStatus: mapCourseFireStatus(c.fireStatus),
-      firedDate: parseDate(c.firedDate),
-      readyDate: parseDate(c.readyDate),
-    }));
-
-    // If backend doesn't return an explicit courses array, derive from item courses.
-    if (courses.length === 0) {
-      const byGuid = new Map<string, Course>();
-      for (const sel of selections) {
-        if (!sel.course) continue;
-        const existing = byGuid.get(sel.course.guid);
-        if (!existing) {
-          byGuid.set(sel.course.guid, { ...sel.course });
-          continue;
-        }
-        if (courseFireStatusRank(sel.course.fireStatus) > courseFireStatusRank(existing.fireStatus)) {
-          existing.fireStatus = sel.course.fireStatus;
-        }
-        if (!existing.readyDate && sel.course.readyDate) {
-          existing.readyDate = sel.course.readyDate;
-        } else if (existing.readyDate && sel.course.readyDate && sel.course.readyDate > existing.readyDate) {
-          existing.readyDate = sel.course.readyDate;
-        }
-      }
-      courses.push(...[...byGuid.values()].sort((a, b) => a.sortOrder - b.sortOrder));
-    }
-
-    // Financials
-    const subtotal = Number(raw.subtotal) || 0;
-    const taxAmount = Number(raw.tax) || 0;
-    const tipAmount = Number(raw.tip) || 0;
-    const totalAmount = Number(raw.total) || 0;
-
-    // Payment status
+    const selections = mapSelections(raw, fulfillmentStatus);
+    const courses = mapCourseList(raw, selections);
+    const { subtotal, taxAmount, tipAmount, totalAmount } = mapFinancials(raw);
     const checkPaymentStatus = mapBackendPaymentStatus(raw.paymentStatus);
+    const payments = mapPayments(raw, totalAmount, tipAmount, checkPaymentStatus);
+    const discounts = mapDiscounts(raw);
+    const voidedSelections = mapVoidedSelections(raw);
 
-    // Build payments array
-    const payments: Payment[] = [];
-    if (raw.paymentMethod || raw.stripePaymentIntentId || raw.paypalOrderId) {
-      payments.push({
-        guid: raw.stripePaymentIntentId ?? raw.paypalOrderId ?? crypto.randomUUID(),
-        paymentMethod: raw.paymentMethod ?? 'unknown',
-        amount: totalAmount,
-        tipAmount,
-        status: checkPaymentStatus,
-        paymentProcessor: raw.stripePaymentIntentId ? 'stripe' : (raw.paypalOrderId ? 'paypal' : undefined),
-        paymentProcessorId: raw.stripePaymentIntentId ?? raw.paypalOrderId,
-        paidDate: checkPaymentStatus === 'PAID' ? new Date() : undefined,
-      });
-    }
-
-    // Map discounts
-    const rawDiscounts: any[] = raw.discounts || [];
-    const discounts: CheckDiscount[] = rawDiscounts.map((d: any) => ({
-      id: d.id ?? crypto.randomUUID(),
-      type: d.type ?? 'flat',
-      value: Number(d.value) || 0,
-      reason: d.reason ?? '',
-      appliedBy: d.appliedBy ?? '',
-      approvedBy: d.approvedBy ?? undefined,
-    }));
-
-    // Map voided selections
-    const rawVoided: any[] = raw.voidedItems || [];
-    const voidedSelections: VoidedSelection[] = rawVoided.map((item: any) => ({
-      guid: item.id ?? crypto.randomUUID(),
-      menuItemGuid: item.menuItemId ?? '',
-      menuItemName: item.menuItemName || item.name || '',
-      quantity: Number(item.quantity) || 1,
-      unitPrice: Number(item.unitPrice) || 0,
-      totalPrice: Number(item.totalPrice) || 0,
-      fulfillmentStatus: 'SENT' as FulfillmentStatus,
-      modifiers: [],
-      voidReason: item.voidReason ?? 'other',
-      voidedBy: item.voidedBy ?? '',
-      voidedAt: parseDate(item.voidedAt) ?? new Date(),
-      managerApproval: item.managerApproval ?? undefined,
-    }));
-
-    // Single check wrapping all items
     const check: Check = {
       guid: `check-${raw.id ?? crypto.randomUUID()}`,
       displayNumber: '1',
@@ -1533,88 +1617,11 @@ export class OrderService implements OnDestroy {
       preauthId: raw.preauthId ?? undefined,
     };
 
-    // Dining option
     const diningOptionType = mapOrderType(raw.orderType ?? 'dine-in');
     const diningOption = raw.diningOption ?? getDiningOption(diningOptionType);
-
-    // Timestamps
-    const timestamps: OrderTimestamps = {
-      createdDate: raw.createdAt ? new Date(raw.createdAt) : new Date(),
-      confirmedDate: raw.confirmedAt ? new Date(raw.confirmedAt) : undefined,
-      sentDate: raw.sentAt ? new Date(raw.sentAt) : undefined,
-      prepStartDate: raw.prepStartAt ? new Date(raw.prepStartAt) : undefined,
-      preparingDate: raw.preparingAt ? new Date(raw.preparingAt) : undefined,
-      readyDate: raw.readyAt ? new Date(raw.readyAt) : undefined,
-      closedDate: raw.completedAt ? new Date(raw.completedAt) : undefined,
-      voidedDate: raw.cancelledAt ? new Date(raw.cancelledAt) : undefined,
-      lastModifiedDate: raw.updatedAt ? new Date(raw.updatedAt) : new Date(),
-    };
-
-    // Server
-    const server = raw.server ?? {
-      guid: 'system',
-      name: 'System',
-      entityType: 'RestaurantUser' as const,
-    };
-
-    // Device
-    const device = raw.device ?? {
-      guid: raw.sourceDeviceId ?? 'unknown',
-      name: raw.sourceDeviceId ? 'POS Device' : 'Unknown Device',
-    };
-
-    // Table
-    const table = raw.table ?? (raw.tableId ? {
-      guid: raw.tableId,
-      name: raw.tableNumber ?? raw.tableId,
-      entityType: 'Table' as const,
-    } : undefined);
-
-    // Customer
-    const customer = raw.customer ? {
-      firstName: raw.customer.firstName ?? '',
-      lastName: raw.customer.lastName ?? '',
-      phone: raw.customer.phone ?? '',
-      email: raw.customer.email ?? '',
-    } : undefined;
-
-    const rawThrottle = raw.throttle ?? raw;
-    const throttleStateRaw = String(rawThrottle.state ?? raw.throttleState ?? '').toUpperCase();
-    const throttleState: 'NONE' | 'HELD' | 'RELEASED' =
-      throttleStateRaw === 'HELD' || throttleStateRaw === 'RELEASED'
-        ? throttleStateRaw
-        : 'NONE';
-    const throttleSourceRaw = String(rawThrottle.source ?? raw.throttleSource ?? '').toUpperCase();
-    const throttleSource: 'AUTO' | 'MANUAL' | undefined =
-      throttleSourceRaw === 'AUTO' || throttleSourceRaw === 'MANUAL'
-        ? throttleSourceRaw
-        : undefined;
-    const throttle = throttleState === 'NONE'
-      && !rawThrottle.reason
-      && !rawThrottle.throttleReason
-      ? undefined
-      : {
-          state: throttleState,
-          reason: rawThrottle.reason ?? rawThrottle.throttleReason ?? undefined,
-          heldAt: parseDate(rawThrottle.heldAt ?? rawThrottle.throttleHeldAt),
-          releasedAt: parseDate(rawThrottle.releasedAt ?? rawThrottle.throttleReleasedAt),
-          source: throttleSource,
-          releaseReason: rawThrottle.releaseReason ?? rawThrottle.throttleReleaseReason ?? undefined,
-        };
-
-    const rawMarketplace = raw.marketplaceOrder ?? raw.marketplace;
-    const marketplace = rawMarketplace
-      ? {
-          provider: rawMarketplace.provider,
-          externalOrderId: rawMarketplace.externalOrderId,
-          externalStoreId: rawMarketplace.externalStoreId ?? undefined,
-          status: rawMarketplace.status ?? undefined,
-          lastPushedStatus: rawMarketplace.lastPushedStatus ?? undefined,
-          lastPushResult: rawMarketplace.lastPushResult ?? undefined,
-          lastPushError: rawMarketplace.lastPushError ?? undefined,
-          lastPushAt: parseDate(rawMarketplace.lastPushAt),
-        }
-      : undefined;
+    const timestamps = mapTimestamps(raw);
+    const throttle = mapThrottle(raw);
+    const marketplace = mapMarketplace(raw);
 
     return {
       guid: raw.id ?? crypto.randomUUID(),
@@ -1623,9 +1630,9 @@ export class OrderService implements OnDestroy {
       guestOrderStatus,
       orderSource: raw.orderSource ?? undefined,
       businessDate: raw.businessDate,
-      server,
-      device,
-      table,
+      server: raw.server ?? { guid: 'system', name: 'System', entityType: 'RestaurantUser' as const },
+      device: raw.device ?? { guid: raw.sourceDeviceId ?? 'unknown', name: raw.sourceDeviceId ? 'POS Device' : 'Unknown Device' },
+      table: raw.table ?? (raw.tableId ? { guid: raw.tableId, name: raw.tableNumber ?? raw.tableId, entityType: 'Table' as const } : undefined),
       diningOption,
       diningOptionType,
       approvalStatus: raw.approvalStatus,
@@ -1636,42 +1643,12 @@ export class OrderService implements OnDestroy {
       taxAmount,
       tipAmount,
       totalAmount,
-      customer,
+      customer: raw.customer ? { firstName: raw.customer.firstName ?? '', lastName: raw.customer.lastName ?? '', phone: raw.customer.phone ?? '', email: raw.customer.email ?? '' } : undefined,
       specialInstructions: raw.specialInstructions,
       timestamps,
-      deliveryInfo: raw.deliveryInfo ?? (raw.deliveryAddress ? {
-        address: raw.deliveryAddress,
-        address2: raw.deliveryAddress2 ?? undefined,
-        city: raw.deliveryCity ?? undefined,
-        state: raw.deliveryStateUs ?? undefined,
-        zip: raw.deliveryZip ?? undefined,
-        deliveryNotes: raw.deliveryNotes ?? undefined,
-        deliveryState: raw.deliveryStatus ?? 'PREPARING',
-        estimatedDeliveryTime: raw.deliveryEstimatedAt ? new Date(raw.deliveryEstimatedAt) : undefined,
-        dispatchedDate: raw.dispatchedAt ? new Date(raw.dispatchedAt) : undefined,
-        deliveredDate: raw.deliveredAt ? new Date(raw.deliveredAt) : undefined,
-        // DaaS fields
-        deliveryProvider: raw.deliveryProvider ?? undefined,
-        deliveryExternalId: raw.deliveryExternalId ?? undefined,
-        deliveryTrackingUrl: raw.deliveryTrackingUrl ?? undefined,
-        dispatchStatus: raw.dispatchStatus ?? undefined,
-        estimatedDeliveryAt: raw.deliveryEstimatedAt ?? undefined,
-        deliveryFee: raw.deliveryFee != null ? Number(raw.deliveryFee) : undefined,
-      } : undefined),
-      curbsideInfo: raw.curbsideInfo ?? (raw.vehicleDescription ? {
-        vehicleDescription: raw.vehicleDescription,
-        arrivalNotified: raw.arrivalNotified ?? false,
-      } : undefined),
-      cateringInfo: raw.cateringInfo ?? (raw.eventDate || raw.headcount ? {
-        eventDate: raw.eventDate,
-        eventTime: raw.eventTime,
-        headcount: raw.headcount,
-        eventType: raw.eventType,
-        setupRequired: raw.setupRequired ?? false,
-        depositAmount: raw.depositAmount ? Number(raw.depositAmount) : undefined,
-        depositPaid: raw.depositPaid ?? false,
-        specialInstructions: raw.cateringInstructions,
-      } : undefined),
+      deliveryInfo: mapDeliveryInfo(raw),
+      curbsideInfo: raw.curbsideInfo ?? (raw.vehicleDescription ? { vehicleDescription: raw.vehicleDescription, arrivalNotified: raw.arrivalNotified ?? false } : undefined),
+      cateringInfo: raw.cateringInfo ?? (raw.eventDate || raw.headcount ? { eventDate: raw.eventDate, eventTime: raw.eventTime, headcount: raw.headcount, eventType: raw.eventType, setupRequired: raw.setupRequired ?? false, depositAmount: raw.depositAmount ? Number(raw.depositAmount) : undefined, depositPaid: raw.depositPaid ?? false, specialInstructions: raw.cateringInstructions } : undefined),
       throttle,
       marketplace,
       loyaltyPointsEarned: raw.loyaltyPointsEarned ?? 0,

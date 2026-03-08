@@ -123,6 +123,6 @@ export class KioskTerminal implements OnInit {
 
   goBack(): void {
     this.checkout.clearCart();
-    void this.router.navigate(['/kiosk']);
+    this.router.navigate(['/kiosk']);
   }
 }

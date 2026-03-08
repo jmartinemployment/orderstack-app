@@ -49,7 +49,19 @@ export class WasteTracker {
 
     const recs: WasteRecommendation[] = [];
 
-    // Analyze top wasted category
+    const catRec = this.buildCategoryRecommendation(entries);
+    if (catRec) recs.push(catRec);
+
+    const itemRec = this.buildItemRecommendation(entries);
+    if (itemRec) recs.push(itemRec);
+
+    const dayRec = this.buildDayRecommendation(entries);
+    if (dayRec) recs.push(dayRec);
+
+    return recs;
+  });
+
+  private buildCategoryRecommendation(entries: WasteEntry[]): WasteRecommendation | null {
     const catCosts = new Map<WasteCategory, number>();
     for (const entry of entries) {
       catCosts.set(entry.category, (catCosts.get(entry.category) ?? 0) + entry.estimatedCost);
@@ -62,19 +74,27 @@ export class WasteTracker {
         topCatCost = cost;
       }
     }
-    if (topCat) {
-      const label = this.getCategoryLabel(topCat);
-      const weeklyCost = `$${Math.round(topCatCost)}/total`;
-      recs.push({
-        title: `Reduce ${label.toLowerCase()} waste`,
-        description: `${label} is your highest waste category at $${topCatCost.toFixed(2)}. Review processes to reduce this category.`,
-        estimatedSavings: weeklyCost,
-        priority: topCatCost > 100 ? 'high' : topCatCost > 50 ? 'medium' : 'low',
-        category: topCat,
-      });
-    }
+    if (!topCat) return null;
 
-    // Analyze top wasted item
+    const label = this.getCategoryLabel(topCat);
+    let priority: 'high' | 'medium' | 'low';
+    if (topCatCost > 100) {
+      priority = 'high';
+    } else if (topCatCost > 50) {
+      priority = 'medium';
+    } else {
+      priority = 'low';
+    }
+    return {
+      title: `Reduce ${label.toLowerCase()} waste`,
+      description: `${label} is your highest waste category at $${topCatCost.toFixed(2)}. Review processes to reduce this category.`,
+      estimatedSavings: `$${Math.round(topCatCost)}/total`,
+      priority,
+      category: topCat,
+    };
+  }
+
+  private buildItemRecommendation(entries: WasteEntry[]): WasteRecommendation | null {
     const itemCosts = new Map<string, { name: string; cost: number; count: number; category: WasteCategory }>();
     for (const entry of entries) {
       const existing = itemCosts.get(entry.inventoryItemId);
@@ -86,22 +106,25 @@ export class WasteTracker {
       }
     }
     const topItem = [...itemCosts.values()].sort((a, b) => b.cost - a.cost).at(0);
-    if (topItem && topItem.count >= 2) {
-      recs.push({
-        title: `Address ${topItem.name} waste`,
-        description: `${topItem.name} has been wasted ${topItem.count} times totaling $${topItem.cost.toFixed(2)}. Consider adjusting order quantities or storage.`,
-        estimatedSavings: `$${Math.round(topItem.cost * 0.5)}/potential`,
-        priority: topItem.cost > 50 ? 'high' : 'medium',
-        category: topItem.category,
-      });
-    }
+    if (!topItem || topItem.count < 2) return null;
 
-    // Day pattern analysis
+    return {
+      title: `Address ${topItem.name} waste`,
+      description: `${topItem.name} has been wasted ${topItem.count} times totaling $${topItem.cost.toFixed(2)}. Consider adjusting order quantities or storage.`,
+      estimatedSavings: `$${Math.round(topItem.cost * 0.5)}/potential`,
+      priority: topItem.cost > 50 ? 'high' : 'medium',
+      category: topItem.category,
+    };
+  }
+
+  private buildDayRecommendation(entries: WasteEntry[]): WasteRecommendation | null {
     const dayCosts = new Map<number, number>();
     for (const entry of entries) {
       const day = entry.createdAt.getDay();
       dayCosts.set(day, (dayCosts.get(day) ?? 0) + entry.estimatedCost);
     }
+    if (dayCosts.size < 2) return null;
+
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     let peakDay = -1;
     let peakCost = 0;
@@ -111,18 +134,16 @@ export class WasteTracker {
         peakCost = cost;
       }
     }
-    if (peakDay >= 0 && dayCosts.size >= 2) {
-      recs.push({
-        title: `Review ${dayNames[peakDay]} operations`,
-        description: `${dayNames[peakDay]} shows the highest waste at $${peakCost.toFixed(2)}. Adjust prep quantities for this day.`,
-        estimatedSavings: `$${Math.round(peakCost * 0.3)}/potential`,
-        priority: 'medium',
-        category: 'overproduction',
-      });
-    }
+    if (peakDay < 0) return null;
 
-    return recs;
-  });
+    return {
+      title: `Review ${dayNames[peakDay]} operations`,
+      description: `${dayNames[peakDay]} shows the highest waste at $${peakCost.toFixed(2)}. Adjust prep quantities for this day.`,
+      estimatedSavings: `$${Math.round(peakCost * 0.3)}/potential`,
+      priority: 'medium',
+      category: 'overproduction',
+    };
+  }
 
   readonly activeTab = this._activeTab.asReadonly();
   readonly entries = this._entries.asReadonly();

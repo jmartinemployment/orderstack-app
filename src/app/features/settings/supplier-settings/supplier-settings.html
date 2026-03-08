@@ -44,30 +44,33 @@
     <div class="credential-body">
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label">Client ID</label>
+          <label class="form-label" for="syscoClientId">Client ID</label>
           <input
             type="text"
             class="form-control form-control-sm"
+            id="syscoClientId"
             [value]="syscoClientId()"
             (input)="onSyscoClientIdInput($event)"
             [placeholder]="credentialSummary()?.sysco?.hasClientId ? '••••••••' : 'Enter Client ID'"
           />
         </div>
         <div class="col-md-6">
-          <label class="form-label">Client Secret</label>
+          <label class="form-label" for="syscoClientSecret">Client Secret</label>
           <input
             type="password"
             class="form-control form-control-sm"
+            id="syscoClientSecret"
             [value]="syscoClientSecret()"
             (input)="onSyscoClientSecretInput($event)"
             [placeholder]="credentialSummary()?.sysco?.hasClientSecret ? '••••••••' : 'Enter Client Secret'"
           />
         </div>
         <div class="col-md-6">
-          <label class="form-label">Customer ID</label>
+          <label class="form-label" for="syscoCustomerId">Customer ID</label>
           <input
             type="text"
             class="form-control form-control-sm"
+            id="syscoCustomerId"
             [value]="syscoCustomerId()"
             (input)="onSyscoCustomerIdInput($event)"
             [placeholder]="credentialSummary()?.sysco?.hasCustomerId ? '••••••••' : 'Enter Customer ID'"
@@ -138,30 +141,33 @@
     <div class="credential-body">
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label">Client ID</label>
+          <label class="form-label" for="gfsClientId">Client ID</label>
           <input
             type="text"
             class="form-control form-control-sm"
+            id="gfsClientId"
             [value]="gfsClientId()"
             (input)="onGfsClientIdInput($event)"
             [placeholder]="credentialSummary()?.gfs?.hasClientId ? '••••••••' : 'Enter Client ID'"
           />
         </div>
         <div class="col-md-6">
-          <label class="form-label">Client Secret</label>
+          <label class="form-label" for="gfsClientSecret">Client Secret</label>
           <input
             type="password"
             class="form-control form-control-sm"
+            id="gfsClientSecret"
             [value]="gfsClientSecret()"
             (input)="onGfsClientSecretInput($event)"
             [placeholder]="credentialSummary()?.gfs?.hasClientSecret ? '••••••••' : 'Enter Client Secret'"
           />
         </div>
         <div class="col-md-6">
-          <label class="form-label">Customer ID</label>
+          <label class="form-label" for="gfsCustomerId">Customer ID</label>
           <input
             type="text"
             class="form-control form-control-sm"
+            id="gfsCustomerId"
             [value]="gfsCustomerId()"
             (input)="onGfsCustomerIdInput($event)"
             [placeholder]="credentialSummary()?.gfs?.hasCustomerId ? '••••••••' : 'Enter Customer ID'"

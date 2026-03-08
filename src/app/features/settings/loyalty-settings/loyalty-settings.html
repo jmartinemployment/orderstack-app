@@ -14,9 +14,10 @@
           class="form-check-input"
           type="checkbox"
           role="switch"
+          id="loyaltyEnabledToggle"
           [checked]="enabled()"
           (change)="onToggle($event)" />
-        <label class="form-check-label">
+        <label class="form-check-label" for="loyaltyEnabledToggle">
           Enable Loyalty Program
           <small class="d-block text-muted">Customers earn and redeem points on orders</small>
         </label>
@@ -29,20 +30,22 @@
         <h6>Point Earning</h6>
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label">Points per Dollar</label>
+            <label class="form-label" for="pointsPerDollar">Points per Dollar</label>
             <input
               type="number"
               class="form-control"
+              id="pointsPerDollar"
               [value]="pointsPerDollar()"
               (input)="onFieldChange('pointsPerDollar', $event)"
               min="1" />
             <small class="text-muted">Base points earned per $1 spent</small>
           </div>
           <div class="col-md-6">
-            <label class="form-label">Redemption Rate ($/point)</label>
+            <label class="form-label" for="redemptionRate">Redemption Rate ($/point)</label>
             <input
               type="number"
               class="form-control"
+              id="redemptionRate"
               [value]="pointsRedemptionRate()"
               (input)="onFieldChange('pointsRedemptionRate', $event)"
               min="0.001"
@@ -58,28 +61,31 @@
         <h6>Tier Thresholds (Lifetime Points Earned)</h6>
         <div class="row g-3">
           <div class="col-md-4">
-            <label class="form-label tier-label silver">Silver</label>
+            <label class="form-label tier-label silver" for="tierSilverMin">Silver</label>
             <input
               type="number"
               class="form-control"
+              id="tierSilverMin"
               [value]="tierSilverMin()"
               (input)="onFieldChange('tierSilverMin', $event)"
               min="1" />
           </div>
           <div class="col-md-4">
-            <label class="form-label tier-label gold">Gold</label>
+            <label class="form-label tier-label gold" for="tierGoldMin">Gold</label>
             <input
               type="number"
               class="form-control"
+              id="tierGoldMin"
               [value]="tierGoldMin()"
               (input)="onFieldChange('tierGoldMin', $event)"
               min="1" />
           </div>
           <div class="col-md-4">
-            <label class="form-label tier-label platinum">Platinum</label>
+            <label class="form-label tier-label platinum" for="tierPlatinumMin">Platinum</label>
             <input
               type="number"
               class="form-control"
+              id="tierPlatinumMin"
               [value]="tierPlatinumMin()"
               (input)="onFieldChange('tierPlatinumMin', $event)"
               min="1" />
@@ -93,10 +99,11 @@
         <small class="text-muted d-block mb-2">Higher tiers earn points faster</small>
         <div class="row g-3">
           <div class="col-md-4">
-            <label class="form-label tier-label silver">Silver (x)</label>
+            <label class="form-label tier-label silver" for="silverMultiplier">Silver (x)</label>
             <input
               type="number"
               class="form-control"
+              id="silverMultiplier"
               [value]="silverMultiplier()"
               (input)="onFieldChange('silverMultiplier', $event)"
               min="1"
@@ -104,10 +111,11 @@
               step="0.05" />
           </div>
           <div class="col-md-4">
-            <label class="form-label tier-label gold">Gold (x)</label>
+            <label class="form-label tier-label gold" for="goldMultiplier">Gold (x)</label>
             <input
               type="number"
               class="form-control"
+              id="goldMultiplier"
               [value]="goldMultiplier()"
               (input)="onFieldChange('goldMultiplier', $event)"
               min="1"
@@ -115,10 +123,11 @@
               step="0.05" />
           </div>
           <div class="col-md-4">
-            <label class="form-label tier-label platinum">Platinum (x)</label>
+            <label class="form-label tier-label platinum" for="platinumMultiplier">Platinum (x)</label>
             <input
               type="number"
               class="form-control"
+              id="platinumMultiplier"
               [value]="platinumMultiplier()"
               (input)="onFieldChange('platinumMultiplier', $event)"
               min="1"
@@ -154,9 +163,10 @@
             class="form-check-input"
             type="checkbox"
             role="switch"
+            id="referralEnabledToggle"
             [checked]="referralEnabled()"
             (change)="onReferralToggle($event)" />
-          <label class="form-check-label">
+          <label class="form-check-label" for="referralEnabledToggle">
             Enable Referral Program
             <small class="d-block text-muted">Reward customers for referring new diners</small>
           </label>
@@ -167,8 +177,8 @@
             <div class="col-md-6">
               <h6>Referrer Reward</h6>
               <div class="mb-2">
-                <label class="form-label">Reward Type</label>
-                <select class="form-select" [value]="referrerRewardType()" (change)="onReferralField('referrerRewardType', $event)">
+                <label class="form-label" for="referrerRewardType">Reward Type</label>
+                <select class="form-select" id="referrerRewardType" [value]="referrerRewardType()" (change)="onReferralField('referrerRewardType', $event)">
                   <option value="points">Loyalty Points</option>
                   <option value="discount_percentage">% Discount</option>
                   <option value="discount_flat">$ Discount</option>
@@ -176,8 +186,8 @@
                 </select>
               </div>
               <div>
-                <label class="form-label">Value</label>
-                <input type="number" class="form-control" min="1"
+                <label class="form-label" for="referrerRewardValue">Value</label>
+                <input type="number" class="form-control" id="referrerRewardValue" min="1"
                   [value]="referrerRewardValue()"
                   (input)="onReferralField('referrerRewardValue', $event)" />
                 <small class="text-muted">
@@ -190,8 +200,8 @@
             <div class="col-md-6">
               <h6>New Customer Reward</h6>
               <div class="mb-2">
-                <label class="form-label">Reward Type</label>
-                <select class="form-select" [value]="refereeRewardType()" (change)="onReferralField('refereeRewardType', $event)">
+                <label class="form-label" for="refereeRewardType">Reward Type</label>
+                <select class="form-select" id="refereeRewardType" [value]="refereeRewardType()" (change)="onReferralField('refereeRewardType', $event)">
                   <option value="points">Loyalty Points</option>
                   <option value="discount_percentage">% Discount</option>
                   <option value="discount_flat">$ Discount</option>
@@ -199,8 +209,8 @@
                 </select>
               </div>
               <div>
-                <label class="form-label">Value</label>
-                <input type="number" class="form-control" min="1"
+                <label class="form-label" for="refereeRewardValue">Value</label>
+                <input type="number" class="form-control" id="refereeRewardValue" min="1"
                   [value]="refereeRewardValue()"
                   (input)="onReferralField('refereeRewardValue', $event)" />
                 <small class="text-muted">
@@ -213,8 +223,8 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Max Referrals per Customer</label>
-            <input type="number" class="form-control" style="max-width: 200px;"
+            <label class="form-label" for="maxReferrals">Max Referrals per Customer</label>
+            <input type="number" class="form-control" id="maxReferrals" style="max-width: 200px;"
               placeholder="Unlimited"
               [value]="maxReferrals() ?? ''"
               (input)="onReferralField('maxReferrals', $event)"

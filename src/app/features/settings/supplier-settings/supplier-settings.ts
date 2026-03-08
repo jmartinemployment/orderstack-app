@@ -100,7 +100,7 @@ export class SupplierSettings implements OnInit {
   );
 
   ngOnInit(): void {
-    void this.supplierService.loadCredentialSummary().then(() => {
+    this.supplierService.loadCredentialSummary().then(() => {
       this._syscoMode.set(this.credentialSummary()?.sysco.mode ?? 'test');
       this._gfsMode.set(this.credentialSummary()?.gfs.mode ?? 'test');
     });

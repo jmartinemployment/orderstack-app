@@ -1,9 +1,8 @@
 import '../../../../test-setup';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, ActivatedRoute } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
 import { CateringProposalComponent } from './catering-proposal.component';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';

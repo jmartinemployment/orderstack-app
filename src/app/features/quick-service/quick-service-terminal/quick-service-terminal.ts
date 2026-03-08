@@ -184,7 +184,7 @@ export class QuickServiceTerminal implements OnInit {
     this.settingsService.loadSettings();
   }
 
-  selectTopTab(tab: TopTab | string): void {
+  selectTopTab(tab: string): void {
     this._activeTopTab.set(tab as TopTab);
   }
 

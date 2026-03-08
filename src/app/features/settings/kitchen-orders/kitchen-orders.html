@@ -114,6 +114,7 @@
             type="text"
             class="form-control form-control-sm"
             placeholder="New course name..."
+            aria-label="New course name"
             [value]="newCourseName()"
             (input)="onNewCourseNameInput($event)"
             (keydown.enter)="addCourseName()"

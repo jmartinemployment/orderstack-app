@@ -38,11 +38,12 @@
           placeholder="Search products..."
           [ngModel]="filters().search"
           (ngModelChange)="setSearch($event)"
+          aria-label="Search products"
         />
       </div>
 
       <div class="toolbar-controls">
-        <select class="sort-select" [ngModel]="filters().sort" (ngModelChange)="setSort($event)">
+        <select class="sort-select" [ngModel]="filters().sort" (ngModelChange)="setSort($event)" aria-label="Sort products">
           <option value="name_asc">Name (A-Z)</option>
           <option value="name_desc">Name (Z-A)</option>
           <option value="price_asc">Price (Low-High)</option>
@@ -66,7 +67,7 @@
     } @else {
       <div class="product-grid">
         @for (item of filteredItems(); track item.id) {
-          <div class="product-card" (click)="goToProduct(item)">
+          <div class="product-card" (click)="goToProduct(item)" (keydown.enter)="goToProduct(item)" tabindex="0" role="button">
             <div class="product-image">
               @if (item.imageUrl) {
                 <img [src]="item.imageUrl" [alt]="item.name" />
@@ -109,7 +110,7 @@
 
   <!-- Cart Drawer -->
   @if (showCart()) {
-    <div class="cart-overlay" (click)="closeCart()"></div>
+    <div class="cart-overlay" (click)="closeCart()" (keydown.enter)="closeCart()" tabindex="0" role="button"></div>
     <aside class="cart-drawer">
       <div class="cart-header">
         <h2>Your Cart</h2>

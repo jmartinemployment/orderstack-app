@@ -9,7 +9,7 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { CurrencyPipe } from '@angular/common';
 import { OrderService } from '@services/order';
-import { Check, Selection, ScanToPaySession } from '@models/index';
+import { Check, ScanToPaySession } from '@models/index';
 
 type PageState = 'loading' | 'check' | 'confirm-tip' | 'paying' | 'success' | 'error';
 type PayMode = 'full' | 'items';

@@ -86,7 +86,7 @@
 .status-seated { background-color: var(--os-primary); color: #fff; }
 .status-completed { background-color: var(--os-primary-hover); color: #fff; }
 .status-cancelled { background-color: var(--os-danger); color: #fff; }
-.status-noshow { background-color: #fd7e14; color: #fff; }
+.status-noshow { background-color: #c45d00; color: #fff; }
 
 // Empty state
 .empty-state {
@@ -491,7 +491,7 @@
 
 .badge-event-type {
   background-color: rgba(111, 66, 193, 0.1);
-  color: #6f42c1;
+  color: #a78bfa;
   font-size: 0.65rem;
   font-weight: 600;
 }
@@ -551,7 +551,7 @@
 
 .badge-celebration {
   background-color: rgba(232, 62, 140, 0.1);
-  color: #e83e8c;
+  color: #f472b6;
   font-size: 0.65rem;
   font-weight: 600;
 }
@@ -643,7 +643,7 @@
 
   &.status-disconnected {
     background-color: rgba(108, 117, 125, 0.1);
-    color: #6c757d;
+    color: #8b949e;
   }
 }
 

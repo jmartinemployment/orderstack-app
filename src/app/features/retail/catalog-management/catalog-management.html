@@ -67,6 +67,7 @@
           placeholder="Search by name, SKU, or barcode..."
           [ngModel]="searchQuery()"
           (ngModelChange)="searchQuery.set($event)"
+          aria-label="Search by name, SKU, or barcode"
         />
       </div>
       <select class="form-select form-select-sm filter-select" [ngModel]="filterCategoryId()" (ngModelChange)="filterCategoryId.set($event)" aria-label="Filter by category">
@@ -92,7 +93,7 @@
         <button class="btn btn-sm btn-outline-danger" (click)="bulkDelete()">
           <i class="bi bi-trash3"></i> Delete
         </button>
-        <select class="form-select form-select-sm" style="width: auto;" (change)="bulkChangeCategory($any($event.target).value)">
+        <select class="form-select form-select-sm" style="width: auto;" (change)="bulkChangeCategory($any($event.target).value)" aria-label="Move to category">
           <option value="" disabled selected>Move to category...</option>
           @for (cat of categories(); track cat.id) {
             <option [value]="cat.id">{{ cat.name }}</option>
@@ -116,9 +117,9 @@
         @for (item of filteredItems(); track item.id) {
           <div class="item-card" [class.selected]="selectedItemIds().has(item.id)">
             <div class="item-card-select">
-              <input type="checkbox" [checked]="selectedItemIds().has(item.id)" (change)="toggleItemSelection(item.id)" />
+              <input type="checkbox" [checked]="selectedItemIds().has(item.id)" (change)="toggleItemSelection(item.id)" aria-label="Select {{ item.name }}" />
             </div>
-            <div class="item-card-image" (click)="openEditItem(item)">
+            <div class="item-card-image" (click)="openEditItem(item)" (keydown.enter)="openEditItem(item)" tabindex="0" role="button">
               @if (item.thumbnailUrl || item.imageUrl) {
                 <img [src]="item.thumbnailUrl ?? item.imageUrl" [alt]="item.name" />
               } @else {
@@ -127,7 +128,7 @@
                 </div>
               }
             </div>
-            <div class="item-card-body" (click)="openEditItem(item)">
+            <div class="item-card-body" (click)="openEditItem(item)" (keydown.enter)="openEditItem(item)" tabindex="0" role="button">
               <div class="item-name">{{ item.name }}</div>
               @if (item.sku) {
                 <div class="item-sku">SKU: {{ item.sku }}</div>
@@ -173,7 +174,7 @@
         <table class="item-table">
           <thead>
             <tr>
-              <th class="col-check"><input type="checkbox" (change)="toggleSelectAll()" /></th>
+              <th class="col-check"><input type="checkbox" (change)="toggleSelectAll()" aria-label="Select all items" /></th>
               <th>Item</th>
               <th>SKU</th>
               <th>Category</th>
@@ -186,7 +187,7 @@
           <tbody>
             @for (item of filteredItems(); track item.id) {
               <tr [class.selected]="selectedItemIds().has(item.id)">
-                <td class="col-check"><input type="checkbox" [checked]="selectedItemIds().has(item.id)" (change)="toggleItemSelection(item.id)" /></td>
+                <td class="col-check"><input type="checkbox" [checked]="selectedItemIds().has(item.id)" (change)="toggleItemSelection(item.id)" aria-label="Select {{ item.name }}" /></td>
                 <td>
                   <div class="item-cell">
                     @if (item.thumbnailUrl || item.imageUrl) {
@@ -401,11 +402,11 @@
           <div class="form-row">
             <div class="form-group flex-1">
               <label>Name</label>
-              <input type="text" class="form-control" [ngModel]="itemForm().name" (ngModelChange)="updateItemForm({ name: $event })" placeholder="Product name" />
+              <input type="text" class="form-control" [ngModel]="itemForm().name" (ngModelChange)="updateItemForm({ name: $event })" placeholder="Product name" aria-label="Name" />
             </div>
             <div class="form-group" style="width: 120px;">
               <label>Type</label>
-              <select class="form-select" [ngModel]="itemForm().itemType" (ngModelChange)="updateItemType($event)">
+              <select class="form-select" [ngModel]="itemForm().itemType" (ngModelChange)="updateItemType($event)" aria-label="Type">
                 <option value="physical">Physical</option>
                 <option value="digital">Digital</option>
                 <option value="service">Service</option>
@@ -414,22 +415,22 @@
           </div>
           <div class="form-group">
             <label>Description</label>
-            <textarea class="form-control" rows="3" [ngModel]="itemForm().description" (ngModelChange)="updateItemForm({ description: $event })" placeholder="Product description"></textarea>
+            <textarea class="form-control" rows="3" [ngModel]="itemForm().description" (ngModelChange)="updateItemForm({ description: $event })" placeholder="Product description" aria-label="Description"></textarea>
           </div>
           <div class="form-row">
             <div class="form-group flex-1">
               <label>Price</label>
-              <input type="number" class="form-control" [ngModel]="itemForm().basePrice" (ngModelChange)="updateItemForm({ basePrice: $event })" step="0.01" min="0" />
+              <input type="number" class="form-control" [ngModel]="itemForm().basePrice" (ngModelChange)="updateItemForm({ basePrice: $event })" step="0.01" min="0" aria-label="Price" />
             </div>
             <div class="form-group flex-1">
               <label>Cost</label>
-              <input type="number" class="form-control" [ngModel]="itemForm().cost" (ngModelChange)="updateItemForm({ cost: $event })" step="0.01" min="0" placeholder="Optional" />
+              <input type="number" class="form-control" [ngModel]="itemForm().cost" (ngModelChange)="updateItemForm({ cost: $event })" step="0.01" min="0" placeholder="Optional" aria-label="Cost" />
             </div>
           </div>
           <div class="form-row">
             <div class="form-group flex-1">
               <label>Category</label>
-              <select class="form-select" [ngModel]="itemForm().categoryId" (ngModelChange)="updateItemForm({ categoryId: $event })">
+              <select class="form-select" [ngModel]="itemForm().categoryId" (ngModelChange)="updateItemForm({ categoryId: $event })" aria-label="Category">
                 <option [ngValue]="null">None</option>
                 @for (cat of categories(); track cat.id) {
                   <option [ngValue]="cat.id">{{ cat.name }}</option>
@@ -451,13 +452,13 @@
                 <div class="form-group flex-1">
                   <label>SKU</label>
                   <div class="input-group">
-                    <input type="text" class="form-control" [ngModel]="itemForm().sku" (ngModelChange)="updateItemForm({ sku: $event })" placeholder="e.g. TSHRT-BLK-M" />
+                    <input type="text" class="form-control" [ngModel]="itemForm().sku" (ngModelChange)="updateItemForm({ sku: $event })" placeholder="e.g. TSHRT-BLK-M" aria-label="SKU" />
                     <button class="btn btn-outline-secondary btn-sm" (click)="autoGenerateSku()">Auto</button>
                   </div>
                 </div>
                 <div class="form-group flex-1">
                   <label>Barcode</label>
-                  <input type="text" class="form-control" [ngModel]="itemForm().barcode" (ngModelChange)="updateItemForm({ barcode: $event })" placeholder="Scan or enter" />
+                  <input type="text" class="form-control" [ngModel]="itemForm().barcode" (ngModelChange)="updateItemForm({ barcode: $event })" placeholder="Scan or enter" aria-label="Barcode" />
                 </div>
               </div>
 
@@ -499,7 +500,7 @@
               @if (itemForm().weightBased) {
                 <div class="form-group" style="max-width: 200px;">
                   <label>Weight Unit</label>
-                  <select class="form-select" [ngModel]="itemForm().weightUnit" (ngModelChange)="updateItemForm({ weightUnit: $event })">
+                  <select class="form-select" [ngModel]="itemForm().weightUnit" (ngModelChange)="updateItemForm({ weightUnit: $event })" aria-label="Weight unit">
                     <option value="lb">lb</option>
                     <option value="oz">oz</option>
                     <option value="kg">kg</option>
@@ -532,11 +533,11 @@
       <div class="modal-body">
         <div class="form-group">
           <label>Name</label>
-          <input type="text" class="form-control" [ngModel]="categoryForm().name" (ngModelChange)="updateCategoryName($event)" />
+          <input type="text" class="form-control" [ngModel]="categoryForm().name" (ngModelChange)="updateCategoryName($event)" aria-label="Name" />
         </div>
         <div class="form-group">
           <label>Parent Category</label>
-          <select class="form-select" [ngModel]="categoryForm().parentId" (ngModelChange)="updateCategoryParent($event)">
+          <select class="form-select" [ngModel]="categoryForm().parentId" (ngModelChange)="updateCategoryParent($event)" aria-label="Parent category">
             <option [ngValue]="null">None (top level)</option>
             @for (cat of categories(); track cat.id) {
               <option [ngValue]="cat.id">{{ cat.name }}</option>
@@ -565,7 +566,7 @@
       <div class="modal-body">
         <div class="form-group">
           <label>Name</label>
-          <input type="text" class="form-control" [ngModel]="optionSetForm().name" (ngModelChange)="updateOptionSetName($event)" placeholder="e.g. Size, Color" />
+          <input type="text" class="form-control" [ngModel]="optionSetForm().name" (ngModelChange)="updateOptionSetName($event)" placeholder="e.g. Size, Color" aria-label="Name" />
         </div>
         <div class="form-group">
           <label>Values</label>
@@ -577,6 +578,7 @@
               (ngModelChange)="newOptionValue.set($event)"
               (keydown.enter)="addOptionValue()"
               placeholder="Type a value and press Enter"
+              aria-label="Option value"
             />
             <button class="btn btn-outline-primary btn-sm" (click)="addOptionValue()">Add</button>
           </div>
@@ -611,11 +613,11 @@
       <div class="modal-body">
         <div class="form-group">
           <label>Name</label>
-          <input type="text" class="form-control" [ngModel]="collectionForm().name" (ngModelChange)="updateCollectionName($event)" />
+          <input type="text" class="form-control" [ngModel]="collectionForm().name" (ngModelChange)="updateCollectionName($event)" aria-label="Name" />
         </div>
         <div class="form-group">
           <label>Type</label>
-          <select class="form-select" [ngModel]="collectionForm().type" (ngModelChange)="updateCollectionType($event)">
+          <select class="form-select" [ngModel]="collectionForm().type" (ngModelChange)="updateCollectionType($event)" aria-label="Type">
             <option value="manual">Manual</option>
             <option value="smart">Smart (Rule-based)</option>
           </select>
@@ -625,7 +627,7 @@
             <label>Rules</label>
             <div class="rule-builder">
               <div class="rule-input-row">
-                <select class="form-select form-select-sm" [ngModel]="newRule().field" (ngModelChange)="updateNewRuleField($event)">
+                <select class="form-select form-select-sm" [ngModel]="newRule().field" (ngModelChange)="updateNewRuleField($event)" aria-label="Rule field">
                   <option value="price">Price</option>
                   <option value="category">Category</option>
                   <option value="vendor">Vendor</option>
@@ -633,14 +635,14 @@
                   <option value="item_type">Item Type</option>
                   <option value="stock_quantity">Stock Qty</option>
                 </select>
-                <select class="form-select form-select-sm" [ngModel]="newRule().operator" (ngModelChange)="updateNewRuleOperator($event)">
+                <select class="form-select form-select-sm" [ngModel]="newRule().operator" (ngModelChange)="updateNewRuleOperator($event)" aria-label="Rule operator">
                   <option value="equals">equals</option>
                   <option value="not_equals">not equals</option>
                   <option value="greater_than">greater than</option>
                   <option value="less_than">less than</option>
                   <option value="contains">contains</option>
                 </select>
-                <input type="text" class="form-control form-control-sm" [ngModel]="newRule().value" (ngModelChange)="updateNewRuleValue($event)" placeholder="Value" />
+                <input type="text" class="form-control form-control-sm" [ngModel]="newRule().value" (ngModelChange)="updateNewRuleValue($event)" placeholder="Value" aria-label="Rule value" />
                 <button class="btn btn-sm btn-outline-primary" (click)="addCollectionRule()">Add</button>
               </div>
               @for (rule of collectionForm().rules; track $index) {
@@ -675,11 +677,11 @@
         <div class="form-row">
           <div class="form-group flex-1">
             <label>Bundle Name</label>
-            <input type="text" class="form-control" [ngModel]="bundleForm().name" (ngModelChange)="updateBundleName($event)" placeholder="e.g. Summer Gift Set" />
+            <input type="text" class="form-control" [ngModel]="bundleForm().name" (ngModelChange)="updateBundleName($event)" placeholder="e.g. Summer Gift Set" aria-label="Bundle name" />
           </div>
           <div class="form-group" style="width: 160px;">
             <label>Pricing Strategy</label>
-            <select class="form-select" [ngModel]="bundleForm().bundleType" (ngModelChange)="updateBundleType($event)">
+            <select class="form-select" [ngModel]="bundleForm().bundleType" (ngModelChange)="updateBundleType($event)" aria-label="Pricing strategy">
               <option value="fixed_price">Fixed Price</option>
               <option value="percent_discount">% Discount</option>
               <option value="cheapest_free">Cheapest Free</option>
@@ -690,13 +692,13 @@
           @if (bundleForm().bundleType === 'fixed_price') {
             <div class="form-group" style="width: 160px;">
               <label>Bundle Price</label>
-              <input type="number" class="form-control" [ngModel]="bundleForm().price" (ngModelChange)="updateBundlePrice($event)" step="0.01" min="0" />
+              <input type="number" class="form-control" [ngModel]="bundleForm().price" (ngModelChange)="updateBundlePrice($event)" step="0.01" min="0" aria-label="Bundle price" />
             </div>
           }
           @if (bundleForm().bundleType === 'percent_discount') {
             <div class="form-group" style="width: 160px;">
               <label>Discount %</label>
-              <input type="number" class="form-control" [ngModel]="bundleForm().discountPercent" (ngModelChange)="updateBundleDiscount($event)" min="0" max="100" />
+              <input type="number" class="form-control" [ngModel]="bundleForm().discountPercent" (ngModelChange)="updateBundleDiscount($event)" min="0" max="100" aria-label="Discount percent" />
             </div>
           }
           @if (bundleSavings() > 0) {
@@ -716,6 +718,7 @@
               [ngModel]="bundleComponentSearch()"
               (ngModelChange)="bundleComponentSearch.set($event)"
               placeholder="Search items to add..."
+              aria-label="Search items to add"
             />
             @if (bundleSearchResults().length > 0) {
               <div class="search-dropdown">
@@ -767,7 +770,7 @@
           <div class="import-dropzone">
             <i class="bi bi-cloud-upload"></i>
             <p>Drag and drop a CSV file, or click to browse</p>
-            <input type="file" accept=".csv" (change)="onImportFileChange($event)" />
+            <input type="file" accept=".csv" (change)="onImportFileChange($event)" aria-label="Choose CSV file" />
           </div>
           @if (importFile()) {
             <div class="import-file-info">

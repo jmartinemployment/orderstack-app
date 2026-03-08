@@ -73,18 +73,19 @@
       <h6 class="panel-title">Register New Printer</h6>
       <div class="row mb-3">
         <div class="col-md-6 mb-2">
-          <label class="form-label">Name *</label>
+          <label class="form-label" for="printerFormName">Name *</label>
           <input
             type="text"
             class="form-control"
+            id="printerFormName"
             [value]="formName()"
             (input)="onFormField('name', $event)"
             placeholder="Kitchen Printer"
           />
         </div>
         <div class="col-md-6 mb-2">
-          <label class="form-label">Model</label>
-          <select class="form-select" [value]="formModel()" (change)="onFormSelect('model', $event)">
+          <label class="form-label" for="printerFormModel">Model</label>
+          <select class="form-select" id="printerFormModel" [value]="formModel()" (change)="onFormSelect('model', $event)">
             @for (m of printerModels; track m) {
               <option [value]="m">{{ m }}</option>
             }
@@ -93,10 +94,11 @@
       </div>
       <div class="row mb-3">
         <div class="col-md-6 mb-2">
-          <label class="form-label">MAC Address *</label>
+          <label class="form-label" for="printerFormMac">MAC Address *</label>
           <input
             type="text"
             class="form-control"
+            id="printerFormMac"
             [class.mac-valid]="formMacAddress().length > 0 && macAddressValid()"
             [class.mac-invalid]="formMacAddress().length > 0 && !macAddressValid()"
             [value]="formMacAddress()"
@@ -106,10 +108,11 @@
           />
         </div>
         <div class="col-md-6 mb-2">
-          <label class="form-label">IP Address</label>
+          <label class="form-label" for="printerFormIp">IP Address</label>
           <input
             type="text"
             class="form-control"
+            id="printerFormIp"
             [value]="formIpAddress()"
             (input)="onFormField('ipAddress', $event)"
             placeholder="192.168.1.100"
@@ -118,10 +121,11 @@
       </div>
       <div class="row mb-3">
         <div class="col-md-4 mb-2">
-          <label class="form-label">Print Width</label>
+          <label class="form-label" for="printerFormWidth">Print Width</label>
           <input
             type="number"
             class="form-control"
+            id="printerFormWidth"
             [value]="formPrintWidth()"
             (input)="onFormNumber('printWidth', $event)"
             min="32"
@@ -165,17 +169,18 @@
           <h6 class="panel-title">Edit Printer</h6>
           <div class="row mb-3">
             <div class="col-md-6 mb-2">
-              <label class="form-label">Name</label>
+              <label class="form-label" for="printerEditName">Name</label>
               <input
                 type="text"
                 class="form-control"
+                id="printerEditName"
                 [value]="editName()"
                 (input)="onEditField('name', $event)"
               />
             </div>
             <div class="col-md-6 mb-2">
-              <label class="form-label">Model</label>
-              <select class="form-select" [value]="editModel()" (change)="onEditSelect('model', $event)">
+              <label class="form-label" for="printerEditModel">Model</label>
+              <select class="form-select" id="printerEditModel" [value]="editModel()" (change)="onEditSelect('model', $event)">
                 @for (m of printerModels; track m) {
                   <option [value]="m">{{ m }}</option>
                 }
@@ -184,19 +189,21 @@
           </div>
           <div class="row mb-3">
             <div class="col-md-6 mb-2">
-              <label class="form-label">IP Address</label>
+              <label class="form-label" for="printerEditIp">IP Address</label>
               <input
                 type="text"
                 class="form-control"
+                id="printerEditIp"
                 [value]="editIpAddress()"
                 (input)="onEditField('ipAddress', $event)"
               />
             </div>
             <div class="col-md-4 mb-2">
-              <label class="form-label">Print Width</label>
+              <label class="form-label" for="printerEditWidth">Print Width</label>
               <input
                 type="number"
                 class="form-control"
+                id="printerEditWidth"
                 [value]="editPrintWidth()"
                 (input)="onEditNumber('printWidth', $event)"
                 min="32"
@@ -295,7 +302,7 @@
 
   <!-- Delete Confirmation Modal -->
   @if (deletingPrinter(); as dp) {
-    <div class="modal-backdrop" (click)="cancelDelete()"></div>
+    <div class="modal-backdrop" (click)="cancelDelete()" (keydown.enter)="cancelDelete()" tabindex="0" role="button"></div>
     <div class="stock-modal">
       <h5 class="mb-3">Delete Printer</h5>
       <div class="alert alert-warning small mb-3">

@@ -2,7 +2,7 @@
 <!-- Page Header -->
 <div class="os-page-header">
   <div class="header-left">
-    <button class="btn btn-ghost" (click)="goBack()"><i class="bi bi-arrow-left"></i></button>
+    <button class="btn btn-ghost" (click)="goBack()" aria-label="Go back"><i class="bi bi-arrow-left"></i></button>
     <h1>Variation Editor</h1>
     @if (selectedItem(); as item) {
       <span class="item-label">{{ item.name }}</span>
@@ -78,7 +78,7 @@
               </td>
 
               <!-- SKU -->
-              <td class="col-editable" (click)="startEdit(v.id, 'sku', v.sku)">
+              <td class="col-editable" (click)="startEdit(v.id, 'sku', v.sku)" (keydown.enter)="startEdit(v.id, 'sku', v.sku)" tabindex="0" role="button">
                 @if (isEditing(v.id, 'sku')) {
                   <input
                     type="text"
@@ -88,6 +88,7 @@
                     (keydown.enter)="saveEdit(v.id)"
                     (keydown.escape)="cancelEdit()"
                     (blur)="saveEdit(v.id)"
+                    aria-label="SKU"
                     autofocus
                   />
                 } @else {
@@ -96,7 +97,7 @@
               </td>
 
               <!-- Barcode -->
-              <td class="col-editable" (click)="startEdit(v.id, 'barcode', v.barcode)">
+              <td class="col-editable" (click)="startEdit(v.id, 'barcode', v.barcode)" (keydown.enter)="startEdit(v.id, 'barcode', v.barcode)" tabindex="0" role="button">
                 @if (isEditing(v.id, 'barcode')) {
                   <div class="inline-input-group">
                     <input
@@ -107,6 +108,7 @@
                       (keydown.enter)="saveEdit(v.id)"
                       (keydown.escape)="cancelEdit()"
                       (blur)="saveEdit(v.id)"
+                      aria-label="Barcode"
                       autofocus
                     />
                   </div>
@@ -123,7 +125,7 @@
               </td>
 
               <!-- Price -->
-              <td class="col-editable col-number" (click)="startEdit(v.id, 'price', v.price)">
+              <td class="col-editable col-number" (click)="startEdit(v.id, 'price', v.price)" (keydown.enter)="startEdit(v.id, 'price', v.price)" tabindex="0" role="button">
                 @if (isEditing(v.id, 'price')) {
                   <input
                     type="number"
@@ -133,6 +135,7 @@
                     (keydown.enter)="saveEdit(v.id)"
                     (keydown.escape)="cancelEdit()"
                     (blur)="saveEdit(v.id)"
+                    aria-label="Price"
                     step="0.01"
                     autofocus
                   />
@@ -142,7 +145,7 @@
               </td>
 
               <!-- Cost -->
-              <td class="col-editable col-number" (click)="startEdit(v.id, 'cost', v.cost)">
+              <td class="col-editable col-number" (click)="startEdit(v.id, 'cost', v.cost)" (keydown.enter)="startEdit(v.id, 'cost', v.cost)" tabindex="0" role="button">
                 @if (isEditing(v.id, 'cost')) {
                   <input
                     type="number"
@@ -152,6 +155,7 @@
                     (keydown.enter)="saveEdit(v.id)"
                     (keydown.escape)="cancelEdit()"
                     (blur)="saveEdit(v.id)"
+                    aria-label="Cost"
                     step="0.01"
                     autofocus
                   />
@@ -161,7 +165,7 @@
               </td>
 
               <!-- Stock -->
-              <td class="col-editable col-number" (click)="startEdit(v.id, 'stockQuantity', v.stockQuantity)">
+              <td class="col-editable col-number" (click)="startEdit(v.id, 'stockQuantity', v.stockQuantity)" (keydown.enter)="startEdit(v.id, 'stockQuantity', v.stockQuantity)" tabindex="0" role="button">
                 @if (isEditing(v.id, 'stockQuantity')) {
                   <input
                     type="number"
@@ -171,6 +175,7 @@
                     (keydown.enter)="saveEdit(v.id)"
                     (keydown.escape)="cancelEdit()"
                     (blur)="saveEdit(v.id)"
+                    aria-label="Stock quantity"
                     min="0"
                     autofocus
                   />
@@ -237,7 +242,7 @@
         </div>
         <div class="form-group">
           <label>{{ bulkPriceType() === 'percent' ? 'Percentage Change' : 'Dollar Change' }}</label>
-          <input type="number" class="form-control" [ngModel]="bulkPriceValue()" (ngModelChange)="bulkPriceValue.set($event)" step="0.01" />
+          <input type="number" class="form-control" [ngModel]="bulkPriceValue()" (ngModelChange)="bulkPriceValue.set($event)" step="0.01" aria-label="Bulk price adjustment value" />
           <small class="form-hint">Positive = increase, negative = decrease</small>
         </div>
       </div>

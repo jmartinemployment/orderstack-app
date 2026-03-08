@@ -64,15 +64,15 @@
 // Segment filter buttons
 .btn-vip { background-color: var(--os-warning); color: #000; border-color: var(--os-warning); }
 .btn-regular { background-color: var(--os-success); color: #fff; border-color: var(--os-success); }
-.btn-new { background-color: #17a2b8; color: #fff; border-color: #17a2b8; }
-.btn-at-risk { background-color: #fd7e14; color: #fff; border-color: #fd7e14; }
+.btn-new { background-color: #17a2b8; color: #000; border-color: #17a2b8; }
+.btn-at-risk { background-color: #fd7e14; color: #000; border-color: #fd7e14; }
 .btn-dormant { background-color: #6c757d; color: #fff; border-color: #6c757d; }
 
 // Segment badges
 .segment-vip { background-color: var(--os-warning); color: #000; }
 .segment-regular { background-color: var(--os-success); color: #fff; }
-.segment-new { background-color: #17a2b8; color: #fff; }
-.segment-at-risk { background-color: #fd7e14; color: #fff; }
+.segment-new { background-color: #17a2b8; color: #000; }
+.segment-at-risk { background-color: #fd7e14; color: #000; }
 .segment-dormant { background-color: #6c757d; color: #fff; }
 
 // Table
@@ -589,9 +589,9 @@
   text-transform: uppercase;
   letter-spacing: 0.03em;
 
-  &.channel-sms { background-color: #17a2b8; color: #fff; }
+  &.channel-sms { background-color: #17a2b8; color: #000; }
   &.channel-email { background-color: var(--os-primary); color: #fff; }
-  &.channel-feedback { background-color: #fd7e14; color: #fff; }
+  &.channel-feedback { background-color: #fd7e14; color: #000; }
   &.channel-system { background-color: #6c757d; color: #fff; }
 }
 
@@ -602,9 +602,9 @@
   padding: 0.1rem 0.35rem;
   border-radius: 0.2rem;
 
-  &.channel-sms { background-color: #17a2b8; color: #fff; }
+  &.channel-sms { background-color: #17a2b8; color: #000; }
   &.channel-email { background-color: var(--os-primary); color: #fff; }
-  &.channel-feedback { background-color: #fd7e14; color: #fff; }
+  &.channel-feedback { background-color: #fd7e14; color: #000; }
   &.channel-system { background-color: #6c757d; color: #fff; }
 }
 

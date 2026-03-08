@@ -21,6 +21,7 @@
       <span class="input-group-text"><i class="bi bi-search"></i></span>
       <input type="text" class="form-control"
         placeholder="Search items by name, description, or SKU..."
+        aria-label="Search items by name, description, or SKU"
         [value]="searchQuery()" (input)="setSearchQuery($any($event.target).value)" />
       @if (searchQuery()) {
         <button class="btn btn-outline-light" (click)="setSearchQuery('')">
@@ -212,33 +213,33 @@
 
   <!-- ==================== ITEM FORM MODAL ==================== -->
   @if (showForm()) {
-    <div class="modal-overlay" (click)="onOverlayClick($event)">
+    <div class="modal-overlay" (click)="onOverlayClick($event)" (keydown.enter)="onOverlayClick($event)" tabindex="0" role="button">
       <div class="modal-content card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">{{ editingItem() ? 'Edit Item' : 'New Item' }}</h4>
-          <button type="button" class="btn-close" (click)="closeForm()"></button>
+          <button type="button" class="btn-close" (click)="closeForm()" aria-label="Close"></button>
         </div>
         <form [formGroup]="itemForm" (ngSubmit)="saveItem()">
           <div class="card-body form-scrollable">
             <!-- Basic Info -->
             <div class="row g-3">
               <div class="col-12 col-md-8">
-                <label class="form-label">Item Name *</label>
-                <input type="text" class="form-control" formControlName="name" placeholder="e.g., Chicken Tacos" />
+                <label class="form-label" for="itemName">Item Name *</label>
+                <input type="text" class="form-control" id="itemName" formControlName="name" placeholder="e.g., Chicken Tacos" />
               </div>
               <div class="col-12 col-md-4">
-                <label class="form-label">Price *</label>
+                <label class="form-label" for="itemPrice">Price *</label>
                 <div class="input-group">
                   <span class="input-group-text">$</span>
-                  <input type="number" class="form-control" formControlName="price" min="0" step="0.01" />
+                  <input type="number" class="form-control" id="itemPrice" formControlName="price" min="0" step="0.01" />
                 </div>
               </div>
             </div>
 
             <div class="row g-3 mt-1">
               <div class="col-12 col-md-3">
-                <label class="form-label">Category *</label>
-                <select class="form-select" formControlName="categoryId">
+                <label class="form-label" for="itemCategory">Category *</label>
+                <select class="form-select" id="itemCategory" formControlName="categoryId">
                   <option value="">Select...</option>
                   @for (category of categories(); track category.id) {
                     <option [value]="category.id">{{ category.name }}</option>
@@ -246,20 +247,20 @@
                 </select>
               </div>
               <div class="col-6 col-md-2">
-                <label class="form-label">Cost ($)</label>
-                <input type="number" class="form-control" formControlName="cost" min="0" step="0.01" placeholder="0.00">
+                <label class="form-label" for="itemCost">Cost ($)</label>
+                <input type="number" class="form-control" id="itemCost" formControlName="cost" min="0" step="0.01" placeholder="0.00">
               </div>
               <div class="col-6 col-md-2">
-                <label class="form-label">Prep (min)</label>
-                <input type="number" class="form-control" formControlName="prepTimeMinutes" min="0" placeholder="0">
+                <label class="form-label" for="itemPrepTime">Prep (min)</label>
+                <input type="number" class="form-control" id="itemPrepTime" formControlName="prepTimeMinutes" min="0" placeholder="0">
               </div>
               <div class="col-6 col-md-2">
-                <label class="form-label">Sort Order</label>
-                <input type="number" class="form-control" formControlName="displayOrder" min="0" placeholder="Auto">
+                <label class="form-label" for="itemDisplayOrder">Sort Order</label>
+                <input type="number" class="form-control" id="itemDisplayOrder" formControlName="displayOrder" min="0" placeholder="Auto">
               </div>
               <div class="col-6 col-md-3">
-                <label class="form-label">Reporting Category</label>
-                <select class="form-select" formControlName="reportingCategoryId">
+                <label class="form-label" for="itemReportingCategory">Reporting Category</label>
+                <select class="form-select" id="itemReportingCategory" formControlName="reportingCategoryId">
                   <option value="">None</option>
                   @for (rc of reportingCategories(); track rc.id) {
                     <option [value]="rc.id">{{ rc.name }}</option>
@@ -269,8 +270,8 @@
             </div>
 
             <div class="mb-3 mt-3">
-              <label class="form-label">Description</label>
-              <textarea class="form-control" rows="2" formControlName="description"
+              <label class="form-label" for="itemDescription">Description</label>
+              <textarea class="form-control" id="itemDescription" rows="2" formControlName="description"
                 placeholder="Brief description of the item..."></textarea>
             </div>
 
@@ -279,7 +280,7 @@
               <label class="form-label">Item Photo</label>
               @if (imagePreview() || editingItem()?.imageUrl) {
                 <div class="image-preview-container">
-                  <img [src]="imagePreview() || editingItem()?.imageUrl" alt="Item photo" class="image-preview" />
+                  <img [src]="imagePreview() || editingItem()?.imageUrl" alt="Item preview" class="image-preview" />
                   <div class="image-preview-actions">
                     <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeImage()" [disabled]="isUploadingImage()">
                       <i class="bi bi-trash"></i> Remove
@@ -287,6 +288,7 @@
                     <label class="btn btn-sm btn-outline-light" [class.disabled]="isUploadingImage()">
                       <i class="bi bi-arrow-repeat"></i> Replace
                       <input type="file" class="d-none" accept="image/jpeg,image/png,image/webp"
+                        aria-label="Replace item image"
                         (change)="onImageFileSelected($event)" />
                     </label>
                   </div>
@@ -297,11 +299,12 @@
                   }
                 </div>
               } @else {
-                <div class="image-dropzone" (click)="imageFileInput.click()">
+                <div class="image-dropzone" (click)="imageFileInput.click()" (keydown.enter)="imageFileInput.click()" tabindex="0" role="button">
                   <i class="bi bi-camera"></i>
                   <span>Click to upload a photo</span>
                   <span class="dropzone-hint">JPG, PNG, or WebP — max 2MB</span>
                   <input #imageFileInput type="file" class="d-none" accept="image/jpeg,image/png,image/webp"
+                    aria-label="Upload item image"
                     (change)="onImageFileSelected($event)" />
                   @if (isUploadingImage()) {
                     <div class="mt-2">
@@ -314,13 +317,13 @@
 
             <!-- Legacy Image URL (fallback) -->
             <div class="mb-3">
-              <label class="form-label small text-muted">Image URL (optional)</label>
-              <input type="url" class="form-control form-control-sm" formControlName="image" placeholder="https://..." />
+              <label class="form-label small text-muted" for="itemImageUrl">Image URL (optional)</label>
+              <input type="url" class="form-control form-control-sm" id="itemImageUrl" formControlName="image" placeholder="https://..." />
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Dietary Tags</label>
-              <input type="text" class="form-control" formControlName="dietary"
+              <label class="form-label" for="itemDietary">Dietary Tags</label>
+              <input type="text" class="form-control" id="itemDietary" formControlName="dietary"
                 placeholder="e.g., Vegetarian, Gluten-Free, Vegan" />
               <small class="text-muted">Separate with commas</small>
             </div>
@@ -335,9 +338,9 @@
                 <div class="section-body">
                   <div class="row g-2">
                     <div class="col-md-4">
-                      <label class="form-label small">SKU</label>
+                      <label class="form-label small" for="itemSku">SKU</label>
                       <div class="input-group input-group-sm">
-                        <input type="text" class="form-control" formControlName="sku" placeholder="Auto or manual">
+                        <input type="text" class="form-control" id="itemSku" formControlName="sku" placeholder="Auto or manual">
                         @if (editingItem()) {
                           <button type="button" class="btn btn-outline-light" (click)="generateSku()" title="Auto-generate">
                             <i class="bi bi-magic"></i>
@@ -346,12 +349,12 @@
                       </div>
                     </div>
                     <div class="col-md-4">
-                      <label class="form-label small">Barcode</label>
-                      <input type="text" class="form-control form-control-sm" formControlName="barcode" placeholder="UPC/EAN code">
+                      <label class="form-label small" for="itemBarcode">Barcode</label>
+                      <input type="text" class="form-control form-control-sm" id="itemBarcode" formControlName="barcode" placeholder="UPC/EAN code">
                     </div>
                     <div class="col-md-4">
-                      <label class="form-label small">Format</label>
-                      <select class="form-select form-select-sm" formControlName="barcodeFormat">
+                      <label class="form-label small" for="itemBarcodeFormat">Format</label>
+                      <select class="form-select form-select-sm" id="itemBarcodeFormat" formControlName="barcodeFormat">
                         <option value="">None</option>
                         <option value="UPC-A">UPC-A</option>
                         <option value="EAN-13">EAN-13</option>
@@ -427,7 +430,8 @@
                         @if (hasAllergen(type)) {
                           <select class="form-select form-select-sm severity-select"
                             [value]="getAllergenSeverity(type)"
-                            (change)="setAllergenSeverity(type, $any($event.target).value)">
+                            (change)="setAllergenSeverity(type, $any($event.target).value)"
+                            aria-label="Allergen severity">
                             <option value="contains">Contains</option>
                             <option value="may_contain">May contain</option>
                             <option value="facility">Same facility</option>
@@ -455,7 +459,7 @@
                     <div class="availability-window mb-3">
                       <div class="d-flex justify-content-between align-items-center mb-2">
                         <input type="text" class="form-control form-control-sm" style="max-width: 200px;"
-                          placeholder="Label (e.g., Breakfast)" [value]="window.label"
+                          placeholder="Label (e.g., Breakfast)" aria-label="Availability window label" [value]="window.label"
                           (input)="updateAvailabilityWindow(i, 'label', $any($event.target).value)">
                         <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeAvailabilityWindow(i)">
                           <i class="bi bi-trash"></i>
@@ -471,10 +475,12 @@
                       </div>
                       <div class="d-flex gap-2 align-items-center">
                         <input type="time" class="form-control form-control-sm" style="max-width: 130px;"
+                          aria-label="Start time"
                           [value]="window.startTime"
                           (input)="updateAvailabilityWindow(i, 'startTime', $any($event.target).value)">
                         <span class="text-muted small">to</span>
                         <input type="time" class="form-control form-control-sm" style="max-width: 130px;"
+                          aria-label="End time"
                           [value]="window.endTime"
                           (input)="updateAvailabilityWindow(i, 'endTime', $any($event.target).value)">
                       </div>
@@ -491,8 +497,8 @@
             @if (platformService.isCateringMode()) {
               <div class="row g-3 mb-3">
                 <div class="col-md-6">
-                  <label class="form-label">Menu Type</label>
-                  <select class="form-select" [value]="formMenuType()"
+                  <label class="form-label" for="itemMenuType">Menu Type</label>
+                  <select class="form-select" id="itemMenuType" [value]="formMenuType()"
                     (change)="setMenuType($any($event.target).value)">
                     <option value="standard">Standard (POS)</option>
                     <option value="catering">Catering</option>
@@ -500,8 +506,8 @@
                 </div>
                 @if (formMenuType() === 'catering') {
                   <div class="col-md-6">
-                    <label class="form-label">Pricing Model</label>
-                    <select class="form-select" [value]="formCateringPricingModel() ?? ''"
+                    <label class="form-label" for="itemCateringPricingModel">Pricing Model</label>
+                    <select class="form-select" id="itemCateringPricingModel" [value]="formCateringPricingModel() ?? ''"
                       (change)="setCateringPricingModel($any($event.target).value)">
                       <option value="">None</option>
                       <option value="per_person">Per Person</option>
@@ -536,7 +542,7 @@
                         <div class="row g-2">
                           <div class="col-md-3">
                             <label class="form-label small">Pricing Model</label>
-                            <select class="form-select form-select-sm" [value]="tier.model"
+                            <select class="form-select form-select-sm" aria-label="Tier pricing model" [value]="tier.model"
                               (change)="updatePricingTier(i, 'model', $any($event.target).value)">
                               <option value="per_person">Per Person</option>
                               <option value="per_tray">Per Tray</option>
@@ -546,12 +552,14 @@
                           <div class="col-md-2">
                             <label class="form-label small">Price ($)</label>
                             <input type="number" class="form-control form-control-sm" min="0" step="0.01"
+                              aria-label="Tier price"
                               [value]="tier.price"
                               (input)="updatePricingTier(i, 'price', +$any($event.target).value)">
                           </div>
                           <div class="col-md-2">
                             <label class="form-label small">Min Qty</label>
                             <input type="number" class="form-control form-control-sm" min="0"
+                              aria-label="Minimum quantity"
                               [value]="tier.minimumQuantity ?? ''"
                               (input)="updatePricingTier(i, 'minimumQuantity', $any($event.target).value ? +$any($event.target).value : undefined)">
                           </div>
@@ -559,6 +567,7 @@
                             <div class="col-md-2">
                               <label class="form-label small">Serves</label>
                               <input type="number" class="form-control form-control-sm" min="1"
+                                aria-label="Serves quantity"
                                 [value]="tier.servesQuantity ?? ''"
                                 (input)="updatePricingTier(i, 'servesQuantity', $any($event.target).value ? +$any($event.target).value : undefined)">
                             </div>
@@ -567,6 +576,7 @@
                             <label class="form-label small">Label</label>
                             <input type="text" class="form-control form-control-sm"
                               placeholder="e.g. Half Tray"
+                              aria-label="Tier label"
                               [value]="tier.label ?? ''"
                               (input)="updatePricingTier(i, 'label', $any($event.target).value || undefined)">
                           </div>
@@ -596,66 +606,77 @@
                       <label class="form-label small">Serving Size</label>
                       <input type="text" class="form-control form-control-sm"
                         placeholder="e.g., 1 slice (120g)"
+                        aria-label="Serving size"
                         [value]="formNutrition().servingSize ?? ''"
                         (input)="updateNutrition('servingSize', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
                       <label class="form-label small">Calories</label>
                       <input type="number" class="form-control form-control-sm" min="0"
+                        aria-label="Calories"
                         [value]="formNutrition().calories"
                         (input)="updateNutrition('calories', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
                       <label class="form-label small">Total Fat (g)</label>
                       <input type="number" class="form-control form-control-sm" min="0" step="0.1"
+                        aria-label="Total fat in grams"
                         [value]="formNutrition().totalFat"
                         (input)="updateNutrition('totalFat', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
                       <label class="form-label small">Saturated Fat (g)</label>
                       <input type="number" class="form-control form-control-sm" min="0" step="0.1"
+                        aria-label="Saturated fat in grams"
                         [value]="formNutrition().saturatedFat"
                         (input)="updateNutrition('saturatedFat', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
                       <label class="form-label small">Trans Fat (g)</label>
                       <input type="number" class="form-control form-control-sm" min="0" step="0.1"
+                        aria-label="Trans fat in grams"
                         [value]="formNutrition().transFat"
                         (input)="updateNutrition('transFat', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
                       <label class="form-label small">Cholesterol (mg)</label>
                       <input type="number" class="form-control form-control-sm" min="0"
+                        aria-label="Cholesterol in milligrams"
                         [value]="formNutrition().cholesterol"
                         (input)="updateNutrition('cholesterol', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
                       <label class="form-label small">Sodium (mg)</label>
                       <input type="number" class="form-control form-control-sm" min="0"
+                        aria-label="Sodium in milligrams"
                         [value]="formNutrition().sodium"
                         (input)="updateNutrition('sodium', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
                       <label class="form-label small">Total Carbs (g)</label>
                       <input type="number" class="form-control form-control-sm" min="0" step="0.1"
+                        aria-label="Total carbohydrates in grams"
                         [value]="formNutrition().totalCarbs"
                         (input)="updateNutrition('totalCarbs', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
                       <label class="form-label small">Dietary Fiber (g)</label>
                       <input type="number" class="form-control form-control-sm" min="0" step="0.1"
+                        aria-label="Dietary fiber in grams"
                         [value]="formNutrition().dietaryFiber"
                         (input)="updateNutrition('dietaryFiber', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
                       <label class="form-label small">Total Sugars (g)</label>
                       <input type="number" class="form-control form-control-sm" min="0" step="0.1"
+                        aria-label="Total sugars in grams"
                         [value]="formNutrition().totalSugars"
                         (input)="updateNutrition('totalSugars', $any($event.target).value)">
                     </div>
                     <div class="col-6 col-md-4">
                       <label class="form-label small">Protein (g)</label>
                       <input type="number" class="form-control form-control-sm" min="0" step="0.1"
+                        aria-label="Protein in grams"
                         [value]="formNutrition().protein"
                         (input)="updateNutrition('protein', $any($event.target).value)">
                     </div>
@@ -670,9 +691,10 @@
                 <label class="form-label">Modifier Groups</label>
                 <div class="modifier-group-grid">
                   @for (group of modifierGroups(); track group.id) {
-                    <div class="form-check modifier-group-check" (click)="toggleModifierGroup(group.id)">
+                    <div class="form-check modifier-group-check" (click)="toggleModifierGroup(group.id)" (keydown.enter)="toggleModifierGroup(group.id)" tabindex="0" role="button">
                       <input class="form-check-input" type="checkbox"
                         [checked]="isModifierGroupSelected(group.id)"
+                        aria-label="Select modifier group"
                         (click)="$event.stopPropagation()">
                       <label class="form-check-label">
                         {{ group.name }}
@@ -713,7 +735,7 @@
 
   <!-- ==================== DELETE CONFIRMATION MODAL ==================== -->
   @if (deleteTarget(); as target) {
-    <div class="modal-overlay" (click)="onDeleteOverlayClick($event)">
+    <div class="modal-overlay" (click)="onDeleteOverlayClick($event)" (keydown.enter)="onDeleteOverlayClick($event)" tabindex="0" role="button">
       <div class="delete-confirm-modal card">
         <div class="card-header">
           <h5 class="mb-0">Delete Item</h5>
@@ -732,11 +754,11 @@
 
   <!-- ==================== CSV IMPORT MODAL ==================== -->
   @if (showImportModal()) {
-    <div class="modal-overlay" (click)="onImportOverlayClick($event)">
+    <div class="modal-overlay" (click)="onImportOverlayClick($event)" (keydown.enter)="onImportOverlayClick($event)" tabindex="0" role="button">
       <div class="import-modal card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">Import Menu Items</h5>
-          <button type="button" class="btn-close" (click)="closeImportModal()"></button>
+          <button type="button" class="btn-close" (click)="closeImportModal()" aria-label="Close"></button>
         </div>
         <div class="card-body">
           @if (importResult(); as result) {
@@ -761,6 +783,7 @@
               <i class="bi bi-file-earmark-spreadsheet" style="font-size: 2rem;"></i>
               <p class="text-muted mt-2 mb-3">Upload a CSV file with your menu items</p>
               <input type="file" class="form-control" accept=".csv,.xlsx"
+                aria-label="Choose CSV file to import"
                 (change)="handleImportFile($event)" [disabled]="isImporting()">
               @if (isImporting()) {
                 <div class="mt-3">

@@ -33,9 +33,10 @@
 
   <!-- Balance Check -->
   <div class="balance-check-section mb-3">
-    <label class="form-label small">Check Gift Card Balance</label>
+    <label class="form-label small" for="balanceCheckInput">Check Gift Card Balance</label>
     <div class="d-flex gap-2">
       <input type="text" class="form-control form-control-sm gc-input"
+        id="balanceCheckInput"
         placeholder="Enter gift card code"
         [value]="balanceCheckCode()"
         (input)="onBalanceCodeInput($event)"
@@ -61,6 +62,7 @@
   <div class="mb-3">
     <input type="text" class="form-control form-control-sm gc-input"
       placeholder="Search by code, name, or email..."
+      aria-label="Search gift cards"
       [value]="searchQuery()"
       (input)="onSearchInput($event)" />
   </div>
@@ -74,7 +76,7 @@
   } @else {
     <div class="gc-list">
       @for (card of filteredCards(); track card.id) {
-        <div class="gc-card" (click)="openDetail(card)">
+        <div class="gc-card" (click)="openDetail(card)" (keydown.enter)="openDetail(card)" tabindex="0" role="button">
           <div class="d-flex justify-content-between align-items-start mb-1">
             <div>
               <code class="gc-code">{{ card.code }}</code>
@@ -110,7 +112,7 @@
 
   <!-- Create Form Modal -->
   @if (showCreateForm()) {
-    <div class="gc-modal-overlay" (click)="closeCreateForm()">
+    <div class="gc-modal-overlay" (click)="closeCreateForm()" (keydown.enter)="closeCreateForm()" tabindex="0" role="button">
       <div class="gc-modal" (click)="$event.stopPropagation()">
         <div class="gc-modal-header">
           <h5 class="mb-0">Create Gift Card</h5>
@@ -159,6 +161,7 @@
                   <span class="input-group-text gc-input-addon">$</span>
                   <input type="number" class="form-control form-control-sm gc-input"
                     placeholder="0.00" min="1" max="500" step="0.01"
+                    aria-label="Custom gift card amount"
                     [value]="formCustomAmount()"
                     (input)="onFormField('customAmount', $event)" />
                 </div>
@@ -169,15 +172,17 @@
           <!-- Recipient -->
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <label class="form-label small">Recipient Name</label>
+              <label class="form-label small" for="gcRecipientName">Recipient Name</label>
               <input type="text" class="form-control form-control-sm gc-input"
+                id="gcRecipientName"
                 placeholder="Jane Smith"
                 [value]="formRecipientName()"
                 (input)="onFormField('recipientName', $event)" />
             </div>
             <div class="col-6">
-              <label class="form-label small">Recipient Email</label>
+              <label class="form-label small" for="gcRecipientEmail">Recipient Email</label>
               <input type="email" class="form-control form-control-sm gc-input"
+                id="gcRecipientEmail"
                 placeholder="jane@email.com"
                 [value]="formRecipientEmail()"
                 (input)="onFormField('recipientEmail', $event)" />
@@ -186,8 +191,9 @@
 
           <!-- Purchaser -->
           <div class="mb-3">
-            <label class="form-label small">Purchaser Email</label>
+            <label class="form-label small" for="gcPurchaserEmail">Purchaser Email</label>
             <input type="email" class="form-control form-control-sm gc-input"
+              id="gcPurchaserEmail"
               placeholder="buyer@email.com"
               [value]="formPurchaserEmail()"
               (input)="onFormField('purchaserEmail', $event)" />
@@ -195,8 +201,9 @@
 
           <!-- Message -->
           <div class="mb-3">
-            <label class="form-label small">Gift Message</label>
+            <label class="form-label small" for="gcGiftMessage">Gift Message</label>
             <textarea class="form-control form-control-sm gc-input" rows="2"
+              id="gcGiftMessage"
               placeholder="Happy Birthday!"
               [value]="formMessage()"
               (input)="onFormField('message', $event)"></textarea>
@@ -219,7 +226,7 @@
 
   <!-- Detail Modal -->
   @if (showDetail(); as card) {
-    <div class="gc-modal-overlay" (click)="closeDetail()">
+    <div class="gc-modal-overlay" (click)="closeDetail()" (keydown.enter)="closeDetail()" tabindex="0" role="button">
       <div class="gc-modal" (click)="$event.stopPropagation()">
         <div class="gc-modal-header">
           <h5 class="mb-0">Gift Card Details</h5>
@@ -319,7 +326,7 @@
 
   <!-- Activate Physical Card Modal -->
   @if (showActivateForm()) {
-    <div class="gc-modal-overlay" (click)="closeActivateForm()">
+    <div class="gc-modal-overlay" (click)="closeActivateForm()" (keydown.enter)="closeActivateForm()" tabindex="0" role="button">
       <div class="gc-modal" (click)="$event.stopPropagation()">
         <div class="gc-modal-header">
           <h5 class="mb-0">Activate Physical Card</h5>
@@ -333,10 +340,11 @@
           }
 
           <div class="mb-3">
-            <label class="form-label small">Card Number</label>
+            <label class="form-label small" for="activateCardNumber">Card Number</label>
             <input
               type="text"
               class="form-control gc-input"
+              id="activateCardNumber"
               placeholder="Scan or enter card number"
               [value]="activateCardNumber()"
               (input)="onActivateField('cardNumber', $event)"

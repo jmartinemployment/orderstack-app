@@ -116,6 +116,7 @@
           <input
             type="text"
             class="customer-form-input"
+            aria-label="Customer name"
             placeholder="Name"
             [ngModel]="customerName()"
             (ngModelChange)="customerName.set($event)"
@@ -123,6 +124,7 @@
           <input
             type="tel"
             class="customer-form-input"
+            aria-label="Customer phone"
             placeholder="Phone"
             [ngModel]="customerPhone()"
             (ngModelChange)="customerPhone.set($event)"
@@ -130,6 +132,7 @@
           <input
             type="email"
             class="customer-form-input"
+            aria-label="Customer email"
             placeholder="Email"
             [ngModel]="customerEmail()"
             (ngModelChange)="customerEmail.set($event)"

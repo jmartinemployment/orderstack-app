@@ -248,7 +248,7 @@
     &.btn-outline-danger {
       &:hover {
         background: rgba(231, 76, 60, 0.08);
-        color: #e74c3c;
+        color: #c0392b;
       }
     }
   }
@@ -305,7 +305,7 @@
   &.active {
     background: rgba(46, 204, 113, 0.1);
     border-color: #2ecc71;
-    color: #27ae60;
+    color: #1e8449;
   }
 }
 
@@ -317,7 +317,7 @@
   border-radius: 4px;
 
   &:hover {
-    color: #e74c3c;
+    color: #c0392b;
     background: rgba(231, 76, 60, 0.08);
   }
 }

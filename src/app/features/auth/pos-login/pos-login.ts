@@ -6,6 +6,7 @@ import {
   computed,
   output,
   DestroyRef,
+  afterNextRender,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { LaborService } from '@services/labor';
@@ -113,7 +114,9 @@ export class PosLogin {
   readonly needsJobSelection = computed(() => this.memberJobs().length > 1);
 
   constructor() {
-    this.loadTeamMembers();
+    afterNextRender(() => {
+      this.loadTeamMembers();
+    });
   }
 
   private async loadTeamMembers(): Promise<void> {
@@ -468,7 +471,7 @@ export class PosLogin {
     const colors = ['#7c5cfc', '#e74c3c', '#2ecc71', '#f39c12', '#3498db', '#9b59b6', '#1abc9c', '#e67e22'];
     let hash = 0;
     for (const char of name) {
-      hash = char.charCodeAt(0) + ((hash << 5) - hash);
+      hash = (char.codePointAt(0) ?? 0) + ((hash << 5) - hash);
     }
     return colors[Math.abs(hash) % colors.length];
   }

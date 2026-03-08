@@ -164,15 +164,15 @@
               <div class="row g-2">
                 <div class="col-4">
                   <label class="form-label small">Service %</label>
-                  <input type="number" class="form-control form-control-sm" [(ngModel)]="serviceChargePercent" min="0" max="100" step="0.5">
+                  <input type="number" class="form-control form-control-sm" [(ngModel)]="serviceChargePercent" min="0" max="100" step="0.5" aria-label="Service charge percent">
                 </div>
                 <div class="col-4">
                   <label class="form-label small">Tax %</label>
-                  <input type="number" class="form-control form-control-sm" [(ngModel)]="taxPercent" min="0" max="100" step="0.25">
+                  <input type="number" class="form-control form-control-sm" [(ngModel)]="taxPercent" min="0" max="100" step="0.25" aria-label="Tax percent">
                 </div>
                 <div class="col-4">
                   <label class="form-label small">Gratuity %</label>
-                  <input type="number" class="form-control form-control-sm" [(ngModel)]="gratuityPercent" min="0" max="100" step="0.5">
+                  <input type="number" class="form-control form-control-sm" [(ngModel)]="gratuityPercent" min="0" max="100" step="0.5" aria-label="Gratuity percent">
                 </div>
               </div>
               <button type="button" class="btn btn-sm btn-outline-primary mt-2" (click)="saveFees()" [disabled]="isSaving()">
@@ -328,17 +328,17 @@
 
       <!-- Package Form Modal -->
       @if (showPackageForm()) {
-        <div class="modal-backdrop" (click)="showPackageForm.set(false)"></div>
+        <div class="modal-backdrop" (click)="showPackageForm.set(false)" (keydown.enter)="showPackageForm.set(false)" tabindex="0" role="button"></div>
         <div class="modal-panel">
           <h6 class="fw-semibold mb-3">{{ editingPackage() ? 'Edit Package' : 'New Package' }}</h6>
           <div class="mb-3">
             <label class="form-label">Package Name</label>
-            <input type="text" class="form-control" [(ngModel)]="pkgName" placeholder="e.g. Premium Dinner">
+            <input type="text" class="form-control" [(ngModel)]="pkgName" placeholder="e.g. Premium Dinner" aria-label="Package name">
           </div>
           <div class="row mb-3">
             <div class="col-6">
               <label class="form-label">Tier</label>
-              <select class="form-select" [(ngModel)]="pkgTier">
+              <select class="form-select" [(ngModel)]="pkgTier" aria-label="Package tier">
                 <option value="standard">Standard</option>
                 <option value="premium">Premium</option>
                 <option value="custom">Custom</option>
@@ -346,7 +346,7 @@
             </div>
             <div class="col-6">
               <label class="form-label">Pricing Model</label>
-              <select class="form-select" [(ngModel)]="pkgPricingModel">
+              <select class="form-select" [(ngModel)]="pkgPricingModel" aria-label="Pricing model">
                 <option value="per_person">Per Person</option>
                 <option value="per_tray">Per Tray</option>
                 <option value="flat">Flat Rate</option>
@@ -356,16 +356,16 @@
           <div class="row mb-3">
             <div class="col-6">
               <label class="form-label">Price ($)</label>
-              <input type="number" class="form-control" [(ngModel)]="pkgPricePerUnit" min="0" step="0.01">
+              <input type="number" class="form-control" [(ngModel)]="pkgPricePerUnit" min="0" step="0.01" aria-label="Price per unit">
             </div>
             <div class="col-6">
               <label class="form-label">Min Headcount</label>
-              <input type="number" class="form-control" [(ngModel)]="pkgMinHeadcount" min="0">
+              <input type="number" class="form-control" [(ngModel)]="pkgMinHeadcount" min="0" aria-label="Minimum headcount">
             </div>
           </div>
           <div class="mb-3">
             <label class="form-label">Description</label>
-            <textarea class="form-control" rows="2" [(ngModel)]="pkgDescription"></textarea>
+            <textarea class="form-control" rows="2" [(ngModel)]="pkgDescription" aria-label="Package description"></textarea>
           </div>
 
           <!-- Menu Item Picker -->
@@ -382,12 +382,12 @@
                 @for (item of cateringItems(); track item.id) {
                   <div class="d-flex align-items-center gap-2 px-3 py-2 border-bottom" [class.bg-primary-subtle]="isMenuItemSelected(item.id)">
                     <input type="checkbox" class="form-check-input" [checked]="isMenuItemSelected(item.id)"
-                      (change)="toggleMenuItem(item.id)">
+                      (change)="toggleMenuItem(item.id)" aria-label="Select menu item">
                     <div class="flex-grow-1">
                       <span class="fw-semibold small">{{ item.name }}</span>
                     </div>
                     @if (isMenuItemSelected(item.id) && item.cateringPricing && item.cateringPricing.length > 1) {
-                      <select class="form-select form-select-sm" style="max-width: 180px;"
+                      <select class="form-select form-select-sm" style="max-width: 180px;" aria-label="Pricing tier"
                         (change)="selectItemTier(item.id, item.cateringPricing![$any($event.target).selectedIndex])">
                         @for (tier of item.cateringPricing; track $index) {
                           <option [selected]="getSelectedTier(item.id)?.model === tier.model && getSelectedTier(item.id)?.price === tier.price">
@@ -435,7 +435,7 @@
           @for (ms of j.milestones; track ms.id) {
             <div class="list-group-item d-flex align-items-center gap-3">
               <div class="form-check">
-                <input class="form-check-input" type="checkbox" [checked]="!!ms.paidAt" disabled>
+                <input class="form-check-input" type="checkbox" [checked]="!!ms.paidAt" disabled aria-label="Milestone paid status">
               </div>
               <div class="flex-grow-1">
                 <div class="fw-semibold">{{ ms.label }}</div>
@@ -471,15 +471,15 @@
             <div class="row g-3">
               <div class="col-md-4">
                 <label class="form-label">Label</label>
-                <input type="text" class="form-control" [(ngModel)]="msLabel" placeholder="e.g. Deposit">
+                <input type="text" class="form-control" [(ngModel)]="msLabel" placeholder="e.g. Deposit" aria-label="Milestone label">
               </div>
               <div class="col-md-3">
                 <label class="form-label">Percentage</label>
-                <input type="number" class="form-control" [(ngModel)]="msPercent" min="0" max="100">
+                <input type="number" class="form-control" [(ngModel)]="msPercent" min="0" max="100" aria-label="Milestone percentage">
               </div>
               <div class="col-md-3">
                 <label class="form-label">Due Date</label>
-                <input type="date" class="form-control" [(ngModel)]="msDueDate">
+                <input type="date" class="form-control" [(ngModel)]="msDueDate" aria-label="Milestone due date">
               </div>
               <div class="col-md-2 d-flex align-items-end gap-2">
                 <button type="button" class="btn btn-primary" (click)="saveMilestone()" [disabled]="isSaving()">Add</button>
@@ -500,35 +500,35 @@
           <div class="row g-3">
             <div class="col-md-3">
               <label class="form-label">Vegetarian</label>
-              <input type="number" class="form-control" [(ngModel)]="dietary.vegetarian" min="0">
+              <input type="number" class="form-control" [(ngModel)]="dietary.vegetarian" min="0" aria-label="Vegetarian count">
             </div>
             <div class="col-md-3">
               <label class="form-label">Vegan</label>
-              <input type="number" class="form-control" [(ngModel)]="dietary.vegan" min="0">
+              <input type="number" class="form-control" [(ngModel)]="dietary.vegan" min="0" aria-label="Vegan count">
             </div>
             <div class="col-md-3">
               <label class="form-label">Gluten Free</label>
-              <input type="number" class="form-control" [(ngModel)]="dietary.glutenFree" min="0">
+              <input type="number" class="form-control" [(ngModel)]="dietary.glutenFree" min="0" aria-label="Gluten free count">
             </div>
             <div class="col-md-3">
               <label class="form-label">Nut Allergy</label>
-              <input type="number" class="form-control" [(ngModel)]="dietary.nutAllergy" min="0">
+              <input type="number" class="form-control" [(ngModel)]="dietary.nutAllergy" min="0" aria-label="Nut allergy count">
             </div>
             <div class="col-md-3">
               <label class="form-label">Dairy Free</label>
-              <input type="number" class="form-control" [(ngModel)]="dietary.dairyFree" min="0">
+              <input type="number" class="form-control" [(ngModel)]="dietary.dairyFree" min="0" aria-label="Dairy free count">
             </div>
             <div class="col-md-3">
               <label class="form-label">Kosher</label>
-              <input type="number" class="form-control" [(ngModel)]="dietary.kosher" min="0">
+              <input type="number" class="form-control" [(ngModel)]="dietary.kosher" min="0" aria-label="Kosher count">
             </div>
             <div class="col-md-3">
               <label class="form-label">Halal</label>
-              <input type="number" class="form-control" [(ngModel)]="dietary.halal" min="0">
+              <input type="number" class="form-control" [(ngModel)]="dietary.halal" min="0" aria-label="Halal count">
             </div>
             <div class="col-md-3">
               <label class="form-label">Other</label>
-              <input type="text" class="form-control" [(ngModel)]="dietary.other" placeholder="e.g. shellfish allergy">
+              <input type="text" class="form-control" [(ngModel)]="dietary.other" placeholder="e.g. shellfish allergy" aria-label="Other dietary requirements">
             </div>
           </div>
           <button type="button" class="btn btn-primary mt-3" (click)="saveDietary()" [disabled]="isSaving()">Save Dietary</button>
@@ -550,39 +550,39 @@
             <div class="row g-3">
               <div class="col-md-4">
                 <label class="form-label">Driver Name</label>
-                <input type="text" class="form-control" [(ngModel)]="deliveryDriverName">
+                <input type="text" class="form-control" [(ngModel)]="deliveryDriverName" aria-label="Driver name">
               </div>
               <div class="col-md-4">
                 <label class="form-label">Driver Phone</label>
-                <input type="tel" class="form-control" [(ngModel)]="deliveryDriverPhone">
+                <input type="tel" class="form-control" [(ngModel)]="deliveryDriverPhone" aria-label="Driver phone">
               </div>
               <div class="col-md-4">
                 <label class="form-label">Vehicle</label>
-                <input type="text" class="form-control" [(ngModel)]="deliveryVehicle" placeholder="e.g. White cargo van">
+                <input type="text" class="form-control" [(ngModel)]="deliveryVehicle" placeholder="e.g. White cargo van" aria-label="Vehicle description">
               </div>
               <div class="col-md-3">
                 <label class="form-label">Load Time</label>
-                <input type="time" class="form-control" [(ngModel)]="deliveryLoadTime">
+                <input type="time" class="form-control" [(ngModel)]="deliveryLoadTime" aria-label="Load time">
               </div>
               <div class="col-md-3">
                 <label class="form-label">Departure Time</label>
-                <input type="time" class="form-control" [(ngModel)]="deliveryDepartureTime">
+                <input type="time" class="form-control" [(ngModel)]="deliveryDepartureTime" aria-label="Departure time">
               </div>
               <div class="col-md-3">
                 <label class="form-label">Arrival Time</label>
-                <input type="time" class="form-control" [(ngModel)]="deliveryArrivalTime">
+                <input type="time" class="form-control" [(ngModel)]="deliveryArrivalTime" aria-label="Arrival time">
               </div>
               <div class="col-md-3">
                 <label class="form-label">Setup Time</label>
-                <input type="time" class="form-control" [(ngModel)]="deliverySetupTime">
+                <input type="time" class="form-control" [(ngModel)]="deliverySetupTime" aria-label="Setup time">
               </div>
               <div class="col-md-6">
                 <label class="form-label">Route Notes</label>
-                <textarea class="form-control" rows="2" [(ngModel)]="deliveryRouteNotes" placeholder="Use service entrance, loading dock on west side..."></textarea>
+                <textarea class="form-control" rows="2" [(ngModel)]="deliveryRouteNotes" placeholder="Use service entrance, loading dock on west side..." aria-label="Route notes"></textarea>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Equipment Checklist (one per line)</label>
-                <textarea class="form-control" rows="2" [(ngModel)]="deliveryEquipment" placeholder="Chafing dishes (6)&#10;Linens&#10;Serving utensils"></textarea>
+                <textarea class="form-control" rows="2" [(ngModel)]="deliveryEquipment" placeholder="Chafing dishes (6)&#10;Linens&#10;Serving utensils" aria-label="Equipment checklist"></textarea>
               </div>
             </div>
             <button type="button" class="btn btn-primary mt-3" (click)="saveDelivery()" [disabled]="isSaving()">Save Delivery</button>
@@ -639,15 +639,15 @@
             <div class="row g-3">
               <div class="col-md-4">
                 <label class="form-label">Date</label>
-                <input type="date" class="form-control" [(ngModel)]="tastingDate">
+                <input type="date" class="form-control" [(ngModel)]="tastingDate" aria-label="Tasting date">
               </div>
               <div class="col-md-4">
                 <label class="form-label">Attendees</label>
-                <input type="text" class="form-control" [(ngModel)]="tastingAttendees" placeholder="e.g. Sarah + husband">
+                <input type="text" class="form-control" [(ngModel)]="tastingAttendees" placeholder="e.g. Sarah + husband" aria-label="Tasting attendees">
               </div>
               <div class="col-md-4">
                 <label class="form-label">Notes</label>
-                <input type="text" class="form-control" [(ngModel)]="tastingNotes">
+                <input type="text" class="form-control" [(ngModel)]="tastingNotes" aria-label="Tasting notes">
               </div>
             </div>
             <div class="d-flex gap-2 mt-3">

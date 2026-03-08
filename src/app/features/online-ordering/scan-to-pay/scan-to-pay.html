@@ -67,7 +67,10 @@
               class="item-line"
               [class.selectable]="payMode() === 'items'"
               [class.selected]="payMode() === 'items' && checkItemSelected(sel.guid)"
-              (click)="payMode() === 'items' ? toggleItemSelection(sel.guid) : null">
+              (click)="payMode() === 'items' ? toggleItemSelection(sel.guid) : null"
+              (keydown.enter)="payMode() === 'items' ? toggleItemSelection(sel.guid) : null"
+              [attr.tabindex]="payMode() === 'items' ? 0 : null"
+              [attr.role]="payMode() === 'items' ? 'button' : null">
               @if (payMode() === 'items') {
                 <span class="item-checkbox">
                   @if (checkItemSelected(sel.guid)) {
@@ -140,6 +143,7 @@
                 placeholder="0.00"
                 min="0"
                 step="0.01"
+                aria-label="Custom tip amount"
                 (input)="setCustomTipAmount($any($event.target).value)">
             </div>
           }
@@ -166,6 +170,7 @@
                 type="text"
                 placeholder="John Smith"
                 autocomplete="cc-name"
+                aria-label="Name on card"
                 [value]="cardName()"
                 (input)="setCardName($any($event.target).value)">
             </div>
@@ -176,6 +181,7 @@
                 inputmode="numeric"
                 placeholder="4242 4242 4242 4242"
                 autocomplete="cc-number"
+                aria-label="Card number"
                 [value]="cardNumber()"
                 (input)="setCardNumber($any($event.target).value)">
             </div>
@@ -187,6 +193,7 @@
                   inputmode="numeric"
                   placeholder="MM/YY"
                   autocomplete="cc-exp"
+                  aria-label="Card expiry"
                   [value]="cardExpiry()"
                   (input)="setCardExpiry($any($event.target).value)">
               </div>
@@ -197,6 +204,7 @@
                   inputmode="numeric"
                   placeholder="123"
                   autocomplete="cc-csc"
+                  aria-label="CVC"
                   [value]="cardCvc()"
                   (input)="setCardCvc($any($event.target).value)">
               </div>
@@ -341,6 +349,7 @@
                 inputmode="email"
                 placeholder="your@email.com"
                 autocomplete="email"
+                aria-label="Email address for receipt"
                 [value]="email()"
                 (input)="setEmail($any($event.target).value)"
                 (keydown.enter)="sendEmailReceipt()">

@@ -29,7 +29,7 @@
       <div class="state-display">
         @switch (state()) {
           @case ('idle') {
-            <div class="state-circle idle" (click)="startListening()">
+            <div class="state-circle idle" (click)="startListening()" (keydown.enter)="startListening()" tabindex="0" role="button" aria-label="Start voice ordering">
               <span class="state-icon">&#127908;</span>
             </div>
             <p class="state-text">
@@ -37,7 +37,7 @@
             </p>
           }
           @case ('listening') {
-            <div class="state-circle listening" (click)="stopListening()">
+            <div class="state-circle listening" (click)="stopListening()" (keydown.enter)="stopListening()" tabindex="0" role="button" aria-label="Stop listening">
               <span class="state-icon">&#9679;</span>
             </div>
             <p class="state-text listening-text">
@@ -64,7 +64,7 @@
             </p>
           }
           @case ('error') {
-            <div class="state-circle error" (click)="startListening()">
+            <div class="state-circle error" (click)="startListening()" (keydown.enter)="startListening()" tabindex="0" role="button" aria-label="Retry voice ordering">
               <span class="state-icon">!</span>
             </div>
             <p class="state-text text-danger">{{ errorMessage() }}</p>

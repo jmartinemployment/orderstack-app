@@ -13,6 +13,63 @@ function hasModule(modules: readonly string[], mod: string): boolean {
   return modules.includes(mod);
 }
 
+interface NavBuildContext {
+  mode: DevicePosMode;
+  isRetail: boolean;
+  isService: boolean;
+  isRestaurant: boolean;
+  flags: Partial<ModeFeatureFlags>;
+  modules: string[];
+}
+
+function addPosItems(items: NavItem[], ctx: NavBuildContext): void {
+  if (!ctx.isService) {
+    items.push({ label: 'Orders', icon: 'bi-receipt', route: '/orders' });
+  }
+  if (ctx.isRetail) {
+    items.push({ label: 'POS', icon: 'bi-upc-scan', route: '/retail/pos' });
+  } else if (!ctx.isService) {
+    items.push({ label: 'POS', icon: 'bi-tv', route: '/pos' });
+  }
+}
+
+function addCatalogItems(items: NavItem[], ctx: NavBuildContext): void {
+  if (ctx.isRetail) {
+    items.push({ label: 'Items', icon: 'bi-grid-3x3-gap', route: '/retail/catalog' });
+    items.push({ label: 'Online Store', icon: 'bi-globe', route: '/retail/ecommerce' });
+  } else if (ctx.isService) {
+    items.push({ label: 'Items & Services', icon: 'bi-grid-3x3-gap', route: '/menu' });
+  } else {
+    if (hasModule(ctx.modules, 'menu_management')) {
+      items.push({ label: 'Items', icon: 'bi-book', route: '/menu' });
+    }
+    if (ctx.isRestaurant && hasModule(ctx.modules, 'online_ordering')) {
+      items.push({ label: 'Online', icon: 'bi-globe', route: '/online-ordering' });
+    }
+  }
+}
+
+function addModeSpecificItems(items: NavItem[], ctx: NavBuildContext): void {
+  if (ctx.isRetail) {
+    items.push({ label: 'Inventory', icon: 'bi-box-seam', route: '/retail/inventory' });
+  } else if (hasModule(ctx.modules, 'inventory')) {
+    items.push({ label: 'Inventory', icon: 'bi-box-seam', route: '/inventory' });
+  }
+
+  if (ctx.mode === 'full_service' || ctx.mode === 'bar') {
+    if (ctx.flags.enableFloorPlan) items.push({ label: 'Floor Plan', icon: 'bi-columns-gap', route: '/floor-plan' });
+    if (hasModule(ctx.modules, 'bookings')) items.push({ label: 'Bookings', icon: 'bi-calendar-event', route: '/bookings' });
+  }
+
+  if (ctx.isRetail) {
+    items.push({ label: 'Vendors', icon: 'bi-truck', route: '/retail/vendors' });
+    items.push({ label: 'Fulfillment', icon: 'bi-box2', route: '/retail/fulfillment' });
+  }
+
+  if (ctx.mode === 'bookings') items.push({ label: 'Bookings', icon: 'bi-calendar-check', route: '/bookings' });
+  if (ctx.mode === 'services' && hasModule(ctx.modules, 'invoicing')) items.push({ label: 'Invoices', icon: 'bi-file-earmark-text', route: '/invoicing' });
+}
+
 function buildNavItems(
   mode: DevicePosMode,
   isRetail: boolean,
@@ -21,66 +78,17 @@ function buildNavItems(
   flags: Partial<ModeFeatureFlags>,
   modules: string[],
 ): NavItem[] {
+  const ctx: NavBuildContext = { mode, isRetail, isService, isRestaurant, flags, modules };
   const items: NavItem[] = [
     { label: 'Administration', icon: 'bi-house', route: '/administration' },
   ];
 
-  if (!isService) {
-    items.push({ label: 'Orders', icon: 'bi-receipt', route: '/orders' });
-  }
-
-  if (isRetail) {
-    items.push({ label: 'POS', icon: 'bi-upc-scan', route: '/retail/pos' });
-  } else if (!isService) {
-    items.push({ label: 'POS', icon: 'bi-tv', route: '/pos' });
-  }
-
-  if (isRetail) {
-    items.push({ label: 'Items', icon: 'bi-grid-3x3-gap', route: '/retail/catalog' });
-  } else if (isService) {
-    items.push({ label: 'Items & Services', icon: 'bi-grid-3x3-gap', route: '/menu' });
-  } else if (hasModule(modules, 'menu_management')) {
-    items.push({ label: 'Items', icon: 'bi-book', route: '/menu' });
-  }
-
-  if (isRetail) {
-    items.push({ label: 'Online Store', icon: 'bi-globe', route: '/retail/ecommerce' });
-  } else if (isRestaurant && hasModule(modules, 'online_ordering')) {
-    items.push({ label: 'Online', icon: 'bi-globe', route: '/online-ordering' });
-  }
-
+  addPosItems(items, ctx);
+  addCatalogItems(items, ctx);
   items.push({ label: 'Customers', icon: 'bi-people', route: '/customers' });
   items.push({ label: 'Reports', icon: 'bi-bar-chart-line', route: '/reports' });
   items.push({ label: 'Staff', icon: 'bi-person-badge', route: '/scheduling' });
-
-  if (isRetail) {
-    items.push({ label: 'Inventory', icon: 'bi-box-seam', route: '/retail/inventory' });
-  } else if (hasModule(modules, 'inventory')) {
-    items.push({ label: 'Inventory', icon: 'bi-box-seam', route: '/inventory' });
-  }
-
-  if (mode === 'full_service' || mode === 'bar') {
-    if (flags.enableFloorPlan) {
-      items.push({ label: 'Floor Plan', icon: 'bi-columns-gap', route: '/floor-plan' });
-    }
-    if (hasModule(modules, 'bookings')) {
-      items.push({ label: 'Bookings', icon: 'bi-calendar-event', route: '/bookings' });
-    }
-  }
-
-  if (isRetail) {
-    items.push({ label: 'Vendors', icon: 'bi-truck', route: '/retail/vendors' });
-    items.push({ label: 'Fulfillment', icon: 'bi-box2', route: '/retail/fulfillment' });
-  }
-
-  if (mode === 'bookings') {
-    items.push({ label: 'Bookings', icon: 'bi-calendar-check', route: '/bookings' });
-  }
-
-  if (mode === 'services' && hasModule(modules, 'invoicing')) {
-    items.push({ label: 'Invoices', icon: 'bi-file-earmark-text', route: '/invoicing' });
-  }
-
+  addModeSpecificItems(items, ctx);
   items.push({ label: 'Settings', icon: 'bi-gear', route: '/settings' });
 
   return items;

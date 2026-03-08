@@ -5,7 +5,7 @@ import { waitForApiSettled, collectApiErrors } from './helpers/wait-helpers';
 
 test.describe('Kitchen Display System', { tag: '@critical' }, () => {
   test('should load KDS and display header', async ({ authedPage: page }) => {
-    const apiErrors = collectApiErrors(page);
+    collectApiErrors(page);
     await page.goto(ROUTES.kds);
     await waitForApiSettled(page);
 

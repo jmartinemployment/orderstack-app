@@ -87,8 +87,10 @@ describe('sentiment-dashboard — state logic simulation (BUG-25)', () => {
     // Old condition: isLoading() && totalAnalyzed === 0
     // When isLoading=false, totalAnalyzed=0 → condition is false → falls to @else (content)
     // Content has nothing to show → stuck/blank page
-    const oldShowsSpinner = false && 0 === 0; // false — no spinner
-    const oldShowsContent = !oldShowsSpinner; // true — content (but empty!)
+    const isLoading = false;
+    const totalAnalyzed = 0;
+    const oldShowsSpinner = isLoading && totalAnalyzed === 0;
+    const oldShowsContent = !oldShowsSpinner;
     expect(oldShowsSpinner).toBe(false);
     expect(oldShowsContent).toBe(true);
 
@@ -144,5 +146,9 @@ describe('sentiment-dashboard — stuck spinner prevention (BUG-27)', () => {
 
   it('guards against non-array API response', () => {
     expect(tsSource).toContain('Array.isArray(orders)');
+  });
+
+  it('effect uses untracked() to prevent infinite loop from _isLoading signal', () => {
+    expect(tsSource).toContain('untracked(() => this.loadAndAnalyze())');
   });
 });

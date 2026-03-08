@@ -311,7 +311,7 @@ export class CustomerPortal {
     return this.customerService.savedAddresses();
   }
 
-  getStarArray(rating: number | null): boolean[] {
+  getStarArray(rating: number | null = 0): boolean[] {
     const r = rating ?? 0;
     return Array.from({ length: 5 }, (_, i) => i < r);
   }

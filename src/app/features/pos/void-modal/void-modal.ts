@@ -6,10 +6,10 @@ import {
   signal,
 } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
-import { VoidReason, Selection } from '@models/index';
+import { VoidReason } from '@models/index';
 
 export interface VoidResult {
-  reason: VoidReason | string;
+  reason: string;
   managerPin?: string;
 }
 
@@ -33,7 +33,7 @@ export class VoidModal {
 
   readonly voidConfirm = output<VoidResult>();
   readonly compConfirm = output<CompResult>();
-  readonly cancel = output<void>();
+  readonly cancelled = output<void>();
 
   private readonly _reason = signal<VoidReason>('customer_request');
   private readonly _customReason = signal('');
@@ -71,52 +71,60 @@ export class VoidModal {
 
   onConfirm(): void {
     if (this.mode() === 'void') {
-      const reason = this._reason();
-      if (reason === 'other' && !this._customReason().trim()) {
-        this._error.set('Please provide a reason');
-        return;
-      }
-
-      if (this.requireManagerPin() && !this._needsPin()) {
-        this._needsPin.set(true);
-        return;
-      }
-
-      if (this.requireManagerPin() && this._pin().length < 4) {
-        this._error.set('Enter manager PIN');
-        return;
-      }
-
-      const finalReason = reason === 'other' ? this._customReason() : reason;
-      this.voidConfirm.emit({
-        reason: finalReason,
-        managerPin: this.requireManagerPin() ? this._pin() : undefined,
-      });
+      this.handleVoidConfirm();
     } else {
-      const reason = this._customReason().trim();
-      if (!reason) {
-        this._error.set('Please provide a reason for the comp');
-        return;
-      }
-
-      if (this.requireManagerPin() && !this._needsPin()) {
-        this._needsPin.set(true);
-        return;
-      }
-
-      if (this.requireManagerPin() && this._pin().length < 4) {
-        this._error.set('Enter manager PIN');
-        return;
-      }
-
-      this.compConfirm.emit({
-        reason,
-        managerPin: this.requireManagerPin() ? this._pin() : undefined,
-      });
+      this.handleCompConfirm();
     }
   }
 
   onCancel(): void {
-    this.cancel.emit();
+    this.cancelled.emit();
+  }
+
+  private handleVoidConfirm(): void {
+    const reason = this._reason();
+    if (reason === 'other' && !this._customReason().trim()) {
+      this._error.set('Please provide a reason');
+      return;
+    }
+
+    if (!this.validateManagerPin()) return;
+
+    const finalReason = reason === 'other' ? this._customReason() : reason;
+    this.voidConfirm.emit({
+      reason: finalReason,
+      managerPin: this.requireManagerPin() ? this._pin() : undefined,
+    });
+  }
+
+  private handleCompConfirm(): void {
+    const reason = this._customReason().trim();
+    if (!reason) {
+      this._error.set('Please provide a reason for the comp');
+      return;
+    }
+
+    if (!this.validateManagerPin()) return;
+
+    this.compConfirm.emit({
+      reason,
+      managerPin: this.requireManagerPin() ? this._pin() : undefined,
+    });
+  }
+
+  private validateManagerPin(): boolean {
+    if (!this.requireManagerPin()) return true;
+
+    if (!this._needsPin()) {
+      this._needsPin.set(true);
+      return false;
+    }
+
+    if (this._pin().length < 4) {
+      this._error.set('Enter manager PIN');
+      return false;
+    }
+
+    return true;
   }
 }

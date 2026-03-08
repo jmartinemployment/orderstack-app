@@ -129,21 +129,22 @@
 
   <!-- Category Form Modal -->
   @if (showForm()) {
-    <div class="modal-overlay" (click)="onCategoryOverlayClick($event)">
+    <div class="modal-overlay" (click)="onCategoryOverlayClick($event)" (keydown.enter)="onCategoryOverlayClick($event)" tabindex="0" role="button">
       <div class="modal-content card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">
             {{ editingCategory() ? 'Edit Category' : 'New Category' }}
           </h4>
-          <button type="button" class="btn-close" (click)="closeForm()"></button>
+          <button type="button" class="btn-close" (click)="closeForm()" aria-label="Close"></button>
         </div>
         <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
           <div class="card-body">
             <div class="mb-3">
-              <label class="form-label">Category Name *</label>
+              <label class="form-label" for="categoryName">Category Name *</label>
               <input
                 type="text"
                 class="form-control"
+                id="categoryName"
                 formControlName="name"
                 placeholder="e.g., Appetizers, Main Course"
               />
@@ -153,9 +154,10 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Description</label>
+              <label class="form-label" for="categoryDescription">Description</label>
               <textarea
                 class="form-control"
+                id="categoryDescription"
                 rows="2"
                 formControlName="description"
                 placeholder="Optional description..."
@@ -202,21 +204,22 @@
 
   <!-- Reporting Category Form Modal -->
   @if (showReportingForm()) {
-    <div class="modal-overlay" (click)="onReportingOverlayClick($event)">
+    <div class="modal-overlay" (click)="onReportingOverlayClick($event)" (keydown.enter)="onReportingOverlayClick($event)" tabindex="0" role="button">
       <div class="modal-content card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">
             {{ editingReportingCategory() ? 'Edit' : 'New' }} Reporting Category
           </h4>
-          <button type="button" class="btn-close" (click)="closeReportingForm()"></button>
+          <button type="button" class="btn-close" (click)="closeReportingForm()" aria-label="Close"></button>
         </div>
         <form [formGroup]="reportingCategoryForm" (ngSubmit)="saveReportingCategory()">
           <div class="card-body">
             <div class="mb-3">
-              <label class="form-label">Name *</label>
+              <label class="form-label" for="reportingCategoryName">Name *</label>
               <input
                 type="text"
                 class="form-control"
+                id="reportingCategoryName"
                 formControlName="name"
                 placeholder="e.g., Beverages, Alcohol, Food"
               />
@@ -226,10 +229,11 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Display Order</label>
+              <label class="form-label" for="reportingDisplayOrder">Display Order</label>
               <input
                 type="number"
                 class="form-control"
+                id="reportingDisplayOrder"
                 formControlName="displayOrder"
                 min="0"
               />
@@ -265,7 +269,7 @@
 
   <!-- Delete Confirmation Modal -->
   @if (deleteTarget(); as target) {
-    <div class="modal-overlay" (click)="onDeleteOverlayClick($event)">
+    <div class="modal-overlay" (click)="onDeleteOverlayClick($event)" (keydown.enter)="onDeleteOverlayClick($event)" tabindex="0" role="button">
       <div class="delete-confirm-modal card">
         <div class="card-header">
           <h5 class="mb-0">Delete Category</h5>
@@ -284,7 +288,7 @@
 
   <!-- Delete Reporting Category Confirmation -->
   @if (deleteReportingTarget(); as target) {
-    <div class="modal-overlay" (click)="onDeleteReportingOverlayClick($event)">
+    <div class="modal-overlay" (click)="onDeleteReportingOverlayClick($event)" (keydown.enter)="onDeleteReportingOverlayClick($event)" tabindex="0" role="button">
       <div class="delete-confirm-modal card">
         <div class="card-header">
           <h5 class="mb-0">Delete Reporting Category</h5>

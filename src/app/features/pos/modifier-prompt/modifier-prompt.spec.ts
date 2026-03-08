@@ -1,7 +1,6 @@
 import '../../../../test-setup';
-import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { ModifierPrompt, type ModifierPromptResult } from './modifier-prompt';
 import type { MenuItem, ModifierGroup, Modifier } from '@models/menu.model';
 
@@ -38,8 +37,6 @@ function createHarness(groups: ModifierGroup[]): PromptHarness {
   const item = createMenuItem(groups);
 
   TestBed.configureTestingModule({});
-
-  const component = TestBed.runInInjectionContext(() => new ModifierPrompt());
 
   // Set required input via TestBed — use ComponentRef approach
   const fixture = TestBed.createComponent(ModifierPrompt);

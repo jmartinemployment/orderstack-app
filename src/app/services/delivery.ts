@@ -1109,8 +1109,7 @@ export class DeliveryService {
   }
 
   private generateLocalAnalytics(dateFrom: string, dateTo: string): DeliveryAnalyticsReport {
-    const assignments = this._activeAssignments();
-    const completed = assignments.filter(a => a.status === 'delivered');
+    const completed = this._activeAssignments().filter(a => a.status === 'delivered');
     const totalDeliveries = completed.length;
 
     const driverMap = new Map<string, DeliveryAssignment[]>();
@@ -1120,43 +1119,14 @@ export class DeliveryService {
       driverMap.set(a.driverId, list);
     }
 
-    const byDriver: DeliveryAnalyticsReport['byDriver'] = [];
     let totalMinutes = 0;
     let onTimeTotal = 0;
-    let totalFees = 0;
-
-    for (const [driverId, deliveries] of driverMap) {
-      const driver = this.getDriverById(driverId);
-      let driverTotalMinutes = 0;
-      let driverOnTime = 0;
-      let driverDistance = 0;
-
-      for (const d of deliveries) {
-        const minutes = d.estimatedDeliveryMinutes ?? 30;
-        driverTotalMinutes += minutes;
-        if (d.deliveredAt && d.assignedAt) {
-          const actualMinutes = (new Date(d.deliveredAt).getTime() - new Date(d.assignedAt).getTime()) / 60000;
-          if (actualMinutes <= minutes) driverOnTime++;
-        }
-        driverDistance += d.distanceKm ?? 0;
-      }
-
-      const avgMinutes = deliveries.length > 0 ? Math.round(driverTotalMinutes / deliveries.length) : 0;
-      totalMinutes += driverTotalMinutes;
-      onTimeTotal += driverOnTime;
-
-      byDriver.push({
-        driverId,
-        driverName: driver?.name ?? 'Unknown',
-        vehicleType: driver?.vehicleType ?? 'car',
-        totalDeliveries: deliveries.length,
-        onTimeCount: driverOnTime,
-        lateCount: deliveries.length - driverOnTime,
-        avgDeliveryMinutes: avgMinutes,
-        totalDistanceKm: Math.round(driverDistance * 10) / 10,
-        totalFees: 0,
-      });
-    }
+    const byDriver = [...driverMap.entries()].map(([driverId, deliveries]) => {
+      const stats = this.calculateDriverStats(driverId, deliveries);
+      totalMinutes += stats.totalMinutes;
+      onTimeTotal += stats.onTimeCount;
+      return stats.entry;
+    });
 
     const avgDeliveryMinutes = totalDeliveries > 0 ? Math.round(totalMinutes / totalDeliveries) : 0;
     const onTimePercentage = totalDeliveries > 0 ? Math.round((onTimeTotal / totalDeliveries) * 100) : 0;
@@ -1167,21 +1137,50 @@ export class DeliveryService {
       totalDeliveries,
       avgDeliveryMinutes,
       onTimePercentage,
-      totalDeliveryFees: totalFees,
-      costPerDelivery: totalDeliveries > 0 ? Math.round((totalFees / totalDeliveries) * 100) / 100 : 0,
+      totalDeliveryFees: 0,
+      costPerDelivery: 0,
       byDriver,
-      byProvider: [
-        {
-          provider: 'self',
-          count: totalDeliveries,
-          avgMinutes: avgDeliveryMinutes,
-          onTimePercentage,
-          totalFees: 0,
-        },
-      ],
+      byProvider: [{ provider: 'self', count: totalDeliveries, avgMinutes: avgDeliveryMinutes, onTimePercentage, totalFees: 0 }],
     };
     this._deliveryAnalytics.set(report);
     return report;
+  }
+
+  private calculateDriverStats(driverId: string, deliveries: DeliveryAssignment[]): {
+    entry: DeliveryAnalyticsReport['byDriver'][number];
+    totalMinutes: number;
+    onTimeCount: number;
+  } {
+    const driver = this.getDriverById(driverId);
+    let totalMinutes = 0;
+    let onTime = 0;
+    let distance = 0;
+
+    for (const d of deliveries) {
+      const minutes = d.estimatedDeliveryMinutes ?? 30;
+      totalMinutes += minutes;
+      if (d.deliveredAt && d.assignedAt) {
+        const actual = (new Date(d.deliveredAt).getTime() - new Date(d.assignedAt).getTime()) / 60000;
+        if (actual <= minutes) onTime++;
+      }
+      distance += d.distanceKm ?? 0;
+    }
+
+    return {
+      entry: {
+        driverId,
+        driverName: driver?.name ?? 'Unknown',
+        vehicleType: driver?.vehicleType ?? 'car',
+        totalDeliveries: deliveries.length,
+        onTimeCount: onTime,
+        lateCount: deliveries.length - onTime,
+        avgDeliveryMinutes: deliveries.length > 0 ? Math.round(totalMinutes / deliveries.length) : 0,
+        totalDistanceKm: Math.round(distance * 10) / 10,
+        totalFees: 0,
+      },
+      totalMinutes,
+      onTimeCount: onTime,
+    };
   }
 
   getDispatchStatusLabel(status: DeliveryDispatchStatus): string {

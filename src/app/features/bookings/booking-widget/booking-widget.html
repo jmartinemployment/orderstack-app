@@ -18,6 +18,7 @@
           class="form-select"
           [value]="partySize()"
           (change)="onPartySizeChange($event)"
+          aria-label="Party size"
         >
           @for (size of partySizeOptions(); track size) {
             <option [value]="size">{{ size }} {{ size === 1 ? 'Guest' : 'Guests' }}</option>
@@ -32,6 +33,7 @@
           class="form-select"
           [value]="selectedDate()"
           (change)="onDateChange($event)"
+          aria-label="Date"
         >
           <option value="">Select a date</option>
           @for (date of dateOptions(); track date) {
@@ -100,6 +102,7 @@
           placeholder="Your name"
           [value]="name()"
           (input)="onNameInput($event)"
+          aria-label="Name"
         />
       </div>
 
@@ -111,6 +114,7 @@
           placeholder="(555) 555-5555"
           [value]="phone()"
           (input)="onPhoneInput($event)"
+          aria-label="Phone"
         />
       </div>
 
@@ -122,6 +126,7 @@
           placeholder="your@email.com"
           [value]="email()"
           (input)="onEmailInput($event)"
+          aria-label="Email"
         />
       </div>
 
@@ -132,6 +137,7 @@
           class="form-select"
           [value]="seatingPreference()"
           (change)="onSeatingChange($event)"
+          aria-label="Seating preference"
         >
           @for (opt of seatingOptions; track opt.value) {
             <option [value]="opt.value">{{ opt.label }}</option>
@@ -146,6 +152,7 @@
           class="form-select"
           [value]="occasion()"
           (change)="onOccasionChange($event)"
+          aria-label="Special occasion"
         >
           <option value="">None</option>
           @for (occ of occasionOptions; track occ) {
@@ -178,6 +185,7 @@
           placeholder="Any special requests..."
           [value]="specialRequests()"
           (input)="onSpecialRequestsInput($event)"
+          aria-label="Special requests"
         ></textarea>
       </div>
 

@@ -125,6 +125,7 @@
               class="override-pin-input"
               placeholder="Manager PIN"
               maxlength="6"
+              aria-label="Manager override PIN"
               [value]="managerOverridePin()"
               (input)="setManagerOverridePin($any($event.target).value)">
             <button

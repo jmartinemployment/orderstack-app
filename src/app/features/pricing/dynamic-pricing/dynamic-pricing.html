@@ -64,13 +64,13 @@
 
           <div class="mb-2">
             <label class="form-label">Name</label>
-            <input type="text" class="form-control form-control-sm" [value]="formName()" (input)="onFormField('name', $event)" placeholder="e.g. Happy Hour" />
+            <input type="text" class="form-control form-control-sm" [value]="formName()" (input)="onFormField('name', $event)" placeholder="e.g. Happy Hour" aria-label="Rule name" />
           </div>
 
           <div class="row g-2 mb-2">
             <div class="col-6">
               <label class="form-label">Type</label>
-              <select class="form-select form-select-sm" [value]="formType()" (change)="onFormField('type', $event)">
+              <select class="form-select form-select-sm" [value]="formType()" (change)="onFormField('type', $event)" aria-label="Rule type">
                 <option value="happy_hour">Happy Hour</option>
                 <option value="surge">Surge</option>
                 <option value="off_peak">Off Peak</option>
@@ -80,7 +80,7 @@
             </div>
             <div class="col-6">
               <label class="form-label">Multiplier</label>
-              <input type="number" class="form-control form-control-sm" [value]="formMultiplier()" (input)="onFormField('multiplier', $event)" step="0.05" min="0.5" max="2" />
+              <input type="number" class="form-control form-control-sm" [value]="formMultiplier()" (input)="onFormField('multiplier', $event)" step="0.05" min="0.5" max="2" aria-label="Price multiplier" />
               <small class="text-muted">{{ getMultiplierLabel(formMultiplier()) }}</small>
             </div>
           </div>
@@ -88,11 +88,11 @@
           <div class="row g-2 mb-2">
             <div class="col-6">
               <label class="form-label">Start Time</label>
-              <input type="time" class="form-control form-control-sm" [value]="formStartTime()" (input)="onFormField('startTime', $event)" />
+              <input type="time" class="form-control form-control-sm" [value]="formStartTime()" (input)="onFormField('startTime', $event)" aria-label="Start time" />
             </div>
             <div class="col-6">
               <label class="form-label">End Time</label>
-              <input type="time" class="form-control form-control-sm" [value]="formEndTime()" (input)="onFormField('endTime', $event)" />
+              <input type="time" class="form-control form-control-sm" [value]="formEndTime()" (input)="onFormField('endTime', $event)" aria-label="End time" />
             </div>
           </div>
 

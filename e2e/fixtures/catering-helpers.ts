@@ -1,8 +1,9 @@
 import { Page } from '@playwright/test';
+import { TEST_PASSWORDS } from './credentials';
 
 export const CATERING_CREDENTIALS = {
   email: 'owner@taipa.com',
-  password: 'owner123',
+  password: TEST_PASSWORDS.owner,
 };
 
 export const CATERING_ROUTES = {

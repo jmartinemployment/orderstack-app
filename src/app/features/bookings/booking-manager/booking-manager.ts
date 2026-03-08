@@ -18,10 +18,8 @@ import {
   GuestPreferences,
   SeatingPreference,
   TimelineBlock,
-  CalendarConnection,
   WaitlistSmsConfig,
   WaitlistAnalytics,
-  VirtualWaitlistConfig,
   DIETARY_OPTIONS,
   OCCASION_OPTIONS,
 } from '@models/index';
@@ -44,7 +42,7 @@ export class BookingManager {
   readonly dietaryOptions = DIETARY_OPTIONS;
   readonly occasionOptions = OCCASION_OPTIONS;
 
-  // ── Core state ──
+  // -- Core state --
   private readonly _activeTab = signal<BookingTab>('today');
   private readonly _showForm = signal(false);
   private readonly _isSaving = signal(false);
@@ -77,7 +75,7 @@ export class BookingManager {
       .reduce((sum, r) => sum + r.partySize, 0)
   );
 
-  // ── Waitlist ──
+  // -- Waitlist --
   private readonly _showWaitlistForm = signal(false);
   private readonly _waitlistSaving = signal(false);
   private readonly _waitlistName = signal('');
@@ -92,11 +90,11 @@ export class BookingManager {
   readonly waitlistPhone = this._waitlistPhone.asReadonly();
   readonly waitlistNotes = this._waitlistNotes.asReadonly();
 
-  // ── Dynamic Turn Time (Phase 2) ──
+  // -- Dynamic Turn Time (Phase 2) --
   readonly turnTimeStats = this.bookingService.turnTimeStats;
   readonly avgTableTurnMinutes = this.bookingService.dynamicTurnTime;
 
-  // ── Recurring Reservations (Phase 2) ──
+  // -- Recurring Reservations (Phase 2) --
   readonly recurringReservations = this.bookingService.recurringReservations;
   readonly activeRecurring = this.bookingService.activeRecurring;
   readonly isLoadingRecurring = this.bookingService.isLoadingRecurring;
@@ -107,7 +105,7 @@ export class BookingManager {
   readonly recurringPattern = this._recurringPattern.asReadonly();
   readonly recurringEndDate = this._recurringEndDate.asReadonly();
 
-  // ── Events (Phase 2) ──
+  // -- Events (Phase 2) --
   readonly events = this.bookingService.events;
   readonly upcomingEvents = this.bookingService.upcomingEvents;
   readonly pastEvents = this.bookingService.pastEvents;
@@ -134,7 +132,7 @@ export class BookingManager {
     isPublished: [false],
   });
 
-  // ── Guest Preferences (Phase 2) ──
+  // -- Guest Preferences (Phase 2) --
   private readonly _showPreferencesModal = signal(false);
   private readonly _preferencesReservationId = signal<string | null>(null);
   private readonly _prefSeating = signal<SeatingPreference>('no_preference');
@@ -151,7 +149,7 @@ export class BookingManager {
   readonly prefCelebration = this._prefCelebration.asReadonly();
   readonly prefNotes = this._prefNotes.asReadonly();
 
-  // ── Timeline View (Phase 2) ──
+  // -- Timeline View (Phase 2) --
   private readonly _timelineDate = signal(new Date().toISOString().split('T')[0]);
   readonly timelineDate = this._timelineDate.asReadonly();
   readonly timelineHours = computed(() => {
@@ -235,7 +233,7 @@ export class BookingManager {
     return hours;
   });
 
-  // ── Phase 3: Calendar Sync ──
+  // -- Phase 3: Calendar Sync --
   readonly calendarConnection = this.bookingService.calendarConnection;
   readonly calendarBlocks = this.bookingService.calendarBlocks;
   readonly isCalendarConnected = this.bookingService.isCalendarConnected;
@@ -244,7 +242,7 @@ export class BookingManager {
   readonly showCalendarSettings = this._showCalendarSettings.asReadonly();
   readonly calendarSyncing = this._calendarSyncing.asReadonly();
 
-  // ── Phase 3: Waitlist SMS Config ──
+  // -- Phase 3: Waitlist SMS Config --
   readonly waitlistSmsConfig = this.bookingService.waitlistSmsConfig;
   private readonly _showSmsConfig = signal(false);
   private readonly _smsEnabled = signal(false);
@@ -259,12 +257,12 @@ export class BookingManager {
   readonly smsAutoRemove = this._smsAutoRemove.asReadonly();
   readonly smsSaving = this._smsSaving.asReadonly();
 
-  // ── Phase 3: Waitlist Analytics ──
+  // -- Phase 3: Waitlist Analytics --
   readonly waitlistAnalytics = this.bookingService.waitlistAnalytics;
   private readonly _showWaitlistAnalytics = signal(false);
   readonly showWaitlistAnalytics = this._showWaitlistAnalytics.asReadonly();
 
-  // ── Phase 3: Virtual Waitlist ──
+  // -- Phase 3: Virtual Waitlist --
   readonly virtualWaitlistConfig = this.bookingService.virtualWaitlistConfig;
   private readonly _showVirtualConfig = signal(false);
   private readonly _virtualEnabled = signal(false);
@@ -275,10 +273,10 @@ export class BookingManager {
   readonly virtualMaxQueue = this._virtualMaxQueue.asReadonly();
   readonly virtualSaving = this._virtualSaving.asReadonly();
 
-  // ── Phase 3: On My Way entries ──
+  // -- Phase 3: On My Way entries --
   readonly onMyWayEntries = this.bookingService.onMyWayEntries;
 
-  // ── Reservation Form ──
+  // -- Reservation Form --
   readonly bookingForm = this.fb.group({
     customerName: ['', [Validators.required, Validators.minLength(2)]],
     customerPhone: ['', [Validators.required]],
@@ -306,7 +304,7 @@ export class BookingManager {
     });
   }
 
-  // ── Tab Navigation ──
+  // -- Tab Navigation --
 
   setTab(tab: BookingTab): void {
     this._activeTab.set(tab);
@@ -333,7 +331,7 @@ export class BookingManager {
     }
   }
 
-  // ── Reservation CRUD ──
+  // -- Reservation CRUD --
 
   openForm(): void {
     const now = new Date();
@@ -460,7 +458,7 @@ export class BookingManager {
     }
   }
 
-  // ── Waitlist ──
+  // -- Waitlist --
 
   openWaitlistForm(): void {
     this._waitlistName.set('');
@@ -552,7 +550,7 @@ export class BookingManager {
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   }
 
-  // ── Events (Phase 2) ──
+  // -- Events (Phase 2) --
 
   setEventFilter(filter: 'upcoming' | 'past'): void {
     this._eventFilter.set(filter);
@@ -659,7 +657,7 @@ export class BookingManager {
     }
   }
 
-  // ── Guest Preferences (Phase 2) ──
+  // -- Guest Preferences (Phase 2) --
 
   openPreferences(booking: Booking): void {
     const prefs = booking.preferences;
@@ -737,7 +735,7 @@ export class BookingManager {
     }
   }
 
-  // ── Timeline View (Phase 2) ──
+  // -- Timeline View (Phase 2) --
 
   setTimelineDate(event: Event): void {
     this._timelineDate.set((event.target as HTMLInputElement).value);
@@ -786,7 +784,7 @@ export class BookingManager {
     return { left: `${leftPercent}%` };
   }
 
-  // ── Google Calendar Sync (Phase 3) ──
+  // -- Google Calendar Sync (Phase 3) --
 
   toggleCalendarSettings(): void {
     this._showCalendarSettings.update(v => !v);
@@ -857,7 +855,7 @@ export class BookingManager {
     }
   }
 
-  // ── Waitlist SMS Config (Phase 3) ──
+  // -- Waitlist SMS Config (Phase 3) --
 
   openSmsConfig(): void {
     const config = this.waitlistSmsConfig();
@@ -903,7 +901,7 @@ export class BookingManager {
     }
   }
 
-  // ── Waitlist Analytics (Phase 3) ──
+  // -- Waitlist Analytics (Phase 3) --
 
   toggleWaitlistAnalytics(): void {
     this._showWaitlistAnalytics.update(v => !v);
@@ -926,7 +924,7 @@ export class BookingManager {
     await this.bookingService.recalculateWaitTimes();
   }
 
-  // ── Virtual Waitlist (Phase 3) ──
+  // -- Virtual Waitlist (Phase 3) --
 
   openVirtualConfig(): void {
     const config = this.virtualWaitlistConfig();
@@ -971,7 +969,7 @@ export class BookingManager {
     }
   }
 
-  // ── Helpers ──
+  // -- Helpers --
 
   getTurnTimeForParty(partySize: number): number {
     const stats = this.turnTimeStats();

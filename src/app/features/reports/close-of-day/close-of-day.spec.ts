@@ -1,7 +1,7 @@
 import '../../../../test-setup';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { CloseOfDay } from './close-of-day';
 import { OrderService } from '@services/order';
 import { AnalyticsService } from '@services/analytics';

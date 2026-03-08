@@ -52,8 +52,8 @@
           </div>
 
           <div class="mb-2">
-            <label class="form-label">Inventory Item *</label>
-            <select class="form-select form-select-sm" [value]="formItemId()" (change)="onFormField('item', $event)">
+            <label class="form-label" for="waste-item">Inventory Item *</label>
+            <select class="form-select form-select-sm" id="waste-item" [value]="formItemId()" (change)="onFormField('item', $event)">
               <option value="">Select item...</option>
               @for (item of inventoryItems(); track item.id) {
                 <option [value]="item.id">{{ item.name }} ({{ item.unit }})</option>
@@ -63,22 +63,22 @@
 
           <div class="row g-2 mb-2">
             <div class="col-6">
-              <label class="form-label">Category *</label>
-              <select class="form-select form-select-sm" [value]="formCategory()" (change)="onFormField('category', $event)">
+              <label class="form-label" for="waste-category">Category *</label>
+              <select class="form-select form-select-sm" id="waste-category" [value]="formCategory()" (change)="onFormField('category', $event)">
                 @for (cat of wasteCategories; track cat.value) {
                   <option [value]="cat.value">{{ cat.label }}</option>
                 }
               </select>
             </div>
             <div class="col-6">
-              <label class="form-label">Quantity *</label>
-              <input type="number" class="form-control form-control-sm" [value]="formQuantity()" (input)="onFormField('quantity', $event)" min="0.01" step="0.1" />
+              <label class="form-label" for="waste-quantity">Quantity *</label>
+              <input type="number" class="form-control form-control-sm" id="waste-quantity" [value]="formQuantity()" (input)="onFormField('quantity', $event)" min="0.01" step="0.1" />
             </div>
           </div>
 
           <div class="mb-2">
-            <label class="form-label">Reason</label>
-            <input type="text" class="form-control form-control-sm" [value]="formReason()" (input)="onFormField('reason', $event)" placeholder="Optional reason..." />
+            <label class="form-label" for="waste-reason">Reason</label>
+            <input type="text" class="form-control form-control-sm" id="waste-reason" [value]="formReason()" (input)="onFormField('reason', $event)" placeholder="Optional reason..." />
           </div>
 
           <button type="button" class="btn btn-sm btn-primary w-100" (click)="logWaste()" [disabled]="!formItemId() || formQuantity() <= 0">

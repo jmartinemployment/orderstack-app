@@ -97,6 +97,9 @@
             [class.selected]="selectedPackageId() === pkg.id"
             [class.premium]="pkg.tier === 'premium'"
             (click)="selectPackage(pkg.id)"
+            (keydown.enter)="selectPackage(pkg.id)"
+            tabindex="0"
+            role="button"
           >
             <div class="package-tier-badge" [attr.data-tier]="pkg.tier">
               {{ getTierLabel(pkg.tier) }}

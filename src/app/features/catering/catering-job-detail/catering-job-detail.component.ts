@@ -8,7 +8,6 @@ import {
   CateringJob,
   CateringJobStatus,
   CateringPackage,
-  CateringPackageItemTier,
   CateringMilestonePayment,
   CateringActivity,
   CateringTasting,
@@ -16,9 +15,7 @@ import {
   DietaryRequirements,
   CATERING_STATUS_CONFIG,
   CATERING_STATUS_TRANSITIONS,
-  defaultCateringMilestones,
   defaultDietaryRequirements,
-  MenuItem,
   CateringPricingTier,
 } from '@models/index';
 import { environment } from '@environments/environment';
@@ -121,7 +118,7 @@ export class CateringJobDetailComponent implements OnInit {
 
   readonly selectedPackage = computed(() => {
     const j = this.job();
-    if (!j || !j.selectedPackageId) return null;
+    if (!j?.selectedPackageId) return null;
     return j.packages.find(p => p.id === j.selectedPackageId) ?? null;
   });
 

@@ -260,27 +260,27 @@ export class DeliverySettingsComponent implements OnInit {
     this._defaultTip.set(s.defaultTipPercent);
     this._credentialSecurityMode.set(this.credentialSecurityProfile()?.mode ?? 'free');
     this.deliveryService.setProviderType(s.provider);
-    void this.deliveryService.loadConfigStatus();
-    void this.deliveryService.loadCredentialSummary().then(() => {
+    this.deliveryService.loadConfigStatus();
+    this.deliveryService.loadCredentialSummary().then(() => {
       this._doorDashMode.set(this.credentialStatus()?.doordash.mode ?? 'test');
       this._credentialSecurityMode.set(this.credentialSecurityProfile()?.mode ?? 'free');
     });
-    void this.deliveryService.loadCredentialSecurityProfile().then((profile) => {
+    this.deliveryService.loadCredentialSecurityProfile().then((profile) => {
       if (profile) this._credentialSecurityMode.set(profile.mode);
     });
-    void this.deliveryService.loadMarketplaceIntegrations().then((integrations) => {
+    this.deliveryService.loadMarketplaceIntegrations().then((integrations) => {
       if (integrations) this.syncMarketplaceFormsFromIntegrations(integrations);
     });
-    void this.menuService.loadMenu();
-    void this.deliveryService.loadMarketplaceMenuMappings();
-    void this.deliveryService.loadDrivers();
+    this.menuService.loadMenu();
+    this.deliveryService.loadMarketplaceMenuMappings();
+    this.deliveryService.loadDrivers();
   }
 
   onProviderChange(event: Event): void {
     const provider = (event.target as HTMLInputElement).value as DeliveryProviderType;
     this._provider.set(provider);
     this.deliveryService.setProviderType(provider);
-    void this.deliveryService.loadConfigStatus();
+    this.deliveryService.loadConfigStatus();
 
     if (this.isDaaSProvider(provider) && !this.deliveryService.isProviderConfiguredFor(provider)) {
       this._autoDispatch.set(false);
@@ -423,7 +423,7 @@ export class DeliverySettingsComponent implements OnInit {
     };
     await this.settingsService.saveDeliverySettings(settings);
     this.deliveryService.setProviderType(settings.provider);
-    void this.deliveryService.loadConfigStatus();
+    this.deliveryService.loadConfigStatus();
     this._saved.set(true);
   }
 
@@ -446,7 +446,7 @@ export class DeliverySettingsComponent implements OnInit {
       this._doorDashSigningSecret.set('');
       this._doorDashMode.set(this.credentialStatus()?.doordash.mode ?? mode);
       this._credentialNotice.set('DoorDash credentials saved.');
-      void this.deliveryService.loadConfigStatus();
+      this.deliveryService.loadConfigStatus();
     }
   }
 
@@ -482,7 +482,7 @@ export class DeliverySettingsComponent implements OnInit {
       this._uberCustomerId.set('');
       this._uberWebhookSigningKey.set('');
       this._credentialNotice.set('Uber credentials saved.');
-      void this.deliveryService.loadConfigStatus();
+      this.deliveryService.loadConfigStatus();
     }
   }
 
@@ -495,7 +495,7 @@ export class DeliverySettingsComponent implements OnInit {
       this._doorDashSigningSecret.set('');
       this._doorDashMode.set('test');
       this._credentialNotice.set('DoorDash credentials deleted.');
-      void this.deliveryService.loadConfigStatus();
+      this.deliveryService.loadConfigStatus();
     }
   }
 
@@ -509,7 +509,7 @@ export class DeliverySettingsComponent implements OnInit {
       this._uberCustomerId.set('');
       this._uberWebhookSigningKey.set('');
       this._credentialNotice.set('Uber credentials deleted.');
-      void this.deliveryService.loadConfigStatus();
+      this.deliveryService.loadConfigStatus();
     }
   }
 
@@ -574,7 +574,7 @@ export class DeliverySettingsComponent implements OnInit {
     this._showQuotes.set(s.showQuotesToCustomer);
     this._defaultTip.set(s.defaultTipPercent);
     this.deliveryService.setProviderType(s.provider);
-    void this.deliveryService.loadConfigStatus();
+    this.deliveryService.loadConfigStatus();
     this.syncMarketplaceFormsFromIntegrations(this.marketplaceIntegrations());
     this._menuMappingExternalItemId.set('');
     this._menuMappingExternalItemName.set('');

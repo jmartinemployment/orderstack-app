@@ -8,10 +8,6 @@ import { RestaurantSettingsService } from '@services/restaurant-settings';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
 import {
-  MenuEngineeringInsight,
-  SalesInsight,
-  InventoryAlert,
-  StockPrediction,
   RecentProfitSummary,
   RevenueForecast,
   DemandForecastItem,
@@ -172,12 +168,21 @@ export class CommandCenter {
 
     const menuInsights = this.menuEngineering()?.insights ?? [];
     for (const mi of menuInsights) {
+      let insightType: UnifiedInsight['type'];
+      if (mi.type === 'warning') {
+        insightType = 'warning';
+      } else if (mi.type === 'action') {
+        insightType = 'action';
+      } else {
+        insightType = 'neutral';
+      }
+
       insights.push({
         id: `menu-${(mi.text ?? '').slice(0, 20)}`,
         source: 'menu',
         text: mi.text ?? '',
         priority: mi.priority,
-        type: mi.type === 'warning' ? 'warning' : mi.type === 'action' ? 'action' : 'neutral',
+        type: insightType,
       });
     }
 
@@ -490,8 +495,7 @@ export class CommandCenter {
 
   getProactiveInsightText(card: AiInsightCard): string {
     if (card.responseType === 'text') {
-      const data = card.data as Record<string, unknown>;
-      return (data['text'] as string) ?? '';
+      return (card.data['text'] as string) ?? '';
     }
     if (card.responseType === 'kpi' && card.value !== undefined) {
       if (card.unit === '%') return `${card.value > 0 ? '+' : ''}${card.value.toFixed(1)}% vs yesterday`;
@@ -501,8 +505,7 @@ export class CommandCenter {
   }
 
   getWidgetText(widget: PinnedWidget): string {
-    const data = widget.insightCard.data as Record<string, unknown>;
-    return (data['text'] as string) ?? '';
+    return (widget.insightCard.data['text'] as string) ?? '';
   }
 
   private async loadProfitSummary(): Promise<void> {

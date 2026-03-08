@@ -3,11 +3,12 @@
  * Picks up after BUG-28. Next bug number: BUG-34+
  */
 import { test, expect, Page } from '@playwright/test';
+import { TEST_PASSWORDS } from './fixtures/credentials';
 
 async function login(page: Page) {
   await page.goto('/login');
   await page.locator('input[formcontrolname="email"]').fill('owner@taipa.com');
-  await page.locator('input[formcontrolname="password"]').fill('owner123');
+  await page.locator('input[formcontrolname="password"]').fill(TEST_PASSWORDS.owner);
   await page.locator('button[type="submit"]').click();
   await page.waitForTimeout(3000);
   if (page.url().includes('/select-restaurant')) {
@@ -290,7 +291,8 @@ test.describe('Guest Portal /catering/proposal/:token', { tag: '@catering' }, ()
     const link = page.locator('a[href*="/catering/proposal/"]').first();
     if (await link.count() > 0) {
       const href = await link.getAttribute('href');
-      await page.goto(href!);
+      if (!href) return;
+      await page.goto(href);
       await page.waitForTimeout(2000);
       // Must not show 404
       const body = await page.locator('body').textContent();

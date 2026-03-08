@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, effect, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CurrencyPipe, TitleCasePipe } from '@angular/common';
 import { ModifierService } from '@services/modifier';
@@ -140,7 +140,8 @@ export class ModifierManagement {
     if (target.type === 'group') {
       success = await this.modifierService.deleteGroup(target.groupId);
     } else {
-      success = await this.modifierService.deleteOption(target.groupId, target.optionId!);
+      const optionId = target.optionId ?? '';
+      success = await this.modifierService.deleteOption(target.groupId, optionId);
     }
 
     this._isSaving.set(false);

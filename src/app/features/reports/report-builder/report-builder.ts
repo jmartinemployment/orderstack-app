@@ -6,6 +6,7 @@ import {
   computed,
   input,
   output,
+  OnInit,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ReportService } from '@services/report';
@@ -24,7 +25,7 @@ import {
   styleUrl: './report-builder.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ReportBuilder {
+export class ReportBuilder implements OnInit {
   private readonly reportService = inject(ReportService);
 
   readonly editingReport = input<SavedReport | null>(null);

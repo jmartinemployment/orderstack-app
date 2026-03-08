@@ -16,6 +16,7 @@
         type="text"
         class="form-control"
         placeholder="Search by order #, customer, phone, item, or server..."
+        aria-label="Search orders"
         [value]="searchQuery()"
         (input)="setSearchQuery($any($event.target).value)"
       />
@@ -106,8 +107,9 @@
       <!-- Date Range & Employee -->
       <div class="row g-2">
         <div class="col-sm-4">
-          <label class="filter-label">From</label>
+          <label class="filter-label" for="filter-date-from">From</label>
           <input
+            id="filter-date-from"
             type="date"
             class="form-control form-control-sm"
             [value]="dateFrom() ?? ''"
@@ -115,8 +117,9 @@
           />
         </div>
         <div class="col-sm-4">
-          <label class="filter-label">To</label>
+          <label class="filter-label" for="filter-date-to">To</label>
           <input
+            id="filter-date-to"
             type="date"
             class="form-control form-control-sm"
             [value]="dateTo() ?? ''"
@@ -124,8 +127,9 @@
           />
         </div>
         <div class="col-sm-4">
-          <label class="filter-label">Employee</label>
+          <label class="filter-label" for="filter-employee">Employee</label>
           <input
+            id="filter-employee"
             type="text"
             class="form-control form-control-sm"
             placeholder="Server name..."
@@ -152,7 +156,7 @@
   } @else {
     <div class="orders-list">
       @for (order of filteredOrders(); track order.guid) {
-        <div class="order-card card mb-2" (click)="selectOrder(order)">
+        <div class="order-card card mb-2" role="button" tabindex="0" (click)="selectOrder(order)" (keydown.enter)="selectOrder(order)">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
@@ -217,7 +221,7 @@
 
   <!-- Order Detail Modal -->
   @if (selectedOrder()) {
-    <div class="modal-overlay" (click)="closeOrderDetail()">
+    <div class="modal-overlay" role="button" tabindex="0" (click)="closeOrderDetail()" (keydown.enter)="closeOrderDetail()">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Order #{{ getOrderNumber(selectedOrder()!) }}</h4>
@@ -526,6 +530,7 @@
                     type="text"
                     class="form-control form-control-sm"
                     placeholder="Add a note..."
+                    aria-label="Add a note"
                     [value]="noteText()"
                     (input)="setNoteText($any($event.target).value)"
                     (keyup.enter)="submitNote()"

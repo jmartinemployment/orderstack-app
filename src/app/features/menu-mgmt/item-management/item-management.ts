@@ -17,7 +17,6 @@ import {
   AvailabilityWindow,
   ChannelVisibility,
   NutritionFacts,
-  BarcodeFormat,
   CsvImportResult,
   CateringPricingTier,
 } from '@models/index';
@@ -326,7 +325,7 @@ export class ItemManagement {
         if (i !== index) return w;
         const days = w.daysOfWeek.includes(day)
           ? w.daysOfWeek.filter(d => d !== day)
-          : [...w.daysOfWeek, day].sort();
+          : [...w.daysOfWeek, day].sort((a, b) => a - b);
         return { ...w, daysOfWeek: days };
       })
     );
@@ -516,76 +515,86 @@ export class ItemManagement {
     this._localError.set(null);
 
     try {
-      const formValue = this.itemForm.value;
-      const dietaryStrings = formValue.dietary
-        ? formValue.dietary.split(',').map(d => d.trim().toLowerCase()).filter(d => d)
-        : [];
-
-      const validDietary: DietaryInfo[] = ['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'spicy', 'halal', 'kosher'];
-      const dietary = dietaryStrings.filter(d => validDietary.includes(d as DietaryInfo)) as DietaryInfo[];
-
-      const data: Record<string, unknown> = {
-        name: formValue.name!,
-        description: formValue.description || undefined,
-        price: formValue.price!,
-        categoryId: formValue.categoryId!,
-        image: formValue.image || undefined,
-        isActive: formValue.isActive ?? true,
-        isPopular: formValue.isPopular ?? false,
-        dietary,
-        modifierGroupIds: this._selectedModifierGroupIds(),
-        sku: formValue.sku || null,
-        barcode: formValue.barcode || null,
-        barcodeFormat: formValue.barcodeFormat || null,
-        reportingCategoryId: formValue.reportingCategoryId || null,
-        channelVisibility: this._formChannelVisibility(),
-        allergens: this._formAllergens(),
-        availabilityWindows: this._formAvailabilityWindows(),
-        cateringPricing: this._cateringPricingTiers(),
-        menuType: this._formMenuType(),
-        cateringPricingModel: this._formCateringPricingModel(),
-      };
-
-      // Only include nutrition if at least one field is set
-      const nutrition = this._formNutrition();
-      const hasNutrition = Object.values(nutrition).some(v => v !== null);
-      if (hasNutrition) {
-        data['nutritionFacts'] = nutrition;
-      }
-
-      if (formValue.cost !== null && formValue.cost !== undefined) {
-        data['cost'] = formValue.cost;
-      }
-      if (formValue.prepTimeMinutes !== null && formValue.prepTimeMinutes !== undefined) {
-        data['prepTimeMinutes'] = formValue.prepTimeMinutes;
-      }
-      if (formValue.displayOrder !== null && formValue.displayOrder !== undefined) {
-        data['displayOrder'] = formValue.displayOrder;
-      }
-
-      if (this._editingItem()) {
-        const success = await this.menuService.updateItem(
-          this._editingItem()!.id,
-          data as Partial<MenuItem>
-        );
-        if (!success) {
-          this._localError.set(this.menuService.error() ?? 'Failed to update item');
-          return;
-        }
-      } else {
-        const result = await this.menuService.createItem(data as Partial<MenuItem>);
-        if (!result) {
-          this._localError.set(this.menuService.error() ?? 'Failed to create item');
-          return;
-        }
-      }
-
+      const data = this.buildItemData();
+      const success = await this.persistItem(data);
+      if (!success) return;
       this.closeForm();
     } catch (err: unknown) {
       this._localError.set(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       this._isSaving.set(false);
     }
+  }
+
+  private buildItemData(): Record<string, unknown> {
+    const formValue = this.itemForm.value;
+    const dietaryStrings = formValue.dietary
+      ? formValue.dietary.split(',').map(d => d.trim().toLowerCase()).filter(Boolean)
+      : [];
+
+    const validDietary = new Set<DietaryInfo>(['vegetarian', 'vegan', 'gluten-free', 'dairy-free', 'nut-free', 'spicy', 'halal', 'kosher']);
+    const dietary = dietaryStrings.filter((d): d is DietaryInfo => validDietary.has(d as DietaryInfo));
+
+    const data: Record<string, unknown> = {
+      name: formValue.name!,
+      description: formValue.description || undefined,
+      price: formValue.price!,
+      categoryId: formValue.categoryId!,
+      image: formValue.image || undefined,
+      isActive: formValue.isActive ?? true,
+      isPopular: formValue.isPopular ?? false,
+      dietary,
+      modifierGroupIds: this._selectedModifierGroupIds(),
+      sku: formValue.sku || null,
+      barcode: formValue.barcode || null,
+      barcodeFormat: formValue.barcodeFormat || null,
+      reportingCategoryId: formValue.reportingCategoryId || null,
+      channelVisibility: this._formChannelVisibility(),
+      allergens: this._formAllergens(),
+      availabilityWindows: this._formAvailabilityWindows(),
+      cateringPricing: this._cateringPricingTiers(),
+      menuType: this._formMenuType(),
+      cateringPricingModel: this._formCateringPricingModel(),
+    };
+
+    // Only include nutrition if at least one field is set
+    const nutrition = this._formNutrition();
+    const hasNutrition = Object.values(nutrition).some(v => v !== null);
+    if (hasNutrition) {
+      data['nutritionFacts'] = nutrition;
+    }
+
+    if (formValue.cost !== null && formValue.cost !== undefined) {
+      data['cost'] = formValue.cost;
+    }
+    if (formValue.prepTimeMinutes !== null && formValue.prepTimeMinutes !== undefined) {
+      data['prepTimeMinutes'] = formValue.prepTimeMinutes;
+    }
+    if (formValue.displayOrder !== null && formValue.displayOrder !== undefined) {
+      data['displayOrder'] = formValue.displayOrder;
+    }
+
+    return data;
+  }
+
+  private async persistItem(data: Record<string, unknown>): Promise<boolean> {
+    if (this._editingItem()) {
+      const success = await this.menuService.updateItem(
+        this._editingItem()!.id,
+        data as Partial<MenuItem>
+      );
+      if (!success) {
+        this._localError.set(this.menuService.error() ?? 'Failed to update item');
+        return false;
+      }
+    } else {
+      const result = await this.menuService.createItem(data as Partial<MenuItem>);
+      if (!result) {
+        this._localError.set(this.menuService.error() ?? 'Failed to create item');
+        return false;
+      }
+    }
+    return true;
   }
 
   // ============ Delete with Confirmation ============

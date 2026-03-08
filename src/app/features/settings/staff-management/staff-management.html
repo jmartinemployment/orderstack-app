@@ -176,7 +176,7 @@
 
   <!-- ============ Team Member Form Modal ============ -->
   @if (showTeamMemberForm()) {
-    <div class="modal-backdrop" (click)="closeTeamMemberForm()"></div>
+    <div class="modal-backdrop" (click)="closeTeamMemberForm()" (keydown.enter)="closeTeamMemberForm()" tabindex="0" role="button"></div>
     <div class="modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -186,24 +186,24 @@
         <div class="modal-body">
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label">Display Name *</label>
-              <input type="text" class="form-control" [value]="tmFormName()" (input)="setTmField('name', $any($event.target).value)" placeholder="Full name">
+              <label class="form-label" for="tmDisplayName">Display Name *</label>
+              <input type="text" class="form-control" id="tmDisplayName" [value]="tmFormName()" (input)="setTmField('name', $any($event.target).value)" placeholder="Full name">
             </div>
             <div class="col-md-6">
-              <label class="form-label">Passcode (4 digits)</label>
-              <input type="password" class="form-control" [value]="tmFormPasscode()" (input)="setTmField('passcode', $any($event.target).value)" placeholder="4-digit code" maxlength="4" inputmode="numeric">
+              <label class="form-label" for="tmPasscode">Passcode (4 digits)</label>
+              <input type="password" class="form-control" id="tmPasscode" [value]="tmFormPasscode()" (input)="setTmField('passcode', $any($event.target).value)" placeholder="4-digit code" maxlength="4" inputmode="numeric">
             </div>
             <div class="col-md-6">
-              <label class="form-label">Email</label>
-              <input type="email" class="form-control" [value]="tmFormEmail()" (input)="setTmField('email', $any($event.target).value)" placeholder="email@example.com">
+              <label class="form-label" for="tmEmail">Email</label>
+              <input type="email" class="form-control" id="tmEmail" [value]="tmFormEmail()" (input)="setTmField('email', $any($event.target).value)" placeholder="email@example.com">
             </div>
             <div class="col-md-6">
-              <label class="form-label">Phone</label>
-              <input type="tel" class="form-control" [value]="tmFormPhone()" (input)="setTmField('phone', $any($event.target).value)" placeholder="(555) 555-5555">
+              <label class="form-label" for="tmPhone">Phone</label>
+              <input type="tel" class="form-control" id="tmPhone" [value]="tmFormPhone()" (input)="setTmField('phone', $any($event.target).value)" placeholder="(555) 555-5555">
             </div>
             <div class="col-md-6">
-              <label class="form-label">Permission Set</label>
-              <select class="form-select" [value]="tmFormPermissionSetId() ?? ''" (change)="setTmPermissionSet($any($event.target).value)">
+              <label class="form-label" for="tmPermissionSet">Permission Set</label>
+              <select class="form-select" id="tmPermissionSet" [value]="tmFormPermissionSetId() ?? ''" (change)="setTmPermissionSet($any($event.target).value)">
                 <option value="">None</option>
                 @for (ps of permissionSets(); track ps.id) {
                   <option [value]="ps.id">{{ ps.name }}</option>
@@ -211,8 +211,8 @@
               </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Hire Date</label>
-              <input type="date" class="form-control" [value]="tmFormHireDate()" (input)="setTmField('hireDate', $any($event.target).value)">
+              <label class="form-label" for="tmHireDate">Hire Date</label>
+              <input type="date" class="form-control" id="tmHireDate" [value]="tmFormHireDate()" (input)="setTmField('hireDate', $any($event.target).value)">
             </div>
 
             <!-- Temporary Password -->
@@ -225,12 +225,12 @@
               <p class="text-muted small mb-2">Set a temporary password so this team member can log in. The password expires after the specified hours.</p>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Temporary Password</label>
-              <input type="password" class="form-control" [value]="tmFormPassword()" (input)="setTmField('password', $any($event.target).value)" placeholder="Min 6 characters" autocomplete="new-password">
+              <label class="form-label" for="tmTempPassword">Temporary Password</label>
+              <input type="password" class="form-control" id="tmTempPassword" [value]="tmFormPassword()" (input)="setTmField('password', $any($event.target).value)" placeholder="Min 6 characters" autocomplete="new-password">
             </div>
             <div class="col-md-6">
-              <label class="form-label">Password Expires In</label>
-              <select class="form-select" [value]="tmFormTempPasswordHours()" (change)="setTmTempPasswordHours(+$any($event.target).value)">
+              <label class="form-label" for="tmPasswordExpiry">Password Expires In</label>
+              <select class="form-select" id="tmPasswordExpiry" [value]="tmFormTempPasswordHours()" (change)="setTmTempPasswordHours(+$any($event.target).value)">
                 <option [value]="1">1 hour</option>
                 <option [value]="2">2 hours</option>
                 <option [value]="4">4 hours (default)</option>
@@ -254,23 +254,23 @@
               <div class="job-form-row">
                 <div class="row g-2 align-items-end">
                   <div class="col-md-4">
-                    <input type="text" class="form-control form-control-sm" placeholder="Job title" [value]="job.jobTitle" (input)="updateJobField($index, 'jobTitle', $any($event.target).value)">
+                    <input type="text" class="form-control form-control-sm" placeholder="Job title" aria-label="Job title" [value]="job.jobTitle" (input)="updateJobField($index, 'jobTitle', $any($event.target).value)">
                   </div>
                   <div class="col-md-3">
                     <div class="input-group input-group-sm">
                       <span class="input-group-text">$/hr</span>
-                      <input type="number" class="form-control" min="0" step="0.01" [value]="job.hourlyRate / 100" (input)="updateJobField($index, 'hourlyRate', $any($event.target).valueAsNumber * 100)">
+                      <input type="number" class="form-control" aria-label="Hourly rate" min="0" step="0.01" [value]="job.hourlyRate / 100" (input)="updateJobField($index, 'hourlyRate', $any($event.target).valueAsNumber * 100)">
                     </div>
                   </div>
                   <div class="col-md-2">
                     <div class="form-check">
-                      <input class="form-check-input" type="checkbox" [checked]="job.isTipEligible" (change)="updateJobField($index, 'isTipEligible', $any($event.target).checked)">
+                      <input class="form-check-input" type="checkbox" aria-label="Tip eligible" [checked]="job.isTipEligible" (change)="updateJobField($index, 'isTipEligible', $any($event.target).checked)">
                       <label class="form-check-label small">Tips</label>
                     </div>
                   </div>
                   <div class="col-md-2">
                     <div class="form-check">
-                      <input class="form-check-input" type="checkbox" [checked]="job.isPrimary" (change)="updateJobField($index, 'isPrimary', $any($event.target).checked)">
+                      <input class="form-check-input" type="checkbox" aria-label="Primary job" [checked]="job.isPrimary" (change)="updateJobField($index, 'isPrimary', $any($event.target).checked)">
                       <label class="form-check-label small">Primary</label>
                     </div>
                   </div>
@@ -301,7 +301,7 @@
 
   <!-- ============ Permission Set Form Modal ============ -->
   @if (showPermissionForm()) {
-    <div class="modal-backdrop" (click)="closePermissionForm()"></div>
+    <div class="modal-backdrop" (click)="closePermissionForm()" (keydown.enter)="closePermissionForm()" tabindex="0" role="button"></div>
     <div class="modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -310,8 +310,8 @@
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Name *</label>
-            <input type="text" class="form-control" [value]="psFormName()" (input)="setPsName($any($event.target).value)" placeholder="e.g., Server, Manager, Kitchen">
+            <label class="form-label" for="psName">Name *</label>
+            <input type="text" class="form-control" id="psName" [value]="psFormName()" (input)="setPsName($any($event.target).value)" placeholder="e.g., Server, Manager, Kitchen">
           </div>
 
           <div class="permission-tree">
@@ -319,10 +319,11 @@
               <div class="perm-category">
                 <h6 class="perm-category-label">{{ getCategoryLabel(category) }}</h6>
                 @for (perm of getPermissionsByCategory(category); track perm.key) {
-                  <div class="perm-item" (click)="togglePermission(perm.key)">
+                  <div class="perm-item" (click)="togglePermission(perm.key)" (keydown.enter)="togglePermission(perm.key)" tabindex="0" role="button">
                     <input
                       class="form-check-input"
                       type="checkbox"
+                      aria-label="{{ perm.label }}"
                       [checked]="psFormPermissions()[perm.key]"
                       (click)="$event.stopPropagation()">
                     <div class="perm-info">
@@ -391,7 +392,7 @@
 
   <!-- ============ Create/Edit PIN Modal ============ -->
   @if (showPinForm()) {
-    <div class="modal-backdrop" (click)="closePinForm()"></div>
+    <div class="modal-backdrop" (click)="closePinForm()" (keydown.enter)="closePinForm()" tabindex="0" role="button"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -402,24 +403,24 @@
           @if (!editingPin()) {
             <form [formGroup]="pinForm">
               <div class="mb-3">
-                <label class="form-label">Name</label>
-                <input type="text" class="form-control" formControlName="name" placeholder="Staff member name">
+                <label class="form-label" for="pinName">Name</label>
+                <input type="text" class="form-control" id="pinName" formControlName="name" placeholder="Staff member name">
               </div>
               <div class="mb-3">
-                <label class="form-label">PIN (4-6 digits)</label>
-                <input type="password" class="form-control" formControlName="pin"
+                <label class="form-label" for="pinCode">PIN (4-6 digits)</label>
+                <input type="password" class="form-control" id="pinCode" formControlName="pin"
                   placeholder="Enter PIN" maxlength="6" inputmode="numeric">
               </div>
             </form>
           } @else {
             <form [formGroup]="editPinForm">
               <div class="mb-3">
-                <label class="form-label">Name</label>
-                <input type="text" class="form-control" formControlName="name">
+                <label class="form-label" for="editPinName">Name</label>
+                <input type="text" class="form-control" id="editPinName" formControlName="name">
               </div>
               <div class="mb-3">
-                <label class="form-label">New PIN (optional, 4-6 digits)</label>
-                <input type="password" class="form-control" formControlName="newPin"
+                <label class="form-label" for="editPinCode">New PIN (optional, 4-6 digits)</label>
+                <input type="password" class="form-control" id="editPinCode" formControlName="newPin"
                   placeholder="Leave blank to keep current" maxlength="6" inputmode="numeric">
               </div>
             </form>
@@ -440,7 +441,7 @@
 
   <!-- ============ Change Password Modal ============ -->
   @if (showPasswordForm()) {
-    <div class="modal-backdrop" (click)="closePasswordForm()"></div>
+    <div class="modal-backdrop" (click)="closePasswordForm()" (keydown.enter)="closePasswordForm()" tabindex="0" role="button"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -450,17 +451,17 @@
         <div class="modal-body">
           <form [formGroup]="passwordForm">
             <div class="mb-3">
-              <label class="form-label">Current Password</label>
-              <input type="password" class="form-control" formControlName="oldPassword">
+              <label class="form-label" for="pwdOld">Current Password</label>
+              <input type="password" class="form-control" id="pwdOld" formControlName="oldPassword">
             </div>
             <div class="mb-3">
-              <label class="form-label">New Password</label>
-              <input type="password" class="form-control" formControlName="newPassword"
+              <label class="form-label" for="pwdNew">New Password</label>
+              <input type="password" class="form-control" id="pwdNew" formControlName="newPassword"
                 placeholder="Min 6 characters">
             </div>
             <div class="mb-3">
-              <label class="form-label">Confirm New Password</label>
-              <input type="password" class="form-control" formControlName="confirmPassword">
+              <label class="form-label" for="pwdConfirm">Confirm New Password</label>
+              <input type="password" class="form-control" id="pwdConfirm" formControlName="confirmPassword">
               @if (passwordForm.value.confirmPassword && !passwordsMatch()) {
                 <div class="text-danger small mt-1">Passwords do not match</div>
               }
@@ -483,7 +484,7 @@
 
   <!-- ============ Deactivation Confirmation Modal ============ -->
   @if (showConfirmDeactivate()) {
-    <div class="modal-backdrop" (click)="cancelDeactivate()"></div>
+    <div class="modal-backdrop" (click)="cancelDeactivate()" (keydown.enter)="cancelDeactivate()" tabindex="0" role="button"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">

@@ -24,12 +24,10 @@ import {
   getMarketplaceSyncStateLabel,
   getMarketplaceSyncClass,
   MarketplaceSyncState,
-  Driver,
   DeliveryAssignment,
   DeliveryTrackingInfo,
   DeliveryDispatchStatus,
 } from '@models/index';
-import { exportToCsv } from '@shared/utils/csv-export';
 
 interface PendingCourseGroup {
   course: Course | null;
@@ -175,8 +173,8 @@ export class PendingOrders implements OnInit, OnDestroy {
     this.orderService.loadOrders();
     this.settingsService.loadSettings();
     this.startApprovalTimeoutChecker();
-    void this.deliveryService.loadDrivers();
-    void this.deliveryService.loadActiveAssignments();
+    this.deliveryService.loadDrivers();
+    this.deliveryService.loadActiveAssignments();
   }
 
   ngOnDestroy(): void {
@@ -251,7 +249,7 @@ export class PendingOrders implements OnInit, OnDestroy {
   getCurbsideWaitTime(order: Order): string {
     const arrivedAt = order.curbsideInfo?.arrivedAt;
     if (!arrivedAt) return '';
-    const minutes = Math.floor((Date.now() - arrivedAt.getTime()) / 60000);
+    const minutes = Math.floor((Date.now() - arrivedAt.getTime()) / 60_000);
     if (minutes < 1) return 'Just arrived';
     if (minutes === 1) return '1 min waiting';
     return `${minutes} mins waiting`;
@@ -377,17 +375,7 @@ export class PendingOrders implements OnInit, OnDestroy {
     // Immediate group for items without a course
     const immediateKey = '__immediate__';
     for (const sel of allSelections) {
-      if (!sel.course) {
-        if (!groupMap.has(immediateKey)) {
-          groupMap.set(immediateKey, {
-            course: null,
-            label: 'Immediate',
-            selections: [],
-            fireStatus: 'FIRED',
-          });
-        }
-        groupMap.get(immediateKey)!.selections.push(sel);
-      } else {
+      if (sel.course) {
         const key = sel.course.guid;
         if (!groupMap.has(key)) {
           groupMap.set(key, {
@@ -398,6 +386,16 @@ export class PendingOrders implements OnInit, OnDestroy {
           });
         }
         groupMap.get(key)!.selections.push(sel);
+      } else {
+        if (!groupMap.has(immediateKey)) {
+          groupMap.set(immediateKey, {
+            course: null,
+            label: 'Immediate',
+            selections: [],
+            fireStatus: 'FIRED',
+          });
+        }
+        groupMap.get(immediateKey)!.selections.push(sel);
       }
     }
 
@@ -748,7 +746,7 @@ export class PendingOrders implements OnInit, OnDestroy {
   onDriverSelect(orderId: string, event: Event): void {
     const driverId = (event.target as HTMLSelectElement).value;
     if (driverId) {
-      void this.assignDriver(orderId, driverId);
+      this.assignDriver(orderId, driverId);
     }
   }
 
@@ -769,7 +767,7 @@ export class PendingOrders implements OnInit, OnDestroy {
     const externalId = order.deliveryInfo?.deliveryExternalId;
     if (!externalId) return;
     const provider = order.deliveryInfo?.deliveryProvider ?? 'doordash';
-    this.deliveryService.startTrackingDelivery(order.guid, externalId, provider as any);
+    this.deliveryService.startTrackingDelivery(order.guid, externalId, provider);
   }
 
   stopTracking(orderId: string): void {
@@ -788,7 +786,7 @@ export class PendingOrders implements OnInit, OnDestroy {
     if (!tracking.estimatedDeliveryAt) return null;
     const eta = new Date(tracking.estimatedDeliveryAt).getTime();
     const now = Date.now();
-    const minutes = Math.max(0, Math.round((eta - now) / 60000));
+    const minutes = Math.max(0, Math.round((eta - now) / 60_000));
     return minutes;
   }
 
@@ -834,7 +832,10 @@ export class PendingOrders implements OnInit, OnDestroy {
     const allSelections = order.checks.flatMap(c => c.selections);
     const itemRows = allSelections.map(sel => {
       const modLines = (sel.modifiers ?? [])
-        .map(m => `<div class="mod">+ ${m.name}${m.priceAdjustment > 0 ? ` ${formatCurrency(m.priceAdjustment)}` : ''}</div>`)
+        .map(m => {
+          const priceSuffix = m.priceAdjustment > 0 ? ` ${formatCurrency(m.priceAdjustment)}` : '';
+          return `<div class="mod">+ ${m.name}${priceSuffix}</div>`;
+        })
         .join('');
       const note = sel.specialInstructions
         ? `<div class="note">Note: ${sel.specialInstructions}</div>`
@@ -904,9 +905,10 @@ export class PendingOrders implements OnInit, OnDestroy {
   </div>
 </body></html>`;
 
-    const printWindow = window.open('', '_blank', 'width=350,height=600');
+    const printWindow = globalThis.open('', '_blank', 'width=350,height=600');
     if (!printWindow) return;
 
+    // document.write is the standard approach for populating a new blank window for printing
     printWindow.document.write(html);
     printWindow.document.close();
     printWindow.onload = () => {

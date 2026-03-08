@@ -4,7 +4,6 @@ import type {
   ShippingAddress,
   ShippingMethod,
   FulfillmentOption,
-  StoreConfig,
 } from '@models/retail-ecommerce.model';
 
 // --- Replicate RetailCheckout pure logic for testing ---
@@ -98,7 +97,7 @@ function makeCartItem(overrides: Partial<EcommerceCartItem> = {}): EcommerceCart
     variationName: null,
     sku: 'TST-001',
     imageUrl: null,
-    unitPrice: 25.00,
+    unitPrice: 25,
     quantity: 1,
     maxQuantity: null,
     ...overrides,
@@ -145,9 +144,9 @@ describe('RetailCheckout logic', () => {
     it('should calculate subtotal correctly', () => {
       const cart = [
         makeCartItem({ unitPrice: 10, quantity: 2 }),
-        makeCartItem({ unitPrice: 15.50, quantity: 3 }),
+        makeCartItem({ unitPrice: 15.5, quantity: 3 }),
       ];
-      expect(cartSubtotal(cart)).toBe(66.50);
+      expect(cartSubtotal(cart)).toBe(66.5);
     });
 
     it('should handle single item', () => {

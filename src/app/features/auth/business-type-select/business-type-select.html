@@ -111,6 +111,7 @@
           type="text"
           class="bts-input"
           placeholder="Street address (e.g. 123 Main St)"
+          aria-label="Street address"
           [ngModel]="address()"
           (ngModelChange)="address.set($event)" />
       </div>
@@ -120,6 +121,7 @@
           type="text"
           class="bts-input bts-input-city"
           placeholder="City"
+          aria-label="City"
           [ngModel]="city()"
           (ngModelChange)="city.set($event)" />
         <select
@@ -137,6 +139,7 @@
           class="bts-input bts-input-zip"
           placeholder="ZIP"
           maxlength="10"
+          aria-label="ZIP code"
           [ngModel]="zip()"
           (ngModelChange)="zip.set($event)" />
       </div>

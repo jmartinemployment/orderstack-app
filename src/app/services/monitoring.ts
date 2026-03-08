@@ -121,9 +121,7 @@ export class MonitoringService {
 
     try {
       const enabledRules = this._rules().filter(r => r.enabled);
-      const newAlerts: MonitoringAlert[] = [];
 
-      // Load data from existing services
       await Promise.allSettled([
         this.analyticsService.loadSalesReport('daily'),
         this.inventoryService.loadAlerts(),
@@ -136,91 +134,14 @@ export class MonitoringService {
       const predictions = this.inventoryService.predictions();
       const invItems = this.inventoryService.items();
 
-      // Revenue anomalies
-      if (this.isRuleEnabled(enabledRules, 'rev-drop') && salesReport) {
-        const revenue = salesReport.summary?.totalRevenue ?? 0;
-        const revenueChange = salesReport.comparison?.revenueChange ?? 0;
-        if (revenueChange < -30) {
-          newAlerts.push(this.createAlert(
-            'revenue', 'critical',
-            'Revenue Drop Detected',
-            `Current revenue ($${revenue.toFixed(0)}) is ${Math.abs(Math.round(revenueChange))}% below comparison period`,
-            'Review pricing, promotions, and staffing levels',
-            `$${revenue.toFixed(0)}`, revenue, 0,
-          ));
-        }
-      }
+      const newAlerts: MonitoringAlert[] = [
+        ...this.scanRevenueAnomalies(enabledRules, salesReport),
+        ...this.scanInventoryAlerts(enabledRules, invAlerts),
+        ...this.scanRestockPredictions(enabledRules, predictions),
+      ];
 
-      // Set baseline AOV from first scan's sales data
-      if (this._baselineAov() === null && salesReport?.summary?.averageOrderValue) {
-        this._baselineAov.set(salesReport.summary.averageOrderValue);
-      }
+      const snapshot = this.buildSnapshot(salesReport, newAlerts, invItems);
 
-      if (this.isRuleEnabled(enabledRules, 'avg-order-drop') && salesReport) {
-        const avgOrder = salesReport.summary?.averageOrderValue ?? 0;
-        const baseline = this._baselineAov();
-        if (baseline !== null && avgOrder > 0 && avgOrder < baseline * 0.8) {
-          newAlerts.push(this.createAlert(
-            'revenue', 'info',
-            'Average Order Value Low',
-            `Average order ($${avgOrder.toFixed(2)}) is below restaurant baseline ($${baseline.toFixed(2)})`,
-            'Consider upselling prompts or combo deals',
-            `$${avgOrder.toFixed(2)}`, avgOrder, baseline * 0.8,
-          ));
-        }
-      }
-
-      // Inventory alerts from existing service
-      if (this.isRuleEnabled(enabledRules, 'low-stock')) {
-        for (const alert of invAlerts.filter(a => a.type === 'low_stock')) {
-          newAlerts.push(this.createAlert(
-            'inventory', 'warning',
-            `Low Stock: ${alert.itemName}`,
-            alert.message,
-            alert.suggestedAction,
-            `${alert.currentStock} units`, alert.currentStock, alert.threshold,
-          ));
-        }
-      }
-
-      if (this.isRuleEnabled(enabledRules, 'out-stock')) {
-        for (const alert of invAlerts.filter(a => a.type === 'out_of_stock')) {
-          newAlerts.push(this.createAlert(
-            'inventory', 'critical',
-            `Out of Stock: ${alert.itemName}`,
-            alert.message,
-            alert.suggestedAction ?? 'Reorder immediately',
-            '0 units', 0, alert.threshold,
-          ));
-        }
-      }
-
-      // Urgent restock predictions
-      if (this.isRuleEnabled(enabledRules, 'restock-urgent')) {
-        for (const pred of predictions.filter(p => p.daysUntilEmpty <= 3 && p.reorderRecommended)) {
-          newAlerts.push(this.createAlert(
-            'inventory', 'critical',
-            `Urgent Restock: ${pred.itemName}`,
-            `Predicted to run out in ${pred.daysUntilEmpty} day${pred.daysUntilEmpty === 1 ? '' : 's'} (${pred.currentStock} ${pred.unit} remaining)`,
-            `Order ${pred.reorderQuantity} ${pred.unit} now`,
-            `${pred.daysUntilEmpty}d remaining`, pred.daysUntilEmpty, 3,
-          ));
-        }
-      }
-
-      // Record snapshot
-      const snapshot: MonitoringSnapshot = {
-        timestamp: new Date(),
-        revenue: salesReport?.summary?.totalRevenue ?? 0,
-        orderCount: salesReport?.summary?.totalOrders ?? 0,
-        avgOrderValue: salesReport?.summary?.averageOrderValue ?? 0,
-        activeAlerts: newAlerts.filter(a => a.severity === 'critical' || a.severity === 'warning').length,
-        criticalAlerts: newAlerts.filter(a => a.severity === 'critical').length,
-        lowStockItems: invItems.filter(i => i.active && i.currentStock <= i.minStock).length,
-        overdueOrders: 0,
-      };
-
-      // Deduplicate alerts — don't re-add alerts with same title that already exist unacknowledged
       const existingTitles = new Set(this._alerts().filter(a => !a.acknowledged).map(a => a.title));
       const uniqueNew = newAlerts.filter(a => !existingTitles.has(a.title));
 
@@ -232,6 +153,100 @@ export class MonitoringService {
     } catch (err: unknown) {
       this._error.set(err instanceof Error ? err.message : 'Scan failed');
     }
+  }
+
+  private scanRevenueAnomalies(enabledRules: AnomalyRule[], salesReport: any): MonitoringAlert[] {
+    const alerts: MonitoringAlert[] = [];
+
+    if (this.isRuleEnabled(enabledRules, 'rev-drop') && salesReport) {
+      const revenue = salesReport.summary?.totalRevenue ?? 0;
+      const revenueChange = salesReport.comparison?.revenueChange ?? 0;
+      if (revenueChange < -30) {
+        alerts.push(this.createAlert(
+          'revenue', 'critical',
+          'Revenue Drop Detected',
+          `Current revenue ($${revenue.toFixed(0)}) is ${Math.abs(Math.round(revenueChange))}% below comparison period`,
+          'Review pricing, promotions, and staffing levels',
+          `$${revenue.toFixed(0)}`, revenue, 0,
+        ));
+      }
+    }
+
+    if (this._baselineAov() === null && salesReport?.summary?.averageOrderValue) {
+      this._baselineAov.set(salesReport.summary.averageOrderValue);
+    }
+
+    if (this.isRuleEnabled(enabledRules, 'avg-order-drop') && salesReport) {
+      const avgOrder = salesReport.summary?.averageOrderValue ?? 0;
+      const baseline = this._baselineAov();
+      if (baseline !== null && avgOrder > 0 && avgOrder < baseline * 0.8) {
+        alerts.push(this.createAlert(
+          'revenue', 'info',
+          'Average Order Value Low',
+          `Average order ($${avgOrder.toFixed(2)}) is below restaurant baseline ($${baseline.toFixed(2)})`,
+          'Consider upselling prompts or combo deals',
+          `$${avgOrder.toFixed(2)}`, avgOrder, baseline * 0.8,
+        ));
+      }
+    }
+
+    return alerts;
+  }
+
+  private scanInventoryAlerts(enabledRules: AnomalyRule[], invAlerts: any[]): MonitoringAlert[] {
+    const alerts: MonitoringAlert[] = [];
+
+    if (this.isRuleEnabled(enabledRules, 'low-stock')) {
+      for (const alert of invAlerts.filter(a => a.type === 'low_stock')) {
+        alerts.push(this.createAlert(
+          'inventory', 'warning',
+          `Low Stock: ${alert.itemName}`,
+          alert.message,
+          alert.suggestedAction,
+          `${alert.currentStock} units`, alert.currentStock, alert.threshold,
+        ));
+      }
+    }
+
+    if (this.isRuleEnabled(enabledRules, 'out-stock')) {
+      for (const alert of invAlerts.filter(a => a.type === 'out_of_stock')) {
+        alerts.push(this.createAlert(
+          'inventory', 'critical',
+          `Out of Stock: ${alert.itemName}`,
+          alert.message,
+          alert.suggestedAction ?? 'Reorder immediately',
+          '0 units', 0, alert.threshold,
+        ));
+      }
+    }
+
+    return alerts;
+  }
+
+  private scanRestockPredictions(enabledRules: AnomalyRule[], predictions: any[]): MonitoringAlert[] {
+    if (!this.isRuleEnabled(enabledRules, 'restock-urgent')) return [];
+    return predictions
+      .filter(p => p.daysUntilEmpty <= 3 && p.reorderRecommended)
+      .map(pred => this.createAlert(
+        'inventory', 'critical',
+        `Urgent Restock: ${pred.itemName}`,
+        `Predicted to run out in ${pred.daysUntilEmpty} day${pred.daysUntilEmpty === 1 ? '' : 's'} (${pred.currentStock} ${pred.unit} remaining)`,
+        `Order ${pred.reorderQuantity} ${pred.unit} now`,
+        `${pred.daysUntilEmpty}d remaining`, pred.daysUntilEmpty, 3,
+      ));
+  }
+
+  private buildSnapshot(salesReport: any, newAlerts: MonitoringAlert[], invItems: any[]): MonitoringSnapshot {
+    return {
+      timestamp: new Date(),
+      revenue: salesReport?.summary?.totalRevenue ?? 0,
+      orderCount: salesReport?.summary?.totalOrders ?? 0,
+      avgOrderValue: salesReport?.summary?.averageOrderValue ?? 0,
+      activeAlerts: newAlerts.filter(a => a.severity === 'critical' || a.severity === 'warning').length,
+      criticalAlerts: newAlerts.filter(a => a.severity === 'critical').length,
+      lowStockItems: invItems.filter(i => i.active && i.currentStock <= i.minStock).length,
+      overdueOrders: 0,
+    };
   }
 
   private isRuleEnabled(rules: AnomalyRule[], ruleId: string): boolean {

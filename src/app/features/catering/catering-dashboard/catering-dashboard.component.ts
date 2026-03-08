@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { CateringService } from '@services/catering.service';
 import { CateringJob, CateringJobStatus, CATERING_STATUS_CONFIG } from '@models/index';
@@ -17,7 +17,7 @@ type CateringTab = 'active' | 'upcoming' | 'past' | 'calendar' | 'capacity';
   styleUrl: './catering-dashboard.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CateringDashboardComponent implements OnInit {
+export class CateringDashboardComponent {
   readonly cateringService = inject(CateringService);
   private readonly router = inject(Router);
 
@@ -77,10 +77,6 @@ export class CateringDashboardComponent implements OnInit {
 
   readonly hasJobs = computed(() => this.cateringService.events().length > 0);
   readonly hasSelection = computed(() => this.selectedIds().size > 0);
-
-  ngOnInit(): void {
-    // Loading handled by CateringService effect when merchantId is ready
-  }
 
   setTab(tab: CateringTab): void {
     this.activeTab.set(tab);

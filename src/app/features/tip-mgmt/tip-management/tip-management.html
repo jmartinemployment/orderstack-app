@@ -66,7 +66,7 @@
         <p class="text-muted small mb-0">No tip data for this date range.</p>
       } @else {
         <div class="table-responsive">
-          <table class="table table-sm table-dark mb-0">
+          <table class="table table-sm table-dark mb-0" aria-label="Server tip breakdown">
             <thead>
               <tr>
                 <th>Server</th>
@@ -116,7 +116,8 @@
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox"
                 [checked]="rule.isActive" (change)="togglePoolRule(rule.id)"
-                [disabled]="!isManagerOrAbove()">
+                [disabled]="!isManagerOrAbove()"
+                [attr.aria-label]="'Toggle pool rule: ' + rule.name">
             </div>
             <div class="flex-grow-1">
               <span class="fw-bold">{{ rule.name }}</span>
@@ -133,14 +134,16 @@
         <div class="add-rule-form mt-3">
           <div class="row g-2 align-items-end">
             <div class="col-md-5">
-              <label class="form-label">Rule Name</label>
+              <label class="form-label" for="pool-rule-name">Rule Name</label>
               <input type="text" class="form-control form-control-sm"
+                id="pool-rule-name"
                 placeholder="e.g., Even Split All Servers"
                 [value]="poolRuleName()" (input)="onPoolRuleNameChange($event)">
             </div>
             <div class="col-md-4">
-              <label class="form-label">Method</label>
+              <label class="form-label" for="pool-rule-method">Method</label>
               <select class="form-select form-select-sm"
+                id="pool-rule-method"
                 [value]="poolRuleMethod()" (change)="onPoolRuleMethodChange($event)">
                 <option value="even">Even Split</option>
                 <option value="by_hours">By Hours Worked</option>
@@ -171,7 +174,8 @@
             <div class="form-check form-switch">
               <input class="form-check-input" type="checkbox"
                 [checked]="rule.isActive" (change)="toggleTipOutRule(rule.id)"
-                [disabled]="!isManagerOrAbove()">
+                [disabled]="!isManagerOrAbove()"
+                [attr.aria-label]="'Toggle tip-out rule: ' + rule.name">
             </div>
             <div class="flex-grow-1">
               <span class="fw-bold">{{ rule.name }}</span>
@@ -189,33 +193,38 @@
         <div class="add-rule-form mt-3">
           <div class="row g-2 align-items-end">
             <div class="col-md-3">
-              <label class="form-label">Rule Name</label>
+              <label class="form-label" for="tipout-rule-name">Rule Name</label>
               <input type="text" class="form-control form-control-sm"
+                id="tipout-rule-name"
                 placeholder="e.g., Bar Tip-Out"
                 [value]="tipOutRuleName()" (input)="onTipOutRuleNameChange($event)">
             </div>
             <div class="col-md-2">
-              <label class="form-label">Method</label>
+              <label class="form-label" for="tipout-rule-method">Method</label>
               <select class="form-select form-select-sm"
+                id="tipout-rule-method"
                 [value]="tipOutRuleMethod()" (change)="onTipOutRuleMethodChange($event)">
                 <option value="percentage_of_tips">% of Tips</option>
                 <option value="percentage_of_sales">% of Sales</option>
               </select>
             </div>
             <div class="col-md-1">
-              <label class="form-label">%</label>
+              <label class="form-label" for="tipout-rule-pct">%</label>
               <input type="number" class="form-control form-control-sm"
+                id="tipout-rule-pct"
                 [value]="tipOutRulePercentage()" (input)="onTipOutRulePercentageChange($event)"
                 min="1" max="100" step="1">
             </div>
             <div class="col-md-2">
-              <label class="form-label">From</label>
+              <label class="form-label" for="tipout-rule-from">From</label>
               <input type="text" class="form-control form-control-sm"
+                id="tipout-rule-from"
                 placeholder="server" [value]="tipOutRuleSource()" (input)="onTipOutRuleSourceChange($event)">
             </div>
             <div class="col-md-2">
-              <label class="form-label">To</label>
+              <label class="form-label" for="tipout-rule-to">To</label>
               <input type="text" class="form-control form-control-sm"
+                id="tipout-rule-to"
                 placeholder="bartender" [value]="tipOutRuleTarget()" (input)="onTipOutRuleTargetChange($event)">
             </div>
             <div class="col-md-2">
@@ -241,7 +250,7 @@
         <p class="text-muted small mb-0">No server data available. Select a date range with closed orders in the Reports tab.</p>
       } @else {
         <div class="table-responsive">
-          <table class="table table-sm table-dark mb-0">
+          <table class="table table-sm table-dark mb-0" aria-label="Tip compliance check">
             <thead>
               <tr>
                 <th>Server</th>
@@ -259,6 +268,7 @@
                   <td>
                     <input type="number" class="form-control form-control-sm compliance-hours"
                       placeholder="0" min="0" step="0.5"
+                      [attr.aria-label]="'Hours worked for ' + srv.serverName"
                       (input)="onHoursChange(srv.serverGuid, $event)">
                   </td>
                   <td class="text-end">${{ srv.netTips.toFixed(2) }}</td>

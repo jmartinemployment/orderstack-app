@@ -95,21 +95,21 @@
             } @else {
               <div class="row g-3">
                 <div class="col-md-4">
-                  <label class="form-label">Device Name</label>
-                  <input type="text" class="form-control" placeholder="e.g. Front Counter"
+                  <label class="form-label" for="newDeviceName">Device Name</label>
+                  <input type="text" class="form-control" id="newDeviceName" placeholder="e.g. Front Counter"
                     [ngModel]="newDeviceName()" (ngModelChange)="newDeviceName.set($event)" />
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label">Device Type</label>
-                  <select class="form-select" [ngModel]="newDeviceType()" (ngModelChange)="newDeviceType.set($event)">
+                  <label class="form-label" for="newDeviceType">Device Type</label>
+                  <select class="form-select" id="newDeviceType" [ngModel]="newDeviceType()" (ngModelChange)="newDeviceType.set($event)">
                     @for (type of deviceTypes; track type) {
                       <option [value]="type">{{ deviceTypeLabels[type] }}</option>
                     }
                   </select>
                 </div>
                 <div class="col-md-3">
-                  <label class="form-label">Assigned To</label>
-                  <select class="form-select" [ngModel]="newDeviceTeamMember()" (ngModelChange)="newDeviceTeamMember.set($event)">
+                  <label class="form-label" for="newDeviceTeamMember">Assigned To</label>
+                  <select class="form-select" id="newDeviceTeamMember" [ngModel]="newDeviceTeamMember()" (ngModelChange)="newDeviceTeamMember.set($event)">
                     <option value="">Unassigned</option>
                     @for (member of teamMembers(); track member.id) {
                       <option [value]="member.id">{{ member.displayName }}</option>
@@ -167,6 +167,7 @@
                 <div class="station-bind">
                   <label class="form-label mb-0"><small>Station</small></label>
                   <select class="form-select form-select-sm"
+                    aria-label="Station assignment"
                     [ngModel]="getStationForDevice(device.id)"
                     (ngModelChange)="assignStation(device.id, $event)">
                     <option value="">None</option>
@@ -270,21 +271,21 @@
             <h6>{{ editingMode() ? 'Edit Mode' : 'Create Mode' }}</h6>
             <div class="row g-3 mb-3">
               <div class="col-md-4">
-                <label class="form-label">Mode Name</label>
-                <input type="text" class="form-control" placeholder="e.g. Front Counter"
+                <label class="form-label" for="modeFormName">Mode Name</label>
+                <input type="text" class="form-control" id="modeFormName" placeholder="e.g. Front Counter"
                   [ngModel]="modeFormName()" (ngModelChange)="modeFormName.set($event)" />
               </div>
               <div class="col-md-4">
-                <label class="form-label">Device Type</label>
-                <select class="form-select" [ngModel]="modeFormType()" (ngModelChange)="modeFormType.set($event)">
+                <label class="form-label" for="modeFormType">Device Type</label>
+                <select class="form-select" id="modeFormType" [ngModel]="modeFormType()" (ngModelChange)="modeFormType.set($event)">
                   @for (type of deviceTypes; track type) {
                     <option [value]="type">{{ deviceTypeLabels[type] }}</option>
                   }
                 </select>
               </div>
               <div class="col-md-4">
-                <label class="form-label">POS Mode Preset</label>
-                <select class="form-select" [ngModel]="modeFormPosMode()" (ngModelChange)="onPosModeChange($event)">
+                <label class="form-label" for="modeFormPosMode">POS Mode Preset</label>
+                <select class="form-select" id="modeFormPosMode" [ngModel]="modeFormPosMode()" (ngModelChange)="onPosModeChange($event)">
                   @for (mode of availableModes(); track mode) {
                     <option [value]="mode">{{ mode }}</option>
                   }
@@ -300,8 +301,8 @@
                 <div class="settings-body">
                   <div class="row g-3">
                     <div class="col-md-4">
-                      <label class="form-label">Default Order Type</label>
-                      <select class="form-select" [ngModel]="modeFormSettings().checkout.defaultOrderType"
+                      <label class="form-label" for="defaultOrderType">Default Order Type</label>
+                      <select class="form-select" id="defaultOrderType" [ngModel]="modeFormSettings().checkout.defaultOrderType"
                         (ngModelChange)="updateCheckoutSetting('defaultOrderType', $event)">
                         <option value="dine-in">Dine-In</option>
                         <option value="takeout">Takeout</option>
@@ -382,8 +383,8 @@
                   </div>
                   <div class="row">
                     <div class="col-md-4">
-                      <label class="form-label">Inactivity Timeout (min)</label>
-                      <input type="number" class="form-control" min="0" max="60"
+                      <label class="form-label" for="inactivityTimeout">Inactivity Timeout (min)</label>
+                      <input type="number" class="form-control" id="inactivityTimeout" min="0" max="60"
                         [ngModel]="modeFormSettings().security.inactivityTimeoutMinutes"
                         (ngModelChange)="updateSecuritySetting('inactivityTimeoutMinutes', $event)" />
                     </div>
@@ -397,8 +398,8 @@
                 <div class="settings-body">
                   <div class="row g-3">
                     <div class="col-md-4">
-                      <label class="form-label">Font Size</label>
-                      <select class="form-select"
+                      <label class="form-label" for="displayFontSize">Font Size</label>
+                      <select class="form-select" id="displayFontSize"
                         [ngModel]="modeFormSettings().display.fontSize"
                         (ngModelChange)="updateDisplaySetting('fontSize', $event)">
                         <option value="small">Small</option>
@@ -407,8 +408,8 @@
                       </select>
                     </div>
                     <div class="col-md-4">
-                      <label class="form-label">Grid Columns</label>
-                      <select class="form-select"
+                      <label class="form-label" for="displayGridColumns">Grid Columns</label>
+                      <select class="form-select" id="displayGridColumns"
                         [ngModel]="modeFormSettings().display.gridColumns"
                         (ngModelChange)="updateDisplaySetting('gridColumns', +$event)">
                         <option [value]="2">2</option>
@@ -417,8 +418,8 @@
                       </select>
                     </div>
                     <div class="col-md-4">
-                      <label class="form-label">Category Display</label>
-                      <select class="form-select"
+                      <label class="form-label" for="categoryDisplayMode">Category Display</label>
+                      <select class="form-select" id="categoryDisplayMode"
                         [ngModel]="modeFormSettings().display.categoryDisplayMode"
                         (ngModelChange)="updateDisplaySetting('categoryDisplayMode', $event)">
                         <option value="tabs">Tabs</option>
@@ -502,8 +503,8 @@
           <div class="card-body">
             <h6>{{ editingProfile() ? 'Edit Profile' : 'Create Profile' }}</h6>
             <div class="mb-3">
-              <label class="form-label">Profile Name</label>
-              <input type="text" class="form-control" placeholder="e.g. Main Floor"
+              <label class="form-label" for="profileFormName">Profile Name</label>
+              <input type="text" class="form-control" id="profileFormName" placeholder="e.g. Main Floor"
                 [ngModel]="profileFormName()" (ngModelChange)="profileFormName.set($event)" />
             </div>
 
@@ -524,6 +525,7 @@
                       <td>{{ printJobLabels[rule.jobType] }}</td>
                       <td>
                         <select class="form-select form-select-sm"
+                          aria-label="Printer for this job type"
                           [ngModel]="rule.printerId"
                           (ngModelChange)="updateRule(i, 'printerId', $event)">
                           <option value="">None</option>
@@ -535,11 +537,13 @@
                       <td>
                         <input type="number" class="form-control form-control-sm copies-input"
                           min="1" max="3"
+                          aria-label="Number of copies"
                           [ngModel]="rule.copies"
                           (ngModelChange)="updateRule(i, 'copies', $event)" />
                       </td>
                       <td>
                         <input type="checkbox" class="form-check-input"
+                          aria-label="Enable this routing rule"
                           [ngModel]="rule.enabled"
                           (ngModelChange)="updateRule(i, 'enabled', $event)" />
                       </td>
@@ -617,8 +621,8 @@
             <h6>Register Peripheral</h6>
             <div class="row g-3">
               <div class="col-md-3">
-                <label class="form-label">Parent Device</label>
-                <select class="form-select"
+                <label class="form-label" for="peripheralParentDevice">Parent Device</label>
+                <select class="form-select" id="peripheralParentDevice"
                   [ngModel]="peripheralParentDevice()" (ngModelChange)="peripheralParentDevice.set($event)">
                   <option value="">Select device...</option>
                   @for (device of activeDevices(); track device.id) {
@@ -627,8 +631,8 @@
                 </select>
               </div>
               <div class="col-md-3">
-                <label class="form-label">Type</label>
-                <select class="form-select"
+                <label class="form-label" for="peripheralTypeSelect">Type</label>
+                <select class="form-select" id="peripheralTypeSelect"
                   [ngModel]="peripheralType()" (ngModelChange)="peripheralType.set($event)">
                   @for (type of peripheralTypes; track type) {
                     <option [value]="type">{{ peripheralTypeLabels[type] }}</option>
@@ -636,13 +640,13 @@
                 </select>
               </div>
               <div class="col-md-3">
-                <label class="form-label">Name</label>
-                <input type="text" class="form-control" placeholder="Optional"
+                <label class="form-label" for="peripheralNameInput">Name</label>
+                <input type="text" class="form-control" id="peripheralNameInput" placeholder="Optional"
                   [ngModel]="peripheralName()" (ngModelChange)="peripheralName.set($event)" />
               </div>
               <div class="col-md-3">
-                <label class="form-label">Connection</label>
-                <select class="form-select"
+                <label class="form-label" for="peripheralConnectionType">Connection</label>
+                <select class="form-select" id="peripheralConnectionType"
                   [ngModel]="peripheralConnection()" (ngModelChange)="peripheralConnection.set($event)">
                   @for (conn of connectionTypes; track conn) {
                     <option [value]="conn">{{ conn | titlecase }}</option>
@@ -750,8 +754,8 @@
           @if (customerDisplayConfig().enabled) {
             <div class="row g-3">
               <div class="col-md-6">
-                <label class="form-label">Idle Mode</label>
-                <select class="form-select form-select-sm"
+                <label class="form-label" for="cfdIdleMode">Idle Mode</label>
+                <select class="form-select form-select-sm" id="cfdIdleMode"
                   [ngModel]="customerDisplayConfig().idleMode"
                   (ngModelChange)="updateCustomerDisplayConfig('idleMode', $event)">
                   <option value="logo">Logo & Branding</option>
@@ -760,8 +764,8 @@
                 </select>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Branding Message</label>
-                <input type="text" class="form-control form-control-sm"
+                <label class="form-label" for="cfdBrandingMessage">Branding Message</label>
+                <input type="text" class="form-control form-control-sm" id="cfdBrandingMessage"
                   [ngModel]="customerDisplayConfig().brandingMessage"
                   (ngModelChange)="updateCustomerDisplayConfig('brandingMessage', $event)"
                   placeholder="Thank you for your visit!" />
@@ -781,6 +785,7 @@
                 @for (preset of customerDisplayConfig().tipPresets; track $index; let i = $index) {
                   <div class="input-group input-group-sm" style="max-width: 100px;">
                     <input type="number" class="form-control" [value]="preset" min="0" max="100"
+                      [attr.aria-label]="'Tip preset ' + (i + 1) + ' percentage'"
                       (change)="updateTipPreset(i, $any($event.target).value)" />
                     <span class="input-group-text">%</span>
                   </div>
@@ -811,13 +816,13 @@
             <!-- Basic info -->
             <div class="row g-3 mb-3">
               <div class="col-md-6">
-                <label class="form-label">Profile Name</label>
-                <input type="text" class="form-control" placeholder="e.g. Main Entrance Kiosk"
+                <label class="form-label" for="kioskFormName">Profile Name</label>
+                <input type="text" class="form-control" id="kioskFormName" placeholder="e.g. Main Entrance Kiosk"
                   [ngModel]="kioskFormName()" (ngModelChange)="kioskFormName.set($event)" />
               </div>
               <div class="col-md-6">
-                <label class="form-label">Welcome Message</label>
-                <input type="text" class="form-control"
+                <label class="form-label" for="kioskFormWelcome">Welcome Message</label>
+                <input type="text" class="form-control" id="kioskFormWelcome"
                   [ngModel]="kioskFormWelcome()" (ngModelChange)="kioskFormWelcome.set($event)" />
               </div>
             </div>
@@ -832,7 +837,8 @@
                     <div class="category-row" [class.disabled]="!kioskFormCategories().includes(catId)">
                       <input type="checkbox" class="form-check-input"
                         [checked]="kioskFormCategories().includes(catId)"
-                        (change)="toggleKioskCategory(catId)" />
+                        (change)="toggleKioskCategory(catId)"
+                        [attr.aria-label]="'Toggle category ' + getCategoryName(catId)" />
                       <span class="category-label">{{ getCategoryName(catId) }}</span>
                       <div class="category-reorder">
                         <button class="btn btn-sm btn-link p-0" [disabled]="i === 0" (click)="moveCategoryUp(i)">
@@ -857,20 +863,24 @@
               <div class="settings-body">
                 <div class="row g-3">
                   <div class="col-md-4">
-                    <label class="form-label">Primary Color</label>
+                    <label class="form-label" for="kioskPrimaryColor">Primary Color</label>
                     <div class="d-flex align-items-center gap-2">
-                      <input type="color" class="form-control form-control-color"
+                      <input type="color" class="form-control form-control-color" id="kioskPrimaryColor"
+                        aria-label="Primary color picker"
                         [ngModel]="kioskFormPrimaryColor()" (ngModelChange)="kioskFormPrimaryColor.set($event)" />
                       <input type="text" class="form-control form-control-sm" style="width: 100px"
+                        aria-label="Primary color hex value"
                         [ngModel]="kioskFormPrimaryColor()" (ngModelChange)="kioskFormPrimaryColor.set($event)" />
                     </div>
                   </div>
                   <div class="col-md-4">
-                    <label class="form-label">Accent Color</label>
+                    <label class="form-label" for="kioskAccentColor">Accent Color</label>
                     <div class="d-flex align-items-center gap-2">
-                      <input type="color" class="form-control form-control-color"
+                      <input type="color" class="form-control form-control-color" id="kioskAccentColor"
+                        aria-label="Accent color picker"
                         [ngModel]="kioskFormAccentColor()" (ngModelChange)="kioskFormAccentColor.set($event)" />
                       <input type="text" class="form-control form-control-sm" style="width: 100px"
+                        aria-label="Accent color hex value"
                         [ngModel]="kioskFormAccentColor()" (ngModelChange)="kioskFormAccentColor.set($event)" />
                     </div>
                   </div>
@@ -891,8 +901,8 @@
               <div class="settings-body">
                 <div class="row g-3">
                   <div class="col-md-4">
-                    <label class="form-label">Idle Timeout (seconds)</label>
-                    <input type="range" class="form-range" min="30" max="300" step="10"
+                    <label class="form-label" for="kioskIdleTimeout">Idle Timeout (seconds)</label>
+                    <input type="range" class="form-range" id="kioskIdleTimeout" min="30" max="300" step="10"
                       [ngModel]="kioskFormTimeout()" (ngModelChange)="kioskFormTimeout.set($event)" />
                     <div class="text-center text-secondary"><small>{{ kioskFormTimeout() }}s</small></div>
                   </div>

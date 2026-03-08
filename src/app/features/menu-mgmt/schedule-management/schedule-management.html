@@ -151,10 +151,11 @@
       <h6>{{ editingScheduleId() ? 'Edit Schedule' : 'New Schedule' }}</h6>
 
       <div class="mb-3">
-        <label class="form-label">Schedule Name</label>
+        <label class="form-label" for="scheduleName">Schedule Name</label>
         <input
           type="text"
           class="form-control"
+          id="scheduleName"
           placeholder="e.g., Standard Menu Schedule"
           [value]="formName()"
           (input)="setFormName($any($event.target).value)">
@@ -187,6 +188,7 @@
                 type="text"
                 class="form-control form-control-sm daypart-name-input"
                 placeholder="Daypart name"
+                aria-label="Daypart name"
                 [value]="dp.name"
                 (input)="setDaypartName(i, $any($event.target).value)">
               <button type="button" class="btn btn-sm btn-outline-secondary" (click)="toggleDaypartActive(i)">
@@ -207,6 +209,7 @@
                 <input
                   type="time"
                   class="form-control form-control-sm"
+                  aria-label="Daypart start time"
                   [value]="dp.startTime"
                   (input)="setDaypartStartTime(i, $any($event.target).value)">
               </div>
@@ -216,6 +219,7 @@
                 <input
                   type="time"
                   class="form-control form-control-sm"
+                  aria-label="Daypart end time"
                   [value]="dp.endTime"
                   (input)="setDaypartEndTime(i, $any($event.target).value)">
               </div>
@@ -288,18 +292,20 @@
 
       <div class="preview-controls">
         <div class="preview-field">
-          <label class="form-label">Date</label>
+          <label class="form-label" for="previewDate">Date</label>
           <input
             type="date"
             class="form-control form-control-sm"
+            id="previewDate"
             [value]="previewDate()"
             (input)="setPreviewDate($any($event.target).value)">
         </div>
         <div class="preview-field">
-          <label class="form-label">Time</label>
+          <label class="form-label" for="previewTime">Time</label>
           <input
             type="time"
             class="form-control form-control-sm"
+            id="previewTime"
             [value]="previewTime()"
             (input)="setPreviewTime($any($event.target).value)">
         </div>
@@ -374,18 +380,20 @@
 
           <div class="override-form-grid">
             <div class="mb-3">
-              <label class="form-label">Date</label>
+              <label class="form-label" for="overrideDate">Date</label>
               <input
                 type="date"
                 class="form-control"
+                id="overrideDate"
                 [value]="overrideDate()"
                 (input)="setOverrideDate($any($event.target).value)">
             </div>
             <div class="mb-3">
-              <label class="form-label">Label</label>
+              <label class="form-label" for="overrideLabel">Label</label>
               <input
                 type="text"
                 class="form-control"
+                id="overrideLabel"
                 placeholder="e.g., Mother's Day Brunch"
                 [value]="overrideLabel()"
                 (input)="setOverrideLabel($any($event.target).value)">
@@ -426,17 +434,20 @@
                     type="text"
                     class="form-control form-control-sm"
                     placeholder="Name"
+                    aria-label="Override daypart name"
                     [value]="dp.name"
                     (input)="setOverrideDpName(i, $any($event.target).value)">
                   <input
                     type="time"
                     class="form-control form-control-sm"
+                    aria-label="Override start time"
                     [value]="dp.startTime"
                     (input)="setOverrideDpStart(i, $any($event.target).value)">
                   <span class="time-separator">—</span>
                   <input
                     type="time"
                     class="form-control form-control-sm"
+                    aria-label="Override end time"
                     [value]="dp.endTime"
                     (input)="setOverrideDpEnd(i, $any($event.target).value)">
                   <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeOverrideDaypart(i)">

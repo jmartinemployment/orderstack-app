@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { CREDENTIALS, ROUTES } from './fixtures/test-data';
 import { SEL } from './helpers/selectors';
-import { test as authedTest } from './fixtures/auth.fixture';
 
 test.describe('Authentication', { tag: '@critical' }, () => {
   test('should display sign-in form on /login', async ({ page }) => {

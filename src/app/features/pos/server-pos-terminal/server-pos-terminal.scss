@@ -359,7 +359,7 @@
   border: 1px solid #e8e8e8;
   border-radius: 6px;
   background: #fff;
-  color: #ef4444;
+  color: #c72828;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -540,7 +540,7 @@
 
   &:disabled {
     background: #d4d4d4;
-    color: #9ca3af;
+    color: #636b74;
     cursor: not-allowed;
   }
 }
@@ -890,7 +890,7 @@
 .pos-toast-dismiss {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.75);
   cursor: pointer;
   padding: 2px 4px;
   font-size: 12px;

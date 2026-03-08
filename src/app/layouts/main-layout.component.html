@@ -10,7 +10,7 @@
 
   <!-- Sidebar overlay (mobile) -->
   @if (mobileMenuOpen()) {
-    <div class="sidebar-overlay d-md-none" (click)="closeMobileMenu()"></div>
+    <div class="sidebar-overlay d-md-none" (click)="closeMobileMenu()" (keydown.enter)="closeMobileMenu()" tabindex="0" role="button" aria-label="Close menu"></div>
   }
 
   <!-- Sidebar -->
@@ -21,7 +21,7 @@
     [restaurantName]="selectedMerchantName()"
     [restaurantAddress]="selectedMerchantAddress()"
     [userName]="userName()"
-    (toggle)="toggleSidebar()"
+    (toggled)="toggleSidebar()"
     (closeMobile)="closeMobileMenu()"
     (loggedOut)="logout()" />
 

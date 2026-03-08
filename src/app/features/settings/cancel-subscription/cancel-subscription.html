@@ -1,4 +1,4 @@
-<div class="modal-backdrop" (click)="closeModal()"></div>
+<div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" tabindex="0" role="button"></div>
 <div class="modal-dialog">
   <div class="modal-content">
     @if (successMessage(); as msg) {
@@ -52,6 +52,7 @@
                 type="text"
                 class="form-control"
                 placeholder="e.g., $29/month, $49/month"
+                aria-label="Price expectation"
                 [ngModel]="priceExpectation()"
                 (ngModelChange)="priceExpectation.set($event)" />
             }
@@ -63,19 +64,21 @@
                     <input
                       type="checkbox"
                       [checked]="selectedFeatures().includes(feature)"
-                      (change)="toggleFeature(feature)" />
+                      (change)="toggleFeature(feature)"
+                      [attr.aria-label]="feature" />
                     <span>{{ feature }}</span>
                   </label>
                 }
                 <div class="feature-other">
                   <label class="feature-check" [class.checked]="featuresOther().trim().length > 0">
-                    <input type="checkbox" disabled [checked]="featuresOther().trim().length > 0" />
+                    <input type="checkbox" disabled [checked]="featuresOther().trim().length > 0" aria-label="Other feature" />
                     <span>Other</span>
                   </label>
                   <input
                     type="text"
                     class="form-control form-control-sm mt-1"
                     placeholder="Tell us what's missing"
+                    aria-label="Other missing feature"
                     [ngModel]="featuresOther()"
                     (ngModelChange)="featuresOther.set($event)" />
                 </div>
@@ -87,6 +90,7 @@
                 class="form-control"
                 rows="3"
                 placeholder="Tell us what was confusing..."
+                aria-label="What was hardest to figure out"
                 [ngModel]="followUpText()"
                 (ngModelChange)="followUpText.set($event)"></textarea>
             }
@@ -94,6 +98,7 @@
               <p class="phase-description">Which product are you switching to?</p>
               <select
                 class="form-select"
+                aria-label="Competitor product"
                 [ngModel]="selectedCompetitor()"
                 (ngModelChange)="selectedCompetitor.set($event)">
                 <option value="">Select a product</option>
@@ -107,6 +112,7 @@
                   type="text"
                   class="form-control mt-2"
                   placeholder="Which product?"
+                  aria-label="Other competitor product"
                   [ngModel]="competitorOther()"
                   (ngModelChange)="competitorOther.set($event)" />
               }
@@ -117,6 +123,7 @@
                 class="form-control"
                 rows="3"
                 placeholder="Describe the issues you experienced..."
+                aria-label="Technical issues description"
                 [ngModel]="followUpText()"
                 (ngModelChange)="followUpText.set($event)"></textarea>
             }
@@ -126,6 +133,7 @@
                 class="form-control"
                 rows="3"
                 placeholder="What's your reason for canceling?"
+                aria-label="Reason for canceling"
                 [ngModel]="followUpText()"
                 (ngModelChange)="followUpText.set($event)"></textarea>
             }
@@ -150,9 +158,10 @@
           }
 
           <div class="mb-3">
-            <label class="form-label text-muted">Anything else you'd like us to know?</label>
+            <label class="form-label text-muted" for="additionalFeedback">Anything else you'd like us to know?</label>
             <textarea
               class="form-control"
+              id="additionalFeedback"
               rows="2"
               placeholder="Optional — suggestions for improvement"
               [ngModel]="additionalFeedback()"
@@ -160,10 +169,11 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-medium">Type <strong>CANCEL</strong> to confirm</label>
+            <label class="form-label fw-medium" for="confirmCancelText">Type <strong>CANCEL</strong> to confirm</label>
             <input
               type="text"
               class="form-control"
+              id="confirmCancelText"
               placeholder="CANCEL"
               [ngModel]="confirmText()"
               (ngModelChange)="confirmText.set($event)" />

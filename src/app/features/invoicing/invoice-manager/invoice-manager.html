@@ -85,7 +85,7 @@
       } @else {
         <div class="invoice-list">
           @for (invoice of filteredInvoices(); track invoice.id) {
-            <div class="invoice-card" (click)="selectInvoice(invoice)">
+            <div class="invoice-card" role="button" tabindex="0" (click)="selectInvoice(invoice)" (keydown.enter)="selectInvoice(invoice)">
               <div class="d-flex justify-content-between align-items-start">
                 <div>
                   <div class="invoice-number">{{ invoice.invoiceNumber }}</div>
@@ -151,7 +151,7 @@
 
     <!-- INVOICE DETAIL MODAL -->
     @if (selectedInvoice(); as detail) {
-      <div class="modal-backdrop" (click)="closeDetail()"></div>
+      <div class="modal-backdrop" role="button" tabindex="0" (click)="closeDetail()" (keydown.enter)="closeDetail()"></div>
       <div class="detail-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-start mb-3">
           <div>
@@ -190,10 +190,10 @@
           <table class="table table-dark table-sm">
             <thead>
               <tr>
-                <th>Description</th>
-                <th class="text-end">Qty</th>
-                <th class="text-end">Price</th>
-                <th class="text-end">Total</th>
+                <th scope="col">Description</th>
+                <th scope="col" class="text-end">Qty</th>
+                <th scope="col" class="text-end">Price</th>
+                <th scope="col" class="text-end">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -248,7 +248,7 @@
                 <label class="form-label">Payment Amount</label>
                 <div class="input-group">
                   <span class="input-group-text">$</span>
-                  <input type="number" class="form-control" [value]="paymentAmount()" (input)="onPaymentAmountInput($event)" min="0" step="0.01" />
+                  <input type="number" class="form-control" aria-label="Payment amount" [value]="paymentAmount()" (input)="onPaymentAmountInput($event)" min="0" step="0.01" />
                 </div>
               </div>
               <button type="button" class="btn btn-success btn-sm" (click)="recordPayment()">Record</button>
@@ -277,7 +277,7 @@
 
     <!-- CREATE INVOICE FORM MODAL -->
     @if (showInvoiceForm()) {
-      <div class="modal-backdrop" (click)="closeInvoiceForm()"></div>
+      <div class="modal-backdrop" role="button" tabindex="0" (click)="closeInvoiceForm()" (keydown.enter)="closeInvoiceForm()"></div>
       <div class="form-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">New Invoice</h4>
@@ -316,15 +316,15 @@
             <div class="line-item-row d-flex gap-2 mb-2 align-items-end">
               <div class="flex-grow-1">
                 @if (i === 0) { <label class="form-label small">Description</label> }
-                <input type="text" class="form-control form-control-sm" [value]="item.description" (input)="onLineItemField(i, 'description', $event)" placeholder="Item description" />
+                <input type="text" class="form-control form-control-sm" aria-label="Line item description" [value]="item.description" (input)="onLineItemField(i, 'description', $event)" placeholder="Item description" />
               </div>
               <div style="width: 70px;">
                 @if (i === 0) { <label class="form-label small">Qty</label> }
-                <input type="number" class="form-control form-control-sm" [value]="item.quantity" (input)="onLineItemField(i, 'quantity', $event)" min="1" />
+                <input type="number" class="form-control form-control-sm" aria-label="Line item quantity" [value]="item.quantity" (input)="onLineItemField(i, 'quantity', $event)" min="1" />
               </div>
               <div style="width: 100px;">
                 @if (i === 0) { <label class="form-label small">Price</label> }
-                <input type="number" class="form-control form-control-sm" [value]="item.unitPrice" (input)="onLineItemField(i, 'unitPrice', $event)" min="0" step="0.01" />
+                <input type="number" class="form-control form-control-sm" aria-label="Line item unit price" [value]="item.unitPrice" (input)="onLineItemField(i, 'unitPrice', $event)" min="0" step="0.01" />
               </div>
               <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeLineItem(i)" [disabled]="formLineItems().length <= 1">
                 <i class="bi bi-x"></i>
@@ -388,7 +388,7 @@
 
     <!-- CREATE HOUSE ACCOUNT FORM MODAL -->
     @if (showAccountForm()) {
-      <div class="modal-backdrop" (click)="closeAccountForm()"></div>
+      <div class="modal-backdrop" role="button" tabindex="0" (click)="closeAccountForm()" (keydown.enter)="closeAccountForm()"></div>
       <div class="form-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">New House Account</h4>

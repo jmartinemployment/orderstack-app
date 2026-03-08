@@ -22,21 +22,23 @@ function isValidAddress(
   return true;
 }
 
-function canProceed(
-  selected: BusinessTypeOption | null,
-  businessName: string,
-  email: string,
-  address: string,
-  city: string,
-  state: string,
-  zip: string,
-  isSubmitting: boolean,
-): boolean {
-  if (isSubmitting) return false;
-  if (!selected) return false;
-  if (businessName.trim().length === 0) return false;
-  if (email.trim().length === 0) return false;
-  if (!isValidAddress(address, city, state, zip)) return false;
+interface CanProceedOptions {
+  selected: BusinessTypeOption | null;
+  businessName: string;
+  email: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  isSubmitting: boolean;
+}
+
+function canProceed(opts: CanProceedOptions): boolean {
+  if (opts.isSubmitting) return false;
+  if (!opts.selected) return false;
+  if (opts.businessName.trim().length === 0) return false;
+  if (opts.email.trim().length === 0) return false;
+  if (!isValidAddress(opts.address, opts.city, opts.state, opts.zip)) return false;
   return true;
 }
 
@@ -62,94 +64,94 @@ describe('BusinessTypeSelect — canProceed validation', () => {
   };
 
   it('returns true when all fields are valid', () => {
-    expect(canProceed(
-      valid.selected, valid.name, valid.email,
-      valid.address, valid.city, valid.state, valid.zip, false,
-    )).toBe(true);
+    expect(canProceed({
+      selected: valid.selected, businessName: valid.name, email: valid.email,
+      address: valid.address, city: valid.city, state: valid.state, zip: valid.zip, isSubmitting: false,
+    })).toBe(true);
   });
 
   it('returns false when no business type selected', () => {
-    expect(canProceed(
-      null, valid.name, valid.email,
-      valid.address, valid.city, valid.state, valid.zip, false,
-    )).toBe(false);
+    expect(canProceed({
+      selected: null, businessName: valid.name, email: valid.email,
+      address: valid.address, city: valid.city, state: valid.state, zip: valid.zip, isSubmitting: false,
+    })).toBe(false);
   });
 
   it('returns false when business name is empty', () => {
-    expect(canProceed(
-      valid.selected, '', valid.email,
-      valid.address, valid.city, valid.state, valid.zip, false,
-    )).toBe(false);
+    expect(canProceed({
+      selected: valid.selected, businessName: '', email: valid.email,
+      address: valid.address, city: valid.city, state: valid.state, zip: valid.zip, isSubmitting: false,
+    })).toBe(false);
   });
 
   it('returns false when business name is whitespace', () => {
-    expect(canProceed(
-      valid.selected, '   ', valid.email,
-      valid.address, valid.city, valid.state, valid.zip, false,
-    )).toBe(false);
+    expect(canProceed({
+      selected: valid.selected, businessName: '   ', email: valid.email,
+      address: valid.address, city: valid.city, state: valid.state, zip: valid.zip, isSubmitting: false,
+    })).toBe(false);
   });
 
   it('returns false when email is empty', () => {
-    expect(canProceed(
-      valid.selected, valid.name, '',
-      valid.address, valid.city, valid.state, valid.zip, false,
-    )).toBe(false);
+    expect(canProceed({
+      selected: valid.selected, businessName: valid.name, email: '',
+      address: valid.address, city: valid.city, state: valid.state, zip: valid.zip, isSubmitting: false,
+    })).toBe(false);
   });
 
   it('returns false when address is too short', () => {
-    expect(canProceed(
-      valid.selected, valid.name, valid.email,
-      '1 A', valid.city, valid.state, valid.zip, false,
-    )).toBe(false);
+    expect(canProceed({
+      selected: valid.selected, businessName: valid.name, email: valid.email,
+      address: '1 A', city: valid.city, state: valid.state, zip: valid.zip, isSubmitting: false,
+    })).toBe(false);
   });
 
   it('returns false when address has no digits', () => {
-    expect(canProceed(
-      valid.selected, valid.name, valid.email,
-      'Main Street', valid.city, valid.state, valid.zip, false,
-    )).toBe(false);
+    expect(canProceed({
+      selected: valid.selected, businessName: valid.name, email: valid.email,
+      address: 'Main Street', city: valid.city, state: valid.state, zip: valid.zip, isSubmitting: false,
+    })).toBe(false);
   });
 
   it('returns false when address has no letters', () => {
-    expect(canProceed(
-      valid.selected, valid.name, valid.email,
-      '12345', valid.city, valid.state, valid.zip, false,
-    )).toBe(false);
+    expect(canProceed({
+      selected: valid.selected, businessName: valid.name, email: valid.email,
+      address: '12345', city: valid.city, state: valid.state, zip: valid.zip, isSubmitting: false,
+    })).toBe(false);
   });
 
   it('returns false when city is empty', () => {
-    expect(canProceed(
-      valid.selected, valid.name, valid.email,
-      valid.address, '', valid.state, valid.zip, false,
-    )).toBe(false);
+    expect(canProceed({
+      selected: valid.selected, businessName: valid.name, email: valid.email,
+      address: valid.address, city: '', state: valid.state, zip: valid.zip, isSubmitting: false,
+    })).toBe(false);
   });
 
   it('returns false when state is empty', () => {
-    expect(canProceed(
-      valid.selected, valid.name, valid.email,
-      valid.address, valid.city, '', valid.zip, false,
-    )).toBe(false);
+    expect(canProceed({
+      selected: valid.selected, businessName: valid.name, email: valid.email,
+      address: valid.address, city: valid.city, state: '', zip: valid.zip, isSubmitting: false,
+    })).toBe(false);
   });
 
   it('returns false when zip is invalid', () => {
-    expect(canProceed(
-      valid.selected, valid.name, valid.email,
-      valid.address, valid.city, valid.state, '123', false,
-    )).toBe(false);
+    expect(canProceed({
+      selected: valid.selected, businessName: valid.name, email: valid.email,
+      address: valid.address, city: valid.city, state: valid.state, zip: '123', isSubmitting: false,
+    })).toBe(false);
   });
 
   it('returns false when submitting', () => {
-    expect(canProceed(
-      valid.selected, valid.name, valid.email,
-      valid.address, valid.city, valid.state, valid.zip, true,
-    )).toBe(false);
+    expect(canProceed({
+      selected: valid.selected, businessName: valid.name, email: valid.email,
+      address: valid.address, city: valid.city, state: valid.state, zip: valid.zip, isSubmitting: true,
+    })).toBe(false);
   });
 
   it('accepts full_service business type', () => {
-    expect(canProceed(
-      'full_service', valid.name, valid.email,
-      valid.address, valid.city, valid.state, valid.zip, false,
-    )).toBe(true);
+    expect(canProceed({
+      selected: 'full_service', businessName: valid.name, email: valid.email,
+      address: valid.address, city: valid.city, state: valid.state, zip: valid.zip, isSubmitting: false,
+    })).toBe(true);
   });
 });
 

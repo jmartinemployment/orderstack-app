@@ -88,8 +88,8 @@
   <div class="section mb-4">
     <h6 class="mb-3">Schedule Enforcement</h6>
     <div class="form-check form-switch mb-3">
-      <input class="form-check-input" type="checkbox" [checked]="tcScheduleEnforcement()" (change)="toggleScheduleEnforcement()">
-      <label class="form-check-label">Block clock-in without scheduled shift</label>
+      <input class="form-check-input" type="checkbox" id="tcScheduleEnforcement" [checked]="tcScheduleEnforcement()" (change)="toggleScheduleEnforcement()">
+      <label class="form-check-label" for="tcScheduleEnforcement">Block clock-in without scheduled shift</label>
     </div>
 
     @if (tcScheduleEnforcement()) {
@@ -106,8 +106,8 @@
         </div>
       </div>
       <div class="form-check form-switch mt-3 ms-3">
-        <input class="form-check-input" type="checkbox" [checked]="tcAllowManagerOverride()" (change)="toggleManagerOverride()">
-        <label class="form-check-label">Allow manager override for schedule enforcement</label>
+        <input class="form-check-input" type="checkbox" id="tcAllowManagerOverride" [checked]="tcAllowManagerOverride()" (change)="toggleManagerOverride()">
+        <label class="form-check-label" for="tcAllowManagerOverride">Allow manager override for schedule enforcement</label>
       </div>
     }
   </div>
@@ -141,8 +141,8 @@
     </div>
 
     <div class="form-check form-switch mt-3">
-      <input class="form-check-input" type="checkbox" [checked]="tcAlertOpenTimecards()" (change)="toggleAlertOpenTimecards()">
-      <label class="form-check-label">Alert managers of open timecards at end of day</label>
+      <input class="form-check-input" type="checkbox" id="tcAlertOpenTimecards" [checked]="tcAlertOpenTimecards()" (change)="toggleAlertOpenTimecards()">
+      <label class="form-check-label" for="tcAlertOpenTimecards">Alert managers of open timecards at end of day</label>
     </div>
   </div>
 
@@ -160,7 +160,7 @@
 
   <!-- Break Type Form Modal -->
   @if (showBreakTypeForm()) {
-    <div class="modal-backdrop" (click)="closeBreakTypeForm()"></div>
+    <div class="modal-backdrop" (click)="closeBreakTypeForm()" (keydown.enter)="closeBreakTypeForm()" tabindex="0" role="button"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -169,24 +169,24 @@
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Name *</label>
-            <input type="text" class="form-control" [value]="btName()" (input)="setBtField('name', $any($event.target).value)" placeholder="e.g., Lunch Break, Short Break">
+            <label class="form-label" for="btName">Name *</label>
+            <input type="text" class="form-control" id="btName" [value]="btName()" (input)="setBtField('name', $any($event.target).value)" placeholder="e.g., Lunch Break, Short Break">
           </div>
           <div class="mb-3">
-            <label class="form-label">Expected Duration (minutes)</label>
-            <input type="number" class="form-control" [value]="btExpectedMinutes()" (input)="setBtMinutes(+$any($event.target).value)" min="1" max="120">
+            <label class="form-label" for="btExpectedMinutes">Expected Duration (minutes)</label>
+            <input type="number" class="form-control" id="btExpectedMinutes" [value]="btExpectedMinutes()" (input)="setBtMinutes(+$any($event.target).value)" min="1" max="120">
           </div>
           <div class="mb-3">
             <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" [checked]="btIsPaid()" (change)="toggleBtPaid()">
-              <label class="form-check-label">Paid Break</label>
+              <input class="form-check-input" type="checkbox" id="btIsPaid" [checked]="btIsPaid()" (change)="toggleBtPaid()">
+              <label class="form-check-label" for="btIsPaid">Paid Break</label>
             </div>
             <div class="text-muted small mt-1">Paid breaks count toward total paid hours.</div>
           </div>
           @if (editingBreakType()) {
             <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" [checked]="btIsActive()" (change)="toggleBtActive()">
-              <label class="form-check-label">Active</label>
+              <input class="form-check-input" type="checkbox" id="btIsActive" [checked]="btIsActive()" (change)="toggleBtActive()">
+              <label class="form-check-label" for="btIsActive">Active</label>
             </div>
           }
         </div>

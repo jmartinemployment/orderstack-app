@@ -82,6 +82,7 @@
         <input
           type="text"
           placeholder="Search by name, SKU, or barcode..."
+          aria-label="Search by name, SKU, or barcode"
           [ngModel]="searchQuery()"
           (ngModelChange)="updateSearch($event)"
         />
@@ -321,6 +322,7 @@
                       <input
                         type="number"
                         class="count-input"
+                        aria-label="Counted quantity"
                         [value]="entry.countedQuantity"
                         (change)="submitCountEntry(count.id, entry.itemId, entry.variationId, $any($event.target).value)"
                       />
@@ -355,7 +357,7 @@
     <h3 class="section-title">Count History</h3>
     <div class="card-list">
       @for (count of activeCounts(); track count.id) {
-        <div class="count-card" [class.active]="activeCountId() === count.id" (click)="selectCount(count.id)">
+        <div class="count-card" [class.active]="activeCountId() === count.id" (click)="selectCount(count.id)" (keydown.enter)="selectCount(count.id)" tabindex="0" role="button">
           <div class="count-card-header">
             <span class="count-type">{{ count.type === 'full' ? 'Full Count' : 'Cycle Count' }}</span>
             <span class="badge" [class]="getCountStatusClass(count.status)">
@@ -452,6 +454,7 @@
         <input
           type="text"
           placeholder="Search items..."
+          aria-label="Search items"
           [ngModel]="fifoItemSearch()"
           (ngModelChange)="updateFifoSearch($event)"
         />
@@ -553,7 +556,7 @@
       <div class="label-settings-row">
         <div class="form-group">
           <label>Label Size</label>
-          <select [ngModel]="labelSize()" (ngModelChange)="updateLabelSize($event)">
+          <select aria-label="Label Size" [ngModel]="labelSize()" (ngModelChange)="updateLabelSize($event)">
             <option value="small">Small (1" × 0.5")</option>
             <option value="standard">Standard (2" × 1")</option>
             <option value="shelf">Shelf (3" × 1.25")</option>
@@ -565,6 +568,7 @@
             type="number"
             min="1"
             max="100"
+            aria-label="Copies per Item"
             [ngModel]="labelQuantity()"
             (ngModelChange)="updateLabelQuantity($event)"
           />
@@ -630,6 +634,7 @@
         <input
           type="text"
           placeholder="Search items to print labels..."
+          aria-label="Search items to print labels"
           [ngModel]="searchQuery()"
           (ngModelChange)="updateSearch($event)"
         />
@@ -653,6 +658,7 @@
               <td class="td-check">
                 <input
                   type="checkbox"
+                  aria-label="Select {{ record.itemName }} for label printing"
                   [checked]="isLabelItemSelected(record.id)"
                   (change)="toggleLabelItem(record.id)"
                 />
@@ -761,11 +767,11 @@
       <div class="report-date-range">
         <div class="form-group">
           <label>From</label>
-          <input type="date" [ngModel]="reportDateFrom()" (ngModelChange)="updateReportDateFrom($event)" />
+          <input type="date" aria-label="From date" [ngModel]="reportDateFrom()" (ngModelChange)="updateReportDateFrom($event)" />
         </div>
         <div class="form-group">
           <label>To</label>
-          <input type="date" [ngModel]="reportDateTo()" (ngModelChange)="updateReportDateTo($event)" />
+          <input type="date" aria-label="To date" [ngModel]="reportDateTo()" (ngModelChange)="updateReportDateTo($event)" />
         </div>
         <button class="btn-primary" (click)="loadSellThroughReport()" [disabled]="isLoadingReport()">
           Run Report
@@ -884,7 +890,7 @@
         <div class="modal-body">
           <div class="form-group">
             <label>Adjustment Type</label>
-            <select [ngModel]="adjustType()" (ngModelChange)="updateAdjustType($event)">
+            <select aria-label="Adjustment Type" [ngModel]="adjustType()" (ngModelChange)="updateAdjustType($event)">
               @for (type of adjustmentTypes; track type) {
                 <option [value]="type">{{ adjustmentTypeLabels[type] }}</option>
               }
@@ -894,6 +900,7 @@
             <label>Quantity</label>
             <input
               type="number"
+              aria-label="Quantity"
               [ngModel]="adjustQuantity()"
               (ngModelChange)="updateAdjustQuantity($event)"
               placeholder="Enter quantity (positive to add, negative to remove)"
@@ -903,6 +910,7 @@
             <label>Reason</label>
             <input
               type="text"
+              aria-label="Reason"
               [ngModel]="adjustReason()"
               (ngModelChange)="updateAdjustReason($event)"
               placeholder="Reason for adjustment"
@@ -911,6 +919,7 @@
           <div class="form-group">
             <label>Note (optional)</label>
             <textarea
+              aria-label="Note"
               [ngModel]="adjustNote()"
               (ngModelChange)="updateAdjustNote($event)"
               placeholder="Additional notes..."
@@ -922,6 +931,7 @@
             <input
               type="number"
               step="0.01"
+              aria-label="Cost per Unit"
               [ngModel]="adjustCostPerUnit()"
               (ngModelChange)="updateAdjustCost($event)"
               placeholder="0.00"
@@ -954,6 +964,7 @@
               <label>From Location</label>
               <input
                 type="text"
+                aria-label="From Location"
                 [ngModel]="transferFromLocation()"
                 (ngModelChange)="updateTransferFrom($event)"
                 placeholder="Source location"
@@ -963,6 +974,7 @@
               <label>To Location</label>
               <input
                 type="text"
+                aria-label="To Location"
                 [ngModel]="transferToLocation()"
                 (ngModelChange)="updateTransferTo($event)"
                 placeholder="Destination location"
@@ -974,7 +986,7 @@
             <label>Items</label>
             @for (item of transferItems(); track $index) {
               <div class="transfer-item-input">
-                <select [ngModel]="item.itemId" (ngModelChange)="updateTransferItemId($index, $event)">
+                <select aria-label="Transfer item" [ngModel]="item.itemId" (ngModelChange)="updateTransferItemId($index, $event)">
                   <option value="">Select item...</option>
                   @for (stockItem of stock(); track stockItem.id) {
                     <option [value]="stockItem.itemId">
@@ -986,6 +998,7 @@
                 <input
                   type="number"
                   min="1"
+                  aria-label="Transfer item quantity"
                   [ngModel]="item.quantity"
                   (ngModelChange)="updateTransferItemQty($index, $event)"
                   placeholder="Qty"
@@ -1004,6 +1017,7 @@
           <div class="form-group">
             <label>Note (optional)</label>
             <textarea
+              aria-label="Note"
               [ngModel]="transferNote()"
               (ngModelChange)="updateTransferNote($event)"
               placeholder="Transfer notes..."
@@ -1038,7 +1052,7 @@
         <div class="modal-body">
           <div class="form-group">
             <label>Count Type</label>
-            <select [ngModel]="countType()" (ngModelChange)="updateCountType($event)">
+            <select aria-label="Count Type" [ngModel]="countType()" (ngModelChange)="updateCountType($event)">
               <option value="full">Full Count (all items)</option>
               <option value="cycle">Cycle Count (by category)</option>
             </select>
@@ -1048,6 +1062,7 @@
               <label>Category</label>
               <input
                 type="text"
+                aria-label="Category"
                 [ngModel]="countCategoryId()"
                 (ngModelChange)="updateCountCategory($event)"
                 placeholder="Category ID"

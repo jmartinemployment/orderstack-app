@@ -13,7 +13,7 @@ import { DEMO_BUSINESS_TYPES, DemoBusinessType } from '../marketing.config';
           [class.mkt-biz-selector__pill--active]="selected() === option.id"
           role="tab"
           [attr.aria-selected]="selected() === option.id"
-          (click)="select.emit(option.id)">
+          (click)="selectionChange.emit(option.id)">
           <i [class]="'bi ' + option.icon" aria-hidden="true"></i>
           {{ option.label }}
         </button>
@@ -64,6 +64,6 @@ import { DEMO_BUSINESS_TYPES, DemoBusinessType } from '../marketing.config';
 })
 export class DemoBusinessSelectorComponent {
   readonly selected = input<DemoBusinessType>('restaurant');
-  readonly select = output<DemoBusinessType>();
+  readonly selectionChange = output<DemoBusinessType>();
   readonly options = DEMO_BUSINESS_TYPES;
 }

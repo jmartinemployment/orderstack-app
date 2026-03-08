@@ -43,7 +43,7 @@ export class CateringEventCardComponent {
     if (!value) return 'Date TBD';
     const dateStr = value.includes('T') ? value.split('T')[0] : value;
     const d = new Date(dateStr + 'T00:00:00');
-    if (isNaN(d.getTime())) return 'Date TBD';
+    if (Number.isNaN(d.getTime())) return 'Date TBD';
     return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
   }
 
@@ -58,7 +58,7 @@ export class CateringEventCardComponent {
 
   get canAdvance(): boolean {
     const transitions = CATERING_STATUS_TRANSITIONS[this.event.status];
-    return transitions.filter(s => s !== 'cancelled').length > 0;
+    return transitions.some(s => s !== 'cancelled');
   }
 
   get advanceLabel(): string {
@@ -75,8 +75,7 @@ export class CateringEventCardComponent {
 
   get nextStatus(): CateringJobStatus {
     const transitions = CATERING_STATUS_TRANSITIONS[this.event.status];
-    const nonCancel = transitions.filter(s => s !== 'cancelled');
-    return nonCancel[0] ?? this.event.status;
+    return transitions.find(s => s !== 'cancelled') ?? this.event.status;
   }
 
   get canCancel(): boolean {

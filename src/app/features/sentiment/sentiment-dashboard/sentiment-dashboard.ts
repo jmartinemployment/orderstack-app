@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, computed, effect, untracked, ChangeDetectionStrategy } from '@angular/core';
 import { PercentPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, timeout } from 'rxjs';
@@ -101,7 +101,7 @@ export class SentimentDashboard {
   constructor() {
     effect(() => {
       if (this.isAuthenticated() && this.authService.selectedMerchantId()) {
-        this.loadAndAnalyze();
+        untracked(() => this.loadAndAnalyze());
       }
     });
   }
@@ -135,7 +135,7 @@ export class SentimentDashboard {
         }
       }
 
-      this._entries.set(entries.sort((a, b) => b.analyzedAt.getTime() - a.analyzedAt.getTime()));
+      this._entries.set([...entries].sort((a, b) => b.analyzedAt.getTime() - a.analyzedAt.getTime()));
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to load orders';
       this._error.set(msg.includes('Timeout') ? 'Request timed out — try refreshing' : msg);
@@ -146,9 +146,24 @@ export class SentimentDashboard {
 
   private analyzeText(orderId: string, orderNumber: string, text: string): SentimentEntry {
     const lower = text.toLowerCase();
-    const words = lower.split(/\s+/);
+    const { score, keywords } = this.scoreText(lower);
+    const flags = this.detectFlags(lower);
+    const sentiment = this.categorizeScore(score);
 
-    // Score: -100 to +100
+    return {
+      orderId,
+      orderNumber,
+      instructions: text,
+      sentiment,
+      score,
+      keywords,
+      flags,
+      analyzedAt: new Date(),
+    };
+  }
+
+  private scoreText(lower: string): { score: number; keywords: string[] } {
+    const words = lower.split(/\s+/);
     let score = 0;
     const keywords: string[] = [];
 
@@ -163,31 +178,23 @@ export class SentimentDashboard {
       }
     }
 
-    score = Math.max(-100, Math.min(100, score));
+    return { score: Math.max(-100, Math.min(100, score)), keywords };
+  }
 
-    // Flags
+  private detectFlags(lower: string): SentimentFlag[] {
     const flags: SentimentFlag[] = [];
     for (const [flag, kws] of Object.entries(FLAG_KEYWORDS) as [SentimentFlag, string[]][]) {
       if (kws.some(kw => lower.includes(kw))) {
         flags.push(flag);
       }
     }
+    return flags;
+  }
 
-    // Sentiment category
-    let sentiment: SentimentCategory = 'neutral';
-    if (score > 10) sentiment = 'positive';
-    if (score < -10) sentiment = 'negative';
-
-    return {
-      orderId,
-      orderNumber,
-      instructions: text,
-      sentiment,
-      score,
-      keywords,
-      flags,
-      analyzedAt: new Date(),
-    };
+  private categorizeScore(score: number): SentimentCategory {
+    if (score > 10) return 'positive';
+    if (score < -10) return 'negative';
+    return 'neutral';
   }
 
   getSentimentClass(sentiment: SentimentCategory): string {

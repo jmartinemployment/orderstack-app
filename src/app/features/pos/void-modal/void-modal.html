@@ -34,6 +34,7 @@
             <input
               type="text"
               class="form-control"
+              aria-label="Custom void reason"
               placeholder="Describe reason..."
               [value]="customReason()"
               (input)="setCustomReason($any($event.target).value)">
@@ -46,6 +47,7 @@
           <input
             type="text"
             class="form-control"
+            aria-label="Reason for comp"
             placeholder="e.g., Birthday, VIP guest, quality issue..."
             [value]="customReason()"
             (input)="setCustomReason($any($event.target).value)">
@@ -64,6 +66,7 @@
           <input
             type="password"
             class="form-control pin-input"
+            aria-label="Manager PIN"
             maxlength="6"
             placeholder="Enter PIN"
             [value]="pin()"

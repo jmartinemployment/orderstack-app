@@ -122,7 +122,7 @@ export class FloorPlan implements OnInit {
     for (const table of this.tables()) {
       if (table.section) sectionSet.add(table.section);
     }
-    return Array.from(sectionSet).sort();
+    return Array.from(sectionSet).sort((a, b) => a.localeCompare(b));
   });
 
   readonly filteredTables = computed(() => {
@@ -199,7 +199,7 @@ export class FloorPlan implements OnInit {
   }
 
   onTopTabChange(_tab: string): void {
-    void this.router.navigate(['/pos']);
+    this.router.navigate(['/pos']);
   }
 
   setView(view: 'floor' | 'list'): void {
@@ -473,7 +473,7 @@ export class FloorPlan implements OnInit {
     const orders = this.getTableOrders(table.id);
     this.tableSelected.emit({ table, orders, action: 'open-pos' });
     this.checkout.setTableContext(table);
-    void this.router.navigate(['/pos']);
+    this.router.navigate(['/pos']);
   }
 
   onNewOrder(table: RestaurantTable, event: Event): void {
@@ -481,7 +481,7 @@ export class FloorPlan implements OnInit {
     const orders = this.getTableOrders(table.id);
     this.tableSelected.emit({ table, orders, action: 'new-order' });
     this.checkout.setTableContext(table);
-    void this.router.navigate(['/pos']);
+    this.router.navigate(['/pos']);
   }
 
   async onBusTable(table: RestaurantTable, event: Event): Promise<void> {
@@ -530,7 +530,7 @@ export class FloorPlan implements OnInit {
   }
 
   onShiftEnd(): void {
-    void this.router.navigate(['/pos-login']);
+    this.router.navigate(['/pos-login']);
   }
 
   printQrCodes(): void {

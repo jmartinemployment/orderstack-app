@@ -150,9 +150,12 @@ export class MenuEngineeringDashboard implements OnInit {
   readonly sortedPrepAccuracy = computed(() => {
     const flagged = this.flaggedPrepItems();
     const allRows = this.prepTimeAccuracy();
-    let rows = this._showFlaggedOnly()
-      ? (Array.isArray(flagged) ? flagged : [])
-      : [...(Array.isArray(allRows) ? allRows : [])];
+    let rows: PrepTimeAccuracyRow[];
+    if (this._showFlaggedOnly()) {
+      rows = Array.isArray(flagged) ? flagged : [];
+    } else {
+      rows = Array.isArray(allRows) ? [...allRows] : [];
+    }
 
     const field = this._prepSortField();
     const asc = this._prepSortAsc();

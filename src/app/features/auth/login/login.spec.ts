@@ -1,6 +1,5 @@
 import '../../../../test-setup';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { signal } from '@angular/core';
@@ -143,7 +142,7 @@ describe('Login', () => {
   it('shows terms error when checkbox unchecked and Create Account clicked', async () => {
     component.form.setValue({
       firstName: 'Jeff', lastName: 'Doe',
-      email: 'test@example.com', password: 'password123',
+      email: 'test@example.com', password: 'TestPass1!',
     });
     component.toggleTerms(); // agree
     component.toggleTerms(); // un-agree (back to false)
@@ -167,7 +166,7 @@ describe('Login', () => {
   it('clears terms error when checkbox is checked after failed submit', async () => {
     component.form.setValue({
       firstName: 'Jeff', lastName: 'Doe',
-      email: 'test@example.com', password: 'password123',
+      email: 'test@example.com', password: 'TestPass1!',
     });
     await component.onCreateAccount();
     fixture.detectChanges();
@@ -190,7 +189,7 @@ describe('Login', () => {
   it('does not signup when terms not agreed', async () => {
     component.form.setValue({
       firstName: 'John', lastName: 'Doe',
-      email: 'john@test.com', password: 'pass123',
+      email: 'john@test.com', password: 'TestPass2!',
     });
     await component.onCreateAccount();
     expect(authService.signup).not.toHaveBeenCalled();
@@ -199,7 +198,7 @@ describe('Login', () => {
   it('calls signup with valid form and terms agreed', async () => {
     component.form.setValue({
       firstName: 'John', lastName: 'Doe',
-      email: 'john@test.com', password: 'pass123',
+      email: 'john@test.com', password: 'TestPass2!',
     });
     component.toggleTerms();
 
@@ -207,14 +206,14 @@ describe('Login', () => {
 
     expect(authService.signup).toHaveBeenCalledWith({
       firstName: 'John', lastName: 'Doe',
-      email: 'john@test.com', password: 'pass123',
+      email: 'john@test.com', password: 'TestPass2!',
     });
   });
 
   it('navigates to /business-type on successful signup', async () => {
     component.form.setValue({
       firstName: 'John', lastName: 'Doe',
-      email: 'john@test.com', password: 'pass123',
+      email: 'john@test.com', password: 'TestPass2!',
     });
     component.toggleTerms();
     await component.onCreateAccount();
@@ -225,7 +224,7 @@ describe('Login', () => {
     authService.signup.mockResolvedValue(false);
     component.form.setValue({
       firstName: 'John', lastName: 'Doe',
-      email: 'john@test.com', password: 'pass123',
+      email: 'john@test.com', password: 'TestPass2!',
     });
     component.toggleTerms();
     await component.onCreateAccount();
@@ -244,11 +243,11 @@ describe('Login', () => {
   it('calls login with email and password only', async () => {
     component.form.setValue({
       firstName: 'John', lastName: 'Doe',
-      email: 'user@test.com', password: 'pass123',
+      email: 'user@test.com', password: 'TestPass2!',
     });
     await component.onSignIn();
     expect(authService.login).toHaveBeenCalledWith({
-      email: 'user@test.com', password: 'pass123',
+      email: 'user@test.com', password: 'TestPass2!',
     });
     expect(authService.clearSessionExpiredMessage).toHaveBeenCalled();
   });

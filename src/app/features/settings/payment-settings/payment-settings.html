@@ -225,6 +225,7 @@
           id="stpEnabled"
           [checked]="stpEnabled()"
           (change)="onStpEnabledChange($event)"
+          aria-label="Enable Scan to Pay"
         />
       </div>
     </div>
@@ -248,6 +249,7 @@
                 type="number"
                 class="form-control form-control-sm stp-tip-input"
                 placeholder="%"
+                aria-label="Custom tip percentage"
                 min="1"
                 max="100"
                 [value]="stpCustomTip()"

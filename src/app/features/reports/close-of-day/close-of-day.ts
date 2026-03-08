@@ -15,13 +15,8 @@ import { ReportService } from '@services/report';
 import { CashDrawerService } from '@services/cash-drawer';
 import { DeliveryService } from '@services/delivery';
 import {
-  Order,
-  Check,
-  CheckDiscount,
-  VoidedSelection,
   TeamMemberSalesRow,
   TaxServiceChargeReport,
-  CashReconciliation,
   DeliveryAnalyticsReport,
 } from '@models/index';
 
@@ -464,7 +459,7 @@ export class CloseOfDay implements OnInit {
   }
 
   private formatReason(reason: string): string {
-    return reason.replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return reason.replaceAll('_', ' ').replaceAll(/\b\w/g, c => c.toUpperCase());
   }
 
   private formatSource(source: string): string {

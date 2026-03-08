@@ -23,6 +23,7 @@
         <input
           type="date"
           class="form-control"
+          aria-label="From date"
           [value]="customDateFrom()"
           (input)="updateCustomDateFrom($any($event.target).value)"
         />
@@ -30,6 +31,7 @@
         <input
           type="date"
           class="form-control"
+          aria-label="To date"
           [value]="customDateTo()"
           (input)="updateCustomDateTo($any($event.target).value)"
         />
@@ -44,6 +46,7 @@
       @if (showComparison()) {
         <select
           class="form-select form-select-sm"
+          aria-label="Comparison mode"
           [value]="comparisonMode()"
           (change)="updateComparisonMode($any($event.target).value)"
         >
@@ -241,6 +244,7 @@
           type="text"
           class="form-control"
           placeholder="Search items by name or SKU..."
+          aria-label="Search items by name or SKU"
           [value]="itemSearch()"
           (input)="updateItemSearch($any($event.target).value)"
         />
@@ -252,28 +256,28 @@
         <table class="data-table sortable">
           <thead>
             <tr>
-              <th (click)="sortItems('itemName')">
+              <th (click)="sortItems('itemName')" (keydown.enter)="sortItems('itemName')" tabindex="0" role="button">
                 Item <i [class]="getSortIcon('itemName')"></i>
               </th>
-              <th class="text-end" (click)="sortItems('sku')">
+              <th class="text-end" (click)="sortItems('sku')" (keydown.enter)="sortItems('sku')" tabindex="0" role="button">
                 SKU <i [class]="getSortIcon('sku')"></i>
               </th>
-              <th class="text-end" (click)="sortItems('unitsSold')">
+              <th class="text-end" (click)="sortItems('unitsSold')" (keydown.enter)="sortItems('unitsSold')" tabindex="0" role="button">
                 Units <i [class]="getSortIcon('unitsSold')"></i>
               </th>
-              <th class="text-end" (click)="sortItems('revenue')">
+              <th class="text-end" (click)="sortItems('revenue')" (keydown.enter)="sortItems('revenue')" tabindex="0" role="button">
                 Revenue <i [class]="getSortIcon('revenue')"></i>
               </th>
-              <th class="text-end" (click)="sortItems('cogs')">
+              <th class="text-end" (click)="sortItems('cogs')" (keydown.enter)="sortItems('cogs')" tabindex="0" role="button">
                 COGS <i [class]="getSortIcon('cogs')"></i>
               </th>
-              <th class="text-end" (click)="sortItems('profit')">
+              <th class="text-end" (click)="sortItems('profit')" (keydown.enter)="sortItems('profit')" tabindex="0" role="button">
                 Profit <i [class]="getSortIcon('profit')"></i>
               </th>
-              <th class="text-end" (click)="sortItems('marginPercent')">
+              <th class="text-end" (click)="sortItems('marginPercent')" (keydown.enter)="sortItems('marginPercent')" tabindex="0" role="button">
                 Margin <i [class]="getSortIcon('marginPercent')"></i>
               </th>
-              <th class="text-end" (click)="sortItems('discountAmount')">
+              <th class="text-end" (click)="sortItems('discountAmount')" (keydown.enter)="sortItems('discountAmount')" tabindex="0" role="button">
                 Discounts <i [class]="getSortIcon('discountAmount')"></i>
               </th>
             </tr>
@@ -607,7 +611,7 @@
       <div class="vendor-cards">
         @for (vendor of vendorSalesData(); track vendor.vendorId) {
           <div class="vendor-card" [class.expanded]="expandedVendorId() === vendor.vendorId">
-            <div class="vendor-header" (click)="toggleVendorExpand(vendor.vendorId)">
+            <div class="vendor-header" (click)="toggleVendorExpand(vendor.vendorId)" (keydown.enter)="toggleVendorExpand(vendor.vendorId)" tabindex="0" role="button">
               <div class="vendor-info">
                 <div class="vendor-name">{{ vendor.vendorName }}</div>
                 <div class="vendor-meta">{{ vendor.itemCount }} items · {{ vendor.unitsSold | number }} units</div>
@@ -697,28 +701,28 @@
           <table class="data-table sortable">
             <thead>
               <tr>
-                <th (click)="sortProfit('itemName')">
+                <th (click)="sortProfit('itemName')" (keydown.enter)="sortProfit('itemName')" tabindex="0" role="button">
                   Item <i [class]="getProfitSortIcon('itemName')"></i>
                 </th>
-                <th class="text-end" (click)="sortProfit('sku')">
+                <th class="text-end" (click)="sortProfit('sku')" (keydown.enter)="sortProfit('sku')" tabindex="0" role="button">
                   SKU <i [class]="getProfitSortIcon('sku')"></i>
                 </th>
-                <th class="text-end" (click)="sortProfit('quantityOnHand')">
+                <th class="text-end" (click)="sortProfit('quantityOnHand')" (keydown.enter)="sortProfit('quantityOnHand')" tabindex="0" role="button">
                   On Hand <i [class]="getProfitSortIcon('quantityOnHand')"></i>
                 </th>
-                <th class="text-end" (click)="sortProfit('unitCost')">
+                <th class="text-end" (click)="sortProfit('unitCost')" (keydown.enter)="sortProfit('unitCost')" tabindex="0" role="button">
                   Cost <i [class]="getProfitSortIcon('unitCost')"></i>
                 </th>
-                <th class="text-end" (click)="sortProfit('unitPrice')">
+                <th class="text-end" (click)="sortProfit('unitPrice')" (keydown.enter)="sortProfit('unitPrice')" tabindex="0" role="button">
                   Price <i [class]="getProfitSortIcon('unitPrice')"></i>
                 </th>
-                <th class="text-end" (click)="sortProfit('projectedRevenue')">
+                <th class="text-end" (click)="sortProfit('projectedRevenue')" (keydown.enter)="sortProfit('projectedRevenue')" tabindex="0" role="button">
                   Proj. Revenue <i [class]="getProfitSortIcon('projectedRevenue')"></i>
                 </th>
-                <th class="text-end" (click)="sortProfit('projectedProfit')">
+                <th class="text-end" (click)="sortProfit('projectedProfit')" (keydown.enter)="sortProfit('projectedProfit')" tabindex="0" role="button">
                   Proj. Profit <i [class]="getProfitSortIcon('projectedProfit')"></i>
                 </th>
-                <th class="text-end" (click)="sortProfit('marginPercent')">
+                <th class="text-end" (click)="sortProfit('marginPercent')" (keydown.enter)="sortProfit('marginPercent')" tabindex="0" role="button">
                   Margin <i [class]="getProfitSortIcon('marginPercent')"></i>
                 </th>
               </tr>

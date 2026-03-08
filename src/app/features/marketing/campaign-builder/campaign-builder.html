@@ -88,7 +88,7 @@
       } @else {
         <div class="campaign-list">
           @for (campaign of filteredCampaigns(); track campaign.id) {
-            <div class="campaign-card" (click)="selectCampaign(campaign)">
+            <div class="campaign-card" (click)="selectCampaign(campaign)" (keydown.enter)="selectCampaign(campaign)" tabindex="0" role="button">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                   <div class="campaign-name">{{ campaign.name }}</div>
@@ -209,6 +209,7 @@
                       [checked]="auto.isActive"
                       [disabled]="isTogglingAutomation()"
                       (change)="toggleAutomationActive(auto)"
+                      [attr.aria-label]="'Toggle ' + auto.name + ' active'"
                     />
                   </div>
                   <button type="button" class="btn btn-sm btn-outline-secondary" (click)="openEditAutomation(auto)">
@@ -280,7 +281,7 @@
 
     <!-- CAMPAIGN DETAIL MODAL -->
     @if (selectedCampaign(); as detail) {
-      <div class="modal-backdrop" (click)="closeDetail()"></div>
+      <div class="modal-backdrop" (click)="closeDetail()" (keydown.enter)="closeDetail()" tabindex="0" role="button"></div>
       <div class="detail-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-start mb-3">
           <div>
@@ -375,7 +376,7 @@
 
     <!-- CREATE/EDIT CAMPAIGN FORM MODAL -->
     @if (showForm()) {
-      <div class="modal-backdrop" (click)="closeForm()"></div>
+      <div class="modal-backdrop" (click)="closeForm()" (keydown.enter)="closeForm()" tabindex="0" role="button"></div>
       <div class="form-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">{{ editingCampaign() ? 'Edit Campaign' : 'New Campaign' }}</h4>
@@ -384,13 +385,13 @@
 
         <div class="mb-3">
           <label class="form-label">Campaign Name *</label>
-          <input type="text" class="form-control" [value]="formName()" (input)="onFormField('name', $event)" placeholder="e.g., Weekend Special Offer" />
+          <input type="text" class="form-control" [value]="formName()" (input)="onFormField('name', $event)" placeholder="e.g., Weekend Special Offer" aria-label="Campaign Name" />
         </div>
 
         <div class="row mb-3">
           <div class="col-6">
             <label class="form-label">Type</label>
-            <select class="form-select" [value]="formType()" (change)="onFormField('type', $event)">
+            <select class="form-select" [value]="formType()" (change)="onFormField('type', $event)" aria-label="Campaign Type">
               @for (t of campaignTypes; track t.key) {
                 <option [value]="t.key">{{ t.label }}</option>
               }
@@ -398,7 +399,7 @@
           </div>
           <div class="col-6">
             <label class="form-label">Channel</label>
-            <select class="form-select" [value]="formChannel()" (change)="onFormField('channel', $event)">
+            <select class="form-select" [value]="formChannel()" (change)="onFormField('channel', $event)" aria-label="Campaign Channel">
               <option value="email">Email</option>
               <option value="sms">SMS</option>
               <option value="both">Email + SMS</option>
@@ -442,25 +443,25 @@
         @if (formChannel() === 'email' || formChannel() === 'both') {
           <div class="mb-3">
             <label class="form-label">Email Subject *</label>
-            <input type="text" class="form-control" [value]="formSubject()" (input)="onFormField('subject', $event)" placeholder="Subject line" />
+            <input type="text" class="form-control" [value]="formSubject()" (input)="onFormField('subject', $event)" placeholder="Subject line" aria-label="Email Subject" />
           </div>
           <div class="mb-3">
             <label class="form-label">Email Body *</label>
-            <textarea class="form-control" rows="6" [value]="formBody()" (input)="onFormField('body', $event)" [placeholder]="'Email content... Use {' + '{firstName}' + '}, {' + '{restaurant}' + '} for personalization.'"></textarea>
+            <textarea class="form-control" rows="6" [value]="formBody()" (input)="onFormField('body', $event)" [placeholder]="'Email content... Use {' + '{firstName}' + '}, {' + '{restaurant}' + '} for personalization.'" aria-label="Email Body"></textarea>
           </div>
         }
 
         @if (formChannel() === 'sms' || formChannel() === 'both') {
           <div class="mb-3">
             <label class="form-label">SMS Body *</label>
-            <textarea class="form-control" rows="3" [value]="formSmsBody()" (input)="onFormField('smsBody', $event)" placeholder="SMS message (160 char recommended)"></textarea>
+            <textarea class="form-control" rows="3" [value]="formSmsBody()" (input)="onFormField('smsBody', $event)" placeholder="SMS message (160 char recommended)" aria-label="SMS Body"></textarea>
             <small class="form-text text-muted">{{ formSmsBody().length }} / 160 characters</small>
           </div>
         }
 
         <div class="mb-3">
           <label class="form-label">Schedule (optional)</label>
-          <input type="datetime-local" class="form-control" [value]="formScheduledAt()" (input)="onFormField('scheduledAt', $event)" />
+          <input type="datetime-local" class="form-control" [value]="formScheduledAt()" (input)="onFormField('scheduledAt', $event)" aria-label="Schedule" />
           <small class="form-text text-muted">Leave empty to save as draft</small>
         </div>
 
@@ -478,7 +479,7 @@
 
     <!-- CREATE/EDIT AUTOMATION FORM MODAL -->
     @if (showAutomationForm()) {
-      <div class="modal-backdrop" (click)="closeAutomationForm()"></div>
+      <div class="modal-backdrop" (click)="closeAutomationForm()" (keydown.enter)="closeAutomationForm()" tabindex="0" role="button"></div>
       <div class="form-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">{{ editingAutomation() ? 'Edit Automation' : 'New Automation' }}</h4>
@@ -487,7 +488,7 @@
 
         <div class="mb-3">
           <label class="form-label">Automation Name *</label>
-          <input type="text" class="form-control" [value]="autoName()" (input)="onAutoField('name', $event)" placeholder="e.g., Welcome Series" />
+          <input type="text" class="form-control" [value]="autoName()" (input)="onAutoField('name', $event)" placeholder="e.g., Welcome Series" aria-label="Automation Name" />
         </div>
 
         <div class="mb-3">
@@ -517,6 +518,7 @@
               min="1"
               [value]="triggerConfigValue()"
               (input)="onTriggerConfigValue($event)"
+              [attr.aria-label]="configLabel"
             />
           </div>
         }
@@ -524,7 +526,7 @@
         <div class="row mb-3">
           <div class="col-6">
             <label class="form-label">Channel</label>
-            <select class="form-select" [value]="autoChannel()" (change)="onAutoField('channel', $event)">
+            <select class="form-select" [value]="autoChannel()" (change)="onAutoField('channel', $event)" aria-label="Automation Channel">
               <option value="email">Email</option>
               <option value="sms">SMS</option>
               <option value="both">Email + SMS</option>
@@ -532,14 +534,14 @@
           </div>
           <div class="col-6">
             <label class="form-label">Delay (minutes)</label>
-            <input type="number" class="form-control" min="0" [value]="autoDelayMinutes()" (input)="onAutoField('delayMinutes', $event)" />
+            <input type="number" class="form-control" min="0" [value]="autoDelayMinutes()" (input)="onAutoField('delayMinutes', $event)" aria-label="Delay in minutes" />
             <small class="form-text text-muted">{{ formatDelay(autoDelayMinutes()) }} after trigger</small>
           </div>
         </div>
 
         <div class="mb-3">
           <label class="form-label">Template (optional)</label>
-          <select class="form-select" [value]="autoTemplateId() ?? ''" (change)="onAutoField('templateId', $event)">
+          <select class="form-select" [value]="autoTemplateId() ?? ''" (change)="onAutoField('templateId', $event)" aria-label="Template">
             <option value="">No template</option>
             @for (template of templates; track template.id) {
               <option [value]="template.id">{{ template.name }}</option>
@@ -549,7 +551,7 @@
 
         <div class="mb-3 d-flex align-items-center gap-2">
           <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" [checked]="autoIsActive()" (change)="onAutoActiveToggle()" />
+            <input class="form-check-input" type="checkbox" [checked]="autoIsActive()" (change)="onAutoActiveToggle()" aria-label="Active immediately" />
             <label class="form-check-label">Active immediately</label>
           </div>
         </div>

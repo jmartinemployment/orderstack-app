@@ -100,7 +100,7 @@
     @if (activeTab() === 'today') {
       <div class="booking-list">
         @for (res of todayReservations(); track res.id) {
-          <div class="res-card" (click)="selectBooking(res)">
+          <div class="res-card" (click)="selectBooking(res)" (keydown.enter)="selectBooking(res)" tabindex="0" role="button">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div class="d-flex align-items-center gap-2">
                 <span class="res-time">{{ formatTime(res.reservationTime) }}</span>
@@ -173,7 +173,7 @@
       <div class="timeline-controls d-flex align-items-center gap-3 mb-3">
         <label class="form-label mb-0 small fw-semibold">Date:</label>
         <input type="date" class="form-control form-control-sm timeline-date-picker"
-          [value]="timelineDate()" (change)="setTimelineDate($event)" />
+          [value]="timelineDate()" (change)="setTimelineDate($event)" aria-label="Timeline date" />
 
         <!-- Calendar Sync Toggle -->
         <button type="button" class="btn btn-sm ms-auto"
@@ -310,7 +310,7 @@
                   [style.left]="getBlockStyle(block)['left']"
                   [style.width]="getBlockStyle(block)['width']"
                   [title]="block.booking.customerName + ' - Party of ' + block.booking.partySize"
-                  (click)="selectBooking(block.booking)">
+                  (click)="selectBooking(block.booking)" (keydown.enter)="selectBooking(block.booking)" tabindex="0" role="button">
                   <span class="block-name">{{ block.booking.customerName }}</span>
                   <span class="block-size">{{ block.booking.partySize }}</span>
                 </div>
@@ -355,7 +355,7 @@
 
       <div class="booking-list">
         @for (res of upcomingReservations(); track res.id) {
-          <div class="res-card" (click)="selectBooking(res)">
+          <div class="res-card" (click)="selectBooking(res)" (keydown.enter)="selectBooking(res)" tabindex="0" role="button">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div class="d-flex align-items-center gap-2">
                 <span class="res-date">{{ res.reservationTime | date:'EEE, MMM d' }}</span>
@@ -635,7 +635,7 @@
       } @else {
         <div class="event-list">
           @for (evt of (eventFilter() === 'upcoming' ? upcomingEvents() : pastEvents()); track evt.id) {
-            <div class="event-card" (click)="selectEvent(evt)">
+            <div class="event-card" (click)="selectEvent(evt)" (keydown.enter)="selectEvent(evt)" tabindex="0" role="button">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                   <span class="badge badge-event-type me-2">{{ getEventTypeLabel(evt.bookingType) }}</span>
@@ -679,7 +679,7 @@
 
   <!-- ═══ WAITLIST FORM MODAL ═══ -->
   @if (showWaitlistForm()) {
-    <div class="modal-overlay" (click)="closeWaitlistForm()">
+    <div class="modal-overlay" (click)="closeWaitlistForm()" (keydown.enter)="closeWaitlistForm()" tabindex="0" role="button">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Add to Waitlist</h4>
@@ -689,24 +689,24 @@
           <div class="mb-3">
             <label class="form-label">Party Name *</label>
             <input type="text" class="form-control" placeholder="Smith"
-              [value]="waitlistName()" (input)="onWaitlistField('name', $event)" />
+              [value]="waitlistName()" (input)="onWaitlistField('name', $event)" aria-label="Party name" />
           </div>
           <div class="row g-3 mb-3">
             <div class="col-6">
               <label class="form-label">Party Size *</label>
               <input type="number" class="form-control" min="1" max="20"
-                [value]="waitlistSize()" (input)="onWaitlistField('size', $event)" />
+                [value]="waitlistSize()" (input)="onWaitlistField('size', $event)" aria-label="Party size" />
             </div>
             <div class="col-6">
               <label class="form-label">Phone</label>
               <input type="tel" class="form-control" placeholder="(555) 123-4567"
-                [value]="waitlistPhone()" (input)="onWaitlistField('phone', $event)" />
+                [value]="waitlistPhone()" (input)="onWaitlistField('phone', $event)" aria-label="Phone" />
             </div>
           </div>
           <div class="mb-3">
             <label class="form-label">Notes</label>
             <textarea class="form-control" rows="2" placeholder="High chair, outdoor seating..."
-              [value]="waitlistNotes()" (input)="onWaitlistField('notes', $event)"></textarea>
+              [value]="waitlistNotes()" (input)="onWaitlistField('notes', $event)" aria-label="Notes"></textarea>
           </div>
         </div>
         <div class="card-footer d-flex gap-2 justify-content-end">
@@ -726,7 +726,7 @@
 
   <!-- ═══ NEW RESERVATION MODAL ═══ -->
   @if (showForm()) {
-    <div class="modal-overlay" (click)="closeForm()">
+    <div class="modal-overlay" (click)="closeForm()" (keydown.enter)="closeForm()" tabindex="0" role="button">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">New Booking</h4>
@@ -737,37 +737,37 @@
             <div class="row g-3">
               <div class="col-12 col-md-6">
                 <label class="form-label">Guest Name *</label>
-                <input type="text" class="form-control" formControlName="customerName" placeholder="John Smith" />
+                <input type="text" class="form-control" formControlName="customerName" placeholder="John Smith" aria-label="Guest name" />
               </div>
               <div class="col-12 col-md-6">
                 <label class="form-label">Phone *</label>
-                <input type="tel" class="form-control" formControlName="customerPhone" placeholder="(555) 123-4567" />
+                <input type="tel" class="form-control" formControlName="customerPhone" placeholder="(555) 123-4567" aria-label="Phone" />
               </div>
             </div>
 
             <div class="mb-3 mt-3">
               <label class="form-label">Email</label>
-              <input type="email" class="form-control" formControlName="customerEmail" placeholder="guest&#64;email.com" />
+              <input type="email" class="form-control" formControlName="customerEmail" placeholder="guest&#64;email.com" aria-label="Email" />
             </div>
 
             <div class="row g-3 mb-3">
               <div class="col-4">
                 <label class="form-label">Party Size *</label>
-                <input type="number" class="form-control" formControlName="partySize" min="1" max="20" />
+                <input type="number" class="form-control" formControlName="partySize" min="1" max="20" aria-label="Party size" />
               </div>
               <div class="col-4">
                 <label class="form-label">Date *</label>
-                <input type="date" class="form-control" formControlName="reservationDate" />
+                <input type="date" class="form-control" formControlName="reservationDate" aria-label="Reservation date" />
               </div>
               <div class="col-4">
                 <label class="form-label">Time *</label>
-                <input type="time" class="form-control" formControlName="reservationTime" />
+                <input type="time" class="form-control" formControlName="reservationTime" aria-label="Reservation time" />
               </div>
             </div>
 
             <div class="mb-3">
               <label class="form-label">Table</label>
-              <select class="form-select" formControlName="tableNumber">
+              <select class="form-select" formControlName="tableNumber" aria-label="Table">
                 <option value="">Auto-assign</option>
                 @for (table of availableTables(); track table.id) {
                   <option [value]="table.tableNumber">
@@ -779,7 +779,7 @@
 
             <div class="mb-3">
               <label class="form-label">Special Requests</label>
-              <textarea class="form-control" rows="2" formControlName="specialRequests" placeholder="High chair, birthday, dietary needs..."></textarea>
+              <textarea class="form-control" rows="2" formControlName="specialRequests" placeholder="High chair, birthday, dietary needs..." aria-label="Special requests"></textarea>
             </div>
 
             <!-- Recurring Option -->
@@ -795,7 +795,7 @@
                 <div class="row g-3">
                   <div class="col-6">
                     <label class="form-label">Repeat Pattern</label>
-                    <select class="form-select" [value]="recurringPattern()" (change)="setRecurringPattern($event)">
+                    <select class="form-select" [value]="recurringPattern()" (change)="setRecurringPattern($event)" aria-label="Repeat pattern">
                       <option value="weekly">Weekly</option>
                       <option value="biweekly">Biweekly</option>
                       <option value="monthly">Monthly</option>
@@ -806,7 +806,7 @@
                   <div class="col-6">
                     <label class="form-label">End Date (optional)</label>
                     <input type="date" class="form-control"
-                      [value]="recurringEndDate()" (change)="setRecurringEndDate($event)" />
+                      [value]="recurringEndDate()" (change)="setRecurringEndDate($event)" aria-label="Recurring end date" />
                   </div>
                 </div>
               </div>
@@ -833,7 +833,7 @@
 
   <!-- ═══ NEW EVENT MODAL ═══ -->
   @if (showEventForm()) {
-    <div class="modal-overlay" (click)="closeEventForm()">
+    <div class="modal-overlay" (click)="closeEventForm()" (keydown.enter)="closeEventForm()" tabindex="0" role="button">
       <div class="modal-content card modal-wide" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">New Event</h4>
@@ -844,45 +844,45 @@
             <div class="row g-3 mb-3">
               <div class="col-6">
                 <label class="form-label">Type *</label>
-                <select class="form-select" formControlName="bookingType">
+                <select class="form-select" formControlName="bookingType" aria-label="Event type">
                   <option value="event">Event</option>
                   <option value="class">Class</option>
                 </select>
               </div>
               <div class="col-6">
                 <label class="form-label">Title *</label>
-                <input type="text" class="form-control" formControlName="title" placeholder="Wine Tasting Night" />
+                <input type="text" class="form-control" formControlName="title" placeholder="Wine Tasting Night" aria-label="Event title" />
               </div>
             </div>
 
             <div class="mb-3">
               <label class="form-label">Description</label>
-              <textarea class="form-control" rows="2" formControlName="description" placeholder="Describe the event..."></textarea>
+              <textarea class="form-control" rows="2" formControlName="description" placeholder="Describe the event..." aria-label="Event description"></textarea>
             </div>
 
             <div class="row g-3 mb-3">
               <div class="col-4">
                 <label class="form-label">Date *</label>
-                <input type="date" class="form-control" formControlName="date" />
+                <input type="date" class="form-control" formControlName="date" aria-label="Event date" />
               </div>
               <div class="col-4">
                 <label class="form-label">Start Time *</label>
-                <input type="time" class="form-control" formControlName="startTime" />
+                <input type="time" class="form-control" formControlName="startTime" aria-label="Start time" />
               </div>
               <div class="col-4">
                 <label class="form-label">End Time *</label>
-                <input type="time" class="form-control" formControlName="endTime" />
+                <input type="time" class="form-control" formControlName="endTime" aria-label="End time" />
               </div>
             </div>
 
             <div class="row g-3 mb-3">
               <div class="col-4">
                 <label class="form-label">Max Attendees *</label>
-                <input type="number" class="form-control" formControlName="maxAttendees" min="1" />
+                <input type="number" class="form-control" formControlName="maxAttendees" min="1" aria-label="Max attendees" />
               </div>
               <div class="col-4">
                 <label class="form-label">Price per Person ($)</label>
-                <input type="number" class="form-control" formControlName="pricePerPerson" min="0" step="0.01" />
+                <input type="number" class="form-control" formControlName="pricePerPerson" min="0" step="0.01" aria-label="Price per person" />
               </div>
               <div class="col-4 d-flex flex-column justify-content-end">
                 <div class="form-check">
@@ -914,7 +914,7 @@
 
   <!-- ═══ RESERVATION DETAIL MODAL ═══ -->
   @if (selectedBooking(); as res) {
-    <div class="modal-overlay" (click)="closeDetail()">
+    <div class="modal-overlay" (click)="closeDetail()" (keydown.enter)="closeDetail()" tabindex="0" role="button">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Booking Details</h4>
@@ -1028,7 +1028,7 @@
 
   <!-- ═══ EVENT DETAIL MODAL ═══ -->
   @if (selectedEvent(); as evt) {
-    <div class="modal-overlay" (click)="closeEventDetail()">
+    <div class="modal-overlay" (click)="closeEventDetail()" (keydown.enter)="closeEventDetail()" tabindex="0" role="button">
       <div class="modal-content card modal-wide" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">{{ evt.title }}</h4>
@@ -1115,7 +1115,7 @@
 
   <!-- ═══ GUEST PREFERENCES MODAL ═══ -->
   @if (showPreferencesModal()) {
-    <div class="modal-overlay" (click)="closePreferences()">
+    <div class="modal-overlay" (click)="closePreferences()" (keydown.enter)="closePreferences()" tabindex="0" role="button">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Guest Preferences</h4>
@@ -1124,7 +1124,7 @@
         <div class="card-body">
           <div class="mb-3">
             <label class="form-label">Seating Preference</label>
-            <select class="form-select" [value]="prefSeating()" (change)="onPrefField('seating', $event)">
+            <select class="form-select" [value]="prefSeating()" (change)="onPrefField('seating', $event)" aria-label="Seating preference">
               <option value="no_preference">No Preference</option>
               <option value="indoor">Indoor</option>
               <option value="outdoor">Outdoor</option>
@@ -1137,7 +1137,7 @@
             <div class="col-6">
               <label class="form-label">High Chairs Needed</label>
               <input type="number" class="form-control" min="0" max="5"
-                [value]="prefHighChairs()" (input)="onPrefField('highChairs', $event)" />
+                [value]="prefHighChairs()" (input)="onPrefField('highChairs', $event)" aria-label="High chairs needed" />
             </div>
             <div class="col-6 d-flex align-items-end">
               <div class="form-check">
@@ -1150,7 +1150,7 @@
 
           <div class="mb-3">
             <label class="form-label">Celebration / Occasion</label>
-            <select class="form-select" [value]="prefCelebration() ?? ''" (change)="onPrefField('celebration', $event)">
+            <select class="form-select" [value]="prefCelebration() ?? ''" (change)="onPrefField('celebration', $event)" aria-label="Celebration or occasion">
               <option value="">None</option>
               @for (occ of occasionOptions; track occ) {
                 <option [value]="occ">{{ occ }}</option>
@@ -1174,7 +1174,7 @@
           <div class="mb-3">
             <label class="form-label">Additional Notes</label>
             <textarea class="form-control" rows="2" placeholder="VIP guest, prefers corner booth..."
-              [value]="prefNotes() ?? ''" (input)="onPrefField('notes', $event)"></textarea>
+              [value]="prefNotes() ?? ''" (input)="onPrefField('notes', $event)" aria-label="Additional notes"></textarea>
           </div>
         </div>
         <div class="card-footer d-flex gap-2 justify-content-end">
@@ -1187,7 +1187,7 @@
 
   <!-- ═══ SMS CONFIG MODAL ═══ -->
   @if (showSmsConfig()) {
-    <div class="modal-overlay" (click)="closeSmsConfig()">
+    <div class="modal-overlay" (click)="closeSmsConfig()" (keydown.enter)="closeSmsConfig()" tabindex="0" role="button">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Waitlist SMS Notifications</h4>
@@ -1204,7 +1204,7 @@
             <label class="form-label">Notification Message</label>
             <textarea class="form-control" rows="3"
               [value]="smsMessage()" (input)="onSmsField('message', $event)"
-              placeholder="Hi {name}, your table is ready..."></textarea>
+              placeholder="Hi {name}, your table is ready..." aria-label="Notification message"></textarea>
             <div class="form-text">
               Variables: <code>{{ '{' }}name{{ '}' }}</code> = guest name, <code>{{ '{' }}restaurant{{ '}' }}</code> = restaurant name
             </div>
@@ -1224,7 +1224,7 @@
           <div class="mb-3">
             <label class="form-label">Auto-Remove After (minutes)</label>
             <input type="number" class="form-control" min="5" max="60" style="max-width: 120px"
-              [value]="smsAutoRemove()" (input)="onSmsField('autoRemove', $event)" />
+              [value]="smsAutoRemove()" (input)="onSmsField('autoRemove', $event)" aria-label="Auto-remove after minutes" />
             <div class="form-text">
               Remove guests who don't respond after this many minutes
             </div>
@@ -1246,7 +1246,7 @@
 
   <!-- ═══ VIRTUAL WAITLIST CONFIG MODAL ═══ -->
   @if (showVirtualConfig()) {
-    <div class="modal-overlay" (click)="closeVirtualConfig()">
+    <div class="modal-overlay" (click)="closeVirtualConfig()" (keydown.enter)="closeVirtualConfig()" tabindex="0" role="button">
       <div class="modal-content card" (click)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Virtual Waitlist</h4>
@@ -1276,7 +1276,7 @@
               <div class="mb-3">
                 <label class="form-label">Join Link</label>
                 <div class="input-group">
-                  <input type="text" class="form-control" [value]="vConfig.joinUrl" readonly />
+                  <input type="text" class="form-control" [value]="vConfig.joinUrl" readonly aria-label="Join link" />
                   <button type="button" class="btn btn-outline-secondary" (click)="copyJoinLink()">
                     <i class="bi bi-clipboard"></i>
                   </button>
@@ -1288,7 +1288,7 @@
           <div class="mb-3">
             <label class="form-label">Max Queue Size</label>
             <input type="number" class="form-control" min="5" max="200" style="max-width: 120px"
-              [value]="virtualMaxQueue()" (input)="onVirtualField('maxQueue', $event)" />
+              [value]="virtualMaxQueue()" (input)="onVirtualField('maxQueue', $event)" aria-label="Max queue size" />
             <div class="form-text">
               Maximum number of guests who can be on the waitlist at once
             </div>

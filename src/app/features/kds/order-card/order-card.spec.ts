@@ -1,7 +1,6 @@
 import '../../../../test-setup';
-import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest';
+import { describe, expect, it, vi, afterEach } from 'vitest';
 import { OrderCard } from './order-card';
 import type { Order, GuestOrderStatus } from '@models/order.model';
 import { getDiningOption } from '@models/dining-option.model';

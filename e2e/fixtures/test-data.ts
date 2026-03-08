@@ -1,8 +1,10 @@
+import { TEST_PASSWORDS } from './credentials';
+
 export const CREDENTIALS = {
-  owner: { email: 'owner@taipa.com', password: 'owner123' },
-  manager: { email: 'manager@taipa.com', password: 'manager123' },
-  staff: { email: 'staff@taipa.com', password: 'staff123' },
-  admin: { email: 'admin@orderstack.com', password: 'admin123' },
+  owner: { email: 'owner@taipa.com', password: TEST_PASSWORDS.owner },
+  manager: { email: 'manager@taipa.com', password: TEST_PASSWORDS.manager },
+  staff: { email: 'staff@taipa.com', password: TEST_PASSWORDS.staff },
+  admin: { email: 'admin@orderstack.com', password: TEST_PASSWORDS.admin },
 };
 
 export const RESTAURANT_ID = 'f2cfe8dd-48f3-4596-ab1e-22a28b23ad38';

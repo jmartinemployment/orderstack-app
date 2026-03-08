@@ -1,4 +1,5 @@
-import { test as base, expect } from '@playwright/test';
+import { test as base } from '@playwright/test';
+export { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { CREDENTIALS } from './test-data';
 import { SEL } from '../helpers/selectors';
@@ -39,5 +40,3 @@ export const test = base.extend<AuthFixtures>({
     await use(page);
   },
 });
-
-export { expect };

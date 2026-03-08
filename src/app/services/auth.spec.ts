@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { User, UserRestaurant, LoginResponse } from '@models/auth.model';
 
+// --- Test constants (S2068: extract hard-coded credentials) ---
+const TEST_PASSWORD = 'BugTest2025!'; // NOSONAR — test credential
+const TEST_PASSWORD_ALT = 'TestPass1!'; // NOSONAR — test credential
+
 // --- Fixtures ---
 
 function makeUser(overrides: Partial<User> = {}): User {
@@ -173,7 +177,7 @@ describe('AuthService — signup includes email in HTTP POST body', () => {
       firstName: 'Bug',
       lastName: 'Test',
       email: 'bugtest@example.com',
-      password: 'BugTest2025!',
+      password: TEST_PASSWORD,
     });
 
     expect(body.email).toBe('bugtest@example.com');
@@ -185,7 +189,7 @@ describe('AuthService — signup includes email in HTTP POST body', () => {
       firstName: 'A',
       lastName: 'B',
       email: 'MixedCase@Domain.COM',
-      password: 'pass123',
+      password: TEST_PASSWORD_ALT,
     });
 
     // Frontend sends email as-is; backend lowercases it

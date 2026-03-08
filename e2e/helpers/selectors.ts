@@ -4,7 +4,7 @@ export const SEL = {
   loginHeading: 'h2.card-title:has-text("Sign in")',
   signupHeading: 'h1.signup-heading',
   emailInput: 'input[formcontrolname="email"]',
-  passwordInput: 'input[formcontrolname="password"]',
+  passwordInput: 'input[formcontrolname="password"]', // NOSONAR — CSS selector, not a credential
   firstNameInput: 'input[formcontrolname="firstName"]',
   lastNameInput: 'input[formcontrolname="lastName"]',
   submitBtn: 'button[type="submit"]',

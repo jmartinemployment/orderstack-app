@@ -162,6 +162,22 @@ export interface DiningValidationResult {
   missingFields: string[];
 }
 
+function validateCustomerFields(customer: CustomerInfo | undefined): string[] {
+  const missing: string[] = [];
+  if (!customer?.firstName) missing.push('customer.firstName');
+  if (!customer?.lastName) missing.push('customer.lastName');
+  if (!customer?.phone) missing.push('customer.phone');
+  if (!customer?.email) missing.push('customer.email');
+  return missing;
+}
+
+function validateCateringFields(info: CateringInfo | undefined): string[] {
+  const missing: string[] = [];
+  if (!info?.eventDate) missing.push('cateringInfo.eventDate');
+  if (!info?.headcount) missing.push('cateringInfo.headcount');
+  return missing;
+}
+
 export function validateDiningRequirements(
   diningType: DiningOptionType,
   data: {
@@ -175,32 +191,11 @@ export function validateDiningRequirements(
   const option = DINING_OPTIONS[diningType];
   const missing: string[] = [];
 
-  if (option.requiresTable && !data.tableGuid) {
-    missing.push('table');
-  }
+  if (option.requiresTable && !data.tableGuid) missing.push('table');
+  if (option.requiresCustomer) missing.push(...validateCustomerFields(data.customer));
+  if (option.requiresAddress && !data.deliveryInfo?.address) missing.push('deliveryInfo.address');
+  if (option.requiresVehicle && !data.curbsideInfo?.vehicleDescription) missing.push('curbsideInfo.vehicleDescription');
+  if (diningType === 'catering') missing.push(...validateCateringFields(data.cateringInfo));
 
-  if (option.requiresCustomer) {
-    if (!data.customer?.firstName) missing.push('customer.firstName');
-    if (!data.customer?.lastName) missing.push('customer.lastName');
-    if (!data.customer?.phone) missing.push('customer.phone');
-    if (!data.customer?.email) missing.push('customer.email');
-  }
-
-  if (option.requiresAddress && !data.deliveryInfo?.address) {
-    missing.push('deliveryInfo.address');
-  }
-
-  if (option.requiresVehicle && !data.curbsideInfo?.vehicleDescription) {
-    missing.push('curbsideInfo.vehicleDescription');
-  }
-
-  if (diningType === 'catering') {
-    if (!data.cateringInfo?.eventDate) missing.push('cateringInfo.eventDate');
-    if (!data.cateringInfo?.headcount) missing.push('cateringInfo.headcount');
-  }
-
-  return {
-    valid: missing.length === 0,
-    missingFields: missing
-  };
+  return { valid: missing.length === 0, missingFields: missing };
 }

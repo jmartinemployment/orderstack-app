@@ -83,3 +83,29 @@ describe('CateringProposalsComponent', () => {
     expect(component.daysSinceSent(weekAgo)).toBe(7);
   });
 });
+
+/**
+ * BUG-31: Verify /app/proposals redirect exists in app.routes.ts
+ */
+describe('BUG-31 — /app/proposals route registration', () => {
+  const routeSource = (() => {
+    const { readFileSync } = require('node:fs');
+    const { resolve } = require('node:path');
+    return readFileSync(resolve(__dirname, '../../../app.routes.ts'), 'utf-8');
+  })();
+
+  it('app.routes.ts has catering/proposals route', () => {
+    expect(routeSource).toContain("path: 'catering/proposals'");
+  });
+
+  it('app.routes.ts has proposals redirect to catering/proposals', () => {
+    expect(routeSource).toContain("path: 'proposals', redirectTo: 'catering/proposals'");
+  });
+
+  it('sidebar nav points to /app/catering/proposals', () => {
+    const { readFileSync } = require('node:fs');
+    const { resolve } = require('node:path');
+    const layoutSource = readFileSync(resolve(__dirname, '../../../layouts/main-layout.component.ts'), 'utf-8');
+    expect(layoutSource).toContain("route: '/app/catering/proposals'");
+  });
+});

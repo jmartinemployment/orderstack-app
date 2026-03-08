@@ -31,25 +31,25 @@
       <table class="table table-sm beo-table">
         <tbody>
           <tr>
-            <th>Event Title</th>
+            <th scope="row">Event Title</th>
             <td>{{ j.title }}</td>
-            <th>Event Type</th>
+            <th scope="row">Event Type</th>
             <td>{{ j.eventType }}</td>
           </tr>
           <tr>
-            <th>Date</th>
+            <th scope="row">Date</th>
             <td>{{ j.fulfillmentDate | date:'fullDate':'UTC' }}</td>
-            <th>Headcount</th>
+            <th scope="row">Headcount</th>
             <td>{{ j.headcount }} {{ j.headcount === 1 ? 'guest' : 'guests' }}</td>
           </tr>
           <tr>
-            <th>Start Time</th>
+            <th scope="row">Start Time</th>
             <td>{{ formatTime(j.startTime) }}</td>
-            <th>End Time</th>
+            <th scope="row">End Time</th>
             <td>{{ formatTime(j.endTime) }}</td>
           </tr>
           <tr>
-            <th>Location</th>
+            <th scope="row">Location</th>
             <td colspan="3">
               @if (j.locationType === 'off_site' && j.locationAddress) {
                 {{ j.locationAddress }} <span class="badge bg-secondary ms-2">Off-Site</span>
@@ -68,15 +68,15 @@
       <table class="table table-sm beo-table">
         <tbody>
           <tr>
-            <th>Name</th>
+            <th scope="row">Name</th>
             <td>{{ j.clientName }}</td>
-            <th>Company</th>
+            <th scope="row">Company</th>
             <td>{{ j.companyName ?? '--' }}</td>
           </tr>
           <tr>
-            <th>Email</th>
+            <th scope="row">Email</th>
             <td>{{ j.clientEmail ?? '--' }}</td>
-            <th>Phone</th>
+            <th scope="row">Phone</th>
             <td>{{ j.clientPhone ?? '--' }}</td>
           </tr>
         </tbody>
@@ -90,26 +90,26 @@
         <table class="table table-sm beo-table">
           <tbody>
             <tr>
-              <th>Package</th>
+              <th scope="row">Package</th>
               <td>{{ pkg.name }}</td>
-              <th>Tier</th>
+              <th scope="row">Tier</th>
               <td class="text-capitalize">{{ pkg.tier }}</td>
             </tr>
             <tr>
-              <th>Pricing Model</th>
+              <th scope="row">Pricing Model</th>
               <td class="text-capitalize">{{ pkg.pricingModel.replaceAll('_', ' ') }}</td>
-              <th>Price Per Unit</th>
+              <th scope="row">Price Per Unit</th>
               <td>${{ formatCents(pkg.pricePerUnit) }}</td>
             </tr>
             <tr>
-              <th>Minimum Headcount</th>
+              <th scope="row">Minimum Headcount</th>
               <td>{{ pkg.minimumHeadcount }}</td>
-              <th>Menu Items</th>
+              <th scope="row">Menu Items</th>
               <td>{{ pkg.menuItemIds.length }} item(s)</td>
             </tr>
             @if (pkg.description) {
               <tr>
-                <th>Description</th>
+                <th scope="row">Description</th>
                 <td colspan="3">{{ pkg.description }}</td>
               </tr>
             }
@@ -125,8 +125,8 @@
         <table class="table table-sm table-bordered beo-table">
           <thead>
             <tr>
-              <th>Requirement</th>
-              <th class="text-end">Count</th>
+              <th scope="col">Requirement</th>
+              <th scope="col" class="text-end">Count</th>
             </tr>
           </thead>
           <tbody>
@@ -157,32 +157,32 @@
             <tbody>
               @if (dd.loadTime) {
                 <tr>
-                  <th><i class="bi bi-box-seam me-1"></i> Load Time</th>
-                  <td>{{ dd.loadTime }}</td>
+                  <th scope="row"><i class="bi bi-box-seam me-1"></i> Load Time</th>
+                  <td>{{ formatTime(dd.loadTime) }}</td>
                 </tr>
               }
               @if (dd.departureTime) {
                 <tr>
-                  <th><i class="bi bi-truck me-1"></i> Departure</th>
-                  <td>{{ dd.departureTime }}</td>
+                  <th scope="row"><i class="bi bi-truck me-1"></i> Departure</th>
+                  <td>{{ formatTime(dd.departureTime) }}</td>
                 </tr>
               }
               @if (dd.arrivalTime) {
                 <tr>
-                  <th><i class="bi bi-geo-alt me-1"></i> Arrival</th>
-                  <td>{{ dd.arrivalTime }}</td>
+                  <th scope="row"><i class="bi bi-geo-alt me-1"></i> Arrival</th>
+                  <td>{{ formatTime(dd.arrivalTime) }}</td>
                 </tr>
               }
               @if (dd.setupTime) {
                 <tr>
-                  <th><i class="bi bi-tools me-1"></i> Setup Complete</th>
-                  <td>{{ dd.setupTime }}</td>
+                  <th scope="row"><i class="bi bi-tools me-1"></i> Setup Complete</th>
+                  <td>{{ formatTime(dd.setupTime) }}</td>
                 </tr>
               }
               @if (dd.breakdownTime) {
                 <tr>
-                  <th><i class="bi bi-archive me-1"></i> Breakdown</th>
-                  <td>{{ dd.breakdownTime }}</td>
+                  <th scope="row"><i class="bi bi-archive me-1"></i> Breakdown</th>
+                  <td>{{ formatTime(dd.breakdownTime) }}</td>
                 </tr>
               }
             </tbody>
@@ -219,12 +219,12 @@
       <table class="table table-sm beo-table financial-table">
         <tbody>
           <tr>
-            <th>Subtotal</th>
+            <th scope="row">Subtotal</th>
             <td class="text-end">${{ formatCents(j.subtotalCents) }}</td>
           </tr>
           @if (j.serviceChargeCents > 0) {
             <tr>
-              <th>
+              <th scope="row">
                 Service Charge
                 @if (j.serviceChargePercent) {
                   ({{ j.serviceChargePercent }}%)
@@ -235,7 +235,7 @@
           }
           @if (j.taxCents > 0) {
             <tr>
-              <th>
+              <th scope="row">
                 Tax
                 @if (j.taxPercent) {
                   ({{ j.taxPercent }}%)
@@ -246,7 +246,7 @@
           }
           @if (j.gratuityCents > 0) {
             <tr>
-              <th>
+              <th scope="row">
                 Gratuity
                 @if (j.gratuityPercent) {
                   ({{ j.gratuityPercent }}%)
@@ -256,15 +256,15 @@
             </tr>
           }
           <tr class="total-row">
-            <th>Total</th>
+            <th scope="row">Total</th>
             <td class="text-end fw-bold">${{ formatCents(j.totalCents) }}</td>
           </tr>
           <tr>
-            <th>Paid</th>
+            <th scope="row">Paid</th>
             <td class="text-end text-success">${{ formatCents(j.paidCents) }}</td>
           </tr>
           <tr>
-            <th>Balance Due</th>
+            <th scope="row">Balance Due</th>
             <td class="text-end text-danger fw-bold">${{ formatCents(j.totalCents - j.paidCents) }}</td>
           </tr>
         </tbody>
@@ -278,11 +278,11 @@
         <table class="table table-sm table-bordered beo-table">
           <thead>
             <tr>
-              <th>Milestone</th>
-              <th class="text-end">Percent</th>
-              <th class="text-end">Amount</th>
-              <th>Due Date</th>
-              <th>Status</th>
+              <th scope="col">Milestone</th>
+              <th scope="col" class="text-end">Percent</th>
+              <th scope="col" class="text-end">Amount</th>
+              <th scope="col">Due Date</th>
+              <th scope="col">Status</th>
             </tr>
           </thead>
           <tbody>

@@ -55,7 +55,7 @@
 
   <!-- API Key Modal -->
   @if (showApiKeyModal()) {
-    <div class="modal-backdrop" (click)="closeApiKeyModal()">
+    <div class="modal-backdrop" (click)="closeApiKeyModal()" (keydown.enter)="closeApiKeyModal()" tabindex="0" role="button">
       <div class="modal-dialog" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <span class="modal-title">{{ aiAdminConfig()?.apiKeyConfigured ? 'Update' : 'Set' }} API Key</span>
@@ -85,7 +85,7 @@
 
   <!-- Delete Confirmation Modal -->
   @if (showDeleteConfirm()) {
-    <div class="modal-backdrop" (click)="closeDeleteConfirm()">
+    <div class="modal-backdrop" (click)="closeDeleteConfirm()" (keydown.enter)="closeDeleteConfirm()" tabindex="0" role="button">
       <div class="modal-dialog" (click)="$event.stopPropagation()">
         <div class="modal-header">
           <span class="modal-title">Remove API Key</span>

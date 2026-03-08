@@ -5,7 +5,7 @@ import { waitForApiSettled, collectApiErrors } from './helpers/wait-helpers';
 
 test.describe('Order Lifecycle', { tag: '@critical' }, () => {
   test('should load POS terminal', async ({ authedPage: page }) => {
-    const apiErrors = collectApiErrors(page);
+    collectApiErrors(page);
     await page.goto(ROUTES.pos);
     await waitForApiSettled(page);
 

@@ -1,6 +1,6 @@
 import '../../../../test-setup';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { StatusBadge } from './status-badge';
 import type { GuestOrderStatus } from '@models/order.model';
 

@@ -94,8 +94,8 @@ export class StationSettings implements OnInit {
   }
 
   ngOnInit(): void {
-    void this.stationService.loadStations();
-    void this.stationService.loadCategoryMappings();
+    this.stationService.loadStations();
+    this.stationService.loadCategoryMappings();
     this.menuService.loadMenu();
   }
 

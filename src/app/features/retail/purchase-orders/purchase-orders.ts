@@ -8,8 +8,6 @@ import type {
   PurchaseOrder,
   PurchaseOrderStatus,
   PurchaseOrderFormData,
-  PurchaseOrderLineItem,
-  Vendor,
 } from '@models/vendor.model';
 
 type POTab = 'all' | 'draft' | 'submitted' | 'partially_received' | 'received' | 'cancelled';

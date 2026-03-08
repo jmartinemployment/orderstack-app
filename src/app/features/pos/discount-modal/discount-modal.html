@@ -59,6 +59,7 @@
             <input
               type="number"
               class="form-control"
+              [attr.aria-label]="type() === 'percentage' ? 'Discount percentage' : 'Discount amount'"
               [value]="value()"
               (input)="setValue($any($event.target).value)"
               [attr.min]="0"
@@ -83,6 +84,7 @@
         <label class="form-label">Reason</label>
         <select
           class="form-select"
+          aria-label="Discount reason"
           [value]="reason()"
           (change)="setReason($any($event.target).value)">
           @for (opt of reasonOptions; track opt.value) {
@@ -96,6 +98,7 @@
           <input
             type="text"
             class="form-control"
+            aria-label="Custom discount reason"
             placeholder="Describe reason..."
             [value]="customReason()"
             (input)="setCustomReason($any($event.target).value)">

@@ -151,7 +151,7 @@
   height: 24px;
   border-radius: 50%;
   background: #e0e0e0;
-  color: #6b6b6b;
+  color: #545454;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -383,7 +383,7 @@
   &.selected {
     border-color: #006aff;
     background: #f0f6ff;
-    color: #006aff;
+    color: #0055cc;
     font-weight: 600;
   }
 }
@@ -498,7 +498,7 @@
   background: #fef2f2;
   border: 1px solid #fca5a5;
   border-radius: 8px;
-  color: #dc3545;
+  color: #b52a37;
   font-size: 0.875rem;
   margin-bottom: 1rem;
 }

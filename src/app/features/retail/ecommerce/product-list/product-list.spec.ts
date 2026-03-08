@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { RetailItem, RetailItemVariation } from '@models/retail.model';
-import type { EcommerceCartItem, ProductFilterState, ProductSortOption } from '@models/retail-ecommerce.model';
+import type { EcommerceCartItem, ProductFilterState } from '@models/retail-ecommerce.model';
 
 // --- Replicate ProductList pure logic for testing ---
 
@@ -13,8 +13,8 @@ function makeItem(overrides: Partial<RetailItem> = {}): RetailItem {
     barcode: null,
     barcodeFormat: null,
     description: 'A test item',
-    basePrice: 25.00,
-    cost: 10.00,
+    basePrice: 25,
+    cost: 10,
     imageUrl: null,
     thumbnailUrl: null,
     categoryId: 'cat-1',
@@ -418,7 +418,7 @@ describe('ProductList logic', () => {
           { itemId: '1', variationId: null, name: 'A', variationName: null, sku: '', imageUrl: null, unitPrice: 10, quantity: 2, maxQuantity: null },
           { itemId: '2', variationId: null, name: 'B', variationName: null, sku: '', imageUrl: null, unitPrice: 15.50, quantity: 1, maxQuantity: null },
         ];
-        expect(cartTotal(cart)).toBe(35.50);
+        expect(cartTotal(cart)).toBe(35.5);
       });
     });
 

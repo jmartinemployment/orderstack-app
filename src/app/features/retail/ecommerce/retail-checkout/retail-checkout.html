@@ -106,11 +106,11 @@
               <div class="form-row">
                 <div class="form-group">
                   <label>Full Name</label>
-                  <input type="text" [ngModel]="customerName()" (ngModelChange)="customerName.set($event)" placeholder="John Doe" />
+                  <input type="text" [ngModel]="customerName()" (ngModelChange)="customerName.set($event)" placeholder="John Doe" aria-label="Full name" />
                 </div>
                 <div class="form-group">
                   <label>Email</label>
-                  <input type="email" [ngModel]="customerEmail()" (ngModelChange)="customerEmail.set($event)" placeholder="john@example.com" />
+                  <input type="email" [ngModel]="customerEmail()" (ngModelChange)="customerEmail.set($event)" placeholder="john@example.com" aria-label="Email" />
                 </div>
               </div>
             </div>
@@ -148,33 +148,33 @@
                 <h3>{{ fulfillmentType() === 'ship' ? 'Shipping Address' : 'Delivery Address' }}</h3>
                 <div class="form-group">
                   <label>Name</label>
-                  <input type="text" [ngModel]="shippingAddress().fullName" (ngModelChange)="updateAddress('fullName', $event)" />
+                  <input type="text" [ngModel]="shippingAddress().fullName" (ngModelChange)="updateAddress('fullName', $event)" aria-label="Name" />
                 </div>
                 <div class="form-group">
                   <label>Address</label>
-                  <input type="text" [ngModel]="shippingAddress().line1" (ngModelChange)="updateAddress('line1', $event)" placeholder="Street address" />
+                  <input type="text" [ngModel]="shippingAddress().line1" (ngModelChange)="updateAddress('line1', $event)" placeholder="Street address" aria-label="Address" />
                 </div>
                 <div class="form-group">
                   <label>Apartment, suite, etc. (optional)</label>
-                  <input type="text" [ngModel]="shippingAddress().line2 ?? ''" (ngModelChange)="updateAddress('line2', $event)" />
+                  <input type="text" [ngModel]="shippingAddress().line2 ?? ''" (ngModelChange)="updateAddress('line2', $event)" aria-label="Apartment, suite, etc." />
                 </div>
                 <div class="form-row form-row-3">
                   <div class="form-group">
                     <label>City</label>
-                    <input type="text" [ngModel]="shippingAddress().city" (ngModelChange)="updateAddress('city', $event)" />
+                    <input type="text" [ngModel]="shippingAddress().city" (ngModelChange)="updateAddress('city', $event)" aria-label="City" />
                   </div>
                   <div class="form-group">
                     <label>State</label>
-                    <input type="text" [ngModel]="shippingAddress().state" (ngModelChange)="updateAddress('state', $event)" />
+                    <input type="text" [ngModel]="shippingAddress().state" (ngModelChange)="updateAddress('state', $event)" aria-label="State" />
                   </div>
                   <div class="form-group">
                     <label>ZIP Code</label>
-                    <input type="text" [ngModel]="shippingAddress().postalCode" (ngModelChange)="updateAddress('postalCode', $event)" />
+                    <input type="text" [ngModel]="shippingAddress().postalCode" (ngModelChange)="updateAddress('postalCode', $event)" aria-label="ZIP code" />
                   </div>
                 </div>
                 <div class="form-group">
                   <label>Phone</label>
-                  <input type="tel" [ngModel]="shippingAddress().phone" (ngModelChange)="updateAddress('phone', $event)" />
+                  <input type="tel" [ngModel]="shippingAddress().phone" (ngModelChange)="updateAddress('phone', $event)" aria-label="Phone" />
                 </div>
               </div>
             }

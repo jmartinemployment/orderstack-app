@@ -6,6 +6,7 @@ import {
   computed,
   output,
   DestroyRef,
+  afterNextRender,
 } from '@angular/core';
 import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import { LaborService } from '@services/labor';
@@ -140,8 +141,10 @@ export class ClockOut {
   );
 
   constructor() {
-    this.loadBreakTypes();
-    this.startAutoClockOutTimer();
+    afterNextRender(() => {
+      this.loadBreakTypes();
+      this.startAutoClockOutTimer();
+    });
 
     this.destroyRef.onDestroy(() => {
       this.clearAutoClockOutTimer();

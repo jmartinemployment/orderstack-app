@@ -18,7 +18,7 @@ export class ManagerPinPrompt {
   readonly message = input('Enter a manager or owner PIN to authorize this action.');
 
   readonly pinSubmit = output<string>();
-  readonly cancel = output<void>();
+  readonly cancelled = output<void>();
 
   private readonly _pin = signal('');
   private readonly _error = signal<string | null>(null);
@@ -57,7 +57,7 @@ export class ManagerPinPrompt {
   onCancel(): void {
     this._pin.set('');
     this._error.set(null);
-    this.cancel.emit();
+    this.cancelled.emit();
   }
 
   setError(message: string): void {

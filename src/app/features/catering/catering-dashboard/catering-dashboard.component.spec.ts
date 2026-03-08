@@ -128,3 +128,22 @@ describe('CateringDashboardComponent', () => {
     expect(component.searchQuery()).toBe('');
   });
 });
+
+/**
+ * BUG-28: Catering dashboard status filter select missing aria-label.
+ */
+describe('CateringDashboardComponent template — a11y (BUG-28)', () => {
+  const templateSource = (() => {
+    const { readFileSync } = require('node:fs');
+    const { resolve } = require('node:path');
+    return readFileSync(resolve(__dirname, 'catering-dashboard.component.html'), 'utf-8');
+  })();
+
+  it('status filter <select> has aria-label', () => {
+    expect(templateSource).toContain('aria-label="Filter by status"');
+  });
+
+  it('search input has placeholder text', () => {
+    expect(templateSource).toContain('placeholder="Search jobs..."');
+  });
+});

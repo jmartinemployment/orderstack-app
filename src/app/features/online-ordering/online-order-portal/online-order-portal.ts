@@ -12,7 +12,7 @@ import { CustomerService } from '@services/customer';
 import { MultiLocationService } from '@services/multi-location';
 import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { GiftCardService } from '@services/gift-card';
-import { MenuItem, Order, OrderType, DeliveryQuote, getOrderIdentifier, LoyaltyProfile, LoyaltyReward, GiftCardBalanceCheck, getTierLabel, getTierColor, tierMeetsMinimum, AllergenType, Allergen, NutritionFacts, isItemAvailable, getItemAvailabilityLabel, getAllergenLabel, UpsellSuggestion, SavedAddress, OnlineLocation, BusinessHoursCheck } from '@models/index';
+import { MenuItem, Order, OrderType, DeliveryQuote, getOrderIdentifier, LoyaltyProfile, LoyaltyReward, GiftCardBalanceCheck, getTierLabel, getTierColor, tierMeetsMinimum, AllergenType, Allergen, isItemAvailable, getItemAvailabilityLabel, getAllergenLabel, UpsellSuggestion, SavedAddress, OnlineLocation, BusinessHoursCheck } from '@models/index';
 
 type OnlineStep = 'location' | 'menu' | 'cart' | 'info' | 'confirm';
 type TipPreset = { label: string; percent: number };
@@ -338,7 +338,7 @@ export class OnlineOrderPortal implements OnDestroy {
       const provider = this.settingsService.deliverySettings().provider;
       this.deliveryService.setProviderType(provider);
       if (provider === 'doordash' || provider === 'uber') {
-        void this.deliveryService.loadConfigStatus();
+        this.deliveryService.loadConfigStatus();
       }
     });
 
@@ -351,14 +351,14 @@ export class OnlineOrderPortal implements OnDestroy {
 
       if (slug) {
         this._dataLoaded.set(true);
-        void this.resolveSlug(slug);
+        this.resolveSlug(slug);
       } else if (authId) {
         this._dataLoaded.set(true);
         this.menuService.loadMenuForRestaurant(authId);
         this.loyaltyService.loadConfig();
         this.loyaltyService.loadRewards();
-        void this.settingsService.loadSettings();
-        void this.checkHours(authId);
+        this.settingsService.loadSettings();
+        this.checkHours(authId);
       }
     });
 
@@ -465,7 +465,7 @@ export class OnlineOrderPortal implements OnDestroy {
 
   async shareItem(item: MenuItem): Promise<void> {
     const slug = this.restaurantSlug() || 'order';
-    const url = `${window.location.origin}/order/${slug}?item=${item.id}`;
+    const url = `${globalThis.location.origin}/order/${slug}?item=${item.id}`;
 
     this.analyticsService.trackOnlineEvent('share_item', { itemId: item.id, itemName: item.name });
 
@@ -783,7 +783,7 @@ export class OnlineOrderPortal implements OnDestroy {
     try {
       const balance = await this.giftCardService.checkBalance(code);
       this._giftCardBalance.set(balance);
-      if (balance && balance.status === 'active' && balance.currentBalance > 0) {
+      if (balance?.status === 'active' && balance.currentBalance > 0) {
         this._giftCardAmount.set(Math.min(balance.currentBalance, this.cartTotal()));
       }
     } finally {
@@ -854,7 +854,6 @@ export class OnlineOrderPortal implements OnDestroy {
   async submitOrder(): Promise<void> {
     if (!this.canSubmit() || this._isSubmitting()) return;
 
-    // Check age verification before submitting
     if (this.cartRequiresAgeVerification() && !this._ageVerified()) {
       this.openAgeVerification();
       return;
@@ -864,122 +863,10 @@ export class OnlineOrderPortal implements OnDestroy {
     this._error.set(null);
 
     try {
-      const type = this._orderType();
-      const orderData: Record<string, unknown> = {
-        orderType: type,
-        orderSource: 'online',
-        items: this.cartItems().map(item => ({
-          menuItemId: item.menuItem.id,
-          name: item.menuItem.name,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          totalPrice: item.totalPrice,
-          modifiers: (item.selectedModifiers ?? []).map(m => ({
-            id: m.id,
-            name: m.name,
-            priceAdjustment: m.priceAdjustment,
-          })),
-        })),
-        subtotal: this.cartSubtotal(),
-        tax: this.cartTax(),
-        tip: this.tipAmount(),
-        total: this.cartTotal(),
-        ...(this.isTableside() ? { tableNumber: this.table().trim() } : {}),
-        customer: {
-          firstName: this._customerFirstName().trim(),
-          lastName: this._customerLastName().trim(),
-          phone: this._customerPhone().trim(),
-          email: this._customerEmail().trim(),
-        },
-        specialInstructions: this._specialInstructions().trim() || undefined,
-      };
-
-      // Structured delivery info
-      if (type === 'delivery') {
-        orderData['deliveryInfo'] = {
-          address: this._deliveryAddress().trim(),
-          address2: this._deliveryAddress2().trim() || undefined,
-          city: this._deliveryCity().trim(),
-          state: this._deliveryStateUS().trim(),
-          zip: this._deliveryZip().trim(),
-          deliveryNotes: this._deliveryNotes().trim() || undefined,
-        };
-      }
-
-      // Curbside info
-      if (type === 'curbside') {
-        orderData['curbsideInfo'] = {
-          vehicleDescription: this._vehicleDescription().trim(),
-        };
-      }
-
-      // Loyalty redemption
-      if (this._pointsToRedeem() > 0) {
-        orderData['loyaltyPointsRedeemed'] = this._pointsToRedeem();
-      }
-
-      // Gift card
-      if (this._giftCardApplied() && this._giftCardAmount() > 0) {
-        orderData['giftCardCode'] = this._giftCardCode().trim();
-        orderData['giftCardAmount'] = this._giftCardAmount();
-      }
-
-      // Age verification timestamp
-      if (this._ageVerified()) {
-        orderData['ageVerifiedAt'] = new Date().toISOString();
-      }
-
-      const order = await this.orderService.createOrder(orderData as Partial<any>);
+      const orderData = this.buildOrderData();
+      const order = await this.orderService.createOrder(orderData);
       if (order) {
-        this._orderNumber.set(getOrderIdentifier(order));
-        this._submittedOrder.set(order);
-        this._orderConfirmed.set(true);
-        this._step.set('confirm');
-        // Store order ID for multi-round tableside ordering
-        if (this.isTableside()) {
-          this._existingOrderId.set(order.guid);
-        }
-        // Set earned points message before clearing cart
-        const earned = this.estimatedPointsEarned();
-        if (this.loyaltyEnabled() && earned > 0) {
-          this._earnedPointsMessage.set(`You earned ${earned} points on this order!`);
-        }
-
-        this.analyticsService.trackOnlineEvent('order_placed', {
-          orderId: order.guid,
-          total: this.cartTotal(),
-          itemCount: this.cartItemCount(),
-          orderType: type,
-        });
-
-        this.cartService.clear();
-        // Save new address if requested
-        if (this._saveNewAddress() && this._identifiedCustomerId() && type === 'delivery') {
-          await this.customerService.saveAddress(this._identifiedCustomerId()!, {
-            label: this._newAddressLabel(),
-            address: this._deliveryAddress().trim(),
-            address2: this._deliveryAddress2().trim() || undefined,
-            city: this._deliveryCity().trim(),
-            state: this._deliveryStateUS().trim(),
-            zip: this._deliveryZip().trim(),
-            isDefault: this.savedAddresses().length === 0,
-          });
-        }
-        // Redeem gift card balance
-        if (this._giftCardApplied() && this._giftCardAmount() > 0) {
-          await this.giftCardService.redeemGiftCard(
-            this._giftCardCode().trim(),
-            this._giftCardAmount(),
-            order.guid
-          );
-        }
-        this.startTracking(order.guid);
-        // Request DaaS quote after order submission if delivery
-        if (type === 'delivery' && this.deliveryService.isConfigured()) {
-          if (await this.deliveryService.ensureSelectedProviderConfigured()) {
-            await this.requestDeliveryQuote(order.guid);
-          }
-        }
+        await this.handleOrderSuccess(order);
       } else {
         this._error.set(this.orderService.error() ?? 'Failed to submit order');
         this.analyticsService.trackOnlineEvent('order_failed', { error: this.orderService.error() ?? 'unknown' });
@@ -990,6 +877,131 @@ export class OnlineOrderPortal implements OnDestroy {
     } finally {
       this._isSubmitting.set(false);
     }
+  }
+
+  private buildOrderData(): Record<string, unknown> {
+    const type = this._orderType();
+    const orderData: Record<string, unknown> = {
+      orderType: type,
+      orderSource: 'online',
+      items: this.cartItems().map(item => ({
+        menuItemId: item.menuItem.id,
+        name: item.menuItem.name,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        totalPrice: item.totalPrice,
+        modifiers: (item.selectedModifiers ?? []).map(m => ({
+          id: m.id,
+          name: m.name,
+          priceAdjustment: m.priceAdjustment,
+        })),
+      })),
+      subtotal: this.cartSubtotal(),
+      tax: this.cartTax(),
+      tip: this.tipAmount(),
+      total: this.cartTotal(),
+      ...(this.isTableside() ? { tableNumber: this.table().trim() } : {}),
+      customer: {
+        firstName: this._customerFirstName().trim(),
+        lastName: this._customerLastName().trim(),
+        phone: this._customerPhone().trim(),
+        email: this._customerEmail().trim(),
+      },
+      specialInstructions: this._specialInstructions().trim() || undefined,
+    };
+
+    if (type === 'delivery') {
+      orderData['deliveryInfo'] = {
+        address: this._deliveryAddress().trim(),
+        address2: this._deliveryAddress2().trim() || undefined,
+        city: this._deliveryCity().trim(),
+        state: this._deliveryStateUS().trim(),
+        zip: this._deliveryZip().trim(),
+        deliveryNotes: this._deliveryNotes().trim() || undefined,
+      };
+    }
+
+    if (type === 'curbside') {
+      orderData['curbsideInfo'] = {
+        vehicleDescription: this._vehicleDescription().trim(),
+      };
+    }
+
+    if (this._pointsToRedeem() > 0) {
+      orderData['loyaltyPointsRedeemed'] = this._pointsToRedeem();
+    }
+
+    if (this._giftCardApplied() && this._giftCardAmount() > 0) {
+      orderData['giftCardCode'] = this._giftCardCode().trim();
+      orderData['giftCardAmount'] = this._giftCardAmount();
+    }
+
+    if (this._ageVerified()) {
+      orderData['ageVerifiedAt'] = new Date().toISOString();
+    }
+
+    return orderData;
+  }
+
+  private async handleOrderSuccess(order: Order): Promise<void> {
+    const type = this._orderType();
+
+    this._orderNumber.set(getOrderIdentifier(order));
+    this._submittedOrder.set(order);
+    this._orderConfirmed.set(true);
+    this._step.set('confirm');
+
+    if (this.isTableside()) {
+      this._existingOrderId.set(order.guid);
+    }
+
+    const earned = this.estimatedPointsEarned();
+    if (this.loyaltyEnabled() && earned > 0) {
+      this._earnedPointsMessage.set(`You earned ${earned} points on this order!`);
+    }
+
+    this.analyticsService.trackOnlineEvent('order_placed', {
+      orderId: order.guid,
+      total: this.cartTotal(),
+      itemCount: this.cartItemCount(),
+      orderType: type,
+    });
+
+    this.cartService.clear();
+    await this.saveAddressIfRequested(type);
+    await this.redeemGiftCardIfApplied(order.guid);
+    this.startTracking(order.guid);
+
+    if (type === 'delivery' && this.deliveryService.isConfigured()) {
+      if (await this.deliveryService.ensureSelectedProviderConfigured()) {
+        await this.requestDeliveryQuote(order.guid);
+      }
+    }
+  }
+
+  private async saveAddressIfRequested(type: OrderType): Promise<void> {
+    const customerId = this._identifiedCustomerId();
+    if (!this._saveNewAddress() || !customerId || type !== 'delivery') return;
+
+    await this.customerService.saveAddress(customerId, {
+      label: this._newAddressLabel(),
+      address: this._deliveryAddress().trim(),
+      address2: this._deliveryAddress2().trim() || undefined,
+      city: this._deliveryCity().trim(),
+      state: this._deliveryStateUS().trim(),
+      zip: this._deliveryZip().trim(),
+      isDefault: this.savedAddresses().length === 0,
+    });
+  }
+
+  private async redeemGiftCardIfApplied(orderGuid: string): Promise<void> {
+    if (!this._giftCardApplied() || this._giftCardAmount() <= 0) return;
+
+    await this.giftCardService.redeemGiftCard(
+      this._giftCardCode().trim(),
+      this._giftCardAmount(),
+      orderGuid
+    );
   }
 
   startNewOrder(): void {

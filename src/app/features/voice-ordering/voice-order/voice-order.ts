@@ -198,53 +198,50 @@ export class VoiceOrder implements OnDestroy {
     this._state.set('idle');
   }
 
+  private readonly quantityWords: Record<string, number> = {
+    one: 1, two: 2, three: 3, four: 4, five: 5,
+    six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+    un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5,
+    seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10,
+  };
+
   private processTranscript(text: string): void {
     const items = this.menuItems();
     const lower = text.toLowerCase();
 
-    // Extract quantity patterns: "two burgers", "3 tacos", etc.
-    const quantityWords: Record<string, number> = {
-      one: 1, two: 2, three: 3, four: 4, five: 5,
-      six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
-      un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5,
-      seis: 6, siete: 7, ocho: 8, nueve: 9, diez: 10,
-    };
-
     for (const item of items) {
-      const nameWords = item.name.toLowerCase().split(/\s+/);
-      const nameEnWords = (item.nameEn ?? '').toLowerCase().split(/\s+/);
+      this.matchItemToTranscript(item, lower);
+    }
+  }
 
-      // Check if any significant word from the item name appears in the transcript
-      const matchScore = this.fuzzyMatch(lower, item.name.toLowerCase())
-        || (item.nameEn ? this.fuzzyMatch(lower, item.nameEn.toLowerCase()) : 0);
+  private matchItemToTranscript(item: MenuItem, lower: string): void {
+    const matchScore = this.fuzzyMatch(lower, item.name.toLowerCase())
+      || (item.nameEn ? this.fuzzyMatch(lower, item.nameEn.toLowerCase()) : 0);
 
-      if (matchScore > 0.4) {
-        // Extract quantity
-        let quantity = 1;
-        const numMatch = /(\d+)\s/.exec(lower);
-        if (numMatch) {
-          quantity = Number.parseInt(numMatch[1], 10);
-        } else {
-          for (const [word, num] of Object.entries(quantityWords)) {
-            if (lower.includes(word)) {
-              quantity = num;
-              break;
-            }
-          }
-        }
+    if (matchScore <= 0.4) return;
+    if (this._matches().some(m => m.menuItemId === item.id)) return;
 
-        // Don't add duplicates
-        if (!this._matches().some(m => m.menuItemId === item.id)) {
-          this._matches.update(prev => [...prev, {
-            menuItemId: item.id,
-            menuItemName: item.name,
-            price: Number(item.price),
-            quantity,
-            confidence: matchScore,
-          }]);
-        }
+    const quantity = this.extractQuantity(lower);
+    this._matches.update(prev => [...prev, {
+      menuItemId: item.id,
+      menuItemName: item.name,
+      price: Number(item.price),
+      quantity,
+      confidence: matchScore,
+    }]);
+  }
+
+  private extractQuantity(lower: string): number {
+    const numMatch = /(\d+)\s/.exec(lower);
+    if (numMatch) {
+      return Number.parseInt(numMatch[1], 10);
+    }
+    for (const [word, num] of Object.entries(this.quantityWords)) {
+      if (lower.includes(word)) {
+        return num;
       }
     }
+    return 1;
   }
 
   private fuzzyMatch(input: string, target: string): number {

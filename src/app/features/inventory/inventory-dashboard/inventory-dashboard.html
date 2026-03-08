@@ -184,11 +184,13 @@
           type="text"
           class="form-control form-control-sm search-input"
           placeholder="Search items..."
+          aria-label="Search inventory items"
           [ngModel]="searchTerm()"
           (ngModelChange)="setSearchTerm($event)"
         />
         <select
           class="form-select form-select-sm filter-select"
+          aria-label="Category filter"
           [ngModel]="categoryFilter()"
           (ngModelChange)="setCategoryFilter($event)"
         >
@@ -198,6 +200,7 @@
         </select>
         <select
           class="form-select form-select-sm filter-select"
+          aria-label="Stock level filter"
           [ngModel]="stockFilter()"
           (ngModelChange)="setStockFilter($event)"
         >
@@ -415,6 +418,7 @@
                 <span style="flex: 0 0 120px; text-align: center;">
                   <input type="number" class="form-control form-control-sm"
                     style="width: 80px; display: inline-block;"
+                    [attr.aria-label]="'Actual quantity for ' + entry.itemName"
                     [value]="entry.actualQuantity ?? ''"
                     (input)="updateCycleEntry(i, $any($event.target).valueAsNumber)" min="0" />
                 </span>
@@ -444,6 +448,7 @@
             <div>
               <label class="form-label small">Category (optional)</label>
               <select class="form-select form-select-sm filter-select"
+                aria-label="Cycle count category"
                 [ngModel]="cycleCountCategory()"
                 (ngModelChange)="setCycleCountCategory($event)">
                 @for (cat of categories(); track cat) {
@@ -533,7 +538,7 @@
 
 <!-- Stock Action Modal -->
 @if (showStockModal() && selectedItem(); as item) {
-  <div class="modal-backdrop" (click)="closeStockModal()"></div>
+  <div class="modal-backdrop" role="button" tabindex="0" (click)="closeStockModal()" (keydown.enter)="closeStockModal()"></div>
   <div class="stock-modal">
     <div class="modal-header-custom d-flex justify-content-between align-items-center mb-3">
       <h5 class="mb-0">{{ getStockActionLabel() }}: {{ item.name }}</h5>

@@ -34,7 +34,7 @@ export class CateringPrepListComponent implements OnInit {
   }
 
   print(): void {
-    window.print();
+    globalThis.print();
   }
 
   onDateChange(value: string): void {

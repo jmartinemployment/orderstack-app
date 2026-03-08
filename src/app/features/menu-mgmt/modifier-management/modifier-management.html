@@ -30,7 +30,7 @@
       @for (group of groups(); track group.id) {
         <div class="group-card">
           <!-- Group Header -->
-          <div class="group-header" (click)="toggleGroup(group.id)">
+          <div class="group-header" (click)="toggleGroup(group.id)" (keydown.enter)="toggleGroup(group.id)" tabindex="0" role="button">
             <div class="d-flex align-items-center gap-2">
               <i class="bi" [class.bi-chevron-right]="!isExpanded(group.id)" [class.bi-chevron-down]="isExpanded(group.id)"></i>
               <h6 class="mb-0">{{ group.name }}</h6>
@@ -118,22 +118,22 @@
 
   <!-- ============ Group Form Modal ============ -->
   @if (showGroupForm()) {
-    <div class="modal-backdrop" (click)="closeGroupForm()"></div>
+    <div class="modal-backdrop" (click)="closeGroupForm()" (keydown.enter)="closeGroupForm()" tabindex="0" role="button"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">{{ editingGroup() ? 'Edit Group' : 'Create Modifier Group' }}</h5>
-          <button class="btn-close" (click)="closeGroupForm()"></button>
+          <button class="btn-close" (click)="closeGroupForm()" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <form [formGroup]="groupForm">
             <div class="mb-3">
-              <label class="form-label">Group Name</label>
-              <input type="text" class="form-control" formControlName="name" placeholder="e.g. Size, Toppings, Temperature">
+              <label class="form-label" for="modGroupName">Group Name</label>
+              <input type="text" class="form-control" id="modGroupName" formControlName="name" placeholder="e.g. Size, Toppings, Temperature">
             </div>
             <div class="mb-3">
-              <label class="form-label">Description (optional)</label>
-              <input type="text" class="form-control" formControlName="description" placeholder="Choose your preferred...">
+              <label class="form-label" for="modGroupDescription">Description (optional)</label>
+              <input type="text" class="form-control" id="modGroupDescription" formControlName="description" placeholder="Choose your preferred...">
             </div>
             <div class="row g-3 mb-3">
               <div class="col-6">
@@ -151,12 +151,12 @@
             </div>
             <div class="row g-3">
               <div class="col-6">
-                <label class="form-label">Min Selections</label>
-                <input type="number" class="form-control" formControlName="minSelections" min="0">
+                <label class="form-label" for="modGroupMinSelections">Min Selections</label>
+                <input type="number" class="form-control" id="modGroupMinSelections" formControlName="minSelections" min="0">
               </div>
               <div class="col-6">
-                <label class="form-label">Max Selections</label>
-                <input type="number" class="form-control" formControlName="maxSelections" min="0">
+                <label class="form-label" for="modGroupMaxSelections">Max Selections</label>
+                <input type="number" class="form-control" id="modGroupMaxSelections" formControlName="maxSelections" min="0">
                 <div class="form-text text-muted">0 = unlimited</div>
               </div>
             </div>
@@ -177,22 +177,22 @@
 
   <!-- ============ Option Form Modal ============ -->
   @if (showOptionForm()) {
-    <div class="modal-backdrop" (click)="closeOptionForm()"></div>
+    <div class="modal-backdrop" (click)="closeOptionForm()" (keydown.enter)="closeOptionForm()" tabindex="0" role="button"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">{{ editingOption()?.option ? 'Edit Option' : 'Add Option' }}</h5>
-          <button class="btn-close" (click)="closeOptionForm()"></button>
+          <button class="btn-close" (click)="closeOptionForm()" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <form [formGroup]="optionForm">
             <div class="mb-3">
-              <label class="form-label">Option Name</label>
-              <input type="text" class="form-control" formControlName="name" placeholder="e.g. Large, Extra Cheese">
+              <label class="form-label" for="modOptionName">Option Name</label>
+              <input type="text" class="form-control" id="modOptionName" formControlName="name" placeholder="e.g. Large, Extra Cheese">
             </div>
             <div class="mb-3">
-              <label class="form-label">Price Adjustment ($)</label>
-              <input type="number" class="form-control" formControlName="priceAdjustment" step="0.25" placeholder="0.00">
+              <label class="form-label" for="modOptionPrice">Price Adjustment ($)</label>
+              <input type="number" class="form-control" id="modOptionPrice" formControlName="priceAdjustment" step="0.25" placeholder="0.00">
               <div class="form-text text-muted">Positive = upcharge, negative = discount, 0 = no change</div>
             </div>
             <div class="form-check form-switch">
@@ -216,12 +216,12 @@
 
   <!-- ============ Delete Confirmation Modal ============ -->
   @if (showDeleteConfirm()) {
-    <div class="modal-backdrop" (click)="cancelDelete()"></div>
+    <div class="modal-backdrop" (click)="cancelDelete()" (keydown.enter)="cancelDelete()" tabindex="0" role="button"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Confirm Delete</h5>
-          <button class="btn-close" (click)="cancelDelete()"></button>
+          <button class="btn-close" (click)="cancelDelete()" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           @if (showDeleteConfirm()?.type === 'group') {

@@ -174,6 +174,7 @@
             <input
               type="number"
               class="form-control"
+              aria-label="Starting cash float amount"
               min="0"
               [value]="openingFloat()"
               (input)="setOpeningFloat(+$any($event.target).value)">
@@ -220,6 +221,7 @@
               <input
                 type="number"
                 class="denom-input"
+                [attr.aria-label]="row.label + ' count'"
                 min="0"
                 [value]="denomination()[row.key]"
                 (input)="setDenominationCount(row.key, +$any($event.target).value)">
@@ -285,6 +287,7 @@
             <input
               type="number"
               class="form-control"
+              aria-label="Event amount"
               min="0"
               step="0.01"
               [value]="eventAmount()"
@@ -296,6 +299,7 @@
           <input
             type="text"
             class="form-control"
+            aria-label="Event reason"
             placeholder="e.g., Vendor delivery, tip payout for John"
             [value]="eventReason()"
             (input)="setEventReason($any($event.target).value)">
@@ -393,6 +397,7 @@
           <input
             type="number"
             class="threshold-input"
+            aria-label="Discrepancy threshold amount"
             min="0"
             step="1"
             [value]="thresholdInput()"
@@ -463,15 +468,15 @@
       <div class="report-filters">
         <div class="filter-group">
           <label>From</label>
-          <input type="date" class="form-control form-control-sm" (change)="setReportDateFrom($any($event.target).value)">
+          <input type="date" class="form-control form-control-sm" aria-label="Report start date" (change)="setReportDateFrom($any($event.target).value)">
         </div>
         <div class="filter-group">
           <label>To</label>
-          <input type="date" class="form-control form-control-sm" (change)="setReportDateTo($any($event.target).value)">
+          <input type="date" class="form-control form-control-sm" aria-label="Report end date" (change)="setReportDateTo($any($event.target).value)">
         </div>
         <div class="filter-group">
           <label>Employee</label>
-          <select class="form-control form-control-sm" (change)="setReportEmployee($any($event.target).value)">
+          <select class="form-control form-control-sm" aria-label="Filter by employee" (change)="setReportEmployee($any($event.target).value)">
             <option value="">All</option>
             @for (name of drawerService.allEmployeeNames(); track name) {
               <option [value]="name">{{ name }}</option>
@@ -480,7 +485,7 @@
         </div>
         <div class="filter-group">
           <label>Type</label>
-          <select class="form-control form-control-sm" (change)="setReportType($any($event.target).value)">
+          <select class="form-control form-control-sm" aria-label="Filter by event type" (change)="setReportType($any($event.target).value)">
             <option value="">All Types</option>
             @for (t of reportableEventTypes; track t) {
               <option [value]="t">{{ getEventLabel(t) }}</option>

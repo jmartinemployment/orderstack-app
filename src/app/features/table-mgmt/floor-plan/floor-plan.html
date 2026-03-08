@@ -99,6 +99,10 @@
               (pointerdown)="onDragStart(table, $event)"
               (dblclick)="onTableTap(table, $event)"
               (click)="selectTable(table)"
+              (keydown.enter)="selectTable(table)"
+              tabindex="0"
+              role="button"
+              [attr.aria-label]="'Area ' + table.tableNumber + ', ' + table.status"
             >
               <span class="table-number">{{ table.tableNumber }}</span>
               @if (table.status === 'occupied' && getTableOrders(table.id).length > 0) {
@@ -163,7 +167,7 @@
           <span class="col-actions">Actions</span>
         </div>
         @for (table of filteredTables(); track table.id) {
-          <div class="list-row" [class.selected]="selectedTable()?.id === table.id" (click)="selectTable(table)">
+          <div class="list-row" [class.selected]="selectedTable()?.id === table.id" (click)="selectTable(table)" (keydown.enter)="selectTable(table)" tabindex="0" role="button">
             <span class="col-num fw-bold">{{ table.tableNumber }}</span>
             <span class="col-name">
               {{ table.tableName ?? '—' }}
@@ -376,9 +380,10 @@
           }
 
           <div class="mb-3">
-            <label class="form-label small">Area Number <span class="text-danger">*</span></label>
+            <label class="form-label small" for="fp-area-number">Area Number <span class="text-danger">*</span></label>
             <input
               type="text"
+              id="fp-area-number"
               class="form-control form-control-sm"
               [value]="formNumber()"
               (input)="setFormNumber($any($event.target).value)"
@@ -387,9 +392,10 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label small">Display Name</label>
+            <label class="form-label small" for="fp-display-name">Display Name</label>
             <input
               type="text"
+              id="fp-display-name"
               class="form-control form-control-sm"
               [value]="formName()"
               (input)="setFormName($any($event.target).value)"
@@ -398,9 +404,10 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label small">Capacity (seats)</label>
+            <label class="form-label small" for="fp-capacity">Capacity (seats)</label>
             <input
               type="number"
+              id="fp-capacity"
               class="form-control form-control-sm"
               [value]="formCapacity()"
               (input)="setFormCapacity(+$any($event.target).value)"
@@ -410,9 +417,10 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label small">Section</label>
+            <label class="form-label small" for="fp-section">Section</label>
             <input
               type="text"
+              id="fp-section"
               class="form-control form-control-sm"
               [value]="formSection()"
               (input)="setFormSection($any($event.target).value)"

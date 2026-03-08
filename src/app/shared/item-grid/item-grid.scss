@@ -265,6 +265,14 @@
 
 // Color mode action tiles — compact
 :host(.color-mode) {
+  .item-grid {
+    gap: 10px;
+  }
+
+  .action-tiles {
+    gap: 10px;
+  }
+
   .action-tile {
     min-height: 90px;
   }
@@ -293,13 +301,3 @@
   }
 }
 
-// Color mode uses tighter gap
-:host(.color-mode) {
-  .item-grid {
-    gap: 10px;
-  }
-
-  .action-tiles {
-    gap: 10px;
-  }
-}

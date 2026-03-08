@@ -9,23 +9,23 @@
 } @else {
   <!-- KPI Bar -->
   <div class="kpi-bar">
-    <div class="kpi-chip" [class.active]="activeTab() === 'pending'" (click)="setTab('pending')">
+    <div class="kpi-chip" [class.active]="activeTab() === 'pending'" (click)="setTab('pending')" (keydown.enter)="setTab('pending')" tabindex="0" role="button">
       <span class="kpi-count">{{ pendingCount() }}</span>
       <span class="kpi-label">Pending</span>
     </div>
-    <div class="kpi-chip" [class.active]="activeTab() === 'processing'" (click)="setTab('processing')">
+    <div class="kpi-chip" [class.active]="activeTab() === 'processing'" (click)="setTab('processing')" (keydown.enter)="setTab('processing')" tabindex="0" role="button">
       <span class="kpi-count">{{ processingCount() }}</span>
       <span class="kpi-label">Processing</span>
     </div>
-    <div class="kpi-chip" [class.active]="activeTab() === 'pickup'" (click)="setTab('pickup')">
+    <div class="kpi-chip" [class.active]="activeTab() === 'pickup'" (click)="setTab('pickup')" (keydown.enter)="setTab('pickup')" tabindex="0" role="button">
       <span class="kpi-count">{{ pickupCount() }}</span>
       <span class="kpi-label">Ready</span>
     </div>
-    <div class="kpi-chip" [class.active]="activeTab() === 'shipped'" (click)="setTab('shipped')">
+    <div class="kpi-chip" [class.active]="activeTab() === 'shipped'" (click)="setTab('shipped')" (keydown.enter)="setTab('shipped')" tabindex="0" role="button">
       <span class="kpi-count">{{ shippedCount() }}</span>
       <span class="kpi-label">Shipped</span>
     </div>
-    <div class="kpi-chip" [class.active]="activeTab() === 'completed'" (click)="setTab('completed')">
+    <div class="kpi-chip" [class.active]="activeTab() === 'completed'" (click)="setTab('completed')" (keydown.enter)="setTab('completed')" tabindex="0" role="button">
       <span class="kpi-count">{{ completedCount() }}</span>
       <span class="kpi-label">Completed</span>
     </div>
@@ -46,6 +46,9 @@
             class="order-card"
             [class.selected]="selectedOrder()?.id === order.id"
             (click)="selectOrder(order)"
+            (keydown.enter)="selectOrder(order)"
+            tabindex="0"
+            role="button"
           >
             <div class="order-card-header">
               <span class="order-number">#{{ order.orderNumber }}</span>
@@ -115,6 +118,7 @@
                   placeholder="Tracking number (optional)"
                   [ngModel]="trackingInput()"
                   (ngModelChange)="trackingInput.set($event)"
+                  aria-label="Tracking number"
                 />
                 <button class="action-btn primary" [disabled]="isProcessing()" (click)="markShipped(order.id)">
                   <i class="bi bi-truck"></i> Mark Shipped

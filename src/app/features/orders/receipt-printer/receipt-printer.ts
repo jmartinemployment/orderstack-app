@@ -31,7 +31,7 @@ export class ReceiptPrinter {
     this._isPrinting.set(true);
 
     setTimeout(() => {
-      window.print();
+      globalThis.print();
       this._isPrinting.set(false);
     }, 100);
   }

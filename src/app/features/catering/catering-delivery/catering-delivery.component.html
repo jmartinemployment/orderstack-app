@@ -57,44 +57,44 @@
               <div class="form-grid">
                 <div class="form-field">
                   <label>Driver</label>
-                  <input type="text" [value]="_editForm().driverName ?? ''" (input)="updateFormField('driverName', $any($event.target).value)" placeholder="Driver name">
+                  <input type="text" [value]="_editForm().driverName ?? ''" (input)="updateFormField('driverName', $any($event.target).value)" placeholder="Driver name" aria-label="Driver name">
                 </div>
                 <div class="form-field">
                   <label>Phone</label>
-                  <input type="tel" [value]="_editForm().driverPhone ?? ''" (input)="updateFormField('driverPhone', $any($event.target).value)" placeholder="Driver phone">
+                  <input type="tel" [value]="_editForm().driverPhone ?? ''" (input)="updateFormField('driverPhone', $any($event.target).value)" placeholder="Driver phone" aria-label="Driver phone">
                 </div>
                 <div class="form-field">
                   <label>Load Time</label>
-                  <input type="time" [value]="_editForm().loadTime ?? ''" (input)="updateFormField('loadTime', $any($event.target).value)">
+                  <input type="time" [value]="_editForm().loadTime ?? ''" (input)="updateFormField('loadTime', $any($event.target).value)" aria-label="Load time">
                 </div>
                 <div class="form-field">
                   <label>Departure</label>
-                  <input type="time" [value]="_editForm().departureTime ?? ''" (input)="updateFormField('departureTime', $any($event.target).value)">
+                  <input type="time" [value]="_editForm().departureTime ?? ''" (input)="updateFormField('departureTime', $any($event.target).value)" aria-label="Departure time">
                 </div>
                 <div class="form-field">
                   <label>Arrival</label>
-                  <input type="time" [value]="_editForm().arrivalTime ?? ''" (input)="updateFormField('arrivalTime', $any($event.target).value)">
+                  <input type="time" [value]="_editForm().arrivalTime ?? ''" (input)="updateFormField('arrivalTime', $any($event.target).value)" aria-label="Arrival time">
                 </div>
                 <div class="form-field">
                   <label>Vehicle</label>
-                  <input type="text" [value]="_editForm().vehicleDescription ?? ''" (input)="updateFormField('vehicleDescription', $any($event.target).value)" placeholder="Vehicle description">
+                  <input type="text" [value]="_editForm().vehicleDescription ?? ''" (input)="updateFormField('vehicleDescription', $any($event.target).value)" placeholder="Vehicle description" aria-label="Vehicle description">
                 </div>
                 <div class="form-field">
                   <label>Setup Time</label>
-                  <input type="time" [value]="_editForm().setupTime ?? ''" (input)="updateFormField('setupTime', $any($event.target).value)">
+                  <input type="time" [value]="_editForm().setupTime ?? ''" (input)="updateFormField('setupTime', $any($event.target).value)" aria-label="Setup time">
                 </div>
                 <div class="form-field">
                   <label>Breakdown Time</label>
-                  <input type="time" [value]="_editForm().breakdownTime ?? ''" (input)="updateFormField('breakdownTime', $any($event.target).value)">
+                  <input type="time" [value]="_editForm().breakdownTime ?? ''" (input)="updateFormField('breakdownTime', $any($event.target).value)" aria-label="Breakdown time">
                 </div>
               </div>
               <div class="form-field form-field-wide">
                 <label>Route Notes</label>
-                <textarea rows="2" [value]="_editForm().routeNotes ?? ''" (input)="updateFormField('routeNotes', $any($event.target).value)" placeholder="Parking, access codes, delivery entrance..."></textarea>
+                <textarea rows="2" [value]="_editForm().routeNotes ?? ''" (input)="updateFormField('routeNotes', $any($event.target).value)" placeholder="Parking, access codes, delivery entrance..." aria-label="Route notes"></textarea>
               </div>
               <div class="form-field form-field-wide">
                 <label>Equipment (comma-separated)</label>
-                <input type="text" [value]="(_editForm().equipmentChecklist ?? []).join(', ')" (input)="updateEquipment($any($event.target).value)" placeholder="Chafing dishes, serving utensils, tablecloths...">
+                <input type="text" [value]="(_editForm().equipmentChecklist ?? []).join(', ')" (input)="updateEquipment($any($event.target).value)" placeholder="Chafing dishes, serving utensils, tablecloths..." aria-label="Equipment checklist">
               </div>
               <div class="form-actions">
                 <button type="button" class="btn-cancel" (click)="cancelEdit()">Cancel</button>

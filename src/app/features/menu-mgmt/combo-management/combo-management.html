@@ -97,34 +97,34 @@
 
     <!-- CREATE/EDIT FORM MODAL -->
     @if (showForm()) {
-      <div class="modal-backdrop" (click)="closeForm()"></div>
+      <div class="modal-backdrop" (click)="closeForm()" (keydown.enter)="closeForm()" tabindex="0" role="button"></div>
       <div class="form-modal" (click)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">{{ editingCombo() ? 'Edit Combo' : 'New Combo' }}</h4>
-          <button type="button" class="btn-close" (click)="closeForm()"></button>
+          <button type="button" class="btn-close" (click)="closeForm()" aria-label="Close"></button>
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Combo Name *</label>
-          <input type="text" class="form-control" [value]="formName()" (input)="onFormField('name', $event)" placeholder="e.g., Family Meal Deal" />
+          <label class="form-label" for="comboName">Combo Name *</label>
+          <input type="text" class="form-control" id="comboName" [value]="formName()" (input)="onFormField('name', $event)" placeholder="e.g., Family Meal Deal" />
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Description</label>
-          <textarea class="form-control" rows="2" [value]="formDescription()" (input)="onFormField('description', $event)" placeholder="What's included..."></textarea>
+          <label class="form-label" for="comboDescription">Description</label>
+          <textarea class="form-control" id="comboDescription" rows="2" [value]="formDescription()" (input)="onFormField('description', $event)" placeholder="What's included..."></textarea>
         </div>
 
         <div class="row mb-3">
           <div class="col-6">
-            <label class="form-label">Combo Price *</label>
+            <label class="form-label" for="comboPrice">Combo Price *</label>
             <div class="input-group">
               <span class="input-group-text">$</span>
-              <input type="number" class="form-control" [value]="formBasePrice()" (input)="onFormField('basePrice', $event)" min="0" step="0.01" />
+              <input type="number" class="form-control" id="comboPrice" [value]="formBasePrice()" (input)="onFormField('basePrice', $event)" min="0" step="0.01" />
             </div>
           </div>
           <div class="col-6">
-            <label class="form-label">Category</label>
-            <select class="form-select" [value]="formCategoryId()" (change)="onFormField('categoryId', $event)">
+            <label class="form-label" for="comboCategory">Category</label>
+            <select class="form-select" id="comboCategory" [value]="formCategoryId()" (change)="onFormField('categoryId', $event)">
               <option value="">No category</option>
               @for (cat of categories(); track cat.id) {
                 <option [value]="cat.id">{{ cat.name }}</option>
@@ -166,6 +166,7 @@
                     [value]="fi.quantity"
                     (input)="updateItemQuantity(fi.menuItemId, $event)"
                     min="1"
+                    aria-label="Quantity"
                   />
                   <span class="flex-grow-1">{{ getMenuItemName(fi.menuItemId) }}</span>
                   <span class="small text-muted">{{ getMenuItemPrice(fi.menuItemId) | currency }}</span>
@@ -190,6 +191,7 @@
             type="text"
             class="form-control form-control-sm mb-2"
             placeholder="Search menu items to add..."
+            aria-label="Search menu items to add"
             [value]="itemSearch()"
             (input)="onFormField('itemSearch', $event)"
           />

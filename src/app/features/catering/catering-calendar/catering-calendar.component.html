@@ -22,10 +22,13 @@
         [class.has-events]="day.events.length > 0"
         [class.selected]="selectedDay() === day.date"
         (click)="selectDay(day)"
+        (keydown.enter)="selectDay(day)"
+        tabindex="0"
+        role="button"
       >
         <span class="day-number">{{ day.dayOfMonth }}</span>
         @for (ev of day.events.slice(0, 2); track ev.id) {
-          <div class="cal-job-chip" [style.border-left-color]="getStatusColor(ev.status)" (click)="openJob(ev); $event.stopPropagation()">
+          <div class="cal-job-chip" [style.border-left-color]="getStatusColor(ev.status)" (click)="openJob(ev); $event.stopPropagation()" (keydown.enter)="openJob(ev); $event.stopPropagation()" tabindex="0" role="button">
             <span class="cal-job-title">{{ ev.title }}</span>
             <span class="cal-job-guests">{{ ev.headcount }}</span>
           </div>
@@ -43,7 +46,7 @@
         Jobs on {{ selectedDay() }}
       </h6>
       @for (ev of selectedDayEvents(); track ev.id) {
-        <div class="day-event-row d-flex justify-content-between align-items-center mb-2" style="cursor: pointer;" (click)="openJob(ev)">
+        <div class="day-event-row d-flex justify-content-between align-items-center mb-2" style="cursor: pointer;" (click)="openJob(ev)" (keydown.enter)="openJob(ev)" tabindex="0" role="button">
           <div>
             <span class="fw-semibold">{{ ev.title }}</span>
             <span class="badge rounded-pill ms-2" [class]="getStatusBadgeClass(ev.status)">

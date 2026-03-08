@@ -35,7 +35,7 @@ export class Sidebar {
   readonly restaurantAddress = input<string | null>(null);
   readonly userName = input<string | null>(null);
 
-  readonly toggle = output<void>();
+  readonly toggled = output<void>();
   readonly closeMobile = output<void>();
   readonly loggedOut = output<void>();
 }

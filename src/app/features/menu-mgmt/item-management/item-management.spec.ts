@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { signal, computed } from '@angular/core';
 import { of } from 'rxjs';
 import { provideRouter } from '@angular/router';
-import { ItemManagement, SortField } from './item-management';
+import { ItemManagement } from './item-management';
 import { MenuService } from '@services/menu';
 import { ModifierService } from '@services/modifier';
 import { AuthService } from '@services/auth';

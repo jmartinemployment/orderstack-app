@@ -8,14 +8,9 @@ import { LoadingSpinner } from '@shared/loading-spinner/loading-spinner';
 import { ErrorDisplay } from '@shared/error-display/error-display';
 import {
   InventoryItem,
-  InventoryAlert,
-  StockPrediction,
   InventoryTab,
   StockActionType,
-  CycleCount,
   CycleCountEntry,
-  ExpiringItem,
-  UnitConversion,
 } from '@models/index';
 
 @Component({
@@ -118,7 +113,7 @@ export class InventoryDashboard implements OnInit {
 
   readonly categories = computed(() => {
     const cats = new Set(this.items().map(item => item.category));
-    return ['all', ...Array.from(cats).sort()];
+    return ['all', ...Array.from(cats).sort((a, b) => a.localeCompare(b))];
   });
 
   readonly filteredItems = computed(() => {

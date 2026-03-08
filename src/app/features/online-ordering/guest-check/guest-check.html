@@ -44,6 +44,9 @@
           [class.selectable]="splitMode()"
           [class.selected]="splitMode() && isItemSelected(sel.guid)"
           (click)="splitMode() ? toggleItemSelection(sel.guid) : null"
+          (keydown.enter)="splitMode() ? toggleItemSelection(sel.guid) : null"
+          [attr.tabindex]="splitMode() ? 0 : null"
+          [attr.role]="splitMode() ? 'button' : null"
         >
           <div class="item-info">
             @if (splitMode()) {
@@ -130,6 +133,7 @@
               placeholder="0.00"
               min="0"
               step="0.01"
+              aria-label="Custom tip amount"
               [value]="customTipAmount()"
               (input)="setCustomTip($any($event.target).value)"
             />

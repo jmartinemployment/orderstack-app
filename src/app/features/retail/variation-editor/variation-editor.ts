@@ -3,7 +3,7 @@ import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RetailCatalogService } from '@services/retail-catalog';
-import type { RetailItem, RetailItemVariation, RetailOptionSet } from '@models/retail.model';
+import type { RetailItem, RetailItemVariation } from '@models/retail.model';
 
 @Component({
   selector: 'os-variation-editor',

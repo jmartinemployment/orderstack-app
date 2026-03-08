@@ -64,10 +64,12 @@
           <input
             class="form-check-input"
             type="checkbox"
+            id="prepTimeFiringToggle"
+            aria-label="Stagger prep time firing"
             [checked]="prepTimeFiringEnabled()"
             (change)="togglePrepTimeFiring($event)"
           />
-          <label class="form-check-label small text-muted">Stagger</label>
+          <label class="form-check-label small text-muted" for="prepTimeFiringToggle">Stagger</label>
         </div>
       </div>
       <!-- Auto-fire delay (only when auto_fire_timed) -->
@@ -124,10 +126,12 @@
           <input
             class="form-check-input"
             type="checkbox"
+            id="expoStationToggle"
+            aria-label="Expo station"
             [checked]="expoStationEnabled()"
             (change)="toggleExpoStation($event)"
           />
-          <label class="form-check-label small text-muted">Expo</label>
+          <label class="form-check-label small text-muted" for="expoStationToggle">Expo</label>
         </div>
       </div>
       <os-connection-status />
@@ -398,36 +402,6 @@
     </div>
   }
 
-  <!-- Payment modal disabled — payment collection moved to bar terminal incoming orders mode -->
-  <!-- @if (showPaymentModal() && paymentOrder()) {
-    <div class="kds-payment-overlay" (click)="closePaymentModal()">
-      <div class="kds-payment-modal" (click)="$event.stopPropagation()">
-        <div class="kds-payment-modal-header">
-          <div>
-            <h5 class="mb-0">Collect Payment</h5>
-            <span class="text-muted small">Order #{{ paymentOrder()!.orderNumber }}</span>
-          </div>
-          <span class="kds-payment-modal-amount">{{ paymentAmount() | currency }}</span>
-          <button type="button" class="btn-modal-close" (click)="closePaymentModal()">
-            <i class="bi bi-x-lg"></i>
-          </button>
-        </div>
-        @if (paymentError()) {
-          <div class="kds-payment-modal-error">{{ paymentError() }}</div>
-        }
-        <div class="kds-payment-modal-body">
-          <os-payment-terminal
-            [amount]="paymentAmount()"
-            [orderId]="paymentOrder()!.guid"
-            [showOnScreen]="true"
-            [showCardReader]="true"
-            (paymentComplete)="onPaymentComplete()"
-            (paymentFailed)="onPaymentFailed($event)"
-          />
-        </div>
-      </div>
-    </div>
-  } -->
 </div>
 } @else {
   <div class="auth-required d-flex align-items-center justify-content-center p-5">

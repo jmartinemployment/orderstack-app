@@ -9,7 +9,6 @@ import {
   EcommerceCheckoutStep,
   ShippingAddress,
   FulfillmentOption,
-  StoreConfig,
 } from '@models/retail-ecommerce.model';
 
 @Component({

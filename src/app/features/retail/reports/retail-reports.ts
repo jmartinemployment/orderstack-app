@@ -13,7 +13,6 @@ import type {
   RetailTaxReport,
   RetailPaymentMethodRow,
   RetailCogsReport,
-  RetailCogsRow,
   RetailVendorSalesRow,
   RetailProjectedProfitReport,
   RetailProjectedProfitRow,

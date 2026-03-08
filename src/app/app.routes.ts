@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { guestGuard } from './guards/guest.guard';
-import { deviceModeRedirectGuard } from './guards/device-mode.guard';
 import { administrationGuard } from './guards/administration.guard';
 import { roleGuard } from './guards/role.guard';
 import { deviceInitResolver } from './resolvers/device-init.resolver';
@@ -397,11 +396,19 @@ export const routes: Routes = [
       { path: 'online-ordering', canActivate: [roleGuard('owner', 'manager', 'super_admin')], loadComponent: () => import('./features/online-ordering/online-ordering-admin/online-ordering-admin').then(m => m.OnlineOrderingAdmin) },
       { path: 'online', redirectTo: 'online-ordering', pathMatch: 'full' },
 
-      // Legacy alias
+      // Legacy aliases
       { path: 'dashboard', redirectTo: 'administration', pathMatch: 'full' },
+      { path: 'proposals', redirectTo: 'catering/proposals', pathMatch: 'full' },
+      { path: 'home', redirectTo: 'administration', pathMatch: 'full' },
+      { path: 'pos', redirectTo: '/pos', pathMatch: 'full' },
+      { path: 'kds', redirectTo: '/kds', pathMatch: 'full' },
+      { path: 'kiosk', redirectTo: '/kiosk', pathMatch: 'full' },
 
       // Default — redirect to administration
       { path: '', redirectTo: 'administration', pathMatch: 'full' },
+
+      // Wildcard catch-all — prevents blank page on invalid /app/* paths
+      { path: '**', redirectTo: 'administration' },
     ],
   },
 

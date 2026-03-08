@@ -99,7 +99,7 @@
 
     &.type-action { background-color: var(--os-danger); color: #fff; }
     &.type-warning { background-color: var(--os-warning); color: #000; }
-    &.type-observation { background-color: #0dcaf0; color: #fff; }
+    &.type-observation { background-color: #0aa8c9; color: #fff; }
   }
 
   .insight-text {
@@ -157,7 +157,7 @@
 
 .quadrant-star { background-color: rgba(245, 166, 35, 0.1); color: var(--os-warning); }
 .quadrant-cash-cow { background-color: rgba(0, 166, 126, 0.1); color: var(--os-success); }
-.quadrant-puzzle { background-color: rgba(13, 202, 240, 0.1); color: #0dcaf0; }
+.quadrant-puzzle { background-color: rgba(13, 202, 240, 0.1); color: #2ee0ff; }
 .quadrant-dog { background-color: rgba(229, 62, 62, 0.1); color: var(--os-danger); }
 
 .btn-primary {
@@ -214,7 +214,7 @@
       color: #fff;
 
       .badge {
-        background-color: rgba(255, 255, 255, 0.3) !important;
+        background-color: rgba(255, 255, 255, 0.35) !important;
         color: #fff !important;
       }
     }

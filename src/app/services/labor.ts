@@ -588,7 +588,11 @@ export class LaborService {
       );
       this._timecards.set(data);
     } catch (err: unknown) {
-      this._error.set(err instanceof Error ? err.message : 'Failed to load timecards');
+      if (err instanceof HttpErrorResponse && err.status === 404) {
+        this._timecards.set([]);
+      } else {
+        this._error.set(err instanceof Error ? err.message : 'Failed to load timecards');
+      }
     } finally {
       this._isLoading.set(false);
     }

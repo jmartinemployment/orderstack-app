@@ -268,8 +268,15 @@ export class BookingWidget {
   formatTimeLabel(time: string): string {
     const [h, m] = time.split(':').map(Number);
     const period = h >= 12 ? 'PM' : 'AM';
-    const hour = h > 12 ? h - 12 : h === 0 ? 12 : h;
-    return `${hour}:${String(m).padStart(2, '0')} ${period}`;
+    let hour12: number;
+    if (h > 12) {
+      hour12 = h - 12;
+    } else if (h === 0) {
+      hour12 = 12;
+    } else {
+      hour12 = h;
+    }
+    return `${hour12}:${String(m).padStart(2, '0')} ${period}`;
   }
 
   startNewBooking(): void {

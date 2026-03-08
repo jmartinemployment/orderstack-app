@@ -520,7 +520,7 @@ export class CheckoutService {
     if (this._checkPresented()) {
       const table = this._selectedTable();
       if (table) {
-        void this.tableService.updateStatus(table.id, 'occupied');
+        this.tableService.updateStatus(table.id, 'occupied');
       }
     }
     this.resetCheckout();

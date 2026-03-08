@@ -40,12 +40,12 @@
           <table class="table table-hover align-middle">
             <thead>
               <tr>
-                <th>Job</th>
-                <th>Event Date</th>
-                <th class="text-end">Total</th>
-                <th class="text-end">Collected</th>
-                <th class="text-end">Recognized</th>
-                <th class="text-end">Deferred</th>
+                <th scope="col">Job</th>
+                <th scope="col">Event Date</th>
+                <th scope="col" class="text-end">Total</th>
+                <th scope="col" class="text-end">Collected</th>
+                <th scope="col" class="text-end">Recognized</th>
+                <th scope="col" class="text-end">Deferred</th>
               </tr>
             </thead>
             <tbody>
@@ -117,9 +117,9 @@
               <table class="table table-sm align-middle">
                 <thead>
                   <tr>
-                    <th>Event Type</th>
-                    <th class="text-end">Revenue</th>
-                  </tr>
+                    <th scope="col">Event Type</th>
+                    <th scope="col" class="text-end">Revenue</th>
+  </tr>
                 </thead>
                 <tbody>
                   @for (entry of revenueByTypeEntries(); track entry[0]) {
@@ -142,8 +142,8 @@
               <table class="table table-sm align-middle">
                 <thead>
                   <tr>
-                    <th>Month</th>
-                    <th class="text-end">Revenue</th>
+                    <th scope="col">Month</th>
+                    <th scope="col" class="text-end">Revenue</th>
                   </tr>
                 </thead>
                 <tbody>

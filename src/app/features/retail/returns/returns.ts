@@ -7,7 +7,6 @@ import type {
   RetailTransaction,
   RetailTransactionItem,
   RetailPayment,
-  RetailPaymentMethod,
   ReturnReason,
   RefundMethod,
   ReturnItem,
@@ -293,16 +292,18 @@ export class ReturnProcessing implements OnInit {
     const payments: RetailPayment[] = [];
 
     if (difference > 0) {
-      payments.push({
-        method: 'store_credit',
-        amount: this.exchangeCredit(),
-        reference: `exchange:${tx.id}`,
-      });
-      payments.push({
-        method: 'card',
-        amount: difference,
-        reference: null,
-      });
+      payments.push(
+        {
+          method: 'store_credit',
+          amount: this.exchangeCredit(),
+          reference: `exchange:${tx.id}`,
+        },
+        {
+          method: 'card',
+          amount: difference,
+          reference: null,
+        },
+      );
     } else {
       payments.push({
         method: 'store_credit',

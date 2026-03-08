@@ -136,7 +136,14 @@ export class ScheduleManagement implements OnInit {
   formatTime(time: string): string {
     const [h, m] = time.split(':').map(Number);
     const period = h >= 12 ? 'PM' : 'AM';
-    const hour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    let hour: number;
+    if (h === 0) {
+      hour = 12;
+    } else if (h > 12) {
+      hour = h - 12;
+    } else {
+      hour = h;
+    }
     return `${hour}:${m.toString().padStart(2, '0')} ${period}`;
   }
 
@@ -224,7 +231,7 @@ export class ScheduleManagement implements OnInit {
       if (i !== index) return dp;
       const days = dp.daysOfWeek.includes(day)
         ? dp.daysOfWeek.filter(d => d !== day)
-        : [...dp.daysOfWeek, day].sort();
+        : [...dp.daysOfWeek, day].sort((a, b) => a - b);
       return { ...dp, daysOfWeek: days };
     }));
   }
