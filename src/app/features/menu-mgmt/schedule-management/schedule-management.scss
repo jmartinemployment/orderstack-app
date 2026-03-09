@@ -13,7 +13,7 @@
   border-radius: 10px;
   margin-bottom: 1rem;
   font-size: 0.85rem;
-  color: #f5a623;
+  color: #b5710a;
   animation: slideDown 0.3s ease;
 
   i { font-size: 1.1rem; }
@@ -192,7 +192,7 @@
   padding: 2px 6px;
   border-radius: 4px;
   background: rgba(46, 204, 113, 0.1);
-  color: #4ade80;
+  color: #15803d;
 }
 
 .schedule-card-actions {
@@ -566,7 +566,7 @@
   padding: 2px 8px;
   border-radius: 6px;
   background: rgba(243, 156, 18, 0.1);
-  color: #f5a623;
+  color: #b5710a;
 }
 
 .preview-count {
@@ -737,7 +737,7 @@
 
   &.closed {
     background: rgba(231, 76, 60, 0.1);
-    color: #f87171;
+    color: #b91c1c;
   }
 
   &.replace {

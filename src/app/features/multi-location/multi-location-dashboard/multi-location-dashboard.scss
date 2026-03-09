@@ -285,9 +285,9 @@
   color: var(--os-text-secondary);
   flex-shrink: 0;
 
-  &.rank-gold { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
-  &.rank-silver { background: rgba(156, 163, 175, 0.15); color: #9ca3af; }
-  &.rank-bronze { background: rgba(180, 83, 9, 0.15); color: #d97706; }
+  &.rank-gold { background: rgba(245, 158, 11, 0.15); color: #92610a; }
+  &.rank-silver { background: rgba(156, 163, 175, 0.15); color: #4b5563; }
+  &.rank-bronze { background: rgba(180, 83, 9, 0.15); color: #92400e; }
 }
 
 .benchmark-info { flex: 1; min-width: 0; }

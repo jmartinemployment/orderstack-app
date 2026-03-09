@@ -104,7 +104,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 
-  &.open { background: rgba(46, 204, 113, 0.1); color: #4ade80; }
+  &.open { background: rgba(46, 204, 113, 0.1); color: #15803d; }
   &.closed { background: var(--os-bg-hover); color: var(--os-text-secondary); }
 }
 
@@ -511,8 +511,8 @@
   font-weight: 600;
   margin-bottom: 0.5rem;
 
-  &.over { background: rgba(46, 204, 113, 0.08); color: #4ade80; }
-  &.short { background: rgba(231, 76, 60, 0.08); color: #f87171; }
+  &.over { background: rgba(46, 204, 113, 0.08); color: #15803d; }
+  &.short { background: rgba(231, 76, 60, 0.08); color: #b91c1c; }
   &.even { background: rgba(0, 106, 255, 0.06); color: var(--os-primary); }
 }
 
@@ -529,7 +529,7 @@
   margin-bottom: 1rem;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #f87171;
+  color: #b91c1c;
 
   i { font-size: 1rem; }
 }
@@ -586,7 +586,7 @@
 .disc-badge {
   display: inline-block;
   background: rgba(231, 76, 60, 0.1);
-  color: #f87171;
+  color: #b91c1c;
   font-weight: 700;
   font-size: 0.75rem;
   padding: 2px 8px;

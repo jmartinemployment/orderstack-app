@@ -230,7 +230,7 @@
 
   &.flag-complaint { background: rgba(229, 62, 62, 0.08); color: var(--os-danger); }
   &.flag-allergy { background: rgba(245, 166, 35, 0.1); color: var(--os-warning); }
-  &.flag-rush { background: rgba(253, 126, 20, 0.1); color: #ffa94d; }
+  &.flag-rush { background: rgba(253, 126, 20, 0.1); color: #b85c00; }
   &.flag-compliment { background: rgba(0, 166, 126, 0.08); color: var(--os-success); }
   &.flag-dietary { background: rgba(0, 106, 255, 0.08); color: var(--os-primary); }
   &.flag-modification { background: rgba(0, 106, 255, 0.08); color: var(--os-primary); }
@@ -298,7 +298,7 @@
   font-size: 0.85rem;
 
   &.sentiment-positive { background: rgba(0, 166, 126, 0.1); color: var(--os-success); }
-  &.sentiment-neutral { background: rgba(108, 117, 125, 0.1); color: #8b949e; }
+  &.sentiment-neutral { background: rgba(108, 117, 125, 0.1); color: #5a6470; }
   &.sentiment-negative { background: rgba(229, 62, 62, 0.08); color: var(--os-danger); }
 }
 
