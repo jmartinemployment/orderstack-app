@@ -156,7 +156,7 @@
   } @else {
     <div class="orders-list">
       @for (order of filteredOrders(); track order.guid) {
-        <div class="order-card card mb-2" tabindex="0" (click)="selectOrder(order)" (keydown.enter)="selectOrder(order)">
+        <button type="button" class="order-card card mb-2" (click)="selectOrder(order)" (keydown.enter)="selectOrder(order)">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div>
@@ -202,7 +202,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </button>
       } @empty {
         <div class="empty-state text-center p-5">
           <p class="text-muted mb-0">

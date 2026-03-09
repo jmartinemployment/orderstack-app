@@ -41,16 +41,15 @@
 
     <!-- Error display -->
     @if (error()) {
-      <div
+      <button
+        type="button"
         class="auth-error"
-       
-        tabindex="0"
         (click)="dismissError()"
         (keydown.enter)="dismissError()">
         <i class="bi bi-exclamation-circle"></i>
         {{ error() }}
         <i class="bi bi-x"></i>
-      </div>
+      </button>
     }
 
     <!-- Action buttons -->

@@ -29,17 +29,17 @@
       <div class="state-display">
         @switch (state()) {
           @case ('idle') {
-            <div class="state-circle idle" (click)="startListening()" (keydown.enter)="startListening()" tabindex="0" aria-label="Start voice ordering">
+            <button type="button" class="state-circle idle" (click)="startListening()" (keydown.enter)="startListening()" aria-label="Start voice ordering">
               <span class="state-icon">&#127908;</span>
-            </div>
+            </button>
             <p class="state-text">
               @if (language() === 'es') { Toca para ordenar por voz } @else { Tap to start voice ordering }
             </p>
           }
           @case ('listening') {
-            <div class="state-circle listening" (click)="stopListening()" (keydown.enter)="stopListening()" tabindex="0" aria-label="Stop listening">
+            <button type="button" class="state-circle listening" (click)="stopListening()" (keydown.enter)="stopListening()" aria-label="Stop listening">
               <span class="state-icon">&#9679;</span>
-            </div>
+            </button>
             <p class="state-text listening-text">
               @if (language() === 'es') { Escuchando... di tu pedido } @else { Listening... say your order }
             </p>
@@ -64,9 +64,9 @@
             </p>
           }
           @case ('error') {
-            <div class="state-circle error" (click)="startListening()" (keydown.enter)="startListening()" tabindex="0" aria-label="Retry voice ordering">
+            <button type="button" class="state-circle error" (click)="startListening()" (keydown.enter)="startListening()" aria-label="Retry voice ordering">
               <span class="state-icon">!</span>
-            </div>
+            </button>
             <p class="state-text text-danger">{{ errorMessage() }}</p>
             <p class="state-hint">
               @if (language() === 'es') { Toca para reintentar } @else { Tap to retry }

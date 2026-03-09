@@ -88,7 +88,7 @@
 
   <!-- Add/Edit Modal -->
   @if (showModal()) {
-    <div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" tabindex="0"></div>
+    <button type="button" class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()"></button>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -181,7 +181,7 @@
 
   <!-- Category Assignment Panel -->
   @if (assigningStationId()) {
-    <div class="modal-backdrop" (click)="closeCategoryAssignment()" (keydown.enter)="closeCategoryAssignment()" tabindex="0"></div>
+    <button type="button" class="modal-backdrop" (click)="closeCategoryAssignment()" (keydown.enter)="closeCategoryAssignment()"></button>
     <div class="modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">

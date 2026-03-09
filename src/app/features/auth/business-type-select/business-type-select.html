@@ -124,11 +124,12 @@
           aria-label="City"
           [ngModel]="city()"
           (ngModelChange)="city.set($event)" />
+        <label class="visually-hidden" for="bts-state">State</label>
         <select
+          id="bts-state"
           class="bts-input bts-input-state"
           [ngModel]="state()"
-          (ngModelChange)="state.set($event)"
-          aria-label="State">
+          (ngModelChange)="state.set($event)">
           <option value="" disabled>State</option>
           @for (st of usStates; track st.code) {
             <option [value]="st.code">{{ st.code }}</option>

@@ -302,7 +302,7 @@
 
   <!-- Delete Confirmation Modal -->
   @if (deletingPrinter(); as dp) {
-    <div class="modal-backdrop" (click)="cancelDelete()" (keydown.enter)="cancelDelete()" tabindex="0"></div>
+    <button type="button" class="modal-backdrop" (click)="cancelDelete()" (keydown.enter)="cancelDelete()"></button>
     <div class="stock-modal">
       <h5 class="mb-3">Delete Printer</h5>
       <div class="alert alert-warning small mb-3">

@@ -174,7 +174,7 @@
             }
           </div>
 
-          <div class="card-body" tabindex="0"
+          <button type="button" class="card-body"
                (click)="selectOrder(order, $event)"
                (keydown.enter)="selectOrder(order, $event)">
             <div class="order-meta mb-2">
@@ -434,7 +434,7 @@
               </div>
               <strong>{{ order.totalAmount | currency }}</strong>
             </div>
-          </div>
+          </button>
 
           <div class="card-footer">
             <div class="d-flex gap-2">

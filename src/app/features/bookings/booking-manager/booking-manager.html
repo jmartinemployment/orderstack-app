@@ -100,7 +100,7 @@
     @if (activeTab() === 'today') {
       <div class="booking-list">
         @for (res of todayReservations(); track res.id) {
-          <div class="res-card" (click)="selectBooking(res)" (keydown.enter)="selectBooking(res)" tabindex="0" [attr.aria-label]="'View booking for ' + res.customerName">
+          <button type="button" class="res-card" (click)="selectBooking(res)" (keydown.enter)="selectBooking(res)" [attr.aria-label]="'View booking for ' + res.customerName">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div class="d-flex align-items-center gap-2">
                 <span class="res-time">{{ formatTime(res.reservationTime) }}</span>
@@ -158,7 +158,7 @@
                 <i class="bi bi-person-gear"></i> Prefs
               </button>
             </div>
-          </div>
+          </button>
         } @empty {
           <div class="empty-state text-center p-4">
             <p class="text-muted">No bookings for today</p>
@@ -306,14 +306,14 @@
             </div>
             <div class="timeline-grid-area">
               @for (block of getBlocksForTable(table.id); track block.booking.id) {
-                <div class="timeline-block" [class]="getBlockClass(block)"
+                <button type="button" class="timeline-block" [class]="getBlockClass(block)"
                   [style.left]="getBlockStyle(block)['left']"
                   [style.width]="getBlockStyle(block)['width']"
                   [title]="block.booking.customerName + ' - Party of ' + block.booking.partySize"
-                  (click)="selectBooking(block.booking)" (keydown.enter)="selectBooking(block.booking)" tabindex="0" [attr.aria-label]="'View booking for ' + block.booking.customerName">
+                  (click)="selectBooking(block.booking)" (keydown.enter)="selectBooking(block.booking)" [attr.aria-label]="'View booking for ' + block.booking.customerName">
                   <span class="block-name">{{ block.booking.customerName }}</span>
                   <span class="block-size">{{ block.booking.partySize }}</span>
-                </div>
+                </button>
               }
             </div>
           </div>
@@ -355,7 +355,7 @@
 
       <div class="booking-list">
         @for (res of upcomingReservations(); track res.id) {
-          <div class="res-card" (click)="selectBooking(res)" (keydown.enter)="selectBooking(res)" tabindex="0" [attr.aria-label]="'View booking for ' + res.customerName">
+          <button type="button" class="res-card" (click)="selectBooking(res)" (keydown.enter)="selectBooking(res)" [attr.aria-label]="'View booking for ' + res.customerName">
             <div class="d-flex justify-content-between align-items-start mb-2">
               <div class="d-flex align-items-center gap-2">
                 <span class="res-date">{{ res.reservationTime | date:'EEE, MMM d' }}</span>
@@ -387,7 +387,7 @@
                 }
               </div>
             }
-          </div>
+          </button>
         } @empty {
           <div class="empty-state text-center p-4">
             <p class="text-muted">No upcoming bookings</p>
@@ -635,7 +635,7 @@
       } @else {
         <div class="event-list">
           @for (evt of (eventFilter() === 'upcoming' ? upcomingEvents() : pastEvents()); track evt.id) {
-            <div class="event-card" (click)="selectEvent(evt)" (keydown.enter)="selectEvent(evt)" tabindex="0" [attr.aria-label]="'View event: ' + evt.title">
+            <button type="button" class="event-card" (click)="selectEvent(evt)" (keydown.enter)="selectEvent(evt)" [attr.aria-label]="'View event: ' + evt.title">
               <div class="d-flex justify-content-between align-items-start mb-2">
                 <div>
                   <span class="badge badge-event-type me-2">{{ getEventTypeLabel(evt.bookingType) }}</span>
@@ -665,7 +665,7 @@
                 <button type="button" class="btn btn-sm btn-outline-danger"
                   (click)="deleteEvent(evt); $event.stopPropagation()">Delete</button>
               </div>
-            </div>
+            </button>
           } @empty {
             <div class="empty-state text-center p-4">
               <p class="text-muted mb-2">No {{ eventFilter() }} events</p>

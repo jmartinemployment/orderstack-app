@@ -51,7 +51,7 @@
 
 <!-- Checkout Modal -->
 @if (activeModal() === 'checkout') {
-  <div class="bottom-nav-overlay" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()" tabindex="0">
+  <button type="button" class="bottom-nav-overlay" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
     <div class="bottom-nav-modal checkout-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.escape)="closeModal()">
       <div class="modal-header">
         <h3>Checkout</h3>
@@ -63,12 +63,12 @@
         <os-bottom-nav-checkout />
       </div>
     </div>
-  </div>
+  </button>
 }
 
 <!-- Transactions Modal -->
 @if (activeModal() === 'transactions') {
-  <div class="bottom-nav-overlay" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()" tabindex="0">
+  <button type="button" class="bottom-nav-overlay" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
     <div class="bottom-nav-modal transactions-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.escape)="closeModal()">
       <div class="modal-header">
         <h3>Transactions</h3>
@@ -78,12 +78,12 @@
       </div>
       <os-transactions />
     </div>
-  </div>
+  </button>
 }
 
 <!-- Notifications Modal -->
 @if (activeModal() === 'notifications') {
-  <div class="bottom-nav-overlay" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()" tabindex="0">
+  <button type="button" class="bottom-nav-overlay" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
     <div class="bottom-nav-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.escape)="closeModal()">
       <div class="modal-header">
         <h3>Notifications</h3>
@@ -133,12 +133,12 @@
         }
       </div>
     </div>
-  </div>
+  </button>
 }
 
 <!-- More Modal -->
 @if (activeModal() === 'more') {
-  <div class="bottom-nav-overlay" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()" tabindex="0">
+  <button type="button" class="bottom-nav-overlay" (click)="closeModal()" (keydown.enter)="closeModal()" (keydown.escape)="closeModal()">
     <div class="bottom-nav-modal more-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.escape)="closeModal()">
       <div class="modal-header">
         <h3>Modes</h3>
@@ -178,5 +178,5 @@
         </div>
       </div>
     </div>
-  </div>
+  </button>
 }

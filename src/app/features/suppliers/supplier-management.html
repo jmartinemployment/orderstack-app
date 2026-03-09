@@ -275,7 +275,7 @@
 
   <!-- Vendor Modal -->
   @if (showVendorModal()) {
-    <div class="modal-backdrop" (click)="closeVendorModal()" (keydown.enter)="closeVendorModal()" (keydown.escape)="closeVendorModal()" tabindex="0">
+    <button type="button" class="modal-backdrop" (click)="closeVendorModal()" (keydown.enter)="closeVendorModal()" (keydown.escape)="closeVendorModal()">
       <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.escape)="closeVendorModal()">
         <div class="modal-header">
           <h3>{{ editingVendorId() ? 'Edit Supplier' : 'Add Supplier' }}</h3>
@@ -338,6 +338,6 @@
           </button>
         </div>
       </div>
-    </div>
+    </button>
   }
 </div>

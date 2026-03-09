@@ -74,7 +74,7 @@
         </div>
         <div class="notification-list">
           @for (notif of notifications(); track notif.id) {
-            <div class="notification-item" [class.unread]="!notif.isRead" (click)="markAsRead(notif.id)" (keydown.enter)="markAsRead(notif.id)" tabindex="0">
+            <button type="button" class="notification-item" [class.unread]="!notif.isRead" (click)="markAsRead(notif.id)" (keydown.enter)="markAsRead(notif.id)">
               <i class="bi {{ getNotificationIcon(notif.type) }} notification-icon"></i>
               <div class="notification-content">
                 <div class="notification-title">{{ notif.title }}</div>
@@ -84,7 +84,7 @@
               @if (!notif.isRead) {
                 <span class="notification-dot"></span>
               }
-            </div>
+            </button>
           } @empty {
             <div class="notification-empty">
               <i class="bi bi-bell-slash"></i>
@@ -97,11 +97,11 @@
 
     <!-- Error banner -->
     @if (error()) {
-      <div class="error-banner" (click)="dismissError()" (keydown.enter)="dismissError()" tabindex="0">
+      <button type="button" class="error-banner" (click)="dismissError()" (keydown.enter)="dismissError()">
         <i class="bi bi-exclamation-triangle"></i>
         {{ error() }}
         <i class="bi bi-x"></i>
-      </div>
+      </button>
     }
 
     <!-- Tab bar -->

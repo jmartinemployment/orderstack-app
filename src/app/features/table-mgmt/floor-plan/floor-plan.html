@@ -85,7 +85,8 @@
           <div class="canvas-grid"></div>
 
           @for (table of placedTables(); track table.id) {
-            <div
+            <button
+              type="button"
               class="table-node"
               [class.status-available]="table.status === 'available'"
               [class.status-occupied]="table.status === 'occupied'"
@@ -100,8 +101,6 @@
               (dblclick)="onTableTap(table, $event)"
               (click)="selectTable(table)"
               (keydown.enter)="selectTable(table)"
-              tabindex="0"
-             
               [attr.aria-label]="'Area ' + table.tableNumber + ', ' + table.status"
             >
               <span class="table-number">{{ table.tableNumber }}</span>
@@ -120,7 +119,7 @@
               @if (getTableServerName(table); as serverName) {
                 <span class="table-server-badge">{{ serverName.charAt(0) }}</span>
               }
-            </div>
+            </button>
           } @empty {
             @if (unplacedTables().length === 0) {
               <div class="canvas-empty">
@@ -167,7 +166,7 @@
           <span class="col-actions">Actions</span>
         </div>
         @for (table of filteredTables(); track table.id) {
-          <div class="list-row" [class.selected]="selectedTable()?.id === table.id" (click)="selectTable(table)" (keydown.enter)="selectTable(table)" tabindex="0">
+          <button type="button" class="list-row" [class.selected]="selectedTable()?.id === table.id" (click)="selectTable(table)" (keydown.enter)="selectTable(table)">
             <span class="col-num fw-bold">{{ table.tableNumber }}</span>
             <span class="col-name">
               {{ table.tableName ?? '—' }}
@@ -212,7 +211,7 @@
                 }
               </div>
             </span>
-          </div>
+          </button>
         } @empty {
           <div class="empty-state text-center p-4">
             <p class="text-muted mb-0">No areas found</p>

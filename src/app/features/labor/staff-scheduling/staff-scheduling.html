@@ -140,14 +140,14 @@
                 <div class="template-dropdown-divider"></div>
                 <div class="template-dropdown-label">Apply Template</div>
                 @for (tpl of scheduleTemplates(); track tpl.id) {
-                  <div class="template-dropdown-item d-flex justify-content-between align-items-center"
-                    tabindex="0" (click)="applyTemplate(tpl)"
+                  <button type="button" class="template-dropdown-item d-flex justify-content-between align-items-center"
+                    (click)="applyTemplate(tpl)"
                     (keydown.enter)="applyTemplate(tpl)">
                     <span><i class="bi bi-calendar-check"></i> {{ tpl.name }}</span>
                     <button class="btn-template-delete" (click)="deleteTemplate(tpl, $event)" title="Delete">
                       <i class="bi bi-trash3"></i>
                     </button>
-                  </div>
+                  </button>
                 }
               } @else {
                 <div class="template-dropdown-empty">No saved templates</div>
@@ -223,20 +223,19 @@
               <small class="text-muted">{{ staff.role }}</small>
             </div>
             @for (day of weekDays(); track day) {
-              <div class="grid-cell" tabindex="0"
+              <button type="button" class="grid-cell"
                 (click)="openNewShift(staff.id, day)"
                 (keydown.enter)="openNewShift(staff.id, day)">
                 @for (shift of getShiftsForCell(staff.id, day); track shift.id) {
-                  <div class="shift-block"
+                  <button type="button" class="shift-block"
                     [style.border-left-color]="getPositionColor(shift.position)"
-                    tabindex="0"
                     (click)="openEditShift(shift); $event.stopPropagation()"
                     (keydown.enter)="openEditShift(shift); $event.stopPropagation()">
                     <div class="shift-time">{{ formatTime(shift.startTime) }}-{{ formatTime(shift.endTime) }}</div>
                     <div class="shift-position">{{ getPositionLabel(shift.position) }}</div>
-                  </div>
+                  </button>
                 }
-              </div>
+              </button>
             }
           }
         </div>
@@ -726,7 +725,7 @@
       @for (period of payrollPeriods(); track period.id) {
         <div class="payroll-period-card mb-2" [class.expanded]="expandedPayrollId() === period.id">
           <!-- Period Header -->
-          <div class="payroll-period-header" tabindex="0"
+          <button type="button" class="payroll-period-header"
             (click)="expandPayroll(period)" (keydown.enter)="expandPayroll(period)">
             <div class="d-flex align-items-center gap-2">
               <i class="bi" [class.bi-chevron-right]="expandedPayrollId() !== period.id"
@@ -750,7 +749,7 @@
                 <span class="text-info ms-1">{{ period.totalTips | currency }}</span>
               </span>
             </div>
-          </div>
+          </button>
 
           <!-- Expanded Detail -->
           @if (expandedPayrollId() === period.id && selectedPayroll()) {
@@ -1099,8 +1098,8 @@
 
     <!-- ==================== SHIFT MODAL ==================== -->
     @if (showShiftModal()) {
-      <div class="modal-backdrop" tabindex="0"
-        (click)="closeShiftModal()" (keydown.enter)="closeShiftModal()"></div>
+      <button type="button" class="modal-backdrop"
+        (click)="closeShiftModal()" (keydown.enter)="closeShiftModal()"></button>
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header border-secondary">

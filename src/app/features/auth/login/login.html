@@ -197,7 +197,7 @@
 
 <!-- Forgot Password Modal -->
 @if (showForgotModal()) {
-  <div class="modal-backdrop" (click)="closeForgotPassword()" (keydown.enter)="closeForgotPassword()" tabindex="0"></div>
+  <button type="button" class="modal-backdrop" (click)="closeForgotPassword()" (keydown.enter)="closeForgotPassword()"></button>
   <dialog class="modal-dialog" aria-labelledby="forgotModalTitle">
     <div class="modal-content">
       <div class="modal-header">

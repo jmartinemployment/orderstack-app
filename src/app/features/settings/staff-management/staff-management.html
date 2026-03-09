@@ -183,7 +183,7 @@
 
   <!-- ============ Team Member Form Modal ============ -->
   @if (showTeamMemberForm()) {
-    <div class="modal-backdrop" (click)="closeTeamMemberForm()" (keydown.enter)="closeTeamMemberForm()" tabindex="0"></div>
+    <button type="button" class="modal-backdrop" (click)="closeTeamMemberForm()" (keydown.enter)="closeTeamMemberForm()"></button>
     <div class="modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -308,7 +308,7 @@
 
   <!-- ============ Permission Set Form Modal ============ -->
   @if (showPermissionForm()) {
-    <div class="modal-backdrop" (click)="closePermissionForm()" (keydown.enter)="closePermissionForm()" tabindex="0"></div>
+    <button type="button" class="modal-backdrop" (click)="closePermissionForm()" (keydown.enter)="closePermissionForm()"></button>
     <div class="modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -400,7 +400,7 @@
 
   <!-- ============ Create/Edit PIN Modal ============ -->
   @if (showPinForm()) {
-    <div class="modal-backdrop" (click)="closePinForm()" (keydown.enter)="closePinForm()" tabindex="0"></div>
+    <button type="button" class="modal-backdrop" (click)="closePinForm()" (keydown.enter)="closePinForm()"></button>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -449,7 +449,7 @@
 
   <!-- ============ Change Password Modal ============ -->
   @if (showPasswordForm()) {
-    <div class="modal-backdrop" (click)="closePasswordForm()" (keydown.enter)="closePasswordForm()" tabindex="0"></div>
+    <button type="button" class="modal-backdrop" (click)="closePasswordForm()" (keydown.enter)="closePasswordForm()"></button>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -492,7 +492,7 @@
 
   <!-- ============ Deactivation Confirmation Modal ============ -->
   @if (showConfirmDeactivate()) {
-    <div class="modal-backdrop" (click)="cancelDeactivate()" (keydown.enter)="cancelDeactivate()" tabindex="0"></div>
+    <button type="button" class="modal-backdrop" (click)="cancelDeactivate()" (keydown.enter)="cancelDeactivate()"></button>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">

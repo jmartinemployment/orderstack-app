@@ -153,7 +153,7 @@
 
   <!-- Schedule Modal -->
   @if (showScheduleModal()) {
-    <div class="modal-backdrop" (click)="closeScheduleModal()" (keydown.enter)="closeScheduleModal()" tabindex="0"></div>
+    <button type="button" class="modal-backdrop" (click)="closeScheduleModal()" (keydown.enter)="closeScheduleModal()"></button>
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -230,7 +230,7 @@
 
   <!-- Export Modal -->
   @if (showExportModal()) {
-    <div class="modal-backdrop" (click)="closeExportModal()" (keydown.enter)="closeExportModal()" tabindex="0"></div>
+    <button type="button" class="modal-backdrop" (click)="closeExportModal()" (keydown.enter)="closeExportModal()"></button>
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">

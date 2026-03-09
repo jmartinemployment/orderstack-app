@@ -1,4 +1,4 @@
-<div class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()" tabindex="0"></div>
+<button type="button" class="modal-backdrop" (click)="closeModal()" (keydown.enter)="closeModal()"></button>
 <div class="modal-dialog">
   <div class="modal-content">
     @if (successMessage(); as msg) {

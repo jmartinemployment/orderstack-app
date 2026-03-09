@@ -76,7 +76,7 @@
   } @else {
     <div class="gc-list">
       @for (card of filteredCards(); track card.id) {
-        <div class="gc-card" (click)="openDetail(card)" (keydown.enter)="openDetail(card)" tabindex="0">
+        <button type="button" class="gc-card" (click)="openDetail(card)" (keydown.enter)="openDetail(card)">
           <div class="d-flex justify-content-between align-items-start mb-1">
             <div>
               <code class="gc-code">{{ card.code }}</code>
@@ -100,7 +100,7 @@
             }
             <span>{{ card.createdAt | date:'mediumDate' }}</span>
           </div>
-        </div>
+        </button>
       } @empty {
         <div class="empty-state text-center py-4">
           <p class="text-muted mb-2">No gift cards yet</p>

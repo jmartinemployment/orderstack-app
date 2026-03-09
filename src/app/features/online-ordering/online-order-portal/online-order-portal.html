@@ -260,12 +260,13 @@
               } @else {
                 <div class="d-flex align-items-center gap-1">
                   <button type="button" class="add-btn" (click)="addToCart(item)">Add</button>
-                  <button type="button" class="share-btn" aria-label="Share item" (click)="shareItem(item); $event.stopPropagation()">
+                  <button type="button" class="share-btn" (click)="shareItem(item); $event.stopPropagation()">
                     @if (isItemCopied(item.id)) {
                       <i class="bi bi-check-lg"></i>
                     } @else {
                       <i class="bi bi-share"></i>
                     }
+                    <span class="visually-hidden">Share item</span>
                   </button>
                 </div>
               }
@@ -894,7 +895,7 @@
 
     <!-- AGE VERIFICATION MODAL -->
     @if (showAgeVerification()) {
-      <div class="modal-backdrop" (click)="cancelAgeVerification()" (keydown.enter)="cancelAgeVerification()" tabindex="0"></div>
+      <button type="button" class="modal-backdrop" (click)="cancelAgeVerification()" (keydown.enter)="cancelAgeVerification()"></button>
       <div class="age-modal">
         <div class="age-modal-icon"><i class="bi bi-shield-check"></i></div>
         <h3>Age Verification</h3>

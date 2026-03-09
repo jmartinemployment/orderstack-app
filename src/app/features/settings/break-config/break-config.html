@@ -160,7 +160,7 @@
 
   <!-- Break Type Form Modal -->
   @if (showBreakTypeForm()) {
-    <div class="modal-backdrop" (click)="closeBreakTypeForm()" (keydown.enter)="closeBreakTypeForm()" tabindex="0"></div>
+    <button type="button" class="modal-backdrop" (click)="closeBreakTypeForm()" (keydown.enter)="closeBreakTypeForm()"></button>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">

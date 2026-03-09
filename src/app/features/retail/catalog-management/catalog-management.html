@@ -70,7 +70,8 @@
           aria-label="Search by name, SKU, or barcode"
         />
       </div>
-      <select class="form-select form-select-sm filter-select" [ngModel]="filterCategoryId()" (ngModelChange)="filterCategoryId.set($event)" aria-label="Filter by category">
+      <label class="visually-hidden" for="catalog-category-filter">Category</label>
+      <select id="catalog-category-filter" class="form-select form-select-sm filter-select" [ngModel]="filterCategoryId()" (ngModelChange)="filterCategoryId.set($event)">
         <option [ngValue]="null">All Categories</option>
         @for (cat of categories(); track cat.id) {
           <option [ngValue]="cat.id">{{ cat.name }}</option>

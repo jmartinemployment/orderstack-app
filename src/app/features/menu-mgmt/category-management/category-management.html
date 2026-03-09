@@ -129,7 +129,7 @@
 
   <!-- Category Form Modal -->
   @if (showForm()) {
-    <div class="modal-overlay" (click)="onCategoryOverlayClick($event)" (keydown.enter)="onCategoryOverlayClick($event)" tabindex="0">
+    <button type="button" class="modal-overlay" (click)="onCategoryOverlayClick($event)" (keydown.enter)="onCategoryOverlayClick($event)">
       <div class="modal-content card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">
@@ -199,12 +199,12 @@
           </div>
         </form>
       </div>
-    </div>
+    </button>
   }
 
   <!-- Reporting Category Form Modal -->
   @if (showReportingForm()) {
-    <div class="modal-overlay" (click)="onReportingOverlayClick($event)" (keydown.enter)="onReportingOverlayClick($event)" tabindex="0">
+    <button type="button" class="modal-overlay" (click)="onReportingOverlayClick($event)" (keydown.enter)="onReportingOverlayClick($event)">
       <div class="modal-content card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">
@@ -264,12 +264,12 @@
           </div>
         </form>
       </div>
-    </div>
+    </button>
   }
 
   <!-- Delete Confirmation Modal -->
   @if (deleteTarget(); as target) {
-    <div class="modal-overlay" (click)="onDeleteOverlayClick($event)" (keydown.enter)="onDeleteOverlayClick($event)" tabindex="0">
+    <button type="button" class="modal-overlay" (click)="onDeleteOverlayClick($event)" (keydown.enter)="onDeleteOverlayClick($event)">
       <div class="delete-confirm-modal card">
         <div class="card-header">
           <h5 class="mb-0">Delete Category</h5>
@@ -283,12 +283,12 @@
           <button class="btn btn-danger" (click)="executeDelete()">Delete</button>
         </div>
       </div>
-    </div>
+    </button>
   }
 
   <!-- Delete Reporting Category Confirmation -->
   @if (deleteReportingTarget(); as target) {
-    <div class="modal-overlay" (click)="onDeleteReportingOverlayClick($event)" (keydown.enter)="onDeleteReportingOverlayClick($event)" tabindex="0">
+    <button type="button" class="modal-overlay" (click)="onDeleteReportingOverlayClick($event)" (keydown.enter)="onDeleteReportingOverlayClick($event)">
       <div class="delete-confirm-modal card">
         <div class="card-header">
           <h5 class="mb-0">Delete Reporting Category</h5>
@@ -302,7 +302,7 @@
           <button class="btn btn-danger" (click)="executeDeleteReporting()">Delete</button>
         </div>
       </div>
-    </div>
+    </button>
   }
 </div>
 } @else {

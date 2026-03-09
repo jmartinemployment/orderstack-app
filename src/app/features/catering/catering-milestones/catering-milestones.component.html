@@ -83,19 +83,20 @@
               </td>
               <td>
                 @if (m.paidAt) {
-                  <button type="button" class="btn-mark-paid" disabled aria-label="Already paid">
+                  <button type="button" class="btn-mark-paid" disabled>
                     <i class="bi bi-check-circle-fill"></i>
+                    <span class="visually-hidden">Already paid</span>
                   </button>
                 } @else {
                   <button type="button" class="btn-mark-paid btn-mark-active"
                     [disabled]="_markingId() === m.id"
-                    (click)="markPaid(m.jobId, m.id)"
-                    aria-label="Mark as paid">
+                    (click)="markPaid(m.jobId, m.id)">
                     @if (_markingId() === m.id) {
                       <span class="spinner-border spinner-border-sm"></span>
                     } @else {
                       <i class="bi bi-check-circle"></i>
                     }
+                    <span class="visually-hidden">Mark as paid</span>
                   </button>
                 }
               </td>

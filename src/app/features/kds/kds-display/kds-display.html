@@ -46,10 +46,10 @@
       }
       <!-- Course Pacing Mode -->
       <div class="d-flex align-items-center gap-2">
-        <span class="small text-muted mb-0">Courses:</span>
+        <label class="small text-muted mb-0" for="kds-pacing-mode">Courses:</label>
         <select
+          id="kds-pacing-mode"
           class="form-select form-select-sm pacing-select"
-          aria-label="Course pacing mode"
           [value]="coursePacingMode()"
           (change)="setCoursePacingMode($event)"
         >
@@ -65,7 +65,6 @@
             class="form-check-input"
             type="checkbox"
             id="prepTimeFiringToggle"
-            aria-label="Stagger prep time firing"
             [checked]="prepTimeFiringEnabled()"
             (change)="togglePrepTimeFiring($event)"
           />
@@ -105,10 +104,10 @@
       <!-- Station Selector -->
       @if (stations().length > 0) {
         <div class="d-flex align-items-center gap-2">
-          <span class="small text-muted mb-0">Station:</span>
+          <label class="small text-muted mb-0" for="kds-station-select">Station:</label>
           <select
+            id="kds-station-select"
             class="form-select form-select-sm station-select"
-            aria-label="Station filter"
             (change)="selectStation($any($event.target).value || null)"
           >
             <option value="" [selected]="selectedStationId() === null">All Stations</option>
