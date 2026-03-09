@@ -695,8 +695,8 @@
 
   <!-- Customer Detail Side Panel -->
   @if (selectedCustomer(); as customer) {
-    <div class="detail-overlay" (click)="closeDetail()" (keydown.enter)="closeDetail()" tabindex="0">
-      <div class="detail-panel" (click)="$event.stopPropagation()">
+    <div class="detail-overlay" (click)="closeDetail()" (keydown.enter)="closeDetail()" (keydown.escape)="closeDetail()" aria-hidden="true">
+      <div class="detail-panel" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" (keydown.escape)="$event.stopPropagation()">
         <div class="detail-header d-flex justify-content-between align-items-center mb-3">
           <h4 class="mb-0">{{ getCustomerName(customer) }}</h4>
           <button type="button" class="btn-close" (click)="closeDetail()"></button>

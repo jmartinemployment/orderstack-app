@@ -196,7 +196,7 @@
 
       <div class="vendor-list">
         @for (vendor of vendors(); track vendor.id) {
-          <div class="vendor-card" [class.inactive]="!vendor.isActive" [class.selected]="selectedVendor()?.id === vendor.id" (click)="selectVendor(vendor)">
+          <div class="vendor-card" [class.inactive]="!vendor.isActive" [class.selected]="selectedVendor()?.id === vendor.id" (click)="selectVendor(vendor)" (keydown.enter)="selectVendor(vendor)">
             <div class="vendor-card-header">
               <span class="vendor-name">{{ vendor.name }}</span>
               <span class="vendor-status-dot" [class.active]="vendor.isActive"></span>
@@ -386,7 +386,7 @@
       <!-- Recipe list -->
       <div class="recipe-list">
         @for (recipe of filteredRecipes(); track recipe.id) {
-          <div class="recipe-card" [class.selected]="selectedRecipe()?.id === recipe.id" (click)="selectRecipe(recipe)">
+          <div class="recipe-card" [class.selected]="selectedRecipe()?.id === recipe.id" (click)="selectRecipe(recipe)" (keydown.enter)="selectRecipe(recipe)">
             <div class="recipe-card-header">
               <span class="recipe-name">{{ recipe.name }}</span>
               <span class="recipe-menu-item">{{ getMenuItemName(recipe.menuItemId) }}</span>
@@ -499,7 +499,7 @@
       @if (filteredPurchaseOrders().length > 0) {
         <div class="data-list">
           @for (po of filteredPurchaseOrders(); track po.id) {
-            <div class="data-card" [class.selected]="selectedPo()?.id === po.id" (click)="selectPo(po)">
+            <div class="data-card" [class.selected]="selectedPo()?.id === po.id" (click)="selectPo(po)" (keydown.enter)="selectPo(po)">
               <div class="data-card-header">
                 <div>
                   <strong>{{ po.poNumber }}</strong>
@@ -566,8 +566,8 @@
 
   <!-- ═══ VENDOR FORM MODAL ═══ -->
   @if (showVendorForm()) {
-    <div class="modal-overlay" (click)="closeVendorForm()" (keydown.enter)="closeVendorForm()" tabindex="0">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="closeVendorForm()" (keydown.enter)="closeVendorForm()" aria-hidden="true">
+      <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>{{ editingVendor() ? 'Edit' : 'Add' }} Vendor</h3>
           <button class="btn-close-modal" (click)="closeVendorForm()"><i class="bi bi-x-lg"></i></button>
@@ -612,8 +612,8 @@
 
   <!-- ═══ INVOICE FORM MODAL ═══ -->
   @if (showInvoiceForm()) {
-    <div class="modal-overlay" (click)="closeInvoiceForm()" (keydown.enter)="closeInvoiceForm()" tabindex="0">
-      <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="closeInvoiceForm()" (keydown.enter)="closeInvoiceForm()" aria-hidden="true">
+      <div class="modal-content modal-wide" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Manual Invoice Entry</h3>
           <button class="btn-close-modal" (click)="closeInvoiceForm()"><i class="bi bi-x-lg"></i></button>
@@ -622,7 +622,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="fc-invoice-vendor">Vendor *</label>
-              <select id="fc-invoice-vendor" class="form-select" aria-label="Invoice vendor" (change)="invoiceVendorId.set($any($event.target).value)">
+              <select id="fc-invoice-vendor" class="form-select" (change)="invoiceVendorId.set($any($event.target).value)">
                 <option value="">Select vendor...</option>
                 @for (v of activeVendors(); track v.id) {
                   <option [value]="v.id">{{ v.name }}</option>
@@ -657,7 +657,7 @@
                   <td><input type="text" class="form-input-sm" aria-label="Ingredient name" [value]="item.ingredientName" (input)="updateLineItem($index, 'ingredientName', $any($event.target).value)"></td>
                   <td><input type="number" class="form-input-sm num" aria-label="Quantity" [value]="item.quantity" (input)="updateLineItem($index, 'quantity', +$any($event.target).value)" min="0" step="0.01"></td>
                   <td>
-                    <select class="form-select-sm" aria-label="Unit" (change)="updateLineItem($index, 'unit', $any($event.target).value)">
+                    <select class="form-select-sm" [attr.aria-label]="'Unit for line item ' + ($index + 1)" (change)="updateLineItem($index, 'unit', $any($event.target).value)">
                       @for (u of ['lb','oz','kg','g','ea','cs','gal','qt','pt','dz']; track u) {
                         <option [value]="u" [selected]="item.unit === u">{{ u }}</option>
                       }
@@ -689,8 +689,8 @@
 
   <!-- ═══ RECIPE FORM MODAL ═══ -->
   @if (showRecipeForm()) {
-    <div class="modal-overlay" (click)="closeRecipeForm()" (keydown.enter)="closeRecipeForm()" tabindex="0">
-      <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="closeRecipeForm()" (keydown.enter)="closeRecipeForm()" aria-hidden="true">
+      <div class="modal-content modal-wide" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>{{ editingRecipe() ? 'Edit' : 'New' }} Recipe</h3>
           <button class="btn-close-modal" (click)="closeRecipeForm()"><i class="bi bi-x-lg"></i></button>
@@ -699,7 +699,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="fc-recipe-menu-item">Menu Item *</label>
-              <select id="fc-recipe-menu-item" class="form-select" aria-label="Menu item" [value]="recipeMenuItemId()" (change)="recipeMenuItemId.set($any($event.target).value)">
+              <select id="fc-recipe-menu-item" class="form-select" [value]="recipeMenuItemId()" (change)="recipeMenuItemId.set($any($event.target).value)">
                 <option value="">Select item...</option>
                 @for (item of menuItems(); track item.id) {
                   <option [value]="item.id">{{ item.name }} ({{ item.price | currency }})</option>
@@ -718,7 +718,7 @@
             </div>
             <div class="form-group">
               <label for="fc-recipe-yield-unit">Yield Unit</label>
-              <select id="fc-recipe-yield-unit" class="form-select" aria-label="Yield unit" [value]="recipeYieldUnit()" (change)="recipeYieldUnit.set($any($event.target).value)">
+              <select id="fc-recipe-yield-unit" class="form-select" [value]="recipeYieldUnit()" (change)="recipeYieldUnit.set($any($event.target).value)">
                 @for (u of ['serving','portion','batch','piece','plate']; track u) {
                   <option [value]="u">{{ u | titlecase }}</option>
                 }
@@ -744,7 +744,7 @@
                   <td><input type="text" class="form-input-sm" aria-label="Ingredient name" [value]="ing.ingredientName" (input)="updateIngredient($index, 'ingredientName', $any($event.target).value)"></td>
                   <td><input type="number" class="form-input-sm num" aria-label="Ingredient quantity" [value]="ing.quantity" (input)="updateIngredient($index, 'quantity', +$any($event.target).value)" min="0" step="0.01"></td>
                   <td>
-                    <select class="form-select-sm" aria-label="Ingredient unit" (change)="updateIngredient($index, 'unit', $any($event.target).value)">
+                    <select class="form-select-sm" [attr.aria-label]="'Unit for ingredient ' + ($index + 1)" (change)="updateIngredient($index, 'unit', $any($event.target).value)">
                       @for (u of ['oz','lb','g','kg','ea','cup','tbsp','tsp','fl oz','gal','qt','pt','ml','l']; track u) {
                         <option [value]="u" [selected]="ing.unit === u">{{ u }}</option>
                       }

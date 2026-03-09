@@ -24,8 +24,12 @@ import {
   MenuCategory,
   MenuItem,
   WEIGHT_UNIT_LABELS,
-  isItemAvailable,
 } from '@models/index';
+import {
+  collectMenuItems,
+  filterTerminalItems,
+  computeTerminalGridItems,
+} from '@shared/utils/terminal-menu-utils';
 
 type TopTab = 'keypad' | 'library' | 'favorites' | 'menu';
 
@@ -90,59 +94,20 @@ export class ServerPosTerminal implements OnInit {
     return this.checkout.customerEmail().trim();
   });
 
-  // Collect all items from a category tree (handles nested subcategories)
-  private collectItems(cats: MenuCategory[]): MenuItem[] {
-    const items: MenuItem[] = [];
-    for (const cat of cats) {
-      if (cat.items) items.push(...cat.items);
-      if (cat.subcategories) items.push(...this.collectItems(cat.subcategories));
-    }
-    return items;
-  }
-
-  private terminalFilter(items: MenuItem[]): MenuItem[] {
-    return items.filter(i =>
-      i.isActive !== false &&
-      !i.eightySixed &&
-      i.channelVisibility?.pos !== false &&
-      isItemAvailable(i) &&
-      this.menuService.isItemInActiveDaypart(i)
-    );
-  }
-
   // All available items (used for Favorites fallback)
-  private readonly allItems = computed(() => {
-    return this.terminalFilter(this.collectItems(this._categories()));
-  });
-
-  // Apply category filter to a list of items
-  private filterByCategory(items: MenuItem[]): MenuItem[] {
-    const catId = this._selectedCategoryId();
-    if (!catId) return items;
-    const cat = this._categories().find(c => c.id === catId);
-    if (!cat) return items;
-    const catItemIds = new Set(this.collectItems([cat]).map(i => i.id));
-    return items.filter(i => catItemIds.has(i.id));
-  }
+  private readonly allItems = computed(() =>
+    filterTerminalItems(collectMenuItems(this._categories()), this.menuService),
+  );
 
   // Filtered items for the grid based on active top tab + selected category
-  readonly gridItems = computed(() => {
-    const tab = this._activeTopTab();
-    const items = this.allItems();
-
-    if (tab === 'favorites') {
-      const popular = items.filter(i => i.popular || i.isPopular);
-      const base = popular.length > 0 ? popular : items;
-      return this.filterByCategory(base);
-    }
-
-    if (tab === 'menu' || tab === 'library') {
-      return this.filterByCategory(items);
-    }
-
-    // Keypad tab shows nothing (keypad input mode)
-    return [];
-  });
+  readonly gridItems = computed(() =>
+    computeTerminalGridItems(
+      this._activeTopTab(),
+      this.allItems(),
+      this._selectedCategoryId(),
+      this._categories(),
+    ),
+  );
 
   // Keypad state
   private readonly _keypadValue = signal('');

@@ -266,8 +266,8 @@
         <div class="card-body">
           <h6 class="mb-3"><i class="bi bi-box-arrow-in-right"></i> Clock In</h6>
           <div class="d-flex gap-2">
-            <select class="form-select form-select-sm"
-              aria-label="Clock In — Select staff"
+            <label class="visually-hidden" for="sched-clock-in-staff">Select staff to clock in</label>
+            <select id="sched-clock-in-staff" class="form-select form-select-sm"
               [ngModel]="clockInPin()" (ngModelChange)="setClockInPin($event)">
               <option value="">Select staff...</option>
               @for (member of staffRows(); track member.id) {

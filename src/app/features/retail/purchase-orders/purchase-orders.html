@@ -142,7 +142,7 @@
           <div class="form-row">
             <div class="form-group">
               <label>Vendor *</label>
-              <select aria-label="Vendor" [ngModel]="formVendorId()" (ngModelChange)="updateFormVendor($event)">
+              <select [ngModel]="formVendorId()" (ngModelChange)="updateFormVendor($event)">
                 <option value="">Select vendor...</option>
                 @for (vendor of vendors(); track vendor.id) {
                   @if (vendor.isActive) {
@@ -161,7 +161,8 @@
             <label>Line Items</label>
             @for (li of formLineItems(); track $index) {
               <div class="line-item-row">
-                <select aria-label="Line item" [ngModel]="li.inventoryItemId" (ngModelChange)="updateLineItemId($index, $event)">
+                <label [for]="'po-line-item-' + $index" class="visually-hidden">Line item {{ $index + 1 }}</label>
+                <select [id]="'po-line-item-' + $index" [ngModel]="li.inventoryItemId" (ngModelChange)="updateLineItemId($index, $event)">
                   <option value="">Select item...</option>
                   @for (item of catalogService.activeItems(); track item.id) {
                     <option [value]="item.id">{{ item.name }}</option>

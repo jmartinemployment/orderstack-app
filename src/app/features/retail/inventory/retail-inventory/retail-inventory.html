@@ -890,7 +890,7 @@
         <div class="modal-body">
           <div class="form-group">
             <label>Adjustment Type</label>
-            <select aria-label="Adjustment Type" [ngModel]="adjustType()" (ngModelChange)="updateAdjustType($event)">
+            <select [ngModel]="adjustType()" (ngModelChange)="updateAdjustType($event)">
               @for (type of adjustmentTypes; track type) {
                 <option [value]="type">{{ adjustmentTypeLabels[type] }}</option>
               }
@@ -986,7 +986,8 @@
             <label>Items</label>
             @for (item of transferItems(); track $index) {
               <div class="transfer-item-input">
-                <select aria-label="Transfer item" [ngModel]="item.itemId" (ngModelChange)="updateTransferItemId($index, $event)">
+                <label [for]="'transfer-item-' + $index" class="visually-hidden">Transfer item {{ $index + 1 }}</label>
+                <select [id]="'transfer-item-' + $index" [ngModel]="item.itemId" (ngModelChange)="updateTransferItemId($index, $event)">
                   <option value="">Select item...</option>
                   @for (stockItem of stock(); track stockItem.id) {
                     <option [value]="stockItem.itemId">

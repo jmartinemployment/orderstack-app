@@ -234,9 +234,10 @@
               } @else if (availableDrivers().length > 0) {
                 <div class="driver-assign-dropdown small mb-2">
                   <div class="d-flex align-items-center gap-2">
+                    <label [for]="'driver-select-' + order.guid" class="visually-hidden">Assign driver</label>
                     <select
+                      [id]="'driver-select-' + order.guid"
                       class="form-select form-select-sm driver-select"
-                      aria-label="Assign driver"
                       [disabled]="isAssigningDriver(order.guid)"
                       (change)="onDriverSelect(order.guid, $event)"
                     >
@@ -515,8 +516,8 @@
 
   <!-- Cancel Order Confirmation Modal -->
   @if (cancelTarget(); as target) {
-    <div class="modal-overlay" (click)="dismissCancel()" aria-hidden="true">
-      <div class="delete-confirm-modal card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="dismissCancel()" (keydown.escape)="dismissCancel()" aria-hidden="true">
+      <div class="delete-confirm-modal card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="card-header">
           <h5 class="mb-0">Cancel Order</h5>
         </div>
@@ -534,8 +535,8 @@
 
   <!-- Bulk Action Confirmation Modal -->
   @if (showBulkConfirm()) {
-    <div class="modal-overlay" (click)="dismissBulkConfirm()" aria-hidden="true">
-      <div class="delete-confirm-modal card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="dismissBulkConfirm()" (keydown.escape)="dismissBulkConfirm()" aria-hidden="true">
+      <div class="delete-confirm-modal card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="card-header">
           <h5 class="mb-0">{{ getBulkActionLabel() }}</h5>
         </div>
@@ -557,8 +558,8 @@
 
   <!-- Reject Catering Order Confirmation Modal -->
   @if (rejectTarget(); as target) {
-    <div class="modal-overlay" (click)="dismissReject()" aria-hidden="true">
-      <div class="delete-confirm-modal card" (click)="$event.stopPropagation()">
+    <div class="modal-overlay" (click)="dismissReject()" (keydown.escape)="dismissReject()" aria-hidden="true">
+      <div class="delete-confirm-modal card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="card-header">
           <h5 class="mb-0">Reject Catering Order</h5>
         </div>
@@ -577,7 +578,7 @@
   <!-- Order Detail Modal -->
   @if (_selectedOrder()) {
     <div class="modal-overlay" (click)="closeOrderDetail()" (keydown.escape)="closeOrderDetail()" aria-hidden="true">
-      <div class="order-detail-modal card" (click)="$event.stopPropagation()">
+      <div class="order-detail-modal card" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h4 class="mb-0">Order #{{ getOrderNumber(_selectedOrder()!) }}</h4>
           <button type="button" class="btn-close" (click)="closeOrderDetail()"></button>

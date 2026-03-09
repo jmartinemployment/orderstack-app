@@ -81,10 +81,10 @@
 
       <!-- Reason -->
       <div class="mb-3">
-        <span class="form-label">Reason</span>
+        <label class="form-label" for="discount-reason">Reason</label>
         <select
+          id="discount-reason"
           class="form-select"
-          aria-label="Discount reason"
           [value]="reason()"
           (change)="setReason($any($event.target).value)">
           @for (opt of reasonOptions; track opt.value) {

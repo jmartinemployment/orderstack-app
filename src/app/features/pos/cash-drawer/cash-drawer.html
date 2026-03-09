@@ -475,8 +475,8 @@
           <input type="date" class="form-control form-control-sm" aria-label="Report end date" (change)="setReportDateTo($any($event.target).value)">
         </div>
         <div class="filter-group">
-          <span>Employee</span>
-          <select class="form-control form-control-sm" aria-label="Filter by employee" (change)="setReportEmployee($any($event.target).value)">
+          <label for="cd-filter-employee">Employee</label>
+          <select id="cd-filter-employee" class="form-control form-control-sm" (change)="setReportEmployee($any($event.target).value)">
             <option value="">All</option>
             @for (name of drawerService.allEmployeeNames(); track name) {
               <option [value]="name">{{ name }}</option>
@@ -484,8 +484,8 @@
           </select>
         </div>
         <div class="filter-group">
-          <span>Type</span>
-          <select class="form-control form-control-sm" aria-label="Filter by event type" (change)="setReportType($any($event.target).value)">
+          <label for="cd-filter-type">Type</label>
+          <select id="cd-filter-type" class="form-control form-control-sm" (change)="setReportType($any($event.target).value)">
             <option value="">All Types</option>
             @for (t of reportableEventTypes; track t) {
               <option [value]="t">{{ getEventLabel(t) }}</option>

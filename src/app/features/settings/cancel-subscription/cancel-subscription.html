@@ -95,10 +95,10 @@
                 (ngModelChange)="followUpText.set($event)"></textarea>
             }
             @case ('switching_competitor') {
-              <p class="phase-description">Which product are you switching to?</p>
+              <label for="competitor-select" class="phase-description">Which product are you switching to?</label>
               <select
+                id="competitor-select"
                 class="form-select"
-                aria-label="Competitor product"
                 [ngModel]="selectedCompetitor()"
                 (ngModelChange)="selectedCompetitor.set($event)">
                 <option value="">Select a product</option>

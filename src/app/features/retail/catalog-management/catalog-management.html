@@ -93,7 +93,8 @@
         <button class="btn btn-sm btn-outline-danger" (click)="bulkDelete()">
           <i class="bi bi-trash3"></i> Delete
         </button>
-        <select class="form-select form-select-sm" style="width: auto;" (change)="bulkChangeCategory($any($event.target).value)" aria-label="Move to category">
+        <label for="bulk-move-category" class="visually-hidden">Move to category</label>
+        <select id="bulk-move-category" class="form-select form-select-sm" style="width: auto;" (change)="bulkChangeCategory($any($event.target).value)">
           <option value="" disabled selected>Move to category...</option>
           @for (cat of categories(); track cat.id) {
             <option [value]="cat.id">{{ cat.name }}</option>
@@ -391,7 +392,7 @@
 <!-- ==================== ITEM MODAL ==================== -->
 @if (showItemModal()) {
   <div class="modal-overlay" (click)="showItemModal.set(false)" (keydown.enter)="showItemModal.set(false)" (keydown.escape)="showItemModal.set(false)">
-    <div class="modal-panel modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-panel modal-lg" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingItem() ? 'Edit Item' : 'New Item' }}</h3>
         <button class="btn-close" aria-label="Close" (click)="showItemModal.set(false)"></button>
@@ -430,7 +431,7 @@
           <div class="form-row">
             <div class="form-group flex-1">
               <label>Category</label>
-              <select class="form-select" [ngModel]="itemForm().categoryId" (ngModelChange)="updateItemForm({ categoryId: $event })" aria-label="Category">
+              <select class="form-select" [ngModel]="itemForm().categoryId" (ngModelChange)="updateItemForm({ categoryId: $event })">
                 <option [ngValue]="null">None</option>
                 @for (cat of categories(); track cat.id) {
                   <option [ngValue]="cat.id">{{ cat.name }}</option>
@@ -525,7 +526,7 @@
 <!-- ==================== CATEGORY MODAL ==================== -->
 @if (showCategoryModal()) {
   <div class="modal-overlay" (click)="showCategoryModal.set(false)" (keydown.enter)="showCategoryModal.set(false)" (keydown.escape)="showCategoryModal.set(false)">
-    <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-panel" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingCategory() ? 'Edit Category' : 'New Category' }}</h3>
         <button class="btn-close" aria-label="Close" (click)="showCategoryModal.set(false)"></button>
@@ -533,11 +534,11 @@
       <div class="modal-body">
         <div class="form-group">
           <label>Name</label>
-          <input type="text" class="form-control" [ngModel]="categoryForm().name" (ngModelChange)="updateCategoryName($event)" aria-label="Name" />
+          <input type="text" class="form-control" [ngModel]="categoryForm().name" (ngModelChange)="updateCategoryName($event)" />
         </div>
         <div class="form-group">
           <label>Parent Category</label>
-          <select class="form-select" [ngModel]="categoryForm().parentId" (ngModelChange)="updateCategoryParent($event)" aria-label="Parent category">
+          <select class="form-select" [ngModel]="categoryForm().parentId" (ngModelChange)="updateCategoryParent($event)">
             <option [ngValue]="null">None (top level)</option>
             @for (cat of categories(); track cat.id) {
               <option [ngValue]="cat.id">{{ cat.name }}</option>
@@ -558,7 +559,7 @@
 <!-- ==================== OPTION SET MODAL ==================== -->
 @if (showOptionSetModal()) {
   <div class="modal-overlay" (click)="showOptionSetModal.set(false)" (keydown.enter)="showOptionSetModal.set(false)" (keydown.escape)="showOptionSetModal.set(false)">
-    <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-panel" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingOptionSet() ? 'Edit Option Set' : 'New Option Set' }}</h3>
         <button class="btn-close" aria-label="Close" (click)="showOptionSetModal.set(false)"></button>
@@ -605,7 +606,7 @@
 <!-- ==================== COLLECTION MODAL ==================== -->
 @if (showCollectionModal()) {
   <div class="modal-overlay" (click)="showCollectionModal.set(false)" (keydown.enter)="showCollectionModal.set(false)" (keydown.escape)="showCollectionModal.set(false)">
-    <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-panel" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingCollection() ? 'Edit Collection' : 'New Collection' }}</h3>
         <button class="btn-close" aria-label="Close" (click)="showCollectionModal.set(false)"></button>
@@ -668,7 +669,7 @@
 <!-- ==================== BUNDLE MODAL ==================== -->
 @if (showBundleModal()) {
   <div class="modal-overlay" (click)="showBundleModal.set(false)" (keydown.enter)="showBundleModal.set(false)" (keydown.escape)="showBundleModal.set(false)">
-    <div class="modal-panel modal-lg" (click)="$event.stopPropagation()">
+    <div class="modal-panel modal-lg" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingBundle() ? 'Edit Bundle' : 'New Bundle' }}</h3>
         <button class="btn-close" aria-label="Close" (click)="showBundleModal.set(false)"></button>
@@ -760,7 +761,7 @@
 <!-- ==================== CSV IMPORT MODAL ==================== -->
 @if (showImportModal()) {
   <div class="modal-overlay" (click)="showImportModal.set(false)" (keydown.enter)="showImportModal.set(false)" (keydown.escape)="showImportModal.set(false)">
-    <div class="modal-panel" (click)="$event.stopPropagation()">
+    <div class="modal-panel" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Import from CSV</h3>
         <button class="btn-close" aria-label="Close" (click)="showImportModal.set(false)"></button>

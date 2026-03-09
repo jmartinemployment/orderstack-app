@@ -387,7 +387,8 @@
                       <span class="fw-semibold small">{{ item.name }}</span>
                     </div>
                     @if (isMenuItemSelected(item.id) && item.cateringPricing && item.cateringPricing.length > 1) {
-                      <select class="form-select form-select-sm" style="max-width: 180px;" aria-label="Pricing tier"
+                      <label class="visually-hidden" [for]="'pricing-tier-' + item.id">Pricing tier</label>
+                      <select class="form-select form-select-sm" style="max-width: 180px;" [id]="'pricing-tier-' + item.id"
                         (change)="selectItemTier(item.id, item.cateringPricing![$any($event.target).selectedIndex])">
                         @for (tier of item.cateringPricing; track $index) {
                           <option [selected]="getSelectedTier(item.id)?.model === tier.model && getSelectedTier(item.id)?.price === tier.price">

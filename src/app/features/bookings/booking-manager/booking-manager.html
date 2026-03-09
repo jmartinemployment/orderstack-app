@@ -766,8 +766,8 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Table</label>
-              <select class="form-select" formControlName="tableNumber" aria-label="Table">
+              <label class="form-label" for="bm-table-select">Table</label>
+              <select id="bm-table-select" class="form-select" formControlName="tableNumber">
                 <option value="">Auto-assign</option>
                 @for (table of availableTables(); track table.id) {
                   <option [value]="table.tableNumber">
@@ -1149,8 +1149,8 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Celebration / Occasion</label>
-            <select class="form-select" [value]="prefCelebration() ?? ''" (change)="onPrefField('celebration', $event)" aria-label="Celebration or occasion">
+            <label class="form-label" for="bm-celebration-select">Celebration / Occasion</label>
+            <select id="bm-celebration-select" class="form-select" [value]="prefCelebration() ?? ''" (change)="onPrefField('celebration', $event)">
               <option value="">None</option>
               @for (occ of occasionOptions; track occ) {
                 <option [value]="occ">{{ occ }}</option>

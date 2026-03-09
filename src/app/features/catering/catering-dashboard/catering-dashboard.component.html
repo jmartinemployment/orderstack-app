@@ -120,7 +120,8 @@
           (ngModelChange)="searchQuery.set($event)"
         >
       </div>
-      <select class="form-select" style="width: auto;" aria-label="Filter by status" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+      <label class="visually-hidden" for="catering-status-filter">Filter by status</label>
+      <select id="catering-status-filter" class="form-select" style="width: auto;" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
         <option value="all">All Statuses</option>
         @for (s of statusOptions; track s.value) {
           <option [value]="s.value">{{ s.label }}</option>

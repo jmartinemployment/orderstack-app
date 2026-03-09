@@ -224,7 +224,7 @@
                 </div>
                 <div class="detail-row">
                   <label>Reason</label>
-                  <select aria-label="Return reason" [ngModel]="selection.reason" (ngModelChange)="updateReturnReason($index, $event)">
+                  <select [ngModel]="selection.reason" (ngModelChange)="updateReturnReason($index, $event)">
                     @for (r of returnReasons; track r.value) {
                       <option [value]="r.value">{{ r.label }}</option>
                     }

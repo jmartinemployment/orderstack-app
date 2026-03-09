@@ -188,7 +188,7 @@
           @if (scheduleFrequency() === 'monthly') {
             <div class="form-group">
               <label for="schedule-day-of-month">Day of Month</label>
-              <select id="schedule-day-of-month" class="form-select" aria-label="Day of Month" [ngModel]="scheduleDayOfMonth()" (ngModelChange)="setScheduleDayOfMonth(+$event)">
+              <select id="schedule-day-of-month" class="form-select" [ngModel]="scheduleDayOfMonth()" (ngModelChange)="setScheduleDayOfMonth(+$event)">
                 @for (d of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]; track d) {
                   <option [value]="d">{{ d }}</option>
                 }

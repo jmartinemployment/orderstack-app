@@ -168,7 +168,6 @@
                   <label class="form-label mb-0" [for]="'station-select-' + device.id"><small>Station</small></label>
                   <select class="form-select form-select-sm"
                     [id]="'station-select-' + device.id"
-                    aria-label="Station assignment"
                     [ngModel]="getStationForDevice(device.id)"
                     (ngModelChange)="assignStation(device.id, $event)">
                     <option value="">None</option>
@@ -526,7 +525,7 @@
                       <td>{{ printJobLabels[rule.jobType] }}</td>
                       <td>
                         <select class="form-select form-select-sm"
-                          aria-label="Printer for this job type"
+                          [attr.aria-label]="printJobLabels[rule.jobType] + ' printer'"
                           [ngModel]="rule.printerId"
                           (ngModelChange)="updateRule(i, 'printerId', $event)">
                           <option value="">None</option>

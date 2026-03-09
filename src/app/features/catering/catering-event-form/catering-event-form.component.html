@@ -23,7 +23,7 @@
       <div class="row mb-3">
         <div class="col-6">
           <label class="form-label" for="event-form-event-type">Event Type <span class="text-danger">*</span></label>
-          <select id="event-form-event-type" class="form-select" [(ngModel)]="eventType" aria-label="Event type">
+          <select id="event-form-event-type" class="form-select" [(ngModel)]="eventType">
             @for (t of eventTypes; track t.value) {
               <option [value]="t.value">{{ t.label }}</option>
             }
@@ -31,7 +31,7 @@
         </div>
         <div class="col-6">
           <label class="form-label" for="event-form-status">Status <span class="text-danger">*</span></label>
-          <select id="event-form-status" class="form-select" [(ngModel)]="status" aria-label="Status">
+          <select id="event-form-status" class="form-select" [(ngModel)]="status">
             @for (s of statuses; track s.value) {
               <option [value]="s.value">{{ s.label }}</option>
             }

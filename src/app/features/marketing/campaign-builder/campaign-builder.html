@@ -282,7 +282,7 @@
     <!-- CAMPAIGN DETAIL MODAL -->
     @if (selectedCampaign(); as detail) {
       <div class="modal-backdrop" (click)="closeDetail()" (keydown.enter)="closeDetail()"></div>
-      <div class="detail-modal" (click)="$event.stopPropagation()">
+      <div class="detail-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="d-flex justify-content-between align-items-start mb-3">
           <div>
             <h4 class="mb-1">{{ detail.name }}</h4>
@@ -391,7 +391,7 @@
         <div class="row mb-3">
           <div class="col-6">
             <label class="form-label" for="mkt-campaign-type">Type</label>
-            <select id="mkt-campaign-type" class="form-select" [value]="formType()" (change)="onFormField('type', $event)" aria-label="Campaign Type">
+            <select id="mkt-campaign-type" class="form-select" [value]="formType()" (change)="onFormField('type', $event)">
               @for (t of campaignTypes; track t.key) {
                 <option [value]="t.key">{{ t.label }}</option>
               }
@@ -542,7 +542,7 @@
 
         <div class="mb-3">
           <label class="form-label" for="mkt-auto-template">Template (optional)</label>
-          <select id="mkt-auto-template" class="form-select" [value]="autoTemplateId() ?? ''" (change)="onAutoField('templateId', $event)" aria-label="Template">
+          <select id="mkt-auto-template" class="form-select" [value]="autoTemplateId() ?? ''" (change)="onAutoField('templateId', $event)">
             <option value="">No template</option>
             @for (template of templates; track template.id) {
               <option [value]="template.id">{{ template.name }}</option>

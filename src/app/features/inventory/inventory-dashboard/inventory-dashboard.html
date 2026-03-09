@@ -188,9 +188,10 @@
           [ngModel]="searchTerm()"
           (ngModelChange)="setSearchTerm($event)"
         />
+        <label class="visually-hidden" for="inv-category-filter">Category filter</label>
         <select
+          id="inv-category-filter"
           class="form-select form-select-sm filter-select"
-          aria-label="Category filter"
           [ngModel]="categoryFilter()"
           (ngModelChange)="setCategoryFilter($event)"
         >
@@ -448,7 +449,6 @@
             <div>
               <label class="form-label small" for="inv-cycle-count-category">Category (optional)</label>
               <select id="inv-cycle-count-category" class="form-select form-select-sm filter-select"
-                aria-label="Cycle count category"
                 [ngModel]="cycleCountCategory()"
                 (ngModelChange)="setCycleCountCategory($event)">
                 @for (cat of categories(); track cat) {

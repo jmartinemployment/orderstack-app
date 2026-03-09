@@ -13,12 +13,12 @@
     <div class="booking-body">
       <!-- Party Size -->
       <div class="form-group mb-3">
-        <label class="form-label">Party Size</label>
+        <label class="form-label" for="bw-party-size">Party Size</label>
         <select
+          id="bw-party-size"
           class="form-select"
           [value]="partySize()"
           (change)="onPartySizeChange($event)"
-          aria-label="Party size"
         >
           @for (size of partySizeOptions(); track size) {
             <option [value]="size">{{ size }} {{ size === 1 ? 'Guest' : 'Guests' }}</option>
@@ -28,12 +28,12 @@
 
       <!-- Date Picker -->
       <div class="form-group mb-3">
-        <label class="form-label">Date</label>
+        <label class="form-label" for="bw-date-select">Date</label>
         <select
+          id="bw-date-select"
           class="form-select"
           [value]="selectedDate()"
           (change)="onDateChange($event)"
-          aria-label="Date"
         >
           <option value="">Select a date</option>
           @for (date of dateOptions(); track date) {
@@ -132,12 +132,12 @@
 
       <!-- Seating Preference -->
       <div class="form-group mb-3">
-        <label class="form-label">Seating Preference</label>
+        <label class="form-label" for="bw-seating-pref">Seating Preference</label>
         <select
+          id="bw-seating-pref"
           class="form-select"
           [value]="seatingPreference()"
           (change)="onSeatingChange($event)"
-          aria-label="Seating preference"
         >
           @for (opt of seatingOptions; track opt.value) {
             <option [value]="opt.value">{{ opt.label }}</option>
@@ -147,12 +147,12 @@
 
       <!-- Occasion -->
       <div class="form-group mb-3">
-        <label class="form-label">Special Occasion</label>
+        <label class="form-label" for="bw-occasion-select">Special Occasion</label>
         <select
+          id="bw-occasion-select"
           class="form-select"
           [value]="occasion()"
           (change)="onOccasionChange($event)"
-          aria-label="Special occasion"
         >
           <option value="">None</option>
           @for (occ of occasionOptions; track occ) {

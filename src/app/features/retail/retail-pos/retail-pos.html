@@ -878,7 +878,7 @@
 
   <!-- Weight Entry Modal -->
   @if (activeModal() === 'weight-entry') {
-    <div class="modal-backdrop" (click)="closeModal()" aria-hidden="true">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()" aria-hidden="true">
       <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Enter Weight</h3>
@@ -907,7 +907,7 @@
 
   <!-- Quick Key Config Modal -->
   @if (activeModal() === 'quick-key-config') {
-    <div class="modal-backdrop" (click)="closeModal()" aria-hidden="true">
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()" aria-hidden="true">
       <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Configure Quick Key</h3>
@@ -916,7 +916,7 @@
         <div class="modal-body">
           <div class="form-group">
             <label>Item</label>
-            <select aria-label="Item" [ngModel]="configItemId()" (ngModelChange)="updateConfigItemId($event)">
+            <select [ngModel]="configItemId()" (ngModelChange)="updateConfigItemId($event)">
               <option value="">Select item...</option>
               @for (item of catalogService.activeItems(); track item.id) {
                 <option [value]="item.id">{{ item.name }}</option>
@@ -926,7 +926,7 @@
           @if (getConfigItemVariations().length > 0) {
             <div class="form-group">
               <label>Variation (optional)</label>
-              <select aria-label="Variation" [ngModel]="configVariationId() ?? ''" (ngModelChange)="updateConfigVariationId($event)">
+              <select [ngModel]="configVariationId() ?? ''" (ngModelChange)="updateConfigVariationId($event)">
                 <option value="">Any / Default</option>
                 @for (v of getConfigItemVariations(); track v.id) {
                   <option [value]="v.id">{{ v.name }}</option>

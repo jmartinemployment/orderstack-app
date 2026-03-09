@@ -367,8 +367,8 @@
           <div class="swap-form">
             <h4>Request Shift Swap</h4>
             <div class="form-group">
-              <span class="form-label">Select shift to swap</span>
-              <select class="form-select" aria-label="Select shift to swap" (change)="setSwapShiftId($any($event.target).value)">
+              <label class="form-label" for="swap-shift-select">Select shift to swap</label>
+              <select id="swap-shift-select" class="form-select" (change)="setSwapShiftId($any($event.target).value)">
                 <option value="">Choose a shift...</option>
                 @for (shift of swappableShifts(); track shift.id) {
                   <option [value]="shift.id">
@@ -531,8 +531,8 @@
 
         <!-- Manager Override Modal -->
         @if (showManagerOverride()) {
-          <div class="modal-overlay" (click)="cancelManagerOverride()" aria-hidden="true">
-            <div class="manager-override-modal" (click)="$event.stopPropagation()">
+          <div class="modal-overlay" (click)="cancelManagerOverride()" (keydown.escape)="cancelManagerOverride()" aria-hidden="true">
+            <div class="manager-override-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
               <h4><i class="bi bi-shield-lock"></i> Manager Override Required</h4>
               <p class="text-muted">{{ scheduleBlockMessage() }}</p>
               <p>Enter a manager PIN to override:</p>
@@ -635,12 +635,12 @@
 
         <!-- Timecard Edit Request Modal -->
         @if (showEditForm()) {
-          <div class="modal-overlay" (click)="closeEditRequest()" aria-hidden="true">
-            <div class="edit-request-modal" (click)="$event.stopPropagation()">
+          <div class="modal-overlay" (click)="closeEditRequest()" (keydown.escape)="closeEditRequest()" aria-hidden="true">
+            <div class="edit-request-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
               <h3>Request Timecard Edit</h3>
               <div class="edit-form-group">
-                <span class="form-label">Edit Type</span>
-                <select class="edit-select" aria-label="Edit type" [value]="editType()" (change)="setEditType($any($event.target).value)">
+                <label class="form-label" for="timecard-edit-type">Edit Type</label>
+                <select id="timecard-edit-type" class="edit-select" [value]="editType()" (change)="setEditType($any($event.target).value)">
                   @for (opt of editTypeOptions; track opt.value) {
                     <option [value]="opt.value">{{ opt.label }}</option>
                   }
@@ -674,8 +674,8 @@
 
         <!-- Clock Out Confirmation Modal -->
         @if (showClockOutConfirm()) {
-          <div class="modal-overlay" (click)="cancelClockOut()" aria-hidden="true">
-            <div class="clock-out-modal" (click)="$event.stopPropagation()">
+          <div class="modal-overlay" (click)="cancelClockOut()" (keydown.escape)="cancelClockOut()" aria-hidden="true">
+            <div class="clock-out-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
               <h3>Shift Summary</h3>
 
               @if (shiftSummary(); as s) {
@@ -777,8 +777,8 @@
 
         <!-- Job Switch Modal -->
         @if (showJobSwitcher()) {
-          <div class="modal-overlay" (click)="cancelJobSwitch()" aria-hidden="true">
-            <div class="job-switch-modal" (click)="$event.stopPropagation()">
+          <div class="modal-overlay" (click)="cancelJobSwitch()" (keydown.escape)="cancelJobSwitch()" aria-hidden="true">
+            <div class="job-switch-modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
               <h3>Switch Job</h3>
               <p class="job-switch-desc">
                 This will close your current timecard as

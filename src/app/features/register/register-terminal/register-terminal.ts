@@ -20,11 +20,17 @@ import { Checkout } from '@shared/checkout/checkout';
 import { BottomNavigation } from '@shared/bottom-navigation/bottom-navigation';
 import { ItemGrid } from '@shared/item-grid';
 import {
-  MenuCategory,
   MenuItem,
   WEIGHT_UNIT_LABELS,
-  isItemAvailable,
 } from '@models/index';
+import {
+  collectMenuItems,
+  filterTerminalItems,
+  filterItemsByCategory,
+  computeTerminalGridItems,
+  handleKeypadPress,
+  parseItemPrice,
+} from '@shared/utils/terminal-menu-utils';
 
 type TopTab = 'keypad' | 'library' | 'favorites' | 'menu';
 
@@ -70,59 +76,20 @@ export class RegisterTerminal implements OnInit {
     return item.imageUrl ?? item.thumbnailUrl ?? item.image ?? null;
   };
 
-  // Collect all items from a category tree (handles nested subcategories)
-  private collectItems(cats: MenuCategory[]): MenuItem[] {
-    const items: MenuItem[] = [];
-    for (const cat of cats) {
-      if (cat.items) items.push(...cat.items);
-      if (cat.subcategories) items.push(...this.collectItems(cat.subcategories));
-    }
-    return items;
-  }
-
-  private registerFilter(items: MenuItem[]): MenuItem[] {
-    return items.filter(i =>
-      i.isActive !== false &&
-      !i.eightySixed &&
-      i.channelVisibility?.pos !== false &&
-      isItemAvailable(i) &&
-      this.menuService.isItemInActiveDaypart(i)
-    );
-  }
-
   // All available register items
-  private readonly allRegisterItems = computed(() => {
-    return this.registerFilter(this.collectItems(this._categories()));
-  });
-
-  // Apply category filter to a list of items
-  private filterByCategory(items: MenuItem[]): MenuItem[] {
-    const catId = this._selectedCategoryId();
-    if (!catId) return items;
-    const cat = this._categories().find(c => c.id === catId);
-    if (!cat) return items;
-    const catItemIds = new Set(this.collectItems([cat]).map(i => i.id));
-    return items.filter(i => catItemIds.has(i.id));
-  }
+  private readonly allRegisterItems = computed(() =>
+    filterTerminalItems(collectMenuItems(this._categories()), this.menuService),
+  );
 
   // Filtered items for the grid based on active top tab + selected category
-  readonly gridItems = computed(() => {
-    const tab = this._activeTopTab();
-    const allItems = this.allRegisterItems();
-
-    if (tab === 'favorites') {
-      const popular = allItems.filter(i => i.popular || i.isPopular);
-      const base = popular.length > 0 ? popular : allItems;
-      return this.filterByCategory(base);
-    }
-
-    if (tab === 'menu' || tab === 'library') {
-      return this.filterByCategory(allItems);
-    }
-
-    // Keypad tab shows nothing (keypad input mode)
-    return [];
-  });
+  readonly gridItems = computed(() =>
+    computeTerminalGridItems(
+      this._activeTopTab(),
+      this.allRegisterItems(),
+      this._selectedCategoryId(),
+      this._categories(),
+    ),
+  );
 
   // Keypad state
   private readonly _keypadValue = signal('');
@@ -156,16 +123,10 @@ export class RegisterTerminal implements OnInit {
   // --- Keypad ---
 
   onKeypadPress(key: string): void {
-    if (key === 'clear') {
-      this._keypadValue.set('');
-    } else if (key === 'backspace') {
-      this._keypadValue.update(v => v.slice(0, -1));
-    } else {
-      this._keypadValue.update(v => v + key);
-    }
+    this._keypadValue.update(v => handleKeypadPress(v, key));
   }
 
   formatPrice(price: number | string): number {
-    return typeof price === 'string' ? Number.parseFloat(price) : price;
+    return parseItemPrice(price);
   }
 }

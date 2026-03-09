@@ -401,7 +401,7 @@
           <span class="step-number">1</span>
           <div class="step-content">
             <label for="ml-sync-source">Source Location (copy FROM)</label>
-            <select id="ml-sync-source" class="form-select" aria-label="Source location" [value]="syncSourceId()" (change)="syncSourceId.set($any($event.target).value)">
+            <select id="ml-sync-source" class="form-select" [value]="syncSourceId()" (change)="syncSourceId.set($any($event.target).value)">
               <option value="">Select source...</option>
               @for (r of restaurants(); track r.id) {
                 <option [value]="r.id">{{ r.name }}</option>
@@ -533,7 +533,8 @@
         <div class="loading-msg">Loading staff directory...</div>
       } @else {
         <div class="staff-filters">
-          <select class="form-select filter-select" aria-label="Filter by location" [value]="staffLocationFilter()" (change)="staffLocationFilter.set($any($event.target).value)">
+          <label for="ml-staff-location-filter" class="visually-hidden">Filter by location</label>
+          <select id="ml-staff-location-filter" class="form-select filter-select" [value]="staffLocationFilter()" (change)="staffLocationFilter.set($any($event.target).value)">
             <option value="">All Locations</option>
             @for (r of restaurants(); track r.id) {
               <option [value]="r.id">{{ r.name }}</option>
@@ -835,7 +836,7 @@
       <div class="propagate-form">
         <div class="form-group">
           <label for="ml-propagate-type">Setting Type</label>
-          <select id="ml-propagate-type" class="form-select" aria-label="Setting type" [value]="propagateType()" (change)="propagateType.set($any($event.target).value)">
+          <select id="ml-propagate-type" class="form-select" [value]="propagateType()" (change)="propagateType.set($any($event.target).value)">
             <option value="">Select type...</option>
             <option value="ai">AI Settings</option>
             <option value="pricing">Pricing Rules</option>
@@ -854,7 +855,7 @@
 
         <div class="form-group">
           <label for="ml-propagate-source">Source Location</label>
-          <select id="ml-propagate-source" class="form-select" aria-label="Source location" [value]="propagateSourceId()" (change)="propagateSourceId.set($any($event.target).value)">
+          <select id="ml-propagate-source" class="form-select" [value]="propagateSourceId()" (change)="propagateSourceId.set($any($event.target).value)">
             <option value="">Select source...</option>
             @for (r of restaurants(); track r.id) {
               <option [value]="r.id">{{ r.name }}</option>
@@ -897,7 +898,7 @@
   <!-- ═══ GROUP FORM MODAL ═══ -->
   @if (showGroupForm()) {
     <div class="modal-overlay" (click)="closeGroupForm()" (keydown.enter)="closeGroupForm()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>{{ editingGroup() ? 'Edit' : 'Create' }} Location Group</h3>
           <button class="btn-close-modal" (click)="closeGroupForm()"><i class="bi bi-x-lg"></i></button>
@@ -905,11 +906,11 @@
         <div class="modal-body">
           <div class="form-group">
             <label for="ml-group-name">Group Name *</label>
-            <input id="ml-group-name" type="text" class="form-input" aria-label="Group name" [value]="groupName()" (input)="groupName.set($any($event.target).value)" placeholder="e.g., South Florida, Fast Casual Concept">
+            <input id="ml-group-name" type="text" class="form-input" [value]="groupName()" (input)="groupName.set($any($event.target).value)" placeholder="e.g., South Florida, Fast Casual Concept">
           </div>
           <div class="form-group">
             <label for="ml-group-description">Description</label>
-            <textarea id="ml-group-description" class="form-input" aria-label="Group description" rows="2" [value]="groupDescription()" (input)="groupDescription.set($any($event.target).value)"></textarea>
+            <textarea id="ml-group-description" class="form-input" rows="2" [value]="groupDescription()" (input)="groupDescription.set($any($event.target).value)"></textarea>
           </div>
           <div class="form-group">
             <label>Member Locations</label>
@@ -938,7 +939,7 @@
   <!-- ═══ STAFF TRANSFER MODAL ═══ -->
   @if (showTransferModal()) {
     <div class="modal-overlay" (click)="closeTransferModal()" (keydown.enter)="closeTransferModal()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>Transfer Staff Member</h3>
           <button class="btn-close-modal" (click)="closeTransferModal()"><i class="bi bi-x-lg"></i></button>
@@ -957,7 +958,7 @@
             </div>
             <div class="form-group">
               <label for="ml-transfer-to">Transfer To</label>
-              <select id="ml-transfer-to" class="form-select" aria-label="Transfer to location" [value]="transferTargetId()" (change)="transferTargetId.set($any($event.target).value)">
+              <select id="ml-transfer-to" class="form-select" [value]="transferTargetId()" (change)="transferTargetId.set($any($event.target).value)">
                 <option value="">Select destination...</option>
                 @for (r of getTransferTargetRestaurants(); track r.id) {
                   <option [value]="r.id">{{ r.name }}</option>
@@ -979,7 +980,7 @@
   <!-- ═══ INVENTORY TRANSFER FORM MODAL ═══ -->
   @if (showInventoryTransferForm()) {
     <div class="modal-overlay" (click)="closeInventoryTransferForm()" (keydown.enter)="closeInventoryTransferForm()">
-      <div class="modal-content modal-wide" (click)="$event.stopPropagation()">
+      <div class="modal-content modal-wide" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
         <div class="modal-header">
           <h3>New Inventory Transfer</h3>
           <button class="btn-close-modal" (click)="closeInventoryTransferForm()"><i class="bi bi-x-lg"></i></button>
@@ -988,7 +989,7 @@
           <div class="transfer-form-row">
             <div class="form-group">
               <label for="ml-inv-from">From Location</label>
-              <select id="ml-inv-from" class="form-select" aria-label="From location" [value]="invTransferFromId()" (change)="invTransferFromId.set($any($event.target).value)">
+              <select id="ml-inv-from" class="form-select" [value]="invTransferFromId()" (change)="invTransferFromId.set($any($event.target).value)">
                 <option value="">Select source...</option>
                 @for (r of restaurants(); track r.id) {
                   <option [value]="r.id">{{ r.name }}</option>
@@ -998,7 +999,7 @@
             <div class="transfer-arrow"><i class="bi bi-arrow-right"></i></div>
             <div class="form-group">
               <label for="ml-inv-to">To Location</label>
-              <select id="ml-inv-to" class="form-select" aria-label="To location" [value]="invTransferToId()" (change)="invTransferToId.set($any($event.target).value)">
+              <select id="ml-inv-to" class="form-select" [value]="invTransferToId()" (change)="invTransferToId.set($any($event.target).value)">
                 <option value="">Select destination...</option>
                 @for (r of getInvTransferTargetRestaurants(); track r.id) {
                   <option [value]="r.id">{{ r.name }}</option>
@@ -1011,7 +1012,8 @@
             <label>Items</label>
             @for (item of invTransferItems(); track $index) {
               <div class="transfer-item-row">
-                <select class="form-select" aria-label="Transfer item" [value]="item.itemId" (change)="updateTransferItemId($index, $any($event.target).value)">
+                <label [for]="'ml-inv-item-' + $index" class="visually-hidden">Transfer item</label>
+                <select [id]="'ml-inv-item-' + $index" class="form-select" [value]="item.itemId" (change)="updateTransferItemId($index, $any($event.target).value)">
                   <option value="">Select item...</option>
                   @for (inv of crossLocationInventory(); track inv.itemId) {
                     <option [value]="inv.itemId">{{ inv.itemName }} ({{ inv.unit }})</option>
