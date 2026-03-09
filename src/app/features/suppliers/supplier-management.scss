@@ -84,8 +84,8 @@
   font-size: 1.125rem;
 
   .api-discovery-found & {
-    background: rgba(109, 40, 217, 0.1);
-    color: #a78bfa;
+    background: #f0e9fb;
+    color: #4c1d95;
   }
 
   .api-discovery-none & {
@@ -305,7 +305,7 @@
 .badge-success { background: #dcfce7; color: #166534; }
 .badge-info { background: #dbeafe; color: #1e40af; }
 .badge-secondary { background: var(--os-bg); color: var(--os-text-secondary); }
-.badge-muted { background: #f3f4f6; color: #6b7280; }
+.badge-muted { background: #f3f4f6; color: #4b5563; }
 .badge-api { background: #ede9fe; color: #5b21b6; i { margin-right: 0.25rem; } }
 .badge-api-connected { background: #dcfce7; color: #166534; i { margin-right: 0.25rem; } }
 .badge-api-available { background: #ede9fe; color: #6d28d9; i { margin-right: 0.25rem; } }

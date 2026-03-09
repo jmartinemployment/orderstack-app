@@ -20,7 +20,7 @@ import {
   CONTACT_VALIDATION,
 } from '../../marketing.config';
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
 
 @Component({
   selector: 'os-contact-page',
@@ -126,7 +126,7 @@ export class ContactPageComponent implements OnInit {
       timestamp: new Date().toISOString(),
     };
 
-    // TODO: Replace with actual API call when backend is ready
+    // Replace with actual API call when backend is ready
     // await fetch(`${environment.apiUrl}/api/leads`, { method: 'POST', body: JSON.stringify(payload) });
     console.log('[OrderStack Lead]', payload);
 

@@ -88,12 +88,12 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  background: rgba(255, 255, 255, 0.06);
+  background: #12111b;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.25rem;
   padding: 0.15rem 0.45rem;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: #f2f2f2;
 }
 
 .optional-badge {
@@ -184,11 +184,11 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.25rem;
-  background: rgba(255, 255, 255, 0.04);
+  background: #0d0c16;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 0.25rem;
   padding: 0.35rem 0.5rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: #f2f2f2;
   font-size: 0.8rem;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
@@ -199,7 +199,7 @@
 
   &.selected {
     border-color: #7E5EF2;
-    background: rgba(126, 94, 242, 0.15);
+    background: #5c3cc7;
     color: #fff;
   }
 }
@@ -212,7 +212,7 @@
 
 .item-pick-price {
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
+  color: #808080;
   white-space: nowrap;
 }
 
@@ -227,15 +227,15 @@
 
 .form-control,
 .form-select {
-  background: rgba(255, 255, 255, 0.06);
+  background: #12111b;
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #e0e0e0;
   font-size: 0.9rem;
 
-  &::placeholder { color: rgba(255, 255, 255, 0.3); }
+  &::placeholder { color: #8c8c8c; }
 
   &:focus {
-    background: rgba(255, 255, 255, 0.08);
+    background: #1a1830;
     border-color: #7E5EF2;
     box-shadow: 0 0 0 2px rgba(126, 94, 242, 0.15);
     color: #ffffff;
@@ -245,9 +245,9 @@
 }
 
 .input-group-text {
-  background: rgba(255, 255, 255, 0.06);
+  background: #12111b;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.9);
+  color: #e6e6e6;
 }
 
 .btn-primary {
@@ -267,11 +267,11 @@
 
 .btn-outline-danger {
   border-color: rgba(220, 53, 69, 0.4);
-  color: rgba(220, 53, 69, 0.8);
+  color: #f87171;
 
   &:hover {
-    background: rgba(220, 53, 69, 0.15);
-    color: #b91c2c;
+    background: #230915;
+    color: #fca5a5;
   }
 }
 

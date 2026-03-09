@@ -413,15 +413,15 @@
         <div class="sync-step">
           <span class="step-number">2</span>
           <div class="step-content">
-            <label>Target Locations (copy TO)</label>
+            <p class="form-label">Target Locations (copy TO)</p>
             <div class="target-checkboxes">
               @for (r of getSyncTargetRestaurants(); track r.id) {
-                <label class="checkbox-label" (click)="toggleSyncTarget(r.id)" (keydown.enter)="toggleSyncTarget(r.id)">
+                <p class="checkbox-label" (click)="toggleSyncTarget(r.id)" (keydown.enter)="toggleSyncTarget(r.id)">
                   <span class="checkbox" [class.checked]="isSyncTarget(r.id)">
                     @if (isSyncTarget(r.id)) { <i class="bi bi-check"></i> }
                   </span>
                   {{ r.name }}
-                </label>
+                </p>
               }
             </div>
           </div>
@@ -613,7 +613,7 @@
       } @else {
         <div class="inventory-filters">
           <input type="text" class="form-input filter-input" aria-label="Search inventory items" placeholder="Search items..." [value]="inventorySearch()" (input)="inventorySearch.set($any($event.target).value)">
-          <label class="checkbox-label low-stock-toggle" (click)="inventoryLowStockOnly.set(!inventoryLowStockOnly())" (keydown.enter)="inventoryLowStockOnly.set(!inventoryLowStockOnly())">
+          <p class="checkbox-label low-stock-toggle" (click)="inventoryLowStockOnly.set(!inventoryLowStockOnly())" (keydown.enter)="inventoryLowStockOnly.set(!inventoryLowStockOnly())">
             <span class="checkbox" [class.checked]="inventoryLowStockOnly()">
               @if (inventoryLowStockOnly()) { <i class="bi bi-check"></i> }
             </span>
@@ -621,7 +621,7 @@
             @if (lowStockItems().length > 0) {
               <span class="low-stock-count">({{ lowStockItems().length }})</span>
             }
-          </label>
+          </p>
         </div>
 
         @if (filteredInventory().length > 0) {
@@ -735,12 +735,12 @@
             <option value="hours">Hours</option>
             <option value="branding">Branding</option>
           </select>
-          <label class="checkbox-label" (click)="showResolvedCompliance.set(!showResolvedCompliance())" (keydown.enter)="showResolvedCompliance.set(!showResolvedCompliance())">
+          <p class="checkbox-label" (click)="showResolvedCompliance.set(!showResolvedCompliance())" (keydown.enter)="showResolvedCompliance.set(!showResolvedCompliance())">
             <span class="checkbox" [class.checked]="showResolvedCompliance()">
               @if (showResolvedCompliance()) { <i class="bi bi-check"></i> }
             </span>
             Show passing checks
-          </label>
+          </p>
         </div>
 
         <!-- Location compliance cards -->
@@ -864,25 +864,25 @@
         </div>
 
         <div class="form-group">
-          <label>Target Locations</label>
+          <p class="form-label">Target Locations</p>
           <div class="target-checkboxes">
             @for (r of getPropagateTargetRestaurants(); track r.id) {
-              <label class="checkbox-label" (click)="togglePropagateTarget(r.id)" (keydown.enter)="togglePropagateTarget(r.id)">
+              <p class="checkbox-label" (click)="togglePropagateTarget(r.id)" (keydown.enter)="togglePropagateTarget(r.id)">
                 <span class="checkbox" [class.checked]="isPropagateTarget(r.id)">
                   @if (isPropagateTarget(r.id)) { <i class="bi bi-check"></i> }
                 </span>
                 {{ r.name }}
-              </label>
+              </p>
             }
           </div>
         </div>
 
-        <label class="checkbox-label override-toggle" (click)="propagateOverride.set(!propagateOverride())" (keydown.enter)="propagateOverride.set(!propagateOverride())">
+        <p class="checkbox-label override-toggle" (click)="propagateOverride.set(!propagateOverride())" (keydown.enter)="propagateOverride.set(!propagateOverride())">
           <span class="checkbox" [class.checked]="propagateOverride()">
             @if (propagateOverride()) { <i class="bi bi-check"></i> }
           </span>
           Override existing local settings
-        </label>
+        </p>
 
         <button class="btn-propagate" [disabled]="!canPropagate || isPropagating()" (click)="propagateSettings()">
           @if (isPropagating()) {
@@ -913,15 +913,15 @@
             <textarea id="ml-group-description" class="form-input" rows="2" [value]="groupDescription()" (input)="groupDescription.set($any($event.target).value)"></textarea>
           </div>
           <div class="form-group">
-            <label>Member Locations</label>
+            <p class="form-label">Member Locations</p>
             <div class="target-checkboxes">
               @for (r of restaurants(); track r.id) {
-                <label class="checkbox-label" (click)="toggleMemberId(r.id)" (keydown.enter)="toggleMemberId(r.id)">
+                <p class="checkbox-label" (click)="toggleMemberId(r.id)" (keydown.enter)="toggleMemberId(r.id)">
                   <span class="checkbox" [class.checked]="isMemberSelected(r.id)">
                     @if (isMemberSelected(r.id)) { <i class="bi bi-check"></i> }
                   </span>
                   {{ r.name }}
-                </label>
+                </p>
               }
             </div>
           </div>
@@ -1009,7 +1009,7 @@
           </div>
 
           <div class="form-group">
-            <label>Items</label>
+            <p class="form-label">Items</p>
             @for (item of invTransferItems(); track $index) {
               <div class="transfer-item-row">
                 <label [for]="'ml-inv-item-' + $index" class="visually-hidden">Transfer item</label>

@@ -42,7 +42,7 @@ import { Testimonial } from '../marketing.config';
       transition: box-shadow 0.2s ease, transform 0.2s ease;
 
       &::before {
-        content: '\\201C';
+        content: '\u201C';
         position: absolute;
         top: 12px;
         left: 16px;

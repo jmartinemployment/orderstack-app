@@ -8,12 +8,12 @@
   align-items: center;
   gap: 10px;
   padding: 0.7rem 1rem;
-  background: rgba(243, 156, 18, 0.08);
+  background: #fef6e7;
   border: 1px solid rgba(243, 156, 18, 0.25);
   border-radius: 10px;
   margin-bottom: 1rem;
   font-size: 0.85rem;
-  color: #b5710a;
+  color: #8a5800;
   animation: slideDown 0.3s ease;
 
   i { font-size: 1.1rem; }
@@ -191,8 +191,8 @@
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(46, 204, 113, 0.1);
-  color: #15803d;
+  background: #eaf9f0;
+  color: #166534;
 }
 
 .schedule-card-actions {
@@ -565,8 +565,8 @@
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 6px;
-  background: rgba(243, 156, 18, 0.1);
-  color: #b5710a;
+  background: #fdf5e3;
+  color: #8a5800;
 }
 
 .preview-count {
@@ -736,8 +736,8 @@
   border-radius: 6px;
 
   &.closed {
-    background: rgba(231, 76, 60, 0.1);
-    color: #b91c1c;
+    background: #fcedeb;
+    color: #991b1b;
   }
 
   &.replace {

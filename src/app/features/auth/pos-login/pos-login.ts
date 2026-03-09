@@ -462,7 +462,7 @@ export class PosLogin {
   }
 
   getInitials(name: string): string {
-    const cleaned = name.replaceAll(/\s*\(.*?\)/g, '').trim();
+    const cleaned = name.replaceAll(/\s*\([^)]*\)/g, '').trim();
     const parts = cleaned.split(/\s+/).filter(Boolean);
     return parts.map(n => n[0]).join('').toUpperCase().slice(0, 2);
   }

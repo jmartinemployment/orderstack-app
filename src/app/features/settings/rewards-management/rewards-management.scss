@@ -15,22 +15,22 @@
   text-transform: uppercase;
 
   &[data-tier='bronze'] {
-    background-color: rgba(205, 127, 50, 0.15);
+    background-color: #f7ebe0;
     color: #7a4a1c;
   }
 
   &[data-tier='silver'] {
-    background-color: rgba(140, 140, 140, 0.15);
+    background-color: #ededed;
     color: #4a4a4a;
   }
 
   &[data-tier='gold'] {
-    background-color: rgba(197, 160, 0, 0.15);
+    background-color: #f6f0d8;
     color: #6b5700;
   }
 
   &[data-tier='platinum'] {
-    background-color: rgba(120, 120, 120, 0.15);
+    background-color: #eaeaea;
     color: #484848;
   }
 }

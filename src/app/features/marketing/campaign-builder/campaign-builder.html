@@ -295,29 +295,29 @@
         </div>
 
         <div class="detail-section">
-          <label class="detail-label">Channel</label>
+          <p class="detail-label">Channel</p>
           <div>{{ detail.channel | titlecase }}</div>
         </div>
 
         <div class="detail-section">
-          <label class="detail-label">Subject</label>
+          <p class="detail-label">Subject</p>
           <div>{{ detail.subject }}</div>
         </div>
 
         <div class="detail-section">
-          <label class="detail-label">Body</label>
+          <p class="detail-label">Body</p>
           <div class="detail-body">{{ detail.body }}</div>
         </div>
 
         @if (detail.smsBody) {
           <div class="detail-section">
-            <label class="detail-label">SMS</label>
+            <p class="detail-label">SMS</p>
             <div>{{ detail.smsBody }}</div>
           </div>
         }
 
         <div class="detail-section">
-          <label class="detail-label">Audience</label>
+          <p class="detail-label">Audience</p>
           <div class="d-flex gap-1 flex-wrap">
             @for (seg of detail.audience.segments; track seg) {
               <span class="badge badge-outline">{{ seg }}</span>
@@ -334,7 +334,7 @@
 
         @if (detail.status === 'sent') {
           <div class="detail-section">
-            <label class="detail-label">Performance</label>
+            <p class="detail-label">Performance</p>
             <div class="perf-grid">
               <div class="perf-item">
                 <div class="perf-value">{{ detail.performance.sent }}</div>
@@ -408,7 +408,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Target Segments</label>
+          <p class="form-label">Target Segments</p>
           <div class="d-flex gap-2 flex-wrap">
             @for (seg of allSegments; track seg.key) {
               <button
@@ -423,7 +423,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Target Loyalty Tiers</label>
+          <p class="form-label">Target Loyalty Tiers</p>
           <div class="d-flex gap-2 flex-wrap">
             @for (tier of allTiers; track tier.key) {
               <button
@@ -492,7 +492,7 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Trigger</label>
+          <p class="form-label">Trigger</p>
           <div class="trigger-grid">
             @for (trigger of triggerTypes; track trigger.key) {
               <button

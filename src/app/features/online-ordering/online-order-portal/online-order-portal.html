@@ -433,7 +433,7 @@
         <!-- Order Type (hidden in tableside mode) -->
         @if (!isTableside()) {
           <div class="mb-3">
-            <label class="form-label" id="oop-order-type-label">Order Type</label>
+            <p class="form-label" id="oop-order-type-label">Order Type</p>
             <fieldset aria-labelledby="oop-order-type-label"><legend class="visually-hidden">Order Type</legend>
               <div class="order-type-toggle d-flex gap-2 flex-wrap">
               <button
@@ -543,7 +543,7 @@
           <!-- Saved Addresses (Step 7) -->
           @if (savedAddresses().length > 0) {
             <div class="saved-addresses-section mb-3">
-              <label class="form-label" id="oop-delivery-address-label">Delivery Address</label>
+              <p class="form-label" id="oop-delivery-address-label">Delivery Address</p>
               <fieldset class="saved-address-list" aria-labelledby="oop-delivery-address-label"><legend class="visually-hidden">Delivery Address</legend>
                 @for (addr of savedAddresses(); track addr.id) {
                   <button
@@ -646,7 +646,7 @@
         <!-- Loyalty Program -->
         @if (loyaltyEnabled()) {
           <fieldset class="loyalty-section mb-3" aria-label="Loyalty Program"><legend class="visually-hidden">Loyalty Program</legend>
-            <label class="form-label">Loyalty Program</label>
+            <p class="form-label">Loyalty Program</p>
             @if (isLookingUpLoyalty()) {
               <div class="d-flex align-items-center gap-2">
                 <span class="spinner-border spinner-border-sm"></span>
@@ -784,7 +784,7 @@
 
         <!-- Tip Selection -->
         <fieldset class="tip-section mb-3" aria-label="Add a Tip"><legend class="visually-hidden">Add a Tip</legend>
-          <label class="form-label">Add a Tip</label>
+          <p class="form-label">Add a Tip</p>
           <div class="tip-presets d-flex gap-2 mb-2">
             @for (preset of tipPresets; track preset.percent) {
               <button

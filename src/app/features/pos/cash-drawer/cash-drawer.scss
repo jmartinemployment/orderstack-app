@@ -104,7 +104,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 
-  &.open { background: rgba(46, 204, 113, 0.1); color: #15803d; }
+  &.open { background: #eaf9f0; color: #166534; }
   &.closed { background: var(--os-bg-hover); color: var(--os-text-secondary); }
 }
 
@@ -511,8 +511,8 @@
   font-weight: 600;
   margin-bottom: 0.5rem;
 
-  &.over { background: rgba(46, 204, 113, 0.08); color: #15803d; }
-  &.short { background: rgba(231, 76, 60, 0.08); color: #b91c1c; }
+  &.over { background: #ecf9f2; color: #166534; }
+  &.short { background: #fdf1f0; color: #991b1b; }
   &.even { background: rgba(0, 106, 255, 0.06); color: var(--os-primary); }
 }
 
@@ -523,13 +523,13 @@
   align-items: center;
   gap: 8px;
   padding: 0.65rem 1rem;
-  background: rgba(231, 76, 60, 0.06);
+  background: #fef2f1;
   border: 1px solid rgba(231, 76, 60, 0.18);
   border-radius: 10px;
   margin-bottom: 1rem;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #b91c1c;
+  color: #991b1b;
 
   i { font-size: 1rem; }
 }
@@ -585,8 +585,8 @@
 
 .disc-badge {
   display: inline-block;
-  background: rgba(231, 76, 60, 0.1);
-  color: #b91c1c;
+  background: #fcedeb;
+  color: #991b1b;
   font-weight: 700;
   font-size: 0.75rem;
   padding: 2px 8px;

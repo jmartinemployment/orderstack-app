@@ -11,7 +11,7 @@ import {
 import { Router } from '@angular/router';
 import { EXIT_INTENT_CONFIG } from '../marketing.config';
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
 const SESSION_KEY = 'os_exit_popup_shown';
 const EXCLUDED_PATHS = ['/contact', '/signup'];
 
@@ -90,7 +90,7 @@ export class ExitIntentPopupComponent implements OnDestroy {
       timestamp: new Date().toISOString(),
     };
 
-    // TODO: Replace with actual API call when backend is ready
+    // Replace with actual API call when backend is ready
     console.log('[OrderStack Lead]', payload);
 
     await new Promise(resolve => setTimeout(resolve, 1500));

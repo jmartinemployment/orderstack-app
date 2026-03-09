@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, input, signal, computed } from '@angular/core';
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/;
 
 @Component({
   selector: 'os-email-capture',
@@ -184,7 +184,7 @@ export class EmailCaptureComponent {
       timestamp: new Date().toISOString(),
     };
 
-    // TODO: Replace with actual API call when backend is ready
+    // Replace with actual API call when backend is ready
     console.log('[OrderStack Lead]', payload);
 
     await new Promise(resolve => setTimeout(resolve, 1500));

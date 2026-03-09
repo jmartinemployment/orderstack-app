@@ -285,9 +285,9 @@
   color: var(--os-text-secondary);
   flex-shrink: 0;
 
-  &.rank-gold { background: rgba(245, 158, 11, 0.15); color: #92610a; }
-  &.rank-silver { background: rgba(156, 163, 175, 0.15); color: #4b5563; }
-  &.rank-bronze { background: rgba(180, 83, 9, 0.15); color: #92400e; }
+  &.rank-gold { background: #fdf0da; color: #7a5000; }
+  &.rank-silver { background: #f0f1f3; color: #374151; }
+  &.rank-bronze { background: #f3e5da; color: #7a3210; }
 }
 
 .benchmark-info { flex: 1; min-width: 0; }

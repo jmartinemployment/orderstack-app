@@ -1,5 +1,5 @@
 <div class="modal-overlay" (click)="onCancel()" (keydown.escape)="onCancel()" aria-hidden="true">
-  <div class="modal-panel" (click)="$event.stopPropagation()">
+  <div class="modal-panel" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
     <div class="modal-header-bar">
       <h5>Apply Discount</h5>
       <button type="button" class="btn-close" (click)="onCancel()"></button>

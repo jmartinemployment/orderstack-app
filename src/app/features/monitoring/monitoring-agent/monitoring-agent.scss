@@ -64,8 +64,8 @@
   }
 
   &.status-stopped {
-    background: rgba(108, 117, 125, 0.12);
-    color: #595f67;
+    background: #edeeef;
+    color: #495057;
   }
 }
 
@@ -340,8 +340,8 @@
 
 .ack-badge {
   font-size: 0.6rem;
-  background: rgba(108, 117, 125, 0.15);
-  color: #595f67;
+  background: #ecedee;
+  color: #495057;
   padding: 0.1rem 0.35rem;
   border-radius: 0.25rem;
 }

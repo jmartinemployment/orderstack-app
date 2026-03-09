@@ -1,6 +1,6 @@
 @if (hasGroups() && currentGroup(); as group) {
   <div class="modifier-overlay" (click)="onCancel()" (keydown.escape)="onCancel()" aria-hidden="true">
-    <div class="modifier-panel" (click)="$event.stopPropagation()">
+    <div class="modifier-panel" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
       <!-- Header -->
       <div class="modifier-header">
         <div class="header-top">
