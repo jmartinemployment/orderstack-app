@@ -108,7 +108,7 @@
             id="email"
             formControlName="email"
             placeholder="name@example.com"
-            autocomplete="email"
+            autocomplete="off"
             [class.is-invalid]="emailControl?.touched && emailControl?.invalid"
             (keydown.enter)="onSignIn()"
           />

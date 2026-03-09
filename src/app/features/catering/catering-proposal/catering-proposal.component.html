@@ -104,7 +104,7 @@
             </div>
             <h3 class="package-name">{{ pkg.name }}</h3>
             <div class="package-price">
-              <span class="price-amount">{{ formatCents(pkg.pricePerUnit) }}</span>
+              <span class="price-amount">{{ formatCents(pkg.pricePerUnit * 100) }}</span>
               <span class="price-model">{{ getPricingLabel(pkg.pricingModel) }}</span>
             </div>
             @if (pkg.description) {

@@ -7,10 +7,10 @@
 } @else if (job(); as j) {
   <!-- Toolbar — hidden when printing -->
   <div class="toolbar no-print d-flex justify-content-between align-items-center mb-4">
-    <button class="btn btn-outline-secondary" (click)="goBack()">
+    <button type="button" class="btn btn-outline-secondary" (click)="goBack()">
       <i class="bi bi-arrow-left me-1"></i> Back
     </button>
-    <button class="btn btn-primary" (click)="print()">
+    <button type="button" class="btn btn-primary" (click)="print()">
       <i class="bi bi-printer me-1"></i> Print BEO
     </button>
   </div>
@@ -99,7 +99,7 @@
               <th scope="row">Pricing Model</th>
               <td class="text-capitalize">{{ pkg.pricingModel.replaceAll('_', ' ') }}</td>
               <th scope="row">Price Per Unit</th>
-              <td>${{ formatCents(pkg.pricePerUnit) }}</td>
+              <td>${{ formatCents(pkg.pricePerUnit * 100) }}</td>
             </tr>
             <tr>
               <th scope="row">Minimum Headcount</th>

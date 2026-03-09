@@ -120,8 +120,7 @@
           (ngModelChange)="searchQuery.set($event)"
         >
       </div>
-      <label class="visually-hidden" for="catering-status-filter">Filter by status</label>
-      <select id="catering-status-filter" class="form-select" style="width: auto;" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+      <select class="form-select" style="width: auto;" aria-label="Filter by status" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
         <option value="all">All Statuses</option>
         @for (s of statusOptions; track s.value) {
           <option [value]="s.value">{{ s.label }}</option>
@@ -304,9 +303,8 @@
 
               <div class="row mb-3">
                 <div class="col-md-6">
-                  <label class="form-label" for="cat-dash-max-events">Max Events / Day</label>
+                  <label class="form-label">Max Events / Day</label>
                   <input
-                    id="cat-dash-max-events"
                     type="number"
                     class="form-control"
                     [ngModel]="capMaxEvents()"
@@ -315,9 +313,8 @@
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label" for="cat-dash-max-headcount">Max Headcount / Day</label>
+                  <label class="form-label">Max Headcount / Day</label>
                   <input
-                    id="cat-dash-max-headcount"
                     type="number"
                     class="form-control"
                     [ngModel]="capMaxHeadcount()"

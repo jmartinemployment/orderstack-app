@@ -260,7 +260,7 @@
               } @else {
                 <div class="d-flex align-items-center gap-1">
                   <button type="button" class="add-btn" (click)="addToCart(item)">Add</button>
-                  <button type="button" class="share-btn" (click)="shareItem(item); $event.stopPropagation()">
+                  <button type="button" class="share-btn" aria-label="Share item" (click)="shareItem(item); $event.stopPropagation()">
                     @if (isItemCopied(item.id)) {
                       <i class="bi bi-check-lg"></i>
                     } @else {
