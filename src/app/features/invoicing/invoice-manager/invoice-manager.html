@@ -245,10 +245,10 @@
           <div class="payment-form mb-3">
             <div class="d-flex gap-2 align-items-end">
               <div class="flex-grow-1">
-                <label class="form-label">Payment Amount</label>
+                <label class="form-label" for="inv-payment-amount">Payment Amount</label>
                 <div class="input-group">
                   <span class="input-group-text">$</span>
-                  <input type="number" class="form-control" aria-label="Payment amount" [value]="paymentAmount()" (input)="onPaymentAmountInput($event)" min="0" step="0.01" />
+                  <input id="inv-payment-amount" type="number" class="form-control" [value]="paymentAmount()" (input)="onPaymentAmountInput($event)" min="0" step="0.01" />
                 </div>
               </div>
               <button type="button" class="btn btn-success btn-sm" (click)="recordPayment()">Record</button>
@@ -286,45 +286,45 @@
 
         <div class="row mb-3">
           <div class="col-6">
-            <label class="form-label">Customer Name *</label>
-            <input type="text" class="form-control" [value]="formName()" (input)="onInvoiceField('name', $event)" placeholder="John Smith" />
+            <label class="form-label" for="inv-cust-name">Customer Name *</label>
+            <input id="inv-cust-name" type="text" class="form-control" [value]="formName()" (input)="onInvoiceField('name', $event)" placeholder="John Smith" />
           </div>
           <div class="col-6">
-            <label class="form-label">Email *</label>
-            <input type="email" class="form-control" [value]="formEmail()" (input)="onInvoiceField('email', $event)" placeholder="john@company.com" />
+            <label class="form-label" for="inv-cust-email">Email *</label>
+            <input id="inv-cust-email" type="email" class="form-control" [value]="formEmail()" (input)="onInvoiceField('email', $event)" placeholder="john@company.com" />
           </div>
         </div>
 
         <div class="row mb-3">
           <div class="col-6">
-            <label class="form-label">Company</label>
-            <input type="text" class="form-control" [value]="formCompany()" (input)="onInvoiceField('company', $event)" placeholder="Company name" />
+            <label class="form-label" for="inv-cust-company">Company</label>
+            <input id="inv-cust-company" type="text" class="form-control" [value]="formCompany()" (input)="onInvoiceField('company', $event)" placeholder="Company name" />
           </div>
           <div class="col-6">
-            <label class="form-label">Phone</label>
-            <input type="tel" class="form-control" [value]="formPhone()" (input)="onInvoiceField('phone', $event)" placeholder="(555) 123-4567" />
+            <label class="form-label" for="inv-cust-phone">Phone</label>
+            <input id="inv-cust-phone" type="tel" class="form-control" [value]="formPhone()" (input)="onInvoiceField('phone', $event)" placeholder="(555) 123-4567" />
           </div>
         </div>
 
         <!-- Line Items -->
         <div class="mb-3">
           <div class="d-flex justify-content-between align-items-center mb-2">
-            <label class="form-label mb-0">Line Items</label>
+            <p class="form-label mb-0">Line Items</p>
             <button type="button" class="btn btn-sm btn-outline-light" (click)="addLineItem()">+ Add Item</button>
           </div>
           @for (item of formLineItems(); track $index; let i = $index) {
             <div class="line-item-row d-flex gap-2 mb-2 align-items-end">
               <div class="flex-grow-1">
-                @if (i === 0) { <label class="form-label small">Description</label> }
-                <input type="text" class="form-control form-control-sm" aria-label="Line item description" [value]="item.description" (input)="onLineItemField(i, 'description', $event)" placeholder="Item description" />
+                @if (i === 0) { <label class="form-label small" for="inv-li-desc-0">Description</label> }
+                <input [id]="'inv-li-desc-' + i" type="text" class="form-control form-control-sm" [value]="item.description" (input)="onLineItemField(i, 'description', $event)" placeholder="Item description" />
               </div>
               <div style="width: 70px;">
-                @if (i === 0) { <label class="form-label small">Qty</label> }
-                <input type="number" class="form-control form-control-sm" aria-label="Line item quantity" [value]="item.quantity" (input)="onLineItemField(i, 'quantity', $event)" min="1" />
+                @if (i === 0) { <label class="form-label small" for="inv-li-qty-0">Qty</label> }
+                <input [id]="'inv-li-qty-' + i" type="number" class="form-control form-control-sm" [value]="item.quantity" (input)="onLineItemField(i, 'quantity', $event)" min="1" />
               </div>
               <div style="width: 100px;">
-                @if (i === 0) { <label class="form-label small">Price</label> }
-                <input type="number" class="form-control form-control-sm" aria-label="Line item unit price" [value]="item.unitPrice" (input)="onLineItemField(i, 'unitPrice', $event)" min="0" step="0.01" />
+                @if (i === 0) { <label class="form-label small" for="inv-li-price-0">Price</label> }
+                <input [id]="'inv-li-price-' + i" type="number" class="form-control form-control-sm" [value]="item.unitPrice" (input)="onLineItemField(i, 'unitPrice', $event)" min="0" step="0.01" />
               </div>
               <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeLineItem(i)" [disabled]="formLineItems().length <= 1">
                 <i class="bi bi-x"></i>
@@ -335,16 +335,16 @@
 
         <div class="row mb-3">
           <div class="col-4">
-            <label class="form-label">Tax Rate (%)</label>
-            <input type="number" class="form-control form-control-sm" [value]="formTaxRate()" (input)="onInvoiceField('taxRate', $event)" min="0" step="0.01" />
+            <label class="form-label" for="inv-tax-rate">Tax Rate (%)</label>
+            <input id="inv-tax-rate" type="number" class="form-control form-control-sm" [value]="formTaxRate()" (input)="onInvoiceField('taxRate', $event)" min="0" step="0.01" />
           </div>
           <div class="col-4">
-            <label class="form-label">Due Date *</label>
-            <input type="date" class="form-control form-control-sm" [value]="formDueDate()" (input)="onInvoiceField('dueDate', $event)" />
+            <label class="form-label" for="inv-due-date">Due Date *</label>
+            <input id="inv-due-date" type="date" class="form-control form-control-sm" [value]="formDueDate()" (input)="onInvoiceField('dueDate', $event)" />
           </div>
           <div class="col-4">
-            <label class="form-label">Deposit Required</label>
-            <input type="number" class="form-control form-control-sm" [value]="formDeposit()" (input)="onInvoiceField('deposit', $event)" min="0" step="0.01" />
+            <label class="form-label" for="inv-deposit">Deposit Required</label>
+            <input id="inv-deposit" type="number" class="form-control form-control-sm" [value]="formDeposit()" (input)="onInvoiceField('deposit', $event)" min="0" step="0.01" />
           </div>
         </div>
 
@@ -365,8 +365,8 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Notes</label>
-          <textarea class="form-control" rows="2" [value]="formNotes()" (input)="onInvoiceField('notes', $event)" placeholder="Payment terms, special instructions..."></textarea>
+          <label class="form-label" for="inv-notes">Notes</label>
+          <textarea id="inv-notes" class="form-control" rows="2" [value]="formNotes()" (input)="onInvoiceField('notes', $event)" placeholder="Payment terms, special instructions..."></textarea>
         </div>
 
         <div class="form-check mb-3">
@@ -396,35 +396,35 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label">Company Name *</label>
-          <input type="text" class="form-control" [value]="haCompany()" (input)="onAccountField('company', $event)" placeholder="ABC Corporation" />
+          <label class="form-label" for="inv-ha-company">Company Name *</label>
+          <input id="inv-ha-company" type="text" class="form-control" [value]="haCompany()" (input)="onAccountField('company', $event)" placeholder="ABC Corporation" />
         </div>
         <div class="row mb-3">
           <div class="col-6">
-            <label class="form-label">Contact Name *</label>
-            <input type="text" class="form-control" [value]="haContact()" (input)="onAccountField('contact', $event)" placeholder="Jane Doe" />
+            <label class="form-label" for="inv-ha-contact">Contact Name *</label>
+            <input id="inv-ha-contact" type="text" class="form-control" [value]="haContact()" (input)="onAccountField('contact', $event)" placeholder="Jane Doe" />
           </div>
           <div class="col-6">
-            <label class="form-label">Contact Email *</label>
-            <input type="email" class="form-control" [value]="haEmail()" (input)="onAccountField('email', $event)" placeholder="jane@abc.com" />
+            <label class="form-label" for="inv-ha-email">Contact Email *</label>
+            <input id="inv-ha-email" type="email" class="form-control" [value]="haEmail()" (input)="onAccountField('email', $event)" placeholder="jane@abc.com" />
           </div>
         </div>
         <div class="row mb-3">
           <div class="col-4">
-            <label class="form-label">Phone</label>
-            <input type="tel" class="form-control" [value]="haPhone()" (input)="onAccountField('phone', $event)" placeholder="(555) 123-4567" />
+            <label class="form-label" for="inv-ha-phone">Phone</label>
+            <input id="inv-ha-phone" type="tel" class="form-control" [value]="haPhone()" (input)="onAccountField('phone', $event)" placeholder="(555) 123-4567" />
           </div>
           <div class="col-4">
-            <label class="form-label">Billing Cycle</label>
-            <select class="form-select" [value]="haCycle()" (change)="onAccountField('cycle', $event)">
+            <label class="form-label" for="inv-ha-cycle">Billing Cycle</label>
+            <select id="inv-ha-cycle" class="form-select" [value]="haCycle()" (change)="onAccountField('cycle', $event)">
               <option value="weekly">Weekly</option>
               <option value="biweekly">Biweekly</option>
               <option value="monthly">Monthly</option>
             </select>
           </div>
           <div class="col-4">
-            <label class="form-label">Credit Limit</label>
-            <input type="number" class="form-control" [value]="haLimit()" (input)="onAccountField('limit', $event)" min="0" step="100" />
+            <label class="form-label" for="inv-ha-limit">Credit Limit</label>
+            <input id="inv-ha-limit" type="number" class="form-control" [value]="haLimit()" (input)="onAccountField('limit', $event)" min="0" step="100" />
           </div>
         </div>
 

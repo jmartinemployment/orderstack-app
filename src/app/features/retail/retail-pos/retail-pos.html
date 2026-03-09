@@ -326,11 +326,11 @@
               Total: <strong>${{ cartTotal() | number:'1.2-2' }}</strong>
             </div>
             <div class="form-group">
-              <label>Amount Tendered</label>
+              <label for="pos-cash-amount">Amount Tendered</label>
               <input
+                id="pos-cash-amount"
                 type="number"
                 step="0.01"
-                aria-label="Amount Tendered"
                 [ngModel]="cashTendered()"
                 (ngModelChange)="updateCashTendered($event)"
                 class="cash-input"
@@ -401,11 +401,11 @@
             </div>
             <div class="lookup-row">
               <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                <label>Card Number</label>
+                <label for="pos-gc-number">Card Number</label>
                 <input
+                  id="pos-gc-number"
                   type="text"
                   placeholder="Scan or enter gift card number..."
-                  aria-label="Card Number"
                   [ngModel]="giftCardNumber()"
                   (ngModelChange)="updateGiftCardNumber($event)"
                   (keydown.enter)="lookupGiftCard()"
@@ -434,11 +434,11 @@
                 </div>
               </div>
               <div class="form-group">
-                <label>Apply Amount</label>
+                <label for="pos-gc-apply">Apply Amount</label>
                 <input
+                  id="pos-gc-apply"
                   type="number"
                   step="0.01"
-                  aria-label="Apply Amount"
                   [ngModel]="giftCardApplyAmount()"
                   (ngModelChange)="updateGiftCardApplyAmount($event)"
                   [max]="giftCardBalance()!"
@@ -476,11 +476,11 @@
             </div>
             <div class="lookup-row">
               <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                <label>Customer ID or Phone</label>
+                <label for="pos-sc-customer">Customer ID or Phone</label>
                 <input
+                  id="pos-sc-customer"
                   type="text"
                   placeholder="Enter customer ID or phone..."
-                  aria-label="Customer ID or Phone"
                   [ngModel]="storeCreditCustomerId()"
                   (ngModelChange)="updateStoreCreditCustomerId($event)"
                   (keydown.enter)="lookupStoreCredit()"
@@ -509,11 +509,11 @@
                 </div>
               </div>
               <div class="form-group">
-                <label>Apply Amount</label>
+                <label for="pos-sc-apply">Apply Amount</label>
                 <input
+                  id="pos-sc-apply"
                   type="number"
                   step="0.01"
-                  aria-label="Apply Amount"
                   [ngModel]="storeCreditApplyAmount()"
                   (ngModelChange)="updateStoreCreditApplyAmount($event)"
                   [max]="storeCreditBalance()!"
@@ -652,29 +652,29 @@
             Cart Total: <strong>${{ cartTotal() | number:'1.2-2' }}</strong>
           </div>
           <div class="form-group">
-            <label>Customer ID or Phone</label>
+            <label for="pos-lay-customer">Customer ID or Phone</label>
             <input
+              id="pos-lay-customer"
               type="text"
               placeholder="Enter customer ID or phone..."
-              aria-label="Customer ID or Phone"
               [ngModel]="layawayCustomerId()"
               (ngModelChange)="updateLayawayCustomerId($event)"
               autofocus
             />
           </div>
           <div class="form-group">
-            <label>Deposit Amount (min 20%)</label>
+            <label for="pos-lay-deposit">Deposit Amount (min 20%)</label>
             <input
+              id="pos-lay-deposit"
               type="number"
               step="0.01"
-              aria-label="Deposit Amount"
               [ngModel]="layawayDepositAmount()"
               (ngModelChange)="updateLayawayDepositAmount($event)"
             />
           </div>
           <div class="form-group">
-            <label>Deposit Method</label>
-            <select aria-label="Deposit Method" [ngModel]="layawayDepositMethod()" (ngModelChange)="updateLayawayDepositMethod($event)">
+            <label for="pos-lay-method">Deposit Method</label>
+            <select id="pos-lay-method" [ngModel]="layawayDepositMethod()" (ngModelChange)="updateLayawayDepositMethod($event)">
               <option value="cash">Cash</option>
               <option value="card">Card</option>
             </select>
@@ -718,19 +718,19 @@
             </div>
           </div>
           <div class="form-group">
-            <label>Payment Amount</label>
+            <label for="pos-laypay-amount">Payment Amount</label>
             <input
+              id="pos-laypay-amount"
               type="number"
               step="0.01"
-              aria-label="Payment Amount"
               [ngModel]="layawayPaymentAmount()"
               (ngModelChange)="updateLayawayPaymentAmount($event)"
               [max]="layaway.remainingBalance"
             />
           </div>
           <div class="form-group">
-            <label>Payment Method</label>
-            <select aria-label="Payment Method" [ngModel]="layawayPaymentMethod()" (ngModelChange)="updateLayawayPaymentMethod($event)">
+            <label for="pos-laypay-method">Payment Method</label>
+            <select id="pos-laypay-method" [ngModel]="layawayPaymentMethod()" (ngModelChange)="updateLayawayPaymentMethod($event)">
               <option value="cash">Cash</option>
               <option value="card">Card</option>
             </select>
@@ -766,50 +766,50 @@
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label>Store Name</label>
+            <label for="pos-rcpt-name">Store Name</label>
             <input
+              id="pos-rcpt-name"
               type="text"
-              aria-label="Store Name"
               [ngModel]="receiptStoreName()"
               (ngModelChange)="updateReceiptStoreName($event)"
               placeholder="Your Store Name"
             />
           </div>
           <div class="form-group">
-            <label>Address</label>
+            <label for="pos-rcpt-addr">Address</label>
             <input
+              id="pos-rcpt-addr"
               type="text"
-              aria-label="Address"
               [ngModel]="receiptStoreAddress()"
               (ngModelChange)="updateReceiptStoreAddress($event)"
               placeholder="123 Main St, City, State"
             />
           </div>
           <div class="form-group">
-            <label>Phone</label>
+            <label for="pos-rcpt-phone">Phone</label>
             <input
+              id="pos-rcpt-phone"
               type="text"
-              aria-label="Phone"
               [ngModel]="receiptStorePhone()"
               (ngModelChange)="updateReceiptStorePhone($event)"
               placeholder="(555) 123-4567"
             />
           </div>
           <div class="form-group">
-            <label>Return Policy</label>
+            <label for="pos-rcpt-return">Return Policy</label>
             <textarea
+              id="pos-rcpt-return"
               rows="2"
-              aria-label="Return Policy"
               [ngModel]="receiptReturnPolicy()"
               (ngModelChange)="updateReceiptReturnPolicy($event)"
               placeholder="Returns accepted within 30 days with receipt."
             ></textarea>
           </div>
           <div class="form-group">
-            <label>Promo Message</label>
+            <label for="pos-rcpt-promo">Promo Message</label>
             <textarea
+              id="pos-rcpt-promo"
               rows="2"
-              aria-label="Promo Message"
               [ngModel]="receiptPromoMessage()"
               (ngModelChange)="updateReceiptPromoMessage($event)"
               placeholder="Thank you for shopping with us!"
@@ -846,20 +846,20 @@
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label>New Price</label>
+            <label for="pos-price-override">New Price</label>
             <input
+              id="pos-price-override"
               type="number"
               step="0.01"
-              aria-label="New Price"
               [ngModel]="overridePrice()"
               (ngModelChange)="updateOverridePrice($event)"
             />
           </div>
           <div class="form-group">
-            <label>Reason</label>
+            <label for="pos-price-reason">Reason</label>
             <input
+              id="pos-price-reason"
               type="text"
-              aria-label="Reason"
               [ngModel]="overrideReason()"
               (ngModelChange)="updateOverrideReason($event)"
               placeholder="Manager approval, price match, etc."
@@ -886,11 +886,11 @@
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label>Weight (lb)</label>
+            <label for="pos-weight-entry">Weight (lb)</label>
             <input
+              id="pos-weight-entry"
               type="number"
               step="0.01"
-              aria-label="Weight in pounds"
               [ngModel]="weightValue()"
               (ngModelChange)="updateWeightValue($event)"
               autofocus
@@ -915,8 +915,8 @@
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label>Item</label>
-            <select [ngModel]="configItemId()" (ngModelChange)="updateConfigItemId($event)">
+            <label for="pos-qk-item">Item</label>
+            <select id="pos-qk-item" [ngModel]="configItemId()" (ngModelChange)="updateConfigItemId($event)">
               <option value="">Select item...</option>
               @for (item of catalogService.activeItems(); track item.id) {
                 <option [value]="item.id">{{ item.name }}</option>
@@ -925,8 +925,8 @@
           </div>
           @if (getConfigItemVariations().length > 0) {
             <div class="form-group">
-              <label>Variation (optional)</label>
-              <select [ngModel]="configVariationId() ?? ''" (ngModelChange)="updateConfigVariationId($event)">
+              <label for="pos-qk-variation">Variation (optional)</label>
+              <select id="pos-qk-variation" [ngModel]="configVariationId() ?? ''" (ngModelChange)="updateConfigVariationId($event)">
                 <option value="">Any / Default</option>
                 @for (v of getConfigItemVariations(); track v.id) {
                   <option [value]="v.id">{{ v.name }}</option>
@@ -935,10 +935,10 @@
             </div>
           }
           <div class="form-group">
-            <label>Label</label>
+            <label for="pos-qk-label">Label</label>
             <input
+              id="pos-qk-label"
               type="text"
-              aria-label="Label"
               [ngModel]="configLabel()"
               (ngModelChange)="updateConfigLabel($event)"
               placeholder="Button label"
@@ -946,7 +946,7 @@
             />
           </div>
           <div class="form-group">
-            <label>Color</label>
+            <p class="form-label">Color</p>
             <div class="color-swatches">
               @for (color of availableColors; track color) {
                 <button

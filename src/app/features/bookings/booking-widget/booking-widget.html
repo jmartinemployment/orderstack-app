@@ -45,7 +45,7 @@
       <!-- Time Slots -->
       @if (selectedDate()) {
         <div class="form-group mb-3">
-          <label class="form-label">Available Times</label>
+          <p class="form-label">Available Times</p>
 
           @if (isLoadingSlots()) {
             <div class="d-flex justify-content-center p-3">
@@ -95,38 +95,38 @@
       </div>
 
       <div class="form-group mb-3">
-        <label class="form-label">Name *</label>
+        <label class="form-label" for="bw-name">Name *</label>
         <input
+          id="bw-name"
           type="text"
           class="form-control"
           placeholder="Your name"
           [value]="name()"
           (input)="onNameInput($event)"
-          aria-label="Name"
         />
       </div>
 
       <div class="form-group mb-3">
-        <label class="form-label">Phone *</label>
+        <label class="form-label" for="bw-phone">Phone *</label>
         <input
+          id="bw-phone"
           type="tel"
           class="form-control"
           placeholder="(555) 555-5555"
           [value]="phone()"
           (input)="onPhoneInput($event)"
-          aria-label="Phone"
         />
       </div>
 
       <div class="form-group mb-3">
-        <label class="form-label">Email</label>
+        <label class="form-label" for="bw-email">Email</label>
         <input
+          id="bw-email"
           type="email"
           class="form-control"
           placeholder="your@email.com"
           [value]="email()"
           (input)="onEmailInput($event)"
-          aria-label="Email"
         />
       </div>
 
@@ -163,7 +163,7 @@
 
       <!-- Dietary Restrictions -->
       <div class="form-group mb-3">
-        <label class="form-label">Dietary Restrictions</label>
+        <p class="form-label">Dietary Restrictions</p>
         <div class="dietary-grid">
           @for (opt of dietaryOptions; track opt) {
             <button
@@ -178,14 +178,14 @@
 
       <!-- Special Requests -->
       <div class="form-group mb-3">
-        <label class="form-label">Special Requests</label>
+        <label class="form-label" for="bw-special-requests">Special Requests</label>
         <textarea
+          id="bw-special-requests"
           class="form-control"
           rows="2"
           placeholder="Any special requests..."
           [value]="specialRequests()"
           (input)="onSpecialRequestsInput($event)"
-          aria-label="Special requests"
         ></textarea>
       </div>
 

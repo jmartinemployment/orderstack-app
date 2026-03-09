@@ -304,25 +304,25 @@
 
               <div class="row mb-3">
                 <div class="col-md-6">
-                  <label class="form-label">Max Events / Day</label>
+                  <label class="form-label" for="cat-dash-max-events">Max Events / Day</label>
                   <input
+                    id="cat-dash-max-events"
                     type="number"
                     class="form-control"
                     [ngModel]="capMaxEvents()"
                     (ngModelChange)="capMaxEvents.set($event)"
                     min="1"
-                    aria-label="Max events per day"
                   >
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label">Max Headcount / Day</label>
+                  <label class="form-label" for="cat-dash-max-headcount">Max Headcount / Day</label>
                   <input
+                    id="cat-dash-max-headcount"
                     type="number"
                     class="form-control"
                     [ngModel]="capMaxHeadcount()"
                     (ngModelChange)="capMaxHeadcount.set($event)"
                     min="1"
-                    aria-label="Max headcount per day"
                   >
                 </div>
               </div>

@@ -239,7 +239,7 @@
         </div>
         <div class="modal-body">
           <div class="form-group">
-            <label id="export-format-label">Format</label>
+            <p id="export-format-label" class="form-label">Format</p>
             <div class="format-options" role="group" aria-labelledby="export-format-label">
               <button
                 class="format-option"
@@ -269,7 +269,7 @@
           </div>
 
           <div class="form-group">
-            <label id="export-date-range-label">Date Range</label>
+            <p id="export-date-range-label" class="form-label">Date Range</p>
             <div class="date-row" role="group" aria-labelledby="export-date-range-label">
               <input type="date" class="form-control" aria-label="Start date" [ngModel]="exportStartDate()" (ngModelChange)="setExportStartDate($event)" />
               <span class="date-sep">to</span>

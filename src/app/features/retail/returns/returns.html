@@ -98,12 +98,12 @@
         @if (lookupMethod() === 'date') {
           <div class="lookup-row lookup-date-row">
             <div class="date-field">
-              <label>From</label>
-              <input type="date" aria-label="From date" [ngModel]="lookupDateFrom()" (ngModelChange)="updateLookupDateFrom($event)" />
+              <label for="ret-date-from">From</label>
+              <input id="ret-date-from" type="date" [ngModel]="lookupDateFrom()" (ngModelChange)="updateLookupDateFrom($event)" />
             </div>
             <div class="date-field">
-              <label>To</label>
-              <input type="date" aria-label="To date" [ngModel]="lookupDateTo()" (ngModelChange)="updateLookupDateTo($event)" />
+              <label for="ret-date-to">To</label>
+              <input id="ret-date-to" type="date" [ngModel]="lookupDateTo()" (ngModelChange)="updateLookupDateTo($event)" />
             </div>
             <button class="btn-primary" (click)="searchTransactions()" [disabled]="isSearching()">
               Search
@@ -211,30 +211,30 @@
             @if (selection.selected) {
               <div class="return-item-details">
                 <div class="detail-row">
-                  <label>Qty to Return</label>
+                  <label [for]="'ret-qty-' + $index">Qty to Return</label>
                   <input
+                    [id]="'ret-qty-' + $index"
                     type="number"
                     min="1"
                     [max]="selection.transactionItem.quantity"
-                    aria-label="Quantity to return"
                     [ngModel]="selection.returnQuantity"
                     (ngModelChange)="updateReturnQuantity($index, $event)"
                     class="qty-input"
                   />
                 </div>
                 <div class="detail-row">
-                  <label>Reason</label>
-                  <select [ngModel]="selection.reason" (ngModelChange)="updateReturnReason($index, $event)">
+                  <label [for]="'ret-reason-' + $index">Reason</label>
+                  <select [id]="'ret-reason-' + $index" [ngModel]="selection.reason" (ngModelChange)="updateReturnReason($index, $event)">
                     @for (r of returnReasons; track r.value) {
                       <option [value]="r.value">{{ r.label }}</option>
                     }
                   </select>
                 </div>
                 <div class="detail-row">
-                  <label>Note</label>
+                  <label [for]="'ret-note-' + $index">Note</label>
                   <input
+                    [id]="'ret-note-' + $index"
                     type="text"
-                    aria-label="Return note"
                     [ngModel]="selection.note"
                     (ngModelChange)="updateReturnNote($index, $event)"
                     placeholder="Optional note..."
@@ -269,7 +269,7 @@
 
         <!-- Refund Method -->
         <div class="refund-method-section">
-          <label class="section-label">Refund Method</label>
+          <p class="section-label">Refund Method</p>
           <div class="refund-methods">
             <button
               class="refund-method-btn"
@@ -301,12 +301,12 @@
         <!-- Manager Override -->
         @if (needsManagerOverride()) {
           <div class="manager-override">
-            <label class="section-label">Manager Override PIN</label>
+            <label for="ret-manager-pin" class="section-label">Manager Override PIN</label>
             <input
+              id="ret-manager-pin"
               type="password"
               maxlength="6"
               placeholder="Enter manager PIN..."
-              aria-label="Manager Override PIN"
               [ngModel]="managerPin()"
               (ngModelChange)="updateManagerPin($event)"
             />
@@ -424,8 +424,8 @@
         <h3>Return Policy Configuration</h3>
 
         <div class="form-group">
-          <label>Return Window (days)</label>
-          <select aria-label="Return Window" [ngModel]="policyWindowDays()" (ngModelChange)="updatePolicyWindowDays($event)">
+          <label for="ret-return-window">Return Window (days)</label>
+          <select id="ret-return-window" [ngModel]="policyWindowDays()" (ngModelChange)="updatePolicyWindowDays($event)">
             <option value="7">7 days</option>
             <option value="14">14 days</option>
             <option value="30">30 days</option>
@@ -445,10 +445,10 @@
 
         @if (!policyRequireReceipt()) {
           <div class="form-group">
-            <label>No-Receipt Return Limit ($)</label>
+            <label for="ret-no-receipt-limit">No-Receipt Return Limit ($)</label>
             <input
+              id="ret-no-receipt-limit"
               type="number"
-              aria-label="No-Receipt Return Limit"
               [ngModel]="policyNoReceiptLimit()"
               (ngModelChange)="updatePolicyNoReceiptLimit($event)"
             />
@@ -465,10 +465,10 @@
         </label>
 
         <div class="form-group">
-          <label>Final Sale Items (comma-separated item IDs)</label>
+          <label for="ret-final-sale-items">Final Sale Items (comma-separated item IDs)</label>
           <textarea
+            id="ret-final-sale-items"
             rows="2"
-            aria-label="Final Sale Items"
             [ngModel]="policyFinalSaleItems()"
             (ngModelChange)="updatePolicyFinalSaleItems($event)"
             placeholder="item-id-1, item-id-2..."

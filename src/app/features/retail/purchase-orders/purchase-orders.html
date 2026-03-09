@@ -141,8 +141,8 @@
         <div class="modal-body">
           <div class="form-row">
             <div class="form-group">
-              <label>Vendor *</label>
-              <select [ngModel]="formVendorId()" (ngModelChange)="updateFormVendor($event)">
+              <label for="po-vendor">Vendor *</label>
+              <select id="po-vendor" [ngModel]="formVendorId()" (ngModelChange)="updateFormVendor($event)">
                 <option value="">Select vendor...</option>
                 @for (vendor of vendors(); track vendor.id) {
                   @if (vendor.isActive) {
@@ -152,13 +152,13 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Expected Delivery</label>
-              <input type="date" aria-label="Expected Delivery" [ngModel]="formExpectedDate()" (ngModelChange)="updateFormDate($event)" />
+              <label for="po-expected-delivery">Expected Delivery</label>
+              <input id="po-expected-delivery" type="date" [ngModel]="formExpectedDate()" (ngModelChange)="updateFormDate($event)" />
             </div>
           </div>
 
           <div class="form-group">
-            <label>Line Items</label>
+            <p class="form-label">Line Items</p>
             @for (li of formLineItems(); track $index) {
               <div class="line-item-row">
                 <label [for]="'po-line-item-' + $index" class="visually-hidden">Line item {{ $index + 1 }}</label>
@@ -202,8 +202,8 @@
           </div>
 
           <div class="form-group">
-            <label>Notes</label>
-            <textarea aria-label="Notes" [ngModel]="formNotes()" (ngModelChange)="updateFormNotes($event)" rows="2" placeholder="Optional notes..."></textarea>
+            <label for="po-notes">Notes</label>
+            <textarea id="po-notes" [ngModel]="formNotes()" (ngModelChange)="updateFormNotes($event)" rows="2" placeholder="Optional notes..."></textarea>
           </div>
         </div>
         <div class="modal-footer">

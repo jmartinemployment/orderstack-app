@@ -171,9 +171,9 @@
     <!-- ═══ TIMELINE TAB ═══ -->
     @if (activeTab() === 'timeline') {
       <div class="timeline-controls d-flex align-items-center gap-3 mb-3">
-        <label class="form-label mb-0 small fw-semibold">Date:</label>
-        <input type="date" class="form-control form-control-sm timeline-date-picker"
-          [value]="timelineDate()" (change)="setTimelineDate($event)" aria-label="Timeline date" />
+        <label class="form-label mb-0 small fw-semibold" for="bm-timeline-date">Date:</label>
+        <input id="bm-timeline-date" type="date" class="form-control form-control-sm timeline-date-picker"
+          [value]="timelineDate()" (change)="setTimelineDate($event)" />
 
         <!-- Calendar Sync Toggle -->
         <button type="button" class="btn btn-sm ms-auto"
@@ -687,26 +687,26 @@
         </div>
         <div class="card-body">
           <div class="mb-3">
-            <label class="form-label">Party Name *</label>
-            <input type="text" class="form-control" placeholder="Smith"
-              [value]="waitlistName()" (input)="onWaitlistField('name', $event)" aria-label="Party name" />
+            <label class="form-label" for="bm-wl-name">Party Name *</label>
+            <input id="bm-wl-name" type="text" class="form-control" placeholder="Smith"
+              [value]="waitlistName()" (input)="onWaitlistField('name', $event)" />
           </div>
           <div class="row g-3 mb-3">
             <div class="col-6">
-              <label class="form-label">Party Size *</label>
-              <input type="number" class="form-control" min="1" max="20"
-                [value]="waitlistSize()" (input)="onWaitlistField('size', $event)" aria-label="Party size" />
+              <label class="form-label" for="bm-wl-size">Party Size *</label>
+              <input id="bm-wl-size" type="number" class="form-control" min="1" max="20"
+                [value]="waitlistSize()" (input)="onWaitlistField('size', $event)" />
             </div>
             <div class="col-6">
-              <label class="form-label">Phone</label>
-              <input type="tel" class="form-control" placeholder="(555) 123-4567"
-                [value]="waitlistPhone()" (input)="onWaitlistField('phone', $event)" aria-label="Phone" />
+              <label class="form-label" for="bm-wl-phone">Phone</label>
+              <input id="bm-wl-phone" type="tel" class="form-control" placeholder="(555) 123-4567"
+                [value]="waitlistPhone()" (input)="onWaitlistField('phone', $event)" />
             </div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Notes</label>
-            <textarea class="form-control" rows="2" placeholder="High chair, outdoor seating..."
-              [value]="waitlistNotes()" (input)="onWaitlistField('notes', $event)" aria-label="Notes"></textarea>
+            <label class="form-label" for="bm-wl-notes">Notes</label>
+            <textarea id="bm-wl-notes" class="form-control" rows="2" placeholder="High chair, outdoor seating..."
+              [value]="waitlistNotes()" (input)="onWaitlistField('notes', $event)"></textarea>
           </div>
         </div>
         <div class="card-footer d-flex gap-2 justify-content-end">
@@ -736,32 +736,32 @@
           <div class="card-body">
             <div class="row g-3">
               <div class="col-12 col-md-6">
-                <label class="form-label">Guest Name *</label>
-                <input type="text" class="form-control" formControlName="customerName" placeholder="John Smith" aria-label="Guest name" />
+                <label class="form-label" for="bm-res-name">Guest Name *</label>
+                <input id="bm-res-name" type="text" class="form-control" formControlName="customerName" placeholder="John Smith" />
               </div>
               <div class="col-12 col-md-6">
-                <label class="form-label">Phone *</label>
-                <input type="tel" class="form-control" formControlName="customerPhone" placeholder="(555) 123-4567" aria-label="Phone" />
+                <label class="form-label" for="bm-res-phone">Phone *</label>
+                <input id="bm-res-phone" type="tel" class="form-control" formControlName="customerPhone" placeholder="(555) 123-4567" />
               </div>
             </div>
 
             <div class="mb-3 mt-3">
-              <label class="form-label">Email</label>
-              <input type="email" class="form-control" formControlName="customerEmail" placeholder="guest&#64;email.com" aria-label="Email" />
+              <label class="form-label" for="bm-res-email">Email</label>
+              <input id="bm-res-email" type="email" class="form-control" formControlName="customerEmail" placeholder="guest&#64;email.com" />
             </div>
 
             <div class="row g-3 mb-3">
               <div class="col-4">
-                <label class="form-label">Party Size *</label>
-                <input type="number" class="form-control" formControlName="partySize" min="1" max="20" aria-label="Party size" />
+                <label class="form-label" for="bm-res-party">Party Size *</label>
+                <input id="bm-res-party" type="number" class="form-control" formControlName="partySize" min="1" max="20" />
               </div>
               <div class="col-4">
-                <label class="form-label">Date *</label>
-                <input type="date" class="form-control" formControlName="reservationDate" aria-label="Reservation date" />
+                <label class="form-label" for="bm-res-date">Date *</label>
+                <input id="bm-res-date" type="date" class="form-control" formControlName="reservationDate" />
               </div>
               <div class="col-4">
-                <label class="form-label">Time *</label>
-                <input type="time" class="form-control" formControlName="reservationTime" aria-label="Reservation time" />
+                <label class="form-label" for="bm-res-time">Time *</label>
+                <input id="bm-res-time" type="time" class="form-control" formControlName="reservationTime" />
               </div>
             </div>
 
@@ -778,8 +778,8 @@
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Special Requests</label>
-              <textarea class="form-control" rows="2" formControlName="specialRequests" placeholder="High chair, birthday, dietary needs..." aria-label="Special requests"></textarea>
+              <label class="form-label" for="bm-res-requests">Special Requests</label>
+              <textarea id="bm-res-requests" class="form-control" rows="2" formControlName="specialRequests" placeholder="High chair, birthday, dietary needs..."></textarea>
             </div>
 
             <!-- Recurring Option -->
@@ -794,8 +794,8 @@
               <div class="recurring-options p-3 mb-3">
                 <div class="row g-3">
                   <div class="col-6">
-                    <label class="form-label">Repeat Pattern</label>
-                    <select class="form-select" [value]="recurringPattern()" (change)="setRecurringPattern($event)" aria-label="Repeat pattern">
+                    <label class="form-label" for="bm-rec-pattern">Repeat Pattern</label>
+                    <select id="bm-rec-pattern" class="form-select" [value]="recurringPattern()" (change)="setRecurringPattern($event)">
                       <option value="weekly">Weekly</option>
                       <option value="biweekly">Biweekly</option>
                       <option value="monthly">Monthly</option>
@@ -804,9 +804,9 @@
                     </select>
                   </div>
                   <div class="col-6">
-                    <label class="form-label">End Date (optional)</label>
-                    <input type="date" class="form-control"
-                      [value]="recurringEndDate()" (change)="setRecurringEndDate($event)" aria-label="Recurring end date" />
+                    <label class="form-label" for="bm-rec-end">End Date (optional)</label>
+                    <input id="bm-rec-end" type="date" class="form-control"
+                      [value]="recurringEndDate()" (change)="setRecurringEndDate($event)" />
                   </div>
                 </div>
               </div>
@@ -843,46 +843,46 @@
           <div class="card-body">
             <div class="row g-3 mb-3">
               <div class="col-6">
-                <label class="form-label">Type *</label>
-                <select class="form-select" formControlName="bookingType" aria-label="Event type">
+                <label class="form-label" for="bm-ev-type">Type *</label>
+                <select id="bm-ev-type" class="form-select" formControlName="bookingType">
                   <option value="event">Event</option>
                   <option value="class">Class</option>
                 </select>
               </div>
               <div class="col-6">
-                <label class="form-label">Title *</label>
-                <input type="text" class="form-control" formControlName="title" placeholder="Wine Tasting Night" aria-label="Event title" />
+                <label class="form-label" for="bm-ev-title">Title *</label>
+                <input id="bm-ev-title" type="text" class="form-control" formControlName="title" placeholder="Wine Tasting Night" />
               </div>
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Description</label>
-              <textarea class="form-control" rows="2" formControlName="description" placeholder="Describe the event..." aria-label="Event description"></textarea>
+              <label class="form-label" for="bm-ev-desc">Description</label>
+              <textarea id="bm-ev-desc" class="form-control" rows="2" formControlName="description" placeholder="Describe the event..."></textarea>
             </div>
 
             <div class="row g-3 mb-3">
               <div class="col-4">
-                <label class="form-label">Date *</label>
-                <input type="date" class="form-control" formControlName="date" aria-label="Event date" />
+                <label class="form-label" for="bm-ev-date">Date *</label>
+                <input id="bm-ev-date" type="date" class="form-control" formControlName="date" />
               </div>
               <div class="col-4">
-                <label class="form-label">Start Time *</label>
-                <input type="time" class="form-control" formControlName="startTime" aria-label="Start time" />
+                <label class="form-label" for="bm-ev-start">Start Time *</label>
+                <input id="bm-ev-start" type="time" class="form-control" formControlName="startTime" />
               </div>
               <div class="col-4">
-                <label class="form-label">End Time *</label>
-                <input type="time" class="form-control" formControlName="endTime" aria-label="End time" />
+                <label class="form-label" for="bm-ev-end">End Time *</label>
+                <input id="bm-ev-end" type="time" class="form-control" formControlName="endTime" />
               </div>
             </div>
 
             <div class="row g-3 mb-3">
               <div class="col-4">
-                <label class="form-label">Max Attendees *</label>
-                <input type="number" class="form-control" formControlName="maxAttendees" min="1" aria-label="Max attendees" />
+                <label class="form-label" for="bm-ev-capacity">Max Attendees *</label>
+                <input id="bm-ev-capacity" type="number" class="form-control" formControlName="maxAttendees" min="1" />
               </div>
               <div class="col-4">
-                <label class="form-label">Price per Person ($)</label>
-                <input type="number" class="form-control" formControlName="pricePerPerson" min="0" step="0.01" aria-label="Price per person" />
+                <label class="form-label" for="bm-ev-price">Price per Person ($)</label>
+                <input id="bm-ev-price" type="number" class="form-control" formControlName="pricePerPerson" min="0" step="0.01" />
               </div>
               <div class="col-4 d-flex flex-column justify-content-end">
                 <div class="form-check">
@@ -1123,8 +1123,8 @@
         </div>
         <div class="card-body">
           <div class="mb-3">
-            <label class="form-label">Seating Preference</label>
-            <select class="form-select" [value]="prefSeating()" (change)="onPrefField('seating', $event)" aria-label="Seating preference">
+            <label class="form-label" for="bm-pref-seating">Seating Preference</label>
+            <select id="bm-pref-seating" class="form-select" [value]="prefSeating()" (change)="onPrefField('seating', $event)">
               <option value="no_preference">No Preference</option>
               <option value="indoor">Indoor</option>
               <option value="outdoor">Outdoor</option>
@@ -1135,9 +1135,9 @@
 
           <div class="row g-3 mb-3">
             <div class="col-6">
-              <label class="form-label">High Chairs Needed</label>
-              <input type="number" class="form-control" min="0" max="5"
-                [value]="prefHighChairs()" (input)="onPrefField('highChairs', $event)" aria-label="High chairs needed" />
+              <label class="form-label" for="bm-pref-chairs">High Chairs Needed</label>
+              <input id="bm-pref-chairs" type="number" class="form-control" min="0" max="5"
+                [value]="prefHighChairs()" (input)="onPrefField('highChairs', $event)" />
             </div>
             <div class="col-6 d-flex align-items-end">
               <div class="form-check">
@@ -1159,7 +1159,7 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Dietary Restrictions</label>
+            <p class="form-label">Dietary Restrictions</p>
             <div class="dietary-grid">
               @for (option of dietaryOptions; track option) {
                 <button type="button" class="dietary-chip"
@@ -1172,9 +1172,9 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Additional Notes</label>
-            <textarea class="form-control" rows="2" placeholder="VIP guest, prefers corner booth..."
-              [value]="prefNotes() ?? ''" (input)="onPrefField('notes', $event)" aria-label="Additional notes"></textarea>
+            <label class="form-label" for="bm-pref-notes">Additional Notes</label>
+            <textarea id="bm-pref-notes" class="form-control" rows="2" placeholder="VIP guest, prefers corner booth..."
+              [value]="prefNotes() ?? ''" (input)="onPrefField('notes', $event)"></textarea>
           </div>
         </div>
         <div class="card-footer d-flex gap-2 justify-content-end">
@@ -1201,10 +1201,10 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Notification Message</label>
-            <textarea class="form-control" rows="3"
+            <label class="form-label" for="bm-sms-msg">Notification Message</label>
+            <textarea id="bm-sms-msg" class="form-control" rows="3"
               [value]="smsMessage()" (input)="onSmsField('message', $event)"
-              placeholder="Hi {name}, your table is ready..." aria-label="Notification message"></textarea>
+              placeholder="Hi {name}, your table is ready..."></textarea>
             <div class="form-text">
               Variables: <code>{{ '{' }}name{{ '}' }}</code> = guest name, <code>{{ '{' }}restaurant{{ '}' }}</code> = restaurant name
             </div>
@@ -1222,9 +1222,9 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Auto-Remove After (minutes)</label>
-            <input type="number" class="form-control" min="5" max="60" style="max-width: 120px"
-              [value]="smsAutoRemove()" (input)="onSmsField('autoRemove', $event)" aria-label="Auto-remove after minutes" />
+            <label class="form-label" for="bm-sms-remove">Auto-Remove After (minutes)</label>
+            <input id="bm-sms-remove" type="number" class="form-control" min="5" max="60" style="max-width: 120px"
+              [value]="smsAutoRemove()" (input)="onSmsField('autoRemove', $event)" />
             <div class="form-text">
               Remove guests who don't respond after this many minutes
             </div>
@@ -1266,7 +1266,7 @@
           @if (virtualWaitlistConfig(); as vConfig) {
             @if (vConfig.qrCodeUrl) {
               <div class="mb-3">
-                <label class="form-label">QR Code</label>
+                <p class="form-label">QR Code</p>
                 <div class="qr-placeholder text-center p-3">
                   <img [src]="vConfig.qrCodeUrl" alt="Waitlist QR Code" class="qr-code-img" />
                 </div>
@@ -1274,9 +1274,9 @@
             }
             @if (vConfig.joinUrl) {
               <div class="mb-3">
-                <label class="form-label">Join Link</label>
+                <label class="form-label" for="bm-virt-link">Join Link</label>
                 <div class="input-group">
-                  <input type="text" class="form-control" [value]="vConfig.joinUrl" readonly aria-label="Join link" />
+                  <input id="bm-virt-link" type="text" class="form-control" [value]="vConfig.joinUrl" readonly />
                   <button type="button" class="btn btn-outline-secondary" (click)="copyJoinLink()" aria-label="Copy join link">
                     <i class="bi bi-clipboard"></i>
                   </button>
@@ -1286,9 +1286,9 @@
           }
 
           <div class="mb-3">
-            <label class="form-label">Max Queue Size</label>
-            <input type="number" class="form-control" min="5" max="200" style="max-width: 120px"
-              [value]="virtualMaxQueue()" (input)="onVirtualField('maxQueue', $event)" aria-label="Max queue size" />
+            <label class="form-label" for="bm-virt-maxqueue">Max Queue Size</label>
+            <input id="bm-virt-maxqueue" type="number" class="form-control" min="5" max="200" style="max-width: 120px"
+              [value]="virtualMaxQueue()" (input)="onVirtualField('maxQueue', $event)" />
             <div class="form-text">
               Maximum number of guests who can be on the waitlist at once
             </div>

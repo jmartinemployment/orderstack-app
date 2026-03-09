@@ -415,7 +415,7 @@
               </div>
 
               <div class="mb-3">
-                <label class="form-label small fw-semibold">Rules Logic</label>
+                <p class="form-label small fw-semibold">Rules Logic</p>
                 <div class="d-flex gap-2">
                   <button type="button" class="btn btn-sm" [class.btn-primary]="groupFormLogic() === 'and'" [class.btn-outline-secondary]="groupFormLogic() !== 'and'" (click)="setGroupFormLogic('and')">
                     Match ALL rules
@@ -427,7 +427,7 @@
               </div>
 
               <div class="mb-3">
-                <label class="form-label small fw-semibold">Rules</label>
+                <p class="form-label small fw-semibold">Rules</p>
                 @for (rule of groupFormRules(); track $index) {
                   <div class="rule-row d-flex gap-2 mb-2 align-items-center">
                     <select class="form-select form-select-sm rule-field" aria-label="Rule field" [value]="rule.field" (change)="updateRuleField($index, $any($event.target).value)">

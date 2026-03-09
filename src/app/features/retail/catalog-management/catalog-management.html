@@ -402,12 +402,12 @@
         <div class="form-section">
           <div class="form-row">
             <div class="form-group flex-1">
-              <label>Name</label>
-              <input type="text" class="form-control" [ngModel]="itemForm().name" (ngModelChange)="updateItemForm({ name: $event })" placeholder="Product name" aria-label="Name" />
+              <label for="cat-item-name">Name</label>
+              <input id="cat-item-name" type="text" class="form-control" [ngModel]="itemForm().name" (ngModelChange)="updateItemForm({ name: $event })" placeholder="Product name" />
             </div>
             <div class="form-group" style="width: 120px;">
-              <label>Type</label>
-              <select class="form-select" [ngModel]="itemForm().itemType" (ngModelChange)="updateItemType($event)" aria-label="Type">
+              <label for="cat-item-type">Type</label>
+              <select id="cat-item-type" class="form-select" [ngModel]="itemForm().itemType" (ngModelChange)="updateItemType($event)">
                 <option value="physical">Physical</option>
                 <option value="digital">Digital</option>
                 <option value="service">Service</option>
@@ -415,23 +415,23 @@
             </div>
           </div>
           <div class="form-group">
-            <label>Description</label>
-            <textarea class="form-control" rows="3" [ngModel]="itemForm().description" (ngModelChange)="updateItemForm({ description: $event })" placeholder="Product description" aria-label="Description"></textarea>
+            <label for="cat-item-desc">Description</label>
+            <textarea id="cat-item-desc" class="form-control" rows="3" [ngModel]="itemForm().description" (ngModelChange)="updateItemForm({ description: $event })" placeholder="Product description"></textarea>
           </div>
           <div class="form-row">
             <div class="form-group flex-1">
-              <label>Price</label>
-              <input type="number" class="form-control" [ngModel]="itemForm().basePrice" (ngModelChange)="updateItemForm({ basePrice: $event })" step="0.01" min="0" aria-label="Price" />
+              <label for="cat-item-price">Price</label>
+              <input id="cat-item-price" type="number" class="form-control" [ngModel]="itemForm().basePrice" (ngModelChange)="updateItemForm({ basePrice: $event })" step="0.01" min="0" />
             </div>
             <div class="form-group flex-1">
-              <label>Cost</label>
-              <input type="number" class="form-control" [ngModel]="itemForm().cost" (ngModelChange)="updateItemForm({ cost: $event })" step="0.01" min="0" placeholder="Optional" aria-label="Cost" />
+              <label for="cat-item-cost">Cost</label>
+              <input id="cat-item-cost" type="number" class="form-control" [ngModel]="itemForm().cost" (ngModelChange)="updateItemForm({ cost: $event })" step="0.01" min="0" placeholder="Optional" />
             </div>
           </div>
           <div class="form-row">
             <div class="form-group flex-1">
-              <label>Category</label>
-              <select class="form-select" [ngModel]="itemForm().categoryId" (ngModelChange)="updateItemForm({ categoryId: $event })">
+              <label for="cat-item-cat">Category</label>
+              <select id="cat-item-cat" class="form-select" [ngModel]="itemForm().categoryId" (ngModelChange)="updateItemForm({ categoryId: $event })">
                 <option [ngValue]="null">None</option>
                 @for (cat of categories(); track cat.id) {
                   <option [ngValue]="cat.id">{{ cat.name }}</option>
@@ -451,21 +451,21 @@
             <div class="section-content">
               <div class="form-row">
                 <div class="form-group flex-1">
-                  <label>SKU</label>
+                  <label for="cat-item-sku">SKU</label>
                   <div class="input-group">
-                    <input type="text" class="form-control" [ngModel]="itemForm().sku" (ngModelChange)="updateItemForm({ sku: $event })" placeholder="e.g. TSHRT-BLK-M" aria-label="SKU" />
+                    <input id="cat-item-sku" type="text" class="form-control" [ngModel]="itemForm().sku" (ngModelChange)="updateItemForm({ sku: $event })" placeholder="e.g. TSHRT-BLK-M" />
                     <button class="btn btn-outline-secondary btn-sm" (click)="autoGenerateSku()">Auto</button>
                   </div>
                 </div>
                 <div class="form-group flex-1">
-                  <label>Barcode</label>
-                  <input type="text" class="form-control" [ngModel]="itemForm().barcode" (ngModelChange)="updateItemForm({ barcode: $event })" placeholder="Scan or enter" aria-label="Barcode" />
+                  <label for="cat-item-barcode">Barcode</label>
+                  <input id="cat-item-barcode" type="text" class="form-control" [ngModel]="itemForm().barcode" (ngModelChange)="updateItemForm({ barcode: $event })" placeholder="Scan or enter" />
                 </div>
               </div>
 
               <!-- Channel Visibility -->
               <div class="form-group">
-                <label>Channel Visibility</label>
+                <p class="form-label mb-2">Channel Visibility</p>
                 <div class="checkbox-row">
                   <label class="form-check">
                     <input type="checkbox" class="form-check-input" [ngModel]="itemForm().channelVisibility.inStore" (ngModelChange)="updateChannelVisibility('inStore', $event)" />
@@ -500,8 +500,8 @@
 
               @if (itemForm().weightBased) {
                 <div class="form-group" style="max-width: 200px;">
-                  <label>Weight Unit</label>
-                  <select class="form-select" [ngModel]="itemForm().weightUnit" (ngModelChange)="updateItemForm({ weightUnit: $event })" aria-label="Weight unit">
+                  <label for="cat-item-weight-unit">Weight Unit</label>
+                  <select id="cat-item-weight-unit" class="form-select" [ngModel]="itemForm().weightUnit" (ngModelChange)="updateItemForm({ weightUnit: $event })">
                     <option value="lb">lb</option>
                     <option value="oz">oz</option>
                     <option value="kg">kg</option>
@@ -533,12 +533,12 @@
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>Name</label>
-          <input type="text" class="form-control" [ngModel]="categoryForm().name" (ngModelChange)="updateCategoryName($event)" />
+          <label for="cat-cat-name">Name</label>
+          <input id="cat-cat-name" type="text" class="form-control" [ngModel]="categoryForm().name" (ngModelChange)="updateCategoryName($event)" />
         </div>
         <div class="form-group">
-          <label>Parent Category</label>
-          <select class="form-select" [ngModel]="categoryForm().parentId" (ngModelChange)="updateCategoryParent($event)">
+          <label for="cat-cat-parent">Parent Category</label>
+          <select id="cat-cat-parent" class="form-select" [ngModel]="categoryForm().parentId" (ngModelChange)="updateCategoryParent($event)">
             <option [ngValue]="null">None (top level)</option>
             @for (cat of categories(); track cat.id) {
               <option [ngValue]="cat.id">{{ cat.name }}</option>
@@ -566,11 +566,11 @@
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>Name</label>
-          <input type="text" class="form-control" [ngModel]="optionSetForm().name" (ngModelChange)="updateOptionSetName($event)" placeholder="e.g. Size, Color" aria-label="Name" />
+          <label for="cat-opt-name">Name</label>
+          <input id="cat-opt-name" type="text" class="form-control" [ngModel]="optionSetForm().name" (ngModelChange)="updateOptionSetName($event)" placeholder="e.g. Size, Color" />
         </div>
         <div class="form-group">
-          <label>Values</label>
+          <p class="form-label">Values</p>
           <div class="value-input-row">
             <input
               type="text"
@@ -613,19 +613,19 @@
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>Name</label>
-          <input type="text" class="form-control" [ngModel]="collectionForm().name" (ngModelChange)="updateCollectionName($event)" aria-label="Name" />
+          <label for="cat-col-name">Name</label>
+          <input id="cat-col-name" type="text" class="form-control" [ngModel]="collectionForm().name" (ngModelChange)="updateCollectionName($event)" />
         </div>
         <div class="form-group">
-          <label>Type</label>
-          <select class="form-select" [ngModel]="collectionForm().type" (ngModelChange)="updateCollectionType($event)" aria-label="Type">
+          <label for="cat-col-type">Type</label>
+          <select id="cat-col-type" class="form-select" [ngModel]="collectionForm().type" (ngModelChange)="updateCollectionType($event)">
             <option value="manual">Manual</option>
             <option value="smart">Smart (Rule-based)</option>
           </select>
         </div>
         @if (collectionForm().type === 'smart') {
           <div class="form-group">
-            <label>Rules</label>
+            <p class="form-label">Rules</p>
             <div class="rule-builder">
               <div class="rule-input-row">
                 <select class="form-select form-select-sm" [ngModel]="newRule().field" (ngModelChange)="updateNewRuleField($event)" aria-label="Rule field">
@@ -677,12 +677,12 @@
       <div class="modal-body">
         <div class="form-row">
           <div class="form-group flex-1">
-            <label>Bundle Name</label>
-            <input type="text" class="form-control" [ngModel]="bundleForm().name" (ngModelChange)="updateBundleName($event)" placeholder="e.g. Summer Gift Set" aria-label="Bundle name" />
+            <label for="cat-bun-name">Bundle Name</label>
+            <input id="cat-bun-name" type="text" class="form-control" [ngModel]="bundleForm().name" (ngModelChange)="updateBundleName($event)" placeholder="e.g. Summer Gift Set" />
           </div>
           <div class="form-group" style="width: 160px;">
-            <label>Pricing Strategy</label>
-            <select class="form-select" [ngModel]="bundleForm().bundleType" (ngModelChange)="updateBundleType($event)" aria-label="Pricing strategy">
+            <label for="cat-bun-type">Pricing Strategy</label>
+            <select id="cat-bun-type" class="form-select" [ngModel]="bundleForm().bundleType" (ngModelChange)="updateBundleType($event)">
               <option value="fixed_price">Fixed Price</option>
               <option value="percent_discount">% Discount</option>
               <option value="cheapest_free">Cheapest Free</option>
@@ -692,14 +692,14 @@
         <div class="form-row">
           @if (bundleForm().bundleType === 'fixed_price') {
             <div class="form-group" style="width: 160px;">
-              <label>Bundle Price</label>
-              <input type="number" class="form-control" [ngModel]="bundleForm().price" (ngModelChange)="updateBundlePrice($event)" step="0.01" min="0" aria-label="Bundle price" />
+              <label for="cat-bun-price">Bundle Price</label>
+              <input id="cat-bun-price" type="number" class="form-control" [ngModel]="bundleForm().price" (ngModelChange)="updateBundlePrice($event)" step="0.01" min="0" />
             </div>
           }
           @if (bundleForm().bundleType === 'percent_discount') {
             <div class="form-group" style="width: 160px;">
-              <label>Discount %</label>
-              <input type="number" class="form-control" [ngModel]="bundleForm().discountPercent" (ngModelChange)="updateBundleDiscount($event)" min="0" max="100" aria-label="Discount percent" />
+              <label for="cat-bun-discount">Discount %</label>
+              <input id="cat-bun-discount" type="number" class="form-control" [ngModel]="bundleForm().discountPercent" (ngModelChange)="updateBundleDiscount($event)" min="0" max="100" />
             </div>
           }
           @if (bundleSavings() > 0) {
@@ -711,7 +711,7 @@
 
         <!-- Components -->
         <div class="form-group">
-          <label>Components</label>
+          <p class="form-label">Components</p>
           <div class="component-search">
             <input
               type="text"
