@@ -1,4 +1,4 @@
-<div class="modal-overlay" (click)="onCancel()" aria-hidden="true">
+<div class="modal-overlay" (click)="onCancel()" (keydown.escape)="onCancel()" aria-hidden="true">
   <div class="modal-panel" (click)="$event.stopPropagation()">
     <div class="modal-header-bar">
       <h5>{{ mode() === 'void' ? 'Void Item' : 'Comp Item' }}</h5>

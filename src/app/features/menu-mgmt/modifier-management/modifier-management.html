@@ -118,7 +118,7 @@
 
   <!-- ============ Group Form Modal ============ -->
   @if (showGroupForm()) {
-    <div class="modal-backdrop" (click)="closeGroupForm()" aria-hidden="true"></div>
+    <div class="modal-backdrop" (click)="closeGroupForm()" (keydown.escape)="closeGroupForm()" aria-hidden="true"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -177,7 +177,7 @@
 
   <!-- ============ Option Form Modal ============ -->
   @if (showOptionForm()) {
-    <div class="modal-backdrop" (click)="closeOptionForm()" aria-hidden="true"></div>
+    <div class="modal-backdrop" (click)="closeOptionForm()" (keydown.escape)="closeOptionForm()" aria-hidden="true"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -216,7 +216,7 @@
 
   <!-- ============ Delete Confirmation Modal ============ -->
   @if (showDeleteConfirm()) {
-    <div class="modal-backdrop" (click)="cancelDelete()" aria-hidden="true"></div>
+    <div class="modal-backdrop" (click)="cancelDelete()" (keydown.escape)="cancelDelete()" aria-hidden="true"></div>
     <div class="modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
