@@ -100,12 +100,19 @@ function deriveFulfillmentStatus(backendOrderStatus: string): FulfillmentStatus 
   }
 }
 
+function toRawString(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (value == null) return '';
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  return '';
+}
+
 function mapItemFulfillmentStatus(
   rawItemStatus: unknown,
   fallback: FulfillmentStatus,
   hasCourse: boolean
 ): FulfillmentStatus {
-  const normalized = (typeof rawItemStatus === 'string' ? rawItemStatus : rawItemStatus == null ? '' : String(rawItemStatus)).toUpperCase();
+  const normalized = toRawString(rawItemStatus).toUpperCase();
   switch (normalized) {
     case 'NEW':
       return 'NEW';
@@ -127,7 +134,7 @@ function mapItemFulfillmentStatus(
 }
 
 function mapCourseFireStatus(rawStatus: unknown): CourseFireStatus {
-  switch ((typeof rawStatus === 'string' ? rawStatus : rawStatus == null ? '' : String(rawStatus)).toUpperCase()) {
+  switch (toRawString(rawStatus).toUpperCase()) {
     case 'FIRED':
       return 'FIRED';
     case 'READY':
@@ -152,7 +159,8 @@ function courseFireStatusRank(status: CourseFireStatus): number {
 
 function parseDate(value: unknown): Date | undefined {
   if (!value) return undefined;
-  const date = new Date(typeof value === 'string' || typeof value === 'number' ? value : value == null ? '' : String(value));
+  const dateInput: string | number = typeof value === 'string' || typeof value === 'number' ? value : '';
+  const date = new Date(dateInput);
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 

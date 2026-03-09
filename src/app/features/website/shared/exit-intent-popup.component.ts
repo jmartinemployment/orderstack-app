@@ -42,7 +42,7 @@ export class ExitIntentPopupComponent implements OnDestroy {
   constructor() {
     afterNextRender(() => {
       if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem(SESSION_KEY)) return;
-      if (typeof globalThis.window !== 'undefined' && globalThis.window.innerWidth < 768) return;
+      if (globalThis.window !== undefined && globalThis.window.innerWidth < 768) return;
 
       this.delayTimer = setTimeout(() => {
         this.ready = true;

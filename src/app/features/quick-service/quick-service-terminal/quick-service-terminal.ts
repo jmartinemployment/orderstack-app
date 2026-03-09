@@ -27,7 +27,6 @@ import {
   QSR_PALETTE,
   collectMenuItems,
   filterTerminalItems,
-  filterItemsByCategory,
   computeTerminalGridItems,
   buildCategoryColorMap,
   handleKeypadPress,

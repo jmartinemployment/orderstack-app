@@ -27,7 +27,6 @@ import {
 import {
   collectMenuItems,
   filterTerminalItems,
-  filterItemsByCategory,
   computeTerminalGridItems,
   handleKeypadPress,
   parseItemPrice,
