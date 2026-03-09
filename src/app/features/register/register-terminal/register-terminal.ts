@@ -21,6 +21,7 @@ import { BottomNavigation } from '@shared/bottom-navigation/bottom-navigation';
 import { ItemGrid } from '@shared/item-grid';
 import {
   MenuItem,
+  MenuCategory,
   WEIGHT_UNIT_LABELS,
 } from '@models/index';
 import {

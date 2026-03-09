@@ -4,6 +4,7 @@ import {
   DeliveryQuote,
   DeliveryDispatchResult,
   DeliveryDriverInfo,
+  ActiveDeliveryProviderType,
 } from '../../models/delivery.model';
 
 export async function buildProviderError(response: Response, fallback: string): Promise<Error> {
@@ -30,7 +31,7 @@ export async function buildProviderError(response: Response, fallback: string): 
 }
 
 export abstract class BaseHttpDeliveryProvider implements DeliveryProvider {
-  abstract readonly type: string;
+  abstract readonly type: ActiveDeliveryProviderType;
 
   async requestQuote(orderId: string, context: DeliveryContext): Promise<DeliveryQuote> {
     const response = await fetch(
