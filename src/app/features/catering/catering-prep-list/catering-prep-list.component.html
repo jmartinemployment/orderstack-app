@@ -20,9 +20,9 @@
 
 @if (isLoading()) {
   <div class="d-flex justify-content-center align-items-center py-5">
-    <div class="spinner-border text-primary" role="status">
+    <output class="spinner-border text-primary">
       <span class="visually-hidden">Loading...</span>
-    </div>
+    </output>
   </div>
 } @else if (prepList(); as pl) {
   <div class="prep-document">

@@ -1,6 +1,6 @@
 @if (visible()) {
   <div class="mkt-exit-backdrop" (click)="onBackdropClick($event)" (keydown.escape)="close()" aria-hidden="true">
-    <div class="mkt-exit-modal" role="dialog" aria-modal="true" aria-label="Special offer">
+    <dialog class="mkt-exit-modal" aria-modal="true" aria-label="Special offer">
       <button class="mkt-exit-modal__close" (click)="close()" aria-label="Close popup">
         <i class="bi bi-x-lg" aria-hidden="true"></i>
       </button>
@@ -39,6 +39,6 @@
           <p>{{ config.thankYou }}</p>
         </div>
       }
-    </div>
+    </dialog>
   </div>
 }

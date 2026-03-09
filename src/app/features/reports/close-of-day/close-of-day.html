@@ -71,7 +71,7 @@
   <!-- Loading -->
   @if (isLoading()) {
     <div class="cod-loading">
-      <div class="spinner-border text-primary" role="status"></div>
+      <output class="spinner-border text-primary"></output>
       <p>Loading report data...</p>
     </div>
   } @else {
@@ -325,7 +325,7 @@
       <div class="cod-section">
         @if (isLoadingTeam()) {
           <div class="section-card full-width text-center py-4">
-            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+            <output class="spinner-border spinner-border-sm text-primary me-2"></output>
             Loading team sales...
           </div>
         } @else {
@@ -402,7 +402,7 @@
       <div class="cod-section">
         @if (isLoadingTax()) {
           <div class="section-card full-width text-center py-4">
-            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+            <output class="spinner-border spinner-border-sm text-primary me-2"></output>
             Loading tax report...
           </div>
         } @else if (taxReport(); as report) {
@@ -545,7 +545,7 @@
       <div class="cod-section">
         @if (isLoadingDelivery()) {
           <div class="section-card full-width text-center py-4">
-            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+            <output class="spinner-border spinner-border-sm text-primary me-2"></output>
             Loading delivery analytics...
           </div>
         } @else if (deliveryReport(); as report) {

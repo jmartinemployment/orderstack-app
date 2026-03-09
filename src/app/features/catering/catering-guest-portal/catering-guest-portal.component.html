@@ -1,9 +1,9 @@
 <div class="guest-portal">
   @if (isLoading()) {
     <div class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
+      <output class="spinner-border text-primary">
         <span class="visually-hidden">Loading...</span>
-      </div>
+      </output>
       <p class="text-muted mt-3">Loading your event details...</p>
     </div>
   } @else if (error()) {
@@ -106,14 +106,14 @@
           <span class="small fw-semibold">{{ paymentPercent }}%</span>
         </div>
         <div class="progress" style="height: 10px;">
-          <div
+          <progress
             class="progress-bar bg-success"
-            role="progressbar"
-            [style.width.%]="paymentPercent"
+            [value]="paymentPercent"
+            max="100"
             [attr.aria-valuenow]="paymentPercent"
             aria-valuemin="0"
             aria-valuemax="100">
-          </div>
+          </progress>
         </div>
       </div>
 

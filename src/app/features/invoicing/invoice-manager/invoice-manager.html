@@ -377,7 +377,7 @@
         <div class="d-flex gap-2">
           <button type="button" class="btn btn-primary" [disabled]="!canSaveInvoice() || isSaving()" (click)="saveInvoice()">
             @if (isSaving()) {
-              <span class="spinner-border spinner-border-sm me-1" role="status"><span class="visually-hidden">Saving...</span></span>
+              <output class="spinner-border spinner-border-sm me-1"><span class="visually-hidden">Saving...</span></output>
             }
             Create Invoice
           </button>
@@ -431,7 +431,7 @@
         <div class="d-flex gap-2">
           <button type="button" class="btn btn-primary" [disabled]="!canSaveAccount() || isSaving()" (click)="saveHouseAccount()">
             @if (isSaving()) {
-              <span class="spinner-border spinner-border-sm me-1" role="status"><span class="visually-hidden">Saving...</span></span>
+              <output class="spinner-border spinner-border-sm me-1"><span class="visually-hidden">Saving...</span></output>
             }
             Create Account
           </button>

@@ -1,8 +1,8 @@
 @if (isLoading()) {
   <div class="proposal-loading">
-    <div class="spinner-border text-primary" role="status">
+    <output class="spinner-border text-primary">
       <span class="visually-hidden">Loading proposal...</span>
-    </div>
+    </output>
     <p class="mt-3 text-muted">Loading your proposal...</p>
   </div>
 }
@@ -163,7 +163,7 @@
         (click)="approvePackage()"
       >
         @if (isApproving()) {
-          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          <output class="spinner-border spinner-border-sm me-2"></output>
           Confirming...
         } @else {
           Confirm Selection

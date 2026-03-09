@@ -253,7 +253,7 @@
 
 <!-- ==================== TOAST NOTIFICATION ==================== -->
 @if (notification.toast(); as toast) {
-  <div class="pos-toast" role="status" aria-live="polite">
+  <output class="pos-toast" aria-live="polite">
     <i class="bi bi-check-circle-fill pos-toast-icon"></i>
     <span class="pos-toast-message">{{ toast.message }}</span>
     <button
@@ -263,5 +263,5 @@
       (click)="notification.dismiss()">
       <i class="bi bi-x-lg"></i>
     </button>
-  </div>
+  </output>
 }

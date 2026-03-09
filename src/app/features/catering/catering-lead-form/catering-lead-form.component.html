@@ -119,7 +119,7 @@
           class="btn btn-primary w-100 btn-lg"
           [disabled]="isSubmitting() || !clientName.trim() || !clientEmail.trim()">
           @if (isSubmitting()) {
-            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            <output class="spinner-border spinner-border-sm me-2"></output>
             Submitting...
           } @else {
             Submit Request

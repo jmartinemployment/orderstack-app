@@ -1,8 +1,8 @@
 @if (isLoading() && !subscription()) {
   <div class="text-center py-5">
-    <div class="spinner-border text-primary" role="status">
+    <output class="spinner-border text-primary">
       <span class="visually-hidden">Loading...</span>
-    </div>
+    </output>
   </div>
 } @else if (subscription(); as sub) {
   <div class="account-billing">
@@ -26,14 +26,14 @@
             <span class="trial-label">of 14-day free trial</span>
           </div>
           <div class="progress trial-progress">
-            <div
+            <progress
               class="progress-bar"
-              role="progressbar"
-              [style.width.%]="trialProgress()"
+              [value]="trialProgress()"
+              max="100"
               [attr.aria-valuenow]="trialProgress()"
               aria-valuemin="0"
               aria-valuemax="100">
-            </div>
+            </progress>
           </div>
         </div>
       }

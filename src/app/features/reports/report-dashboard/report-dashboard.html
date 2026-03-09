@@ -240,7 +240,7 @@
         <div class="modal-body">
           <div class="form-group">
             <p id="export-format-label" class="form-label">Format</p>
-            <div class="format-options" role="group" aria-labelledby="export-format-label">
+            <fieldset class="format-options" aria-labelledby="export-format-label"><legend class="visually-hidden">Format</legend>
               <button
                 class="format-option"
                 [class.active]="exportFormat() === 'pdf'"
@@ -265,16 +265,16 @@
                 <i class="bi bi-file-earmark-excel"></i>
                 <span>Excel</span>
               </button>
-            </div>
+            </fieldset>
           </div>
 
           <div class="form-group">
             <p id="export-date-range-label" class="form-label">Date Range</p>
-            <div class="date-row" role="group" aria-labelledby="export-date-range-label">
+            <fieldset class="date-row" aria-labelledby="export-date-range-label"><legend class="visually-hidden">Date Range</legend>
               <input type="date" class="form-control" aria-label="Start date" [ngModel]="exportStartDate()" (ngModelChange)="setExportStartDate($event)" />
               <span class="date-sep">to</span>
               <input type="date" class="form-control" aria-label="End date" [ngModel]="exportEndDate()" (ngModelChange)="setExportEndDate($event)" />
-            </div>
+            </fieldset>
           </div>
 
           <div class="form-group">

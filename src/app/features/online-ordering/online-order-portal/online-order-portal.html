@@ -433,7 +433,8 @@
         @if (!isTableside()) {
           <div class="mb-3">
             <label class="form-label" id="oop-order-type-label">Order Type</label>
-            <div class="order-type-toggle d-flex gap-2 flex-wrap" role="group" aria-labelledby="oop-order-type-label">
+            <fieldset aria-labelledby="oop-order-type-label"><legend class="visually-hidden">Order Type</legend>
+              <div class="order-type-toggle d-flex gap-2 flex-wrap">
               <button
                 type="button"
                 class="btn flex-fill"
@@ -462,7 +463,8 @@
                 [class.btn-outline-light]="orderType() !== 'dine-in'"
                 (click)="setOrderType('dine-in')"
               >Dine-In</button>
-            </div>
+              </div>
+            </fieldset>
           </div>
         } @else {
           <div class="tableside-badge mb-3">
@@ -541,7 +543,7 @@
           @if (savedAddresses().length > 0) {
             <div class="saved-addresses-section mb-3">
               <label class="form-label" id="oop-delivery-address-label">Delivery Address</label>
-              <div class="saved-address-list" role="group" aria-labelledby="oop-delivery-address-label">
+              <fieldset class="saved-address-list" aria-labelledby="oop-delivery-address-label"><legend class="visually-hidden">Delivery Address</legend>
                 @for (addr of savedAddresses(); track addr.id) {
                   <button
                     type="button"
@@ -567,7 +569,7 @@
                 >
                   <div class="saved-addr-label"><i class="bi bi-plus-circle"></i> New Address</div>
                 </button>
-              </div>
+              </fieldset>
             </div>
           }
 
@@ -642,7 +644,7 @@
 
         <!-- Loyalty Program -->
         @if (loyaltyEnabled()) {
-          <div class="loyalty-section mb-3" role="group" aria-label="Loyalty Program">
+          <fieldset class="loyalty-section mb-3" aria-label="Loyalty Program"><legend class="visually-hidden">Loyalty Program</legend>
             <label class="form-label">Loyalty Program</label>
             @if (isLookingUpLoyalty()) {
               <div class="d-flex align-items-center gap-2">
@@ -709,7 +711,7 @@
                 }
               </div>
             }
-          </div>
+          </fieldset>
         }
 
         <!-- Gift Card -->
@@ -780,7 +782,7 @@
         </div>
 
         <!-- Tip Selection -->
-        <div class="tip-section mb-3" role="group" aria-label="Add a Tip">
+        <fieldset class="tip-section mb-3" aria-label="Add a Tip"><legend class="visually-hidden">Add a Tip</legend>
           <label class="form-label">Add a Tip</label>
           <div class="tip-presets d-flex gap-2 mb-2">
             @for (preset of tipPresets; track preset.percent) {
@@ -819,7 +821,7 @@
               <button type="button" class="btn btn-sm btn-link tip-clear" (click)="clearTip()">Remove</button>
             </div>
           }
-        </div>
+        </fieldset>
 
         <!-- Order Summary -->
         <div class="order-summary mb-3">

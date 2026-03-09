@@ -17,7 +17,7 @@
     <div class="api-discovery-panel" [class.api-discovery-found]="apiDiscoveryResult()?.hasApi" [class.api-discovery-none]="apiDiscoveryResult() && !apiDiscoveryResult()?.hasApi">
       <div class="api-discovery-icon">
         @if (apiDiscoveryLoading()) {
-          <div class="spinner-border spinner-border-sm" role="status"></div>
+          <output class="spinner-border spinner-border-sm"></output>
         } @else if (apiDiscoveryResult()?.hasApi) {
           <i class="bi bi-plug"></i>
         } @else {
@@ -262,7 +262,7 @@
         <div class="ai-response-body">
           @if (aiLoading()) {
             <div class="ai-loading">
-              <div class="spinner-border spinner-border-sm" role="status"></div>
+              <output class="spinner-border spinner-border-sm"></output>
               <span>Analyzing your inventory data...</span>
             </div>
           } @else if (aiResponse(); as response) {

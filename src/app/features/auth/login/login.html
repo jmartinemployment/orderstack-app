@@ -177,7 +177,7 @@
             (click)="onCreateAccount()"
           >
             @if (isLoading()) {
-              <span class="spinner-border spinner-border-sm" role="status"></span>
+              <output class="spinner-border spinner-border-sm"></output>
             }
             Create Account
           </button>
@@ -198,7 +198,7 @@
 <!-- Forgot Password Modal -->
 @if (showForgotModal()) {
   <div class="modal-backdrop" (click)="closeForgotPassword()" (keydown.enter)="closeForgotPassword()" tabindex="0"></div>
-  <div class="modal-dialog" role="dialog" aria-labelledby="forgotModalTitle">
+  <dialog class="modal-dialog" aria-labelledby="forgotModalTitle">
     <div class="modal-content">
       <div class="modal-header">
         <h3 id="forgotModalTitle" class="modal-title">Reset your password</h3>
@@ -255,12 +255,12 @@
             (click)="submitForgotPassword()"
           >
             @if (forgotLoading()) {
-              <span class="spinner-border spinner-border-sm" role="status"></span>
+              <output class="spinner-border spinner-border-sm"></output>
             }
             Submit
           </button>
         </div>
       }
     </div>
-  </div>
+  </dialog>
 }

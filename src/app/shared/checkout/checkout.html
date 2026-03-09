@@ -51,9 +51,9 @@
 
           @if (checkout.tablesLoading()) {
             <div class="table-loading">
-              <div class="spinner-border text-primary" role="status">
+              <output class="spinner-border text-primary">
                 <span class="visually-hidden">Loading tables...</span>
-              </div>
+              </output>
             </div>
           } @else {
             <div class="table-grid">
@@ -165,9 +165,9 @@
       <!-- Creating Order spinner -->
       @if (checkout.isCreatingOrder()) {
         <div class="checkout-step checkout-step-centered">
-          <div class="spinner-border text-primary" role="status">
+          <output class="spinner-border text-primary">
             <span class="visually-hidden">{{ mode() === 'send' ? 'Sending order...' : 'Creating order...' }}</span>
-          </div>
+          </output>
           <p class="checkout-subtitle">{{ mode() === 'send' ? 'Sending to kitchen...' : 'Placing your order...' }}</p>
         </div>
       }
@@ -175,9 +175,9 @@
       <!-- Step: Sending (send mode) -->
       @if (checkout.checkoutStep() === 'sending' && !checkout.isCreatingOrder()) {
         <div class="checkout-step checkout-step-centered">
-          <div class="spinner-border text-primary" role="status">
+          <output class="spinner-border text-primary">
             <span class="visually-hidden">Sending order...</span>
-          </div>
+          </output>
           <p class="checkout-subtitle">Sending to kitchen...</p>
         </div>
       }

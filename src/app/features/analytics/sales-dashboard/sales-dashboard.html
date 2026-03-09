@@ -297,7 +297,7 @@
 
           <div class="goal-form-field">
             <span id="goal-period-label">Period</span>
-            <div class="btn-group-sm" role="group" aria-labelledby="goal-period-label">
+            <fieldset class="btn-group-sm" aria-labelledby="goal-period-label"><legend class="visually-hidden">Period</legend>
               @for (type of ['daily', 'weekly', 'monthly']; track type) {
                 <button
                   class="btn btn-sm"
@@ -307,7 +307,7 @@
                   {{ type | titlecase }}
                 </button>
               }
-            </div>
+            </fieldset>
           </div>
 
           <div class="goal-form-field">

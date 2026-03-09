@@ -61,9 +61,9 @@
   <!-- PROCESSING -->
   @if (isProcessing() && !isReaderActive()) {
     <div class="payment-processing">
-      <div class="spinner-border text-light" role="status">
+      <output class="spinner-border text-light">
         <span class="visually-hidden">Processing...</span>
-      </div>
+      </output>
       <p class="processing-text">Processing payment...</p>
     </div>
   }
