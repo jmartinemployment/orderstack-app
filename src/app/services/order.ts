@@ -105,7 +105,7 @@ function mapItemFulfillmentStatus(
   fallback: FulfillmentStatus,
   hasCourse: boolean
 ): FulfillmentStatus {
-  const normalized = (rawItemStatus == null ? '' : String(rawItemStatus)).toUpperCase();
+  const normalized = (typeof rawItemStatus === 'string' ? rawItemStatus : rawItemStatus == null ? '' : String(rawItemStatus)).toUpperCase();
   switch (normalized) {
     case 'NEW':
       return 'NEW';
@@ -127,7 +127,7 @@ function mapItemFulfillmentStatus(
 }
 
 function mapCourseFireStatus(rawStatus: unknown): CourseFireStatus {
-  switch ((rawStatus == null ? '' : String(rawStatus)).toUpperCase()) {
+  switch ((typeof rawStatus === 'string' ? rawStatus : rawStatus == null ? '' : String(rawStatus)).toUpperCase()) {
     case 'FIRED':
       return 'FIRED';
     case 'READY':
@@ -152,7 +152,7 @@ function courseFireStatusRank(status: CourseFireStatus): number {
 
 function parseDate(value: unknown): Date | undefined {
   if (!value) return undefined;
-  const date = new Date(value == null ? '' : String(value));
+  const date = new Date(typeof value === 'string' || typeof value === 'number' ? value : value == null ? '' : String(value));
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
@@ -1616,7 +1616,7 @@ export class OrderService implements OnDestroy {
     const timestamps = mapTimestamps(raw);
     const throttle = mapThrottle(raw);
     const marketplace = mapMarketplace(raw);
-    const depositAmount = raw.depositAmount != null ? Number(raw.depositAmount) : undefined;
+    const depositAmount = raw.depositAmount == null ? undefined : Number(raw.depositAmount);
 
     return {
       guid: raw.id ?? crypto.randomUUID(),

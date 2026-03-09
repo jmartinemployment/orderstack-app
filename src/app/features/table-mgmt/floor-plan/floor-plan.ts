@@ -547,10 +547,7 @@ export class FloorPlan implements OnInit {
     const printWindow = globalThis.open('', '_blank');
     if (!printWindow) return;
 
-    printWindow.document.open();
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html><head><title>QR Codes — All Areas</title>
+    printWindow.document.documentElement.innerHTML = `<head><title>QR Codes — All Areas</title>
       <style>
         body { font-family: sans-serif; padding: 20px; }
         @media print { body { padding: 0; } }
@@ -559,9 +556,7 @@ export class FloorPlan implements OnInit {
       <div style="display: flex; flex-wrap: wrap; justify-content: center;">
         ${html}
       </div>
-      </body></html>
-    `);
-    printWindow.document.close();
+      </body>`;
     printWindow.addEventListener('load', () => {
       printWindow.print();
     });

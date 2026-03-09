@@ -132,7 +132,7 @@
               id="password"
               formControlName="password"
               placeholder="Min 6 characters"
-              autocomplete="current-password"
+              [attr.autocomplete]="showPassword() ? 'off' : 'current-password'"
               [class.is-invalid]="passwordControl?.touched && passwordControl?.invalid"
               (keydown.enter)="onSignIn()"
             />

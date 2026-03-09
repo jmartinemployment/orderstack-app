@@ -16,6 +16,7 @@
           role="switch"
           id="loyaltyEnabledToggle"
           [checked]="enabled()"
+          [attr.aria-checked]="enabled()"
           (change)="onToggle($event)" />
         <label class="form-check-label" for="loyaltyEnabledToggle">
           Enable Loyalty Program
@@ -165,6 +166,7 @@
             role="switch"
             id="referralEnabledToggle"
             [checked]="referralEnabled()"
+            [attr.aria-checked]="referralEnabled()"
             (change)="onReferralToggle($event)" />
           <label class="form-check-label" for="referralEnabledToggle">
             Enable Referral Program

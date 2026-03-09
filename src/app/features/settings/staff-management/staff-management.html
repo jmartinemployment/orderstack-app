@@ -113,6 +113,13 @@
       <h6 class="text-muted mb-2">Inactive Members</h6>
       <div class="table-responsive">
         <table class="table table-dark table-hover align-middle">
+          <thead class="visually-hidden">
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Jobs</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
           <tbody>
             @for (member of inactiveTeamMembers(); track member.id) {
               <tr class="opacity-50">

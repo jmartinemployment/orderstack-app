@@ -108,7 +108,8 @@ export class PayPalPaymentProvider implements PaymentProvider {
         }
       },
       onError: (err: Record<string, unknown>) => {
-        const error = new Error(err['message'] !== null && err['message'] !== undefined ? String(err['message']) : 'PayPal error');
+        const msg = err['message'];
+        const error = new Error(typeof msg === 'string' ? msg : 'PayPal error');
         if (this.rejectConfirm) {
           this.rejectConfirm(error);
           this.resolveConfirm = null;

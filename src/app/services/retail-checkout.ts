@@ -519,8 +519,8 @@ export class RetailCheckoutService {
         )
       );
       this._receiptTemplate.set(template);
-    } catch (err: unknown) {
-      // No template yet — use defaults
+    } catch {
+      // 404 means no receipt template configured yet — fall back to null (component uses defaults)
       this._receiptTemplate.set(null);
     }
   }
@@ -599,8 +599,8 @@ export class RetailCheckoutService {
         )
       );
       this._returnPolicy.set(policy);
-    } catch (err: unknown) {
-      // Use defaults if no policy configured
+    } catch {
+      // 404 means no return policy configured yet — fall back to built-in defaults
       this._returnPolicy.set({
         returnWindowDays: 30,
         requireReceipt: true,

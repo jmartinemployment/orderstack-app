@@ -907,10 +907,7 @@ export class PendingOrders implements OnInit, OnDestroy {
     const printWindow = globalThis.open('', '_blank', 'width=350,height=600');
     if (!printWindow) return;
 
-    // document.open/write/close is the standard approach for populating a new blank window for printing
-    printWindow.document.open();
-    printWindow.document.write(html);
-    printWindow.document.close();
+    printWindow.document.documentElement.innerHTML = html;
     printWindow.onload = () => {
       printWindow.print();
       printWindow.close();
