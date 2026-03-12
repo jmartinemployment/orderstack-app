@@ -52,7 +52,7 @@ export class CateringPackagesComponent implements OnInit {
   readonly templates = this.cateringService.packageTemplates;
 
   readonly cateringMenuItems = computed(() =>
-    this.menuService.allItems().filter(i => i.menuType === 'catering')
+    this.menuService.allItems().filter(i => i.isActive !== false)
   );
 
   readonly filteredMenuItems = computed(() => {
@@ -61,6 +61,17 @@ export class CateringPackagesComponent implements OnInit {
     return this.cateringMenuItems().filter(i =>
       i.name.toLowerCase().includes(filter)
     );
+  });
+
+  readonly suggestedPricePerUnit = computed(() => {
+    const selectedIds = this._form().menuItemIds;
+    if (selectedIds.length === 0) return null;
+    const items = this.menuService.allItems();
+    const total = selectedIds.reduce((sum, id) => {
+      const item = items.find(i => i.id === id);
+      return sum + (item ? Number(item.price) : 0);
+    }, 0);
+    return total;
   });
 
   readonly pricingModelLabels: Record<PricingModel, string> = {

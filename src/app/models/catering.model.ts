@@ -100,6 +100,10 @@ export interface CateringJob {
   invoiceId?: string;
   contractUrl?: string;
   contractSignedAt?: string;
+  proposalSentAt?: string;
+  signatureImageUrl?: string | null;
+  signerIp?: string | null;
+  signerConsentedAt?: string | null;
 
   // Invoice branding overrides (falls back to merchant-level if null)
   brandingLogoUrl?: string;

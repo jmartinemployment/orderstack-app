@@ -386,10 +386,10 @@ export const routes: Routes = [
 
       // Admin
       { path: 'multi-location', loadComponent: () => import('./features/multi-location/multi-location-dashboard/multi-location-dashboard').then(m => m.MultiLocationDashboard) },
-      { path: 'settings/business', loadComponent: () => import('./features/catering/catering-stub/catering-stub.component').then(m => m.CateringStubComponent), data: { title: 'Business Info' } },
-      { path: 'settings/branding', loadComponent: () => import('./features/catering/catering-stub/catering-stub.component').then(m => m.CateringStubComponent), data: { title: 'Invoice Branding' } },
-      { path: 'settings/payments', loadComponent: () => import('./features/catering/catering-stub/catering-stub.component').then(m => m.CateringStubComponent), data: { title: 'Payment Setup' } },
-      { path: 'settings/notifications', loadComponent: () => import('./features/catering/catering-stub/catering-stub.component').then(m => m.CateringStubComponent), data: { title: 'Notifications' } },
+      { path: 'settings/business', loadComponent: () => import('./features/settings/general-settings/general-settings').then(m => m.GeneralSettings) },
+      { path: 'settings/branding', loadComponent: () => import('./features/settings/invoice-branding/invoice-branding').then(m => m.InvoiceBranding) },
+      { path: 'settings/payments', loadComponent: () => import('./features/settings/payment-settings/payment-settings').then(m => m.PaymentSettingsComponent) },
+      { path: 'settings/notifications', loadComponent: () => import('./features/settings/notification-settings/notification-settings').then(m => m.NotificationSettingsComponent) },
       { path: 'settings', loadComponent: () => import('./features/settings/control-panel/control-panel').then(m => m.ControlPanel) },
 
       // Online ordering admin (manages channel visibility, online hours) — owner/manager only

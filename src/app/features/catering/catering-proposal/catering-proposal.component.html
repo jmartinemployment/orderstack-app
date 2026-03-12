@@ -152,6 +152,52 @@
       </div>
     }
 
+    <!-- Electronic consent -->
+    <div class="esign-section">
+      <div class="esign-consent">
+        <label class="form-check">
+          <input
+            type="checkbox"
+            class="form-check-input"
+            [checked]="electronicConsentGiven()"
+            (change)="toggleConsent()" />
+          <span class="form-check-label">
+            I agree to sign this document electronically. My electronic signature is legally binding
+            under the U.S. ESIGN Act and has the same effect as a handwritten signature.
+          </span>
+        </label>
+      </div>
+
+      @if (electronicConsentGiven()) {
+        <div class="signature-wrap">
+          <div class="signature-header">
+            <span class="signature-label">Draw your signature below</span>
+            <button type="button" class="btn-clear-sig" (click)="clearSignature()">
+              <i class="bi bi-eraser"></i> Clear
+            </button>
+          </div>
+          <canvas
+            #signatureCanvas
+            class="signature-canvas"
+            [class.has-signature]="hasSignature()"
+            width="600"
+            height="160"
+            aria-label="Signature pad — draw your signature"
+            (mousedown)="onCanvasMouseDown($event)"
+            (mousemove)="onCanvasMouseMove($event)"
+            (mouseup)="onCanvasMouseUp()"
+            (mouseleave)="onCanvasMouseUp()"
+            (touchstart)="onCanvasTouchStart($event)"
+            (touchmove)="onCanvasTouchMove($event)"
+            (touchend)="onCanvasTouchEnd()">
+          </canvas>
+          @if (!hasSignature()) {
+            <p class="signature-hint">Sign above using your mouse or finger</p>
+          }
+        </div>
+      }
+    </div>
+
     <!-- Approve button -->
     <div class="approval-actions">
       @if (error()) {
@@ -166,13 +212,17 @@
           <output class="spinner-border spinner-border-sm me-2"></output>
           Confirming...
         } @else {
-          Confirm Selection
+          <i class="bi bi-pen me-2"></i>Sign &amp; Confirm
         }
       </button>
       @if (!selectedPackageId()) {
         <p class="hint-text">Select a package above to continue.</p>
       } @else if (job()!.contractUrl && !contractAcknowledged()) {
         <p class="hint-text">Please acknowledge the contract to continue.</p>
+      } @else if (!electronicConsentGiven()) {
+        <p class="hint-text">Please consent to electronic signing to continue.</p>
+      } @else if (!hasSignature()) {
+        <p class="hint-text">Please draw your signature to continue.</p>
       }
     </div>
 

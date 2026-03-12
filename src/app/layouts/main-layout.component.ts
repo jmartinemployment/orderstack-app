@@ -211,6 +211,11 @@ export class MainLayoutComponent {
         icon: 'bi-truck',
         route: '/app/catering/delivery',
       },
+      {
+        label: 'Suppliers',
+        icon: 'bi-building',
+        route: '/app/suppliers',
+      },
 
       // Business
       {
@@ -450,6 +455,7 @@ export class MainLayoutComponent {
         items.push({ label: 'Bookings', icon: 'bi-calendar-event', route: '/app/bookings' });
       }
     }
+
 
     if (retail) {
       items.push(

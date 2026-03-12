@@ -178,6 +178,42 @@ $font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, 
 }
 
 // Item Picker
+.price-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  background: $blue-light;
+  border-radius: $radius-sm;
+  font-size: 0.8125rem;
+
+  .suggestion-label {
+    color: $text-secondary;
+    flex: 1;
+  }
+
+  .suggestion-amount {
+    font-weight: 700;
+    color: $blue;
+  }
+
+  .btn-use-suggestion {
+    background: $blue;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+      background: darken($blue, 8%);
+    }
+  }
+}
+
 .item-search {
   margin-bottom: 0.5rem;
 }

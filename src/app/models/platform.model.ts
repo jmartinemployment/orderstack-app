@@ -540,6 +540,9 @@ export interface MerchantProfile {
   onboardingComplete: boolean;
   createdAt: string;
   businessCategory?: string | null;
+  defaultBrandingLogoUrl?: string | null;
+  defaultBrandingColor?: string | null;
+  defaultInvoiceNotes?: string | null;
 }
 
 export interface BusinessAddress {

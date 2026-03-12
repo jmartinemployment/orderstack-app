@@ -476,12 +476,17 @@ export class CateringService {
     }
   }
 
-  async approveProposal(token: string, packageId: string): Promise<{ success: boolean; packageName: string; totalCents: number } | null> {
+  async approveProposal(
+    token: string,
+    packageId: string,
+    signatureImage: string,
+    consentedAt: string,
+  ): Promise<{ success: boolean; packageName: string; totalCents: number } | null> {
     try {
       return await firstValueFrom(
         this.http.post<{ success: boolean; packageName: string; totalCents: number }>(
           `${this.apiUrl}/catering/proposal/${token}/approve`,
-          { packageId }
+          { packageId, signatureImage, consentedAt }
         )
       );
     } catch {

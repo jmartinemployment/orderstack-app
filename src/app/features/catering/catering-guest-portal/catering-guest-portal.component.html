@@ -77,16 +77,33 @@
       <h5 class="card-title">
         <i class="bi bi-file-earmark-text me-2"></i>Contract
       </h5>
-      @if (j.contractUrl) {
+
+      @if (j.contractSignedAt) {
+        <div class="signed-badge mb-3">
+          <i class="bi bi-patch-check-fill text-success me-2"></i>
+          <span class="text-success fw-semibold">Signed electronically</span>
+          <span class="text-muted small ms-2">{{ j.contractSignedAt | date:'medium' }}</span>
+        </div>
+
+        @if (j.signatureImageUrl) {
+          <div class="signature-record">
+            <p class="signature-record-label">Signature on file</p>
+            <img [src]="j.signatureImageUrl" alt="Client signature" class="signature-record-img" />
+          </div>
+        }
+
+        @if (j.signerIp) {
+          <div class="audit-row">
+            <i class="bi bi-geo me-1 text-muted"></i>
+            <span class="text-muted small">IP: {{ j.signerIp }}</span>
+          </div>
+        }
+      } @else if (j.contractUrl) {
         <div class="d-flex align-items-center gap-3">
           <a [href]="j.contractUrl" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm">
             <i class="bi bi-download me-1"></i>View Contract
           </a>
-          @if (j.contractSignedAt) {
-            <span class="text-success small">
-              <i class="bi bi-check-circle me-1"></i>Signed {{ j.contractSignedAt | date:'mediumDate' }}
-            </span>
-          }
+          <span class="text-muted small"><i class="bi bi-clock me-1"></i>Awaiting signature</span>
         </div>
       } @else {
         <span class="text-muted">
@@ -106,14 +123,14 @@
           <span class="small fw-semibold">{{ paymentPercent }}%</span>
         </div>
         <div class="progress" style="height: 10px;">
-          <progress
+          <div
             class="progress-bar bg-success"
-            [value]="paymentPercent"
-            max="100"
+            role="progressbar"
+            [style.width.%]="paymentPercent"
             [attr.aria-valuenow]="paymentPercent"
             aria-valuemin="0"
             aria-valuemax="100">
-          </progress>
+          </div>
         </div>
       </div>
 
