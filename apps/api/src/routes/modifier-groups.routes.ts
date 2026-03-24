@@ -42,7 +42,7 @@ export const modifierGroupsRoutes: FastifyPluginAsync = async (fastify: FastifyI
   // GET /modifier-groups
   fastify.get('/', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const groups = await db
       .select()
@@ -80,7 +80,7 @@ export const modifierGroupsRoutes: FastifyPluginAsync = async (fastify: FastifyI
   // POST /modifier-groups
   fastify.post('/', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const body = createModifierGroupBody.parse(request.body)
     const groupId = nanoid()
@@ -132,7 +132,7 @@ export const modifierGroupsRoutes: FastifyPluginAsync = async (fastify: FastifyI
   // GET /modifier-groups/:id
   fastify.get('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 
@@ -157,7 +157,7 @@ export const modifierGroupsRoutes: FastifyPluginAsync = async (fastify: FastifyI
   // PATCH /modifier-groups/:id
   fastify.patch('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
     const body = updateModifierGroupBody.parse(request.body)
@@ -239,7 +239,7 @@ export const modifierGroupsRoutes: FastifyPluginAsync = async (fastify: FastifyI
   // DELETE /modifier-groups/:id
   fastify.delete('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 

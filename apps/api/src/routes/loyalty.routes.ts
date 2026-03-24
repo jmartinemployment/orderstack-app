@@ -46,7 +46,7 @@ export const loyaltyRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
   // GET /loyalty/programs — list programs for tenant
   fastify.get('/programs', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const programs = await db
       .select()
@@ -60,7 +60,7 @@ export const loyaltyRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
   // POST /loyalty/programs — create a loyalty program
   fastify.post('/programs', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const body = createProgramBody.parse(request.body)
     const id = nanoid()
@@ -92,7 +92,7 @@ export const loyaltyRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
   // PATCH /loyalty/programs/:id — update program config
   fastify.patch('/programs/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
     const body = updateProgramBody.parse(request.body)
@@ -137,7 +137,7 @@ export const loyaltyRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
   // GET /loyalty/accounts/:customerId — get loyalty accounts for customer with tier and balance
   fastify.get('/accounts/:customerId', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { customerId } = request.params as { customerId: string }
 
@@ -165,7 +165,7 @@ export const loyaltyRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
   // POST /loyalty/accounts/:customerId/adjust — manual points adjustment
   fastify.post('/accounts/:customerId/adjust', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { customerId } = request.params as { customerId: string }
     const body = adjustPointsBody.parse(request.body)

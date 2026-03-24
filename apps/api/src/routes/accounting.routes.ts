@@ -108,7 +108,7 @@ export const accountingRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // GET /accounting/chart-of-accounts — list COA
   fastify.get('/chart-of-accounts', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const accounts = await db
       .select()
@@ -122,7 +122,7 @@ export const accountingRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // POST /accounting/chart-of-accounts — create account
   fastify.post('/chart-of-accounts', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const body = createAccountBody.parse(request.body)
     const id = nanoid()
@@ -168,7 +168,7 @@ export const accountingRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // PATCH /accounting/chart-of-accounts/:id — update account
   fastify.patch('/chart-of-accounts/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
     const body = updateAccountBody.parse(request.body)
@@ -419,7 +419,7 @@ export const accountingRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // POST /accounting/export — create GL export job
   fastify.post('/export', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const body = exportBody.parse(request.body)
     const exportId = nanoid()
@@ -470,7 +470,7 @@ export const accountingRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // GET /accounting/exports — list GL exports
   fastify.get('/exports', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const exports = await db
       .select()
@@ -485,7 +485,7 @@ export const accountingRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // GET /accounting/exports/:id — get export detail with optional presigned URL
   fastify.get('/exports/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 

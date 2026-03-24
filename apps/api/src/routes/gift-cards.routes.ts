@@ -49,7 +49,7 @@ export const giftCardsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   // GET /gift-cards — list with optional filters
   fastify.get('/', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const query = listGiftCardsQuery.parse(request.query)
     const { status, search, page, limit } = query
@@ -87,7 +87,7 @@ export const giftCardsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   // POST /gift-cards — create and activate
   fastify.post('/', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const body = createGiftCardBody.parse(request.body)
     const id = nanoid()
@@ -138,7 +138,7 @@ export const giftCardsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   // PATCH /gift-cards/:id — update status
   fastify.patch('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
     const body = updateGiftCardBody.parse(request.body)
@@ -172,7 +172,7 @@ export const giftCardsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   // POST /gift-cards/:code/reload — reload balance
   fastify.post('/:code/reload', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { code } = request.params as { code: string }
     const body = reloadBody.parse(request.body)

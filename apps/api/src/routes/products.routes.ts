@@ -98,7 +98,7 @@ export const productsRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
   // GET /products
   fastify.get('/', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const query = listProductsQuery.parse(request.query)
     const { search, categoryId, isActive, productType, page, limit } = query
@@ -146,7 +146,7 @@ export const productsRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
   // POST /products
   fastify.post('/', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const body = createProductBody.parse(request.body)
     const productId = nanoid()
@@ -200,7 +200,7 @@ export const productsRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
   // POST /products/bulk
   fastify.post('/bulk', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const body = bulkCreateBody.parse(request.body)
     const now = new Date()
@@ -254,7 +254,7 @@ export const productsRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
   // GET /products/:id
   fastify.get('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 
@@ -294,7 +294,7 @@ export const productsRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
   // PATCH /products/:id
   fastify.patch('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
     const body = updateProductBody.parse(request.body)
@@ -329,7 +329,7 @@ export const productsRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
   // DELETE /products/:id — soft delete
   fastify.delete('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 
@@ -352,7 +352,7 @@ export const productsRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
   // GET /products/:id/variants
   fastify.get('/:id/variants', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 
@@ -374,7 +374,7 @@ export const productsRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
   // POST /products/:id/variants
   fastify.post('/:id/variants', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 
@@ -415,7 +415,7 @@ export const productsRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
   // PATCH /products/:id/variants/:variantId
   fastify.patch('/:id/variants/:variantId', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id, variantId } = request.params as { id: string; variantId: string }
     const body = updateVariantBody.parse(request.body)
@@ -454,7 +454,7 @@ export const productsRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
   // DELETE /products/:id/variants/:variantId — soft delete
   fastify.delete('/:id/variants/:variantId', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id, variantId } = request.params as { id: string; variantId: string }
 

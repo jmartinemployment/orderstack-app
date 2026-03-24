@@ -49,7 +49,7 @@ export const menusRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
   // GET /menus
   fastify.get('/', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const rows = await db
       .select()
@@ -63,7 +63,7 @@ export const menusRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
   // POST /menus
   fastify.post('/', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const body = createMenuBody.parse(request.body)
     const id = nanoid()
@@ -87,7 +87,7 @@ export const menusRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
   // GET /menus/:id — with items and location assignments
   fastify.get('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 
@@ -130,7 +130,7 @@ export const menusRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
   // PATCH /menus/:id
   fastify.patch('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
     const body = updateMenuBody.parse(request.body)
@@ -162,7 +162,7 @@ export const menusRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
   // DELETE /menus/:id
   fastify.delete('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 
@@ -184,7 +184,7 @@ export const menusRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
   // POST /menus/:id/items
   fastify.post('/:id/items', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
     const body = addMenuItemBody.parse(request.body)
@@ -226,7 +226,7 @@ export const menusRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
   // PATCH /menus/:id/items/:itemId
   fastify.patch('/:id/items/:itemId', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id, itemId } = request.params as { id: string; itemId: string }
     const body = updateMenuItemBody.parse(request.body)
@@ -272,7 +272,7 @@ export const menusRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
   // DELETE /menus/:id/items/:itemId
   fastify.delete('/:id/items/:itemId', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id, itemId } = request.params as { id: string; itemId: string }
 
@@ -302,7 +302,7 @@ export const menusRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) 
   // POST /menus/:id/publish — upsert menu_locations
   fastify.post('/:id/publish', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
     const body = publishMenuBody.parse(request.body)

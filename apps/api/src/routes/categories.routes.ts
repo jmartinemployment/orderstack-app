@@ -53,7 +53,7 @@ export const categoriesRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // GET /categories — tree structure
   fastify.get('/', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const rows = await db
       .select()
@@ -69,7 +69,7 @@ export const categoriesRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // POST /categories
   fastify.post('/', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const body = createCategoryBody.parse(request.body)
 
@@ -109,7 +109,7 @@ export const categoriesRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // GET /categories/:id — with children
   fastify.get('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 
@@ -139,7 +139,7 @@ export const categoriesRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // PATCH /categories/:id
   fastify.patch('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
     const body = updateCategoryBody.parse(request.body)
@@ -190,7 +190,7 @@ export const categoriesRoutes: FastifyPluginAsync = async (fastify: FastifyInsta
   // DELETE /categories/:id
   fastify.delete('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 

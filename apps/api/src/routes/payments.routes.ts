@@ -48,7 +48,7 @@ export const paymentsRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
   // GET /payments — list payments with filters
   fastify.get('/', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const query = listPaymentsQuery.parse(request.query)
     const { locationId, status, paymentMethod, dateFrom, dateTo, page, limit } = query
@@ -98,7 +98,7 @@ export const paymentsRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
   // GET /payments/:id — get payment with refunds
   fastify.get('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 
@@ -126,7 +126,7 @@ export const paymentsRoutes: FastifyPluginAsync = async (fastify: FastifyInstanc
   // POST /payments/:id/refund — initiate a refund
   fastify.post('/:id/refund', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
     const body = refundBody.parse(request.body)

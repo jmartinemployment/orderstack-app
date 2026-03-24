@@ -1,43 +1,18 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { sql } from 'drizzle-orm'
-import pg from 'pg'
 import * as schema from './schema/index.js'
 
-const { Pool } = pg
-
 /**
- * Connection pool.
- *
- * DATABASE_URL must point at the Supabase Supavisor pooler in transaction mode.
- * Supavisor is Supabase's built-in connection pooler (equivalent to PgBouncer
- * in transaction mode). Transaction mode is REQUIRED for schema-per-tenant
- * isolation — session mode leaks search_path across connections.
- *
- * Supabase pooler URL format:
- *   postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
- *
- * DIRECT_URL is used only by Drizzle Kit for migrations — it bypasses the
- * pooler and connects directly to the database.
+ * DATABASE_URL points at the Supabase Supavisor pooler (transaction mode).
+ * Drizzle manages its own connection pool internally when given a connection string.
  */
-const pool = new Pool({
-  connectionString: process.env['DATABASE_URL'],
-  max: 10,
-  idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 10_000,
-  ssl: process.env['NODE_ENV'] === 'production' ? { rejectUnauthorized: false } : false,
-})
-
-export const db = drizzle(pool, { schema })
+export const db = drizzle(process.env['DATABASE_URL'] ?? '', { schema })
 
 export type Database = typeof db
 
 /**
- * Executes fn within a Drizzle transaction scoped to the tenant's schema.
- *
- * Uses SET LOCAL so the search_path is automatically scoped to the current
- * transaction and reverts when the transaction ends — no manual reset needed.
- * This eliminates the PoolClient typing conflict while remaining correct with
- * Supavisor in transaction mode.
+ * Executes fn within a transaction scoped to the tenant's schema.
+ * SET LOCAL scopes the search_path to this transaction only.
  */
 export async function withTenantSchema<T>(
   tenantId: string,
@@ -50,8 +25,7 @@ export async function withTenantSchema<T>(
 }
 
 /**
- * Provisions a new tenant schema.
- * Called during tenant registration. Idempotent — safe to call multiple times.
+ * Provisions a new tenant schema. Idempotent.
  */
 export async function provisionTenantSchema(tenantId: string): Promise<void> {
   await db.execute(sql.raw(`CREATE SCHEMA IF NOT EXISTS "merchant_${tenantId}"`))

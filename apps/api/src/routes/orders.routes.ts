@@ -61,7 +61,7 @@ export const ordersRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
   // GET /orders
   fastify.get('/', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const query = listOrdersQuery.parse(request.query)
     const { status, orderType, source, locationId, customerId, dateFrom, dateTo, page, limit } =
@@ -120,7 +120,7 @@ export const ordersRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
   // GET /orders/:id — with items, modifiers, discounts, payments
   fastify.get('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 
@@ -172,7 +172,7 @@ export const ordersRoutes: FastifyPluginAsync = async (fastify: FastifyInstance)
   // PATCH /orders/:id/status
   fastify.patch('/:id/status', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
     const body = updateOrderStatusBody.parse(request.body)
@@ -232,7 +232,7 @@ if (false) {
       return reply.status(403).send({ error: 'Forbidden: orders:void permission required' })
     }
 
-    const db = request.tenantDb
+    const db = request.tenantDb!
     const { id } = request.params as { id: string }
     const body = voidOrderBody.parse(request.body)
 

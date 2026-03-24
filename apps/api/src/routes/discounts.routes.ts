@@ -65,7 +65,7 @@ export const discountsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   // GET /discounts — list discounts
   fastify.get('/', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const query = listDiscountsQuery.parse(request.query)
     const { isActive, type, search, page, limit } = query
@@ -112,7 +112,7 @@ export const discountsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   // POST /discounts — create
   fastify.post('/', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const body = createDiscountBody.parse(request.body)
     const id = nanoid()
@@ -152,7 +152,7 @@ export const discountsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   // GET /discounts/:id — get with usage stats
   fastify.get('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 
@@ -188,7 +188,7 @@ export const discountsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   // PATCH /discounts/:id — update
   fastify.patch('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
     const body = updateDiscountBody.parse(request.body)
@@ -241,7 +241,7 @@ export const discountsRoutes: FastifyPluginAsync = async (fastify: FastifyInstan
   // DELETE /discounts/:id — soft delete
   fastify.delete('/:id', async (request, reply) => {
     await request.authenticate()
-    const db = request.tenantDb
+    const db = request.tenantDb!
 
     const { id } = request.params as { id: string }
 

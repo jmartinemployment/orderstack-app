@@ -78,7 +78,7 @@ export const reportsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
 
   // GET /reports/sales — sales summary
   fastify.get('/sales', async (request, reply) => {
-    const db = request.tenantDb
+    const db = request.tenantDb!
     const query = salesQuery.parse(request.query)
     const { locationId, dateFrom, dateTo, groupBy } = query
 
@@ -153,7 +153,7 @@ export const reportsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
 
   // GET /reports/products — product mix report
   fastify.get('/products', async (request, reply) => {
-    const db = request.tenantDb
+    const db = request.tenantDb!
     const query = productMixQuery.parse(request.query)
     const { locationId, dateFrom, dateTo } = query
 
@@ -202,7 +202,7 @@ export const reportsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
 
   // GET /reports/employees — labor report
   fastify.get('/employees', async (request, reply) => {
-    const db = request.tenantDb
+    const db = request.tenantDb!
     const query = laborQuery.parse(request.query)
     const { locationId, dateFrom, dateTo } = query
 
@@ -287,7 +287,7 @@ export const reportsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
 
   // GET /reports/inventory — inventory valuation
   fastify.get('/inventory', async (request, reply) => {
-    const db = request.tenantDb
+    const db = request.tenantDb!
     const query = inventoryQuery.parse(request.query)
     const { locationId } = query
 
@@ -367,7 +367,7 @@ export const reportsRoutes: FastifyPluginAsync = async (fastify: FastifyInstance
 
   // GET /reports/payments — payment method breakdown
   fastify.get('/payments', async (request, reply) => {
-    const db = request.tenantDb
+    const db = request.tenantDb!
     const query = paymentMethodQuery.parse(request.query)
     const { locationId, dateFrom, dateTo } = query
 
