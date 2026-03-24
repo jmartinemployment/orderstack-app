@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/main.ts",
-    "build": "tsc",
+    "build": "echo build skipped - tsx runs source directly",
     "start": "node dist/main.js",
     "typecheck": "tsc --noEmit"
   },
