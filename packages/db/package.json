@@ -4,16 +4,15 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./dist/src/index.js",
-    "./schema": "./dist/src/schema/index.js",
-    "./client": "./dist/src/client.js"
+    ".": "./src/index.ts",
+    "./schema": "./src/schema/index.ts",
+    "./client": "./src/client.ts"
   },
   "scripts": {
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "typecheck": "tsc --noEmit",
-    "build": "tsc"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "drizzle-orm": "^0.40.0",
